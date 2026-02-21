@@ -2,95 +2,83 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* FBB Light Mode — Warm, premium, organic */
+    --background: 36 33% 97%;
+    --foreground: 240 3% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 240 3% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 240 3% 11%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 22 59% 45%;
+    --primary-foreground: 36 33% 97%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 30 26% 93%;
+    --secondary-foreground: 240 3% 11%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 30 26% 93%;
+    --muted-foreground: 27 5% 40%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 39 44% 61%;
+    --accent-foreground: 240 3% 11%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 5 54% 50%;
+    --destructive-foreground: 36 33% 97%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 30 19% 89%;
+    --input: 30 19% 89%;
+    --ring: 22 59% 45%;
 
-    --radius: 0.5rem;
+    --radius: 1rem;
+
+    --success: 82 20% 45%;
+    --success-foreground: 36 33% 97%;
+    --warning: 38 69% 50%;
+    --gold: 39 44% 61%;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+  /* Workout Dark Mode — High contrast, gym-optimized */
+  .workout-mode {
+    --background: 240 7% 5%;
+    --foreground: 37 24% 93%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 240 7% 11%;
+    --card-foreground: 37 24% 93%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 240 7% 11%;
+    --popover-foreground: 37 24% 93%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 20 60% 56%;
+    --primary-foreground: 240 7% 5%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 240 5% 17%;
+    --secondary-foreground: 37 24% 93%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 240 5% 17%;
+    --muted-foreground: 33 5% 52%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 20 60% 56%;
+    --accent-foreground: 240 7% 5%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --border: 240 5% 17%;
+    --input: 240 5% 17%;
+    --ring: 20 60% 56%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --success: 88 25% 54%;
+    --success-foreground: 240 7% 5%;
   }
 }
 
@@ -99,7 +87,169 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html {
+    font-family: 'DM Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   body {
     @apply bg-background text-foreground;
+    transition: background-color 600ms ease-in-out, color 600ms ease-in-out;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  .font-body {
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .font-mono-num {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .text-hero {
+    @apply font-display text-[32px] font-bold leading-tight tracking-tight;
+  }
+
+  .text-section {
+    @apply font-display text-2xl font-bold leading-tight;
+  }
+
+  .text-card-title {
+    @apply font-display text-xl font-semibold;
+  }
+
+  .text-stat {
+    @apply font-mono-num text-[28px] font-medium leading-none;
+  }
+
+  .text-stat-lg {
+    @apply font-mono-num text-4xl font-medium leading-none;
+  }
+
+  .text-caption {
+    @apply text-sm text-muted-foreground;
+  }
+
+  /* Press state for interactive elements */
+  .press-scale {
+    @apply transition-transform duration-150 active:scale-[0.97];
+  }
+
+  /* Card styles */
+  .card-fbb {
+    @apply bg-card rounded-2xl p-5;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  .card-hero {
+    @apply bg-card rounded-3xl p-6;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  }
+
+  /* Pill / tag */
+  .pill {
+    @apply inline-flex items-center rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground;
+  }
+
+  .pill-primary {
+    @apply inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary;
+  }
+
+  /* Glow effects */
+  .glow-primary {
+    box-shadow: 0 0 20px hsl(22 59% 45% / 0.3);
+  }
+
+  .glow-success {
+    box-shadow: 0 0 16px hsl(82 20% 45% / 0.3);
+  }
+
+  .glow-gold {
+    box-shadow: 0 0 16px hsl(39 44% 61% / 0.25);
+  }
+
+  /* Safe area padding */
+  .pb-safe {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  /* Workout mode specific */
+  .workout-mode .glow-primary {
+    box-shadow: 0 0 24px hsl(20 60% 56% / 0.4);
+  }
+
+  .workout-mode .glow-success {
+    box-shadow: 0 0 20px hsl(88 25% 54% / 0.35);
+  }
+}
+
+/* Custom scrollbar hide */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Pulse animation for terracotta ring */
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 hsl(22 59% 45% / 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 8px hsl(22 59% 45% / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 hsl(22 59% 45% / 0);
+  }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Fade transition for page changes */
+@keyframes fade-up-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up-in 0.4s ease-out;
+}
+
+@keyframes gentle-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animate-gentle-pulse {
+  animation: gentle-pulse 2s ease-in-out infinite;
+}
+
+/* Countdown circle animation */
+@keyframes countdown-stroke {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: 283;
   }
 }
