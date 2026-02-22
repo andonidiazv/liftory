@@ -237,6 +237,88 @@ export const heatmapData: number[][] = [
   [0, 2, 1, 3, 0, 2, 1, 0, 2, 1, 3, 2, 0],
 ];
 
+export interface BlockExercise {
+  name: string;
+  sets?: number;
+  reps?: string;
+  weight?: string;
+  tempo?: string;
+  rpe?: string;
+  duration?: string;
+  note?: string;
+}
+
+export interface WorkoutBlock {
+  id: string;
+  name: string;
+  type: "warmup" | "strength" | "conditioning" | "cooldown";
+  accentColor: string;
+  icon: string;
+  estimatedTime: string;
+  format?: string;
+  exercises: BlockExercise[];
+}
+
+export const sessionBlocks: WorkoutBlock[] = [
+  {
+    id: "warmup",
+    name: "CALENTAMIENTO",
+    type: "warmup",
+    accentColor: "hsl(38, 69%, 50%)",
+    icon: "Sun",
+    estimatedTime: "8-10 min",
+    exercises: [
+      { name: "Cat-Cow Stretch", sets: 2, reps: "10", tempo: "2-0-2-0" },
+      { name: "World's Greatest Stretch", sets: 2, reps: "5 c/lado" },
+      { name: "Band Pull-Apart", sets: 2, reps: "15", tempo: "2-0-1-0" },
+      { name: "Scapular Push-Ups", sets: 2, reps: "12", tempo: "2-0-1-0" },
+    ],
+  },
+  {
+    id: "strength",
+    name: "FUERZA",
+    type: "strength",
+    accentColor: "hsl(22, 59%, 45%)",
+    icon: "Zap",
+    estimatedTime: "30-35 min",
+    exercises: [
+      { name: "Barbell Bench Press", sets: 4, reps: "8", weight: "70 kg", tempo: "3-1-1-0", rpe: "7-8" },
+      { name: "Incline DB Press", sets: 3, reps: "10", weight: "22 kg", tempo: "3-0-1-0", rpe: "7" },
+      { name: "Cable Fly", sets: 3, reps: "12", weight: "15 kg", tempo: "3-0-1-1", rpe: "8" },
+      { name: "Seated DB Shoulder Press", sets: 3, reps: "10", weight: "16 kg", tempo: "2-0-1-0", rpe: "7" },
+      { name: "Lateral Raise", sets: 3, reps: "15", weight: "8 kg", tempo: "3-0-1-0", rpe: "8" },
+      { name: "Tricep Rope Pushdown", sets: 3, reps: "12", weight: "20 kg", tempo: "2-0-1-0", rpe: "7" },
+    ],
+  },
+  {
+    id: "conditioning",
+    name: "CONDITIONING",
+    type: "conditioning",
+    accentColor: "hsl(5, 54%, 50%)",
+    icon: "HeartPulse",
+    estimatedTime: "10-12 min",
+    format: "EMOM 10 min",
+    exercises: [
+      { name: "KB Swings", reps: "12", weight: "20 kg", note: "Min par" },
+      { name: "Burpee to Target", reps: "8", note: "Min impar" },
+    ],
+  },
+  {
+    id: "cooldown",
+    name: "COOLDOWN",
+    type: "cooldown",
+    accentColor: "hsl(82, 20%, 45%)",
+    icon: "Leaf",
+    estimatedTime: "5-8 min",
+    exercises: [
+      { name: "Foam Roll Thoracic Spine", duration: "2 min" },
+      { name: "Pec Doorway Stretch", duration: "30 seg c/lado x2" },
+      { name: "Child's Pose with Lat Bias", duration: "60 seg c/lado" },
+      { name: "Deep Breathing", reps: "10 respiraciones", note: "Inhala 4 seg, exhala 6 seg" },
+    ],
+  },
+];
+
 export const exerciseLibrary = [
   { id: "bench-press", name: "Barbell Bench Press", muscles: ["Pecho"], equipment: "Barra", type: "Compound" },
   { id: "incline-db-press", name: "Incline DB Press", muscles: ["Pecho"], equipment: "Mancuernas", type: "Compound" },
