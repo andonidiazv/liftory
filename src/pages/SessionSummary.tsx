@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useApp } from "@/context/AppContext";
 import { todayWorkout, sessionBlocks } from "@/data/workout";
@@ -27,9 +27,19 @@ export default function SessionSummary() {
   const fromWorkout = searchParams.get("from") === "workout";
   const { startWorkout, workoutActive, completedSets, currentExerciseIndex } = useApp();
 
-  // Default: expand strength block (or current block if from workout)
+  // Determine current block based on exercise index
+  const getCurrentBlockId = () => {
+    if (!workoutActive) return null;
+    // Simplified: map exercise index to blocks
+    // warmup = first, strength = exercises 0-5, conditioning & cooldown after
+    return "strength";
+  };
+
+  const currentBlockId = getCurrentBlockId();
+
+  // Auto-expand current block when from workout
   const [expanded, setExpanded] = useState<string[]>(
-    fromWorkout ? ["strength"] : ["strength"]
+    fromWorkout && currentBlockId ? [currentBlockId] : ["strength"]
   );
 
   const toggleBlock = (id: string) => {
@@ -51,7 +61,7 @@ export default function SessionSummary() {
     }
   };
 
-  // Check if exercise is completed (for strength block only)
+  // Check if exercise is completed (for strength block)
   const isExerciseComplete = (exerciseName: string) => {
     const ex = todayWorkout.exercises.find((e) => e.name === exerciseName);
     if (!ex) return false;
@@ -60,13 +70,33 @@ export default function SessionSummary() {
     );
   };
 
-  // Determine which block is "current" (simplified: strength block active during workout)
-  const getCurrentBlockId = () => {
-    if (!workoutActive) return null;
-    return "strength"; // simplified for prototype
+  // Check if exercise is the current one
+  const isCurrentExercise = (exerciseName: string) => {
+    if (!workoutActive) return false;
+    const ex = todayWorkout.exercises[currentExerciseIndex];
+    return ex?.name === exerciseName;
   };
 
-  const currentBlockId = getCurrentBlockId();
+  // Block completion stats
+  const getBlockProgress = (block: typeof sessionBlocks[0]) => {
+    if (block.type !== "strength") return { completed: 0, total: block.exercises.length };
+    const completed = block.exercises.filter((ex) => isExerciseComplete(ex.name)).length;
+    return { completed, total: block.exercises.length };
+  };
+
+  // Is block fully completed
+  const isBlockComplete = (block: typeof sessionBlocks[0]) => {
+    const { completed, total } = getBlockProgress(block);
+    return completed === total && workoutActive;
+  };
+
+  // Is block in the future (after current block)
+  const isBlockFuture = (block: typeof sessionBlocks[0]) => {
+    if (!workoutActive || !currentBlockId) return false;
+    const currentIdx = sessionBlocks.findIndex((b) => b.id === currentBlockId);
+    const blockIdx = sessionBlocks.findIndex((b) => b.id === block.id);
+    return blockIdx > currentIdx;
+  };
 
   const Wrapper = fromWorkout ? "div" : Layout;
   const wrapperProps = fromWorkout
@@ -101,25 +131,21 @@ export default function SessionSummary() {
           {sessionBlocks.map((block) => {
             const Icon = iconMap[block.icon] || Zap;
             const isExpanded = expanded.includes(block.id);
-            const isCurrent = currentBlockId === block.id;
-            const isFuture =
-              workoutActive &&
-              currentBlockId &&
-              sessionBlocks.findIndex((b) => b.id === currentBlockId) <
-                sessionBlocks.findIndex((b) => b.id === block.id);
+            const isCurrent = currentBlockId === block.id && workoutActive;
+            const isFuture = isBlockFuture(block);
+            const blockComplete = isBlockComplete(block);
+            const { completed: blockCompletedCount, total: blockTotal } = getBlockProgress(block);
 
             return (
               <button
                 key={block.id}
                 onClick={() => toggleBlock(block.id)}
                 className={`press-scale w-full text-left rounded-2xl bg-card transition-all duration-300 ${
-                  isCurrent ? "ring-2" : ""
-                } ${isFuture ? "opacity-60" : ""}`}
+                  isCurrent ? "ring-2 ring-primary" : ""
+                }`}
                 style={{
                   boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                  ...(isCurrent
-                    ? { borderColor: block.accentColor, ringColor: block.accentColor }
-                    : {}),
+                  opacity: isFuture && !isExpanded ? 0.6 : 1,
                 }}
               >
                 <div className="flex overflow-hidden rounded-2xl">
@@ -145,9 +171,16 @@ export default function SessionSummary() {
                           />
                         </div>
                         <div>
-                          <p className="font-display text-sm font-bold text-foreground tracking-wide">
-                            {block.name}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-display text-sm font-bold text-foreground tracking-wide">
+                              {block.name}
+                            </p>
+                            {blockComplete && (
+                              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-success">
+                                <Check className="h-3 w-3 text-success-foreground" />
+                              </div>
+                            )}
+                          </div>
                           <p className="text-xs text-muted-foreground">
                             {block.exercises.length} ejercicios · {block.estimatedTime}
                           </p>
@@ -173,6 +206,21 @@ export default function SessionSummary() {
                       </div>
                     </div>
 
+                    {/* Mini progress bar */}
+                    {workoutActive && block.type === "strength" && (
+                      <div className="mt-2 h-[3px] w-full overflow-hidden rounded-full bg-secondary">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${(blockCompletedCount / blockTotal) * 100}%`,
+                            backgroundColor: blockComplete
+                              ? "hsl(var(--success))"
+                              : block.accentColor,
+                          }}
+                        />
+                      </div>
+                    )}
+
                     {/* Expanded content */}
                     {isExpanded && (
                       <div className="mt-4 flex flex-col gap-2 animate-fade-up">
@@ -181,68 +229,77 @@ export default function SessionSummary() {
                             workoutActive &&
                             block.type === "strength" &&
                             isExerciseComplete(ex.name);
+                          const current =
+                            workoutActive &&
+                            block.type === "strength" &&
+                            isCurrentExercise(ex.name);
 
                           return (
                             <div
                               key={i}
-                              className={`flex items-center justify-between rounded-xl px-3 py-2.5 ${
+                              className={`flex items-center justify-between rounded-xl px-3 py-2.5 transition-all ${
                                 block.type === "cooldown"
                                   ? "bg-secondary/50"
                                   : "bg-secondary"
-                              }`}
+                              } ${current ? "border-l-[3px] border-primary" : ""}`}
+                              style={{
+                                opacity: completed ? 0.5 : 1,
+                              }}
                             >
                               <div className="flex items-center gap-2.5 flex-1 min-w-0">
                                 {workoutActive && block.type === "strength" && (
-                                  <div
-                                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
-                                      completed
-                                        ? "bg-success"
-                                        : "border border-border"
-                                    }`}
-                                  >
-                                    {completed && (
-                                      <Check className="h-3 w-3 text-success-foreground" />
+                                  <>
+                                    {completed ? (
+                                      <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-success">
+                                        <Check className="h-3 w-3 text-success-foreground" />
+                                      </div>
+                                    ) : current ? (
+                                      <div className="h-2.5 w-2.5 shrink-0 rounded-full bg-primary animate-pulse-ring" />
+                                    ) : (
+                                      <div className="h-5 w-5 shrink-0 rounded-full border border-border" />
                                     )}
-                                  </div>
+                                  </>
                                 )}
                                 <span className="text-sm font-medium text-foreground truncate">
                                   {ex.name}
                                 </span>
                               </div>
-                              <div className="flex items-center gap-2 shrink-0 ml-2">
-                                {ex.duration ? (
-                                  <span className="font-mono text-xs text-muted-foreground">
-                                    {ex.duration}
-                                  </span>
-                                ) : (
-                                  <>
+                              {!completed && (
+                                <div className="flex items-center gap-2 shrink-0 ml-2">
+                                  {ex.duration ? (
                                     <span className="font-mono text-xs text-muted-foreground">
-                                      {ex.sets && `${ex.sets}×`}{ex.reps}
+                                      {ex.duration}
                                     </span>
-                                    {ex.weight && (
-                                      <span className="font-mono text-xs text-foreground font-medium">
-                                        {ex.weight}
+                                  ) : (
+                                    <>
+                                      <span className="font-mono text-xs text-muted-foreground">
+                                        {ex.sets && `${ex.sets}×`}{ex.reps}
                                       </span>
-                                    )}
-                                  </>
-                                )}
-                                {ex.tempo && (
-                                  <span className="font-mono text-[10px] text-primary">
-                                    {ex.tempo}
-                                  </span>
-                                )}
-                                {ex.rpe && (
-                                  <span
-                                    className="rounded-md px-1.5 py-0.5 text-[10px] font-semibold"
-                                    style={{
-                                      backgroundColor: `${block.accentColor}15`,
-                                      color: block.accentColor,
-                                    }}
-                                  >
-                                    RPE {ex.rpe}
-                                  </span>
-                                )}
-                              </div>
+                                      {ex.weight && (
+                                        <span className="font-mono text-xs text-foreground font-medium">
+                                          {ex.weight}
+                                        </span>
+                                      )}
+                                    </>
+                                  )}
+                                  {ex.tempo && (
+                                    <span className="font-mono text-[10px] text-primary">
+                                      {ex.tempo}
+                                    </span>
+                                  )}
+                                  {ex.rpe && (
+                                    <span
+                                      className="rounded-md px-1.5 py-0.5 text-[10px] font-semibold"
+                                      style={{
+                                        backgroundColor: `${block.accentColor}15`,
+                                        color: block.accentColor,
+                                      }}
+                                    >
+                                      RPE {ex.rpe}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           );
                         })}

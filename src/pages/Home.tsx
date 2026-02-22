@@ -1,16 +1,13 @@
 import { useNavigate } from "react-router-dom";
-import { useApp } from "@/context/AppContext";
 import { user, todayWorkout, weekSchedule } from "@/data/workout";
 import { Flame, TrendingUp, Trophy, ChevronRight, Wifi } from "lucide-react";
 import Layout from "@/components/Layout";
 
 export default function Home() {
   const navigate = useNavigate();
-  const { startWorkout } = useApp();
 
   const handleStartWorkout = () => {
-    startWorkout();
-    navigate("/workout");
+    navigate("/briefing");
   };
 
   const completedDays = weekSchedule.filter((d) => d.completed).length;
