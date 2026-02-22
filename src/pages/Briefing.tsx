@@ -1,210 +1,303 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "@/context/AppContext";
 import { todayWorkout, sessionBlocks, user } from "@/data/workout";
-import {
-  ChevronDown,
-  ChevronRight,
-  Sun,
-  Zap,
-  HeartPulse,
-  Leaf,
-} from "lucide-react";
-import Layout from "@/components/Layout";
+import { ChevronLeft, ChevronRight, Sun, Zap, HeartPulse, Leaf } from "lucide-react";
+import heroImage from "@/assets/briefing-hero.jpg";
 
-const iconMap: Record<string, React.ElementType> = {
-  Sun,
-  Zap,
-  HeartPulse,
-  Leaf,
-};
+const blockMeta = [
+  {
+    id: "warmup",
+    icon: Sun,
+    accentFrom: "#C9A96E",
+    accentTo: "#D4A055",
+    iconColor: "#C9A96E",
+    iconBg: "rgba(201,169,110,0.08)",
+  },
+  {
+    id: "strength",
+    icon: Zap,
+    accentFrom: "#B8622F",
+    accentTo: "#D4784A",
+    iconColor: "#D4784A",
+    iconBg: "rgba(212,120,74,0.08)",
+  },
+  {
+    id: "conditioning",
+    icon: HeartPulse,
+    accentFrom: "#D4784A",
+    accentTo: "#E09060",
+    iconColor: "#D4784A",
+    iconBg: "rgba(212,120,74,0.08)",
+  },
+  {
+    id: "cooldown",
+    icon: Leaf,
+    accentFrom: "#8A857F",
+    accentTo: "#9B9690",
+    iconColor: "#8A857F",
+    iconBg: "rgba(138,133,127,0.08)",
+  },
+];
 
 export default function Briefing() {
   const navigate = useNavigate();
   const { startWorkout } = useApp();
-  const [expanded, setExpanded] = useState<string[]>([]);
-
-  const toggleBlock = (id: string) => {
-    setExpanded((prev) =>
-      prev.includes(id) ? prev.filter((b) => b !== id) : [...prev, id]
-    );
-  };
 
   const handleStart = () => {
     startWorkout();
     navigate("/workout", { replace: true });
   };
 
-  const cycleProgress = ((user.week - 1) * 4 + 4) / (user.totalWeeks * 4); // day 4 of week 3 out of 6 weeks
+  const cycleDay = (user.week - 1) * 4 + 4;
+  const totalDays = user.totalWeeks * 4;
+  const progressPct = (cycleDay / totalDays) * 100;
 
   return (
-    <Layout>
-      <div className="animate-fade-up px-5 pt-14 pb-32">
-        {/* Cycle progress */}
-        <div className="flex items-center justify-between">
-          <p className="font-display text-sm font-semibold text-foreground">
-            Día 4 de 24
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Semana {user.week} de {user.totalWeeks}
-          </p>
-        </div>
-        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+    <div className="min-h-screen" style={{ background: "#0D0D0F" }}>
+      {/* HERO IMAGE */}
+      <div className="relative w-full" style={{ height: "48vh" }}>
+        <img
+          src={heroImage}
+          alt="Workout del día"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        {/* Top gradient */}
+        <div
+          className="absolute inset-x-0 top-0"
+          style={{
+            height: 80,
+            background: "linear-gradient(to bottom, rgba(0,0,0,0.35), transparent)",
+          }}
+        />
+        {/* Bottom gradient */}
+        <div
+          className="absolute inset-x-0 bottom-0"
+          style={{
+            height: "60%",
+            background:
+              "linear-gradient(to top, #0D0D0F 0%, rgba(13,13,15,0.92) 30%, rgba(13,13,15,0.4) 60%, transparent 100%)",
+          }}
+        />
+
+        {/* Nav overlay */}
+        <div className="absolute inset-x-0 top-0 flex items-center justify-between px-5 pt-14">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex h-10 w-10 items-center justify-center rounded-full"
+            style={{
+              background: "rgba(255,255,255,0.08)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: "1px solid rgba(255,255,255,0.08)",
+            }}
+          >
+            <ChevronLeft className="h-5 w-5" style={{ color: "#F0EDE8" }} />
+          </button>
           <div
-            className="h-full rounded-full bg-primary transition-all duration-500"
-            style={{ width: `${cycleProgress * 100}%` }}
-          />
+            className="font-mono-num rounded-full px-3 py-1.5 text-[11px]"
+            style={{
+              color: "#F0EDE8",
+              background: "rgba(255,255,255,0.08)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: "1px solid rgba(255,255,255,0.08)",
+            }}
+          >
+            Sem {user.week} de {user.totalWeeks}
+          </div>
         </div>
 
-        {/* Day title */}
-        <h1 className="mt-6 text-hero text-foreground">
-          {todayWorkout.name}
-        </h1>
-        <p className="mt-1 text-base text-muted-foreground">
-          Construye pecho y hombros
-        </p>
-
-        {/* Why today card */}
-        <div className="mt-6 rounded-2xl bg-secondary p-5">
-          <p className="text-[15px] leading-relaxed text-muted-foreground">
-            Llevas 2 días de pull y pierna. Hoy activamos la cadena anterior con
-            énfasis en tempo excéntrico para maximizar tensión mecánica en pecho.
-            Tu recovery Whoop está en {user.recovery}% — intensidad completa.
+        {/* Content over hero */}
+        <div className="absolute inset-x-0 bottom-0 px-6 pb-4">
+          <p
+            className="font-mono-num text-[11px] uppercase"
+            style={{ color: "#D4784A", letterSpacing: "2.5px" }}
+          >
+            DÍA {cycleDay} DE {totalDays}
           </p>
-        </div>
-
-        {/* Session info */}
-        <p className="mt-6 text-xs text-muted-foreground">
-          Sesión completa · 55-65 min · 4 bloques
-        </p>
-
-        {/* Blocks */}
-        <div className="mt-3 flex flex-col gap-3">
-          {sessionBlocks.map((block) => {
-            const Icon = iconMap[block.icon] || Zap;
-            const isExpanded = expanded.includes(block.id);
-
-            return (
-              <button
-                key={block.id}
-                onClick={() => toggleBlock(block.id)}
-                className="press-scale w-full text-left rounded-2xl bg-card transition-all duration-300"
-                style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}
-              >
-                <div className="flex overflow-hidden rounded-2xl">
-                  <div
-                    className="w-1 shrink-0 rounded-l-2xl"
-                    style={{ backgroundColor: block.accentColor }}
-                  />
-                  <div className="flex-1 p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="flex h-9 w-9 items-center justify-center rounded-xl"
-                          style={{ backgroundColor: `${block.accentColor}15` }}
-                        >
-                          <Icon
-                            className="h-4.5 w-4.5"
-                            style={{ color: block.accentColor }}
-                          />
-                        </div>
-                        <div>
-                          <p className="font-display text-sm font-bold text-foreground tracking-wide">
-                            {block.name}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {block.exercises.length} ejercicios · {block.estimatedTime}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {block.format && (
-                          <span
-                            className="rounded-lg px-2 py-1 text-[10px] font-bold tracking-wider"
-                            style={{
-                              backgroundColor: `${block.accentColor}15`,
-                              color: block.accentColor,
-                            }}
-                          >
-                            {block.format}
-                          </span>
-                        )}
-                        {isExpanded ? (
-                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </div>
-                    </div>
-
-                    {isExpanded && (
-                      <div className="mt-4 flex flex-col gap-2 animate-fade-up">
-                        {block.exercises.map((ex, i) => (
-                          <div
-                            key={i}
-                            className={`flex items-center justify-between rounded-xl px-3 py-2.5 ${
-                              block.type === "cooldown" ? "bg-secondary/50" : "bg-secondary"
-                            }`}
-                          >
-                            <span className="text-sm font-medium text-foreground truncate">
-                              {ex.name}
-                            </span>
-                            <div className="flex items-center gap-2 shrink-0 ml-2">
-                              {ex.duration ? (
-                                <span className="font-mono text-xs text-muted-foreground">
-                                  {ex.duration}
-                                </span>
-                              ) : (
-                                <>
-                                  <span className="font-mono text-xs text-muted-foreground">
-                                    {ex.sets && `${ex.sets}×`}{ex.reps}
-                                  </span>
-                                  {ex.weight && (
-                                    <span className="font-mono text-xs text-foreground font-medium">
-                                      {ex.weight}
-                                    </span>
-                                  )}
-                                </>
-                              )}
-                              {ex.tempo && (
-                                <span className="font-mono text-[10px] text-primary">
-                                  {ex.tempo}
-                                </span>
-                              )}
-                              {ex.rpe && (
-                                <span
-                                  className="rounded-md px-1.5 py-0.5 text-[10px] font-semibold"
-                                  style={{
-                                    backgroundColor: `${block.accentColor}15`,
-                                    color: block.accentColor,
-                                  }}
-                                >
-                                  RPE {ex.rpe}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </button>
-            );
-          })}
+          <h1
+            className="font-display mt-1"
+            style={{
+              fontSize: 38,
+              fontWeight: 800,
+              letterSpacing: "-1.5px",
+              color: "#F0EDE8",
+              lineHeight: 1.1,
+            }}
+          >
+            {todayWorkout.name}
+          </h1>
+          <p className="mt-1 text-[15px]" style={{ color: "#8A857F" }}>
+            Construye pecho y hombros
+          </p>
         </div>
       </div>
 
-      {/* Fixed CTA */}
-      <div className="fixed bottom-20 left-0 right-0 bg-gradient-to-t from-background via-background to-transparent px-5 pb-4 pt-4 z-40">
+      {/* PROGRESS BAR */}
+      <div className="flex items-center gap-3 px-6 py-3.5">
+        <div className="flex-1 overflow-hidden rounded-sm" style={{ height: 4, background: "#1A1A1E" }}>
+          <div
+            className="h-full rounded-sm"
+            style={{
+              width: `${progressPct}%`,
+              background: "linear-gradient(to right, #D4784A, #C9A96E)",
+            }}
+          />
+        </div>
+        <span className="font-mono-num text-[11px]" style={{ color: "#5A5650" }}>
+          {cycleDay}/{totalDays}
+        </span>
+      </div>
+
+      {/* STATEMENT CARD */}
+      <div className="px-6">
+        <div
+          className="rounded-[18px] p-5"
+          style={{ background: "#161618", border: "1px solid #2A2A2E" }}
+        >
+          <p className="text-[15px] leading-[1.65]" style={{ color: "#F0EDE8" }}>
+            Hoy el foco es{" "}
+            <span style={{ color: "#D4784A", fontWeight: 600 }}>
+              tensión mecánica en pecho
+            </span>
+            . Controla la bajada, domina el peso. Arrancas con movilidad para preparar
+            articulaciones, construyes fuerza con tempos que transforman cada rep, subes la
+            intensidad con un EMOM de 10 minutos y cierras con recuperación activa.
+          </p>
+
+          {/* Whoop line */}
+          <div
+            className="mt-4 flex items-center gap-3 pt-3.5"
+            style={{ borderTop: "1px solid #2A2A2E" }}
+          >
+            <div
+              className="font-mono-num flex h-5 w-5 shrink-0 items-center justify-center rounded-[5px] text-[10px] font-bold"
+              style={{ background: "#1A1A1E", border: "1px solid #2A2A2E", color: "#5A5650" }}
+            >
+              W
+            </div>
+            <div className="flex flex-1 items-center">
+              {[
+                { value: "78%", label: "Recovery" },
+                { value: "14.2", label: "Esfuerzo" },
+                { value: "485", label: "kcal target" },
+              ].map((stat, i) => (
+                <div
+                  key={stat.label}
+                  className="flex flex-1 flex-col items-center"
+                  style={i < 2 ? { borderRight: "1px solid #2A2A2E" } : undefined}
+                >
+                  <span className="font-mono-num text-sm font-medium" style={{ color: "#F0EDE8" }}>
+                    {stat.value}
+                  </span>
+                  <span
+                    className="mt-0.5 text-[9px] uppercase"
+                    style={{ color: "#5A5650", letterSpacing: "0.8px" }}
+                  >
+                    {stat.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* SESSION LABEL */}
+      <div className="flex items-center gap-3 px-6 pb-2 pt-6">
+        <span className="shrink-0 text-xs" style={{ color: "#5A5650" }}>
+          55-65 min · 4 bloques
+        </span>
+        <div className="flex-1" style={{ height: 1, background: "#2A2A2E" }} />
+      </div>
+
+      {/* BLOCK GRID */}
+      <div className="grid grid-cols-2 gap-2.5 px-6 pb-40">
+        {sessionBlocks.map((block, index) => {
+          const meta = blockMeta.find((m) => m.id === block.id) || blockMeta[0];
+          const Icon = meta.icon;
+
+          return (
+            <div
+              key={block.id}
+              className="relative overflow-hidden rounded-[18px]"
+              style={{
+                background: "#161618",
+                border: "1px solid #2A2A2E",
+                animationDelay: `${index * 0.06}s`,
+                animation: "fade-up-in 0.4s ease-out both",
+              }}
+            >
+              {/* Accent bar */}
+              <div
+                className="h-[3px] w-full"
+                style={{
+                  background: `linear-gradient(to right, ${meta.accentFrom}, ${meta.accentTo})`,
+                }}
+              />
+              <div className="p-4">
+                <div className="flex items-start justify-between">
+                  <div
+                    className="flex h-[38px] w-[38px] items-center justify-center rounded-xl"
+                    style={{ background: meta.iconBg }}
+                  >
+                    <Icon
+                      className="h-[18px] w-[18px]"
+                      style={{ color: meta.iconColor }}
+                      strokeWidth={1.5}
+                    />
+                  </div>
+                  <span className="font-mono-num text-[11px]" style={{ color: "#5A5650" }}>
+                    {block.estimatedTime}
+                  </span>
+                </div>
+                <p
+                  className="mt-3 text-sm font-bold"
+                  style={{ color: "#F0EDE8" }}
+                >
+                  {block.name}
+                </p>
+                <p className="mt-0.5 text-xs" style={{ color: "#8A857F" }}>
+                  {block.exercises.length} ejercicios
+                </p>
+                {block.format && (
+                  <span
+                    className="font-mono-num mt-2 inline-block rounded-md px-2 py-1 text-[10px]"
+                    style={{
+                      color: "#D4784A",
+                      background: "rgba(212,120,74,0.08)",
+                      border: "1px solid rgba(212,120,74,0.12)",
+                    }}
+                  >
+                    {block.format}
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* FIXED CTA */}
+      <div
+        className="fixed inset-x-0 bottom-0 z-50 px-6 pb-8 pt-4"
+        style={{
+          background: "linear-gradient(to top, #0D0D0F 60%, transparent)",
+        }}
+      >
         <button
           onClick={handleStart}
-          className="press-scale flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 font-display text-lg font-bold text-primary-foreground glow-primary"
+          className="press-scale flex w-full items-center justify-center gap-2 rounded-2xl py-[18px] text-[15px] font-bold uppercase text-white"
+          style={{
+            background: "linear-gradient(to right, #D4784A, #B8622F)",
+            boxShadow: "0 8px 28px rgba(212,120,74,0.3)",
+            letterSpacing: "0.8px",
+          }}
         >
           COMENZAR SESIÓN
           <ChevronRight className="h-5 w-5" />
         </button>
       </div>
-    </Layout>
+    </div>
   );
 }
