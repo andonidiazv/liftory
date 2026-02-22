@@ -11,6 +11,7 @@ import {
   Check,
   Clock,
   Info,
+  List,
 } from "lucide-react";
 
 function formatTime(seconds: number) {
@@ -104,12 +105,20 @@ export default function Workout() {
               {formatTime(workoutElapsed)}
             </p>
           </div>
-          <button
-            onClick={handleFinish}
-            className="press-scale flex items-center gap-1.5 rounded-xl bg-secondary px-4 py-2 text-sm font-medium text-foreground"
-          >
-            <Pause className="h-3.5 w-3.5" /> Terminar
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate("/session?from=workout")}
+              className="press-scale flex h-9 w-9 items-center justify-center rounded-xl bg-secondary"
+            >
+              <List className="h-4 w-4 text-foreground" />
+            </button>
+            <button
+              onClick={handleFinish}
+              className="press-scale flex items-center gap-1.5 rounded-xl bg-secondary px-4 py-2 text-sm font-medium text-foreground"
+            >
+              <Pause className="h-3.5 w-3.5" /> Terminar
+            </button>
+          </div>
         </div>
         {/* Progress bar */}
         <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-secondary">

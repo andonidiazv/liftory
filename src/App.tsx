@@ -12,6 +12,7 @@ import WorkoutComplete from "./pages/WorkoutComplete";
 import Progress from "./pages/Progress";
 import Exercises from "./pages/Exercises";
 import Profile from "./pages/Profile";
+import SessionSummary from "./pages/SessionSummary";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/home" element={<Home />} />
             <Route path="/workout" element={<Workout />} />
+            <Route path="/session" element={<SessionSummary />} />
             <Route path="/workout-complete" element={<WorkoutComplete />} />
             <Route path="/progress" element={<Progress />} />
             <Route path="/exercises" element={<Exercises />} />

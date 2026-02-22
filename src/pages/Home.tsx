@@ -71,6 +71,12 @@ export default function Home() {
           >
             COMENZAR WORKOUT
           </button>
+          <button
+            onClick={() => navigate("/session")}
+            className="mt-3 flex w-full items-center justify-center gap-1 text-sm font-semibold text-primary"
+          >
+            Ver sesión completa <ChevronRight className="h-4 w-4" />
+          </button>
         </div>
 
         {/* Week Overview */}
