@@ -24,6 +24,7 @@ export default function Paywall() {
 
   const expired = isExpired();
   const trialDays = Math.max(1, 6 - daysLeftInTrial());
+  const dayLabel = trialDays === 1 ? "día" : "días";
 
   const handleCTA = () => {
     toast({ title: "Integración con Stripe pendiente", description: "Esta funcionalidad se conectará próximamente." });
@@ -43,7 +44,7 @@ export default function Paywall() {
           </button>
         )}
         <h1 className="text-center font-display" style={{ fontSize: 20, fontWeight: 700, color: "#F5F0EB" }}>
-          Tu progreso en {trialDays} días
+          Tu progreso en {trialDays} {dayLabel}
         </h1>
       </div>
 
@@ -64,7 +65,7 @@ export default function Paywall() {
 
       {/* Main Message */}
       <p className="text-center px-8 font-display" style={{ fontSize: 18, fontWeight: 600, padding: "24px 32px", color: "#F5F0EB" }}>
-        Lo que construiste en {trialDays} días es tuyo. Continúa.
+        Lo que construiste en {trialDays} {dayLabel} es tuyo. Continúa.
       </p>
 
       {/* Plans */}
