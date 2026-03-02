@@ -14,9 +14,192 @@ export type Database = {
   }
   public: {
     Tables: {
+      exercises: {
+        Row: {
+          category: string
+          coaching_cue: string | null
+          contraindications: string[] | null
+          default_tempo: string | null
+          description: string | null
+          difficulty: string
+          emotional_barrier_tag: string | null
+          equipment_required: string[] | null
+          founder_notes: string | null
+          id: string
+          is_active: boolean
+          movement_pattern: string
+          name: string
+          name_es: string
+          primary_muscles: string[] | null
+          thumbnail_url: string | null
+          video_duration_seconds: number | null
+          video_url: string | null
+        }
+        Insert: {
+          category?: string
+          coaching_cue?: string | null
+          contraindications?: string[] | null
+          default_tempo?: string | null
+          description?: string | null
+          difficulty?: string
+          emotional_barrier_tag?: string | null
+          equipment_required?: string[] | null
+          founder_notes?: string | null
+          id?: string
+          is_active?: boolean
+          movement_pattern?: string
+          name: string
+          name_es: string
+          primary_muscles?: string[] | null
+          thumbnail_url?: string | null
+          video_duration_seconds?: number | null
+          video_url?: string | null
+        }
+        Update: {
+          category?: string
+          coaching_cue?: string | null
+          contraindications?: string[] | null
+          default_tempo?: string | null
+          description?: string | null
+          difficulty?: string
+          emotional_barrier_tag?: string | null
+          equipment_required?: string[] | null
+          founder_notes?: string | null
+          id?: string
+          is_active?: boolean
+          movement_pattern?: string
+          name?: string
+          name_es?: string
+          primary_muscles?: string[] | null
+          thumbnail_url?: string | null
+          video_duration_seconds?: number | null
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      insights: {
+        Row: {
+          category: string
+          description_template: string
+          id: string
+          is_active: boolean
+          min_data_days: number
+          price_cents: number
+          requires_wearable: boolean
+          title: string
+        }
+        Insert: {
+          category?: string
+          description_template: string
+          id?: string
+          is_active?: boolean
+          min_data_days?: number
+          price_cents?: number
+          requires_wearable?: boolean
+          title: string
+        }
+        Update: {
+          category?: string
+          description_template?: string
+          id?: string
+          is_active?: boolean
+          min_data_days?: number
+          price_cents?: number
+          requires_wearable?: boolean
+          title?: string
+        }
+        Relationships: []
+      }
+      onboarding_answers: {
+        Row: {
+          connected_wearable: string | null
+          emotional_barriers: string[] | null
+          equipment: string
+          event_date: string | null
+          experience_level: string
+          id: string
+          inbody_data: Json | null
+          injuries: string[] | null
+          primary_goal: string
+          specific_event: string | null
+          training_days: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          connected_wearable?: string | null
+          emotional_barriers?: string[] | null
+          equipment?: string
+          event_date?: string | null
+          experience_level?: string
+          id?: string
+          inbody_data?: Json | null
+          injuries?: string[] | null
+          primary_goal?: string
+          specific_event?: string | null
+          training_days?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          connected_wearable?: string | null
+          emotional_barriers?: string[] | null
+          equipment?: string
+          event_date?: string | null
+          experience_level?: string
+          id?: string
+          inbody_data?: Json | null
+          injuries?: string[] | null
+          primary_goal?: string
+          specific_event?: string | null
+          training_days?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      programs: {
+        Row: {
+          ai_params: Json | null
+          current_block: string
+          current_week: number
+          generated_at: string
+          id: string
+          is_active: boolean
+          name: string
+          total_weeks: number
+          user_id: string
+        }
+        Insert: {
+          ai_params?: Json | null
+          current_block?: string
+          current_week?: number
+          generated_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          total_weeks?: number
+          user_id: string
+        }
+        Update: {
+          ai_params?: Json | null
+          current_block?: string
+          current_week?: number
+          generated_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          total_weeks?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
+          current_period_end: string | null
+          deleted_at: string | null
           emotional_barriers: string | null
           experience_level: string | null
           full_name: string | null
@@ -25,17 +208,25 @@ export type Database = {
           id: string
           injuries: string[] | null
           injuries_detail: string | null
+          is_deleted: boolean
           onboarding_completed: boolean
+          role: string
+          stripe_customer_id: string | null
           subscription_status: string
+          subscription_tier: string | null
           training_days_per_week: number | null
           training_location: string | null
           trial_ends_at: string | null
           updated_at: string
           user_id: string
           wearable: string | null
+          weight_unit: string
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
+          current_period_end?: string | null
+          deleted_at?: string | null
           emotional_barriers?: string | null
           experience_level?: string | null
           full_name?: string | null
@@ -44,17 +235,25 @@ export type Database = {
           id?: string
           injuries?: string[] | null
           injuries_detail?: string | null
+          is_deleted?: boolean
           onboarding_completed?: boolean
+          role?: string
+          stripe_customer_id?: string | null
           subscription_status?: string
+          subscription_tier?: string | null
           training_days_per_week?: number | null
           training_location?: string | null
           trial_ends_at?: string | null
           updated_at?: string
           user_id: string
           wearable?: string | null
+          weight_unit?: string
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
+          current_period_end?: string | null
+          deleted_at?: string | null
           emotional_barriers?: string | null
           experience_level?: string | null
           full_name?: string | null
@@ -63,16 +262,197 @@ export type Database = {
           id?: string
           injuries?: string[] | null
           injuries_detail?: string | null
+          is_deleted?: boolean
           onboarding_completed?: boolean
+          role?: string
+          stripe_customer_id?: string | null
           subscription_status?: string
+          subscription_tier?: string | null
           training_days_per_week?: number | null
           training_location?: string | null
           trial_ends_at?: string | null
           updated_at?: string
           user_id?: string
           wearable?: string | null
+          weight_unit?: string
         }
         Relationships: []
+      }
+      wearable_data: {
+        Row: {
+          date: string
+          hrv_ms: number | null
+          id: string
+          recovery_score: number | null
+          resting_hr: number | null
+          sleep_duration_minutes: number | null
+          sleep_score: number | null
+          source: string
+          strain_score: number | null
+          user_id: string
+        }
+        Insert: {
+          date: string
+          hrv_ms?: number | null
+          id?: string
+          recovery_score?: number | null
+          resting_hr?: number | null
+          sleep_duration_minutes?: number | null
+          sleep_score?: number | null
+          source: string
+          strain_score?: number | null
+          user_id: string
+        }
+        Update: {
+          date?: string
+          hrv_ms?: number | null
+          id?: string
+          recovery_score?: number | null
+          resting_hr?: number | null
+          sleep_duration_minutes?: number | null
+          sleep_score?: number | null
+          source?: string
+          strain_score?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      workout_sets: {
+        Row: {
+          actual_reps: number | null
+          actual_rir: number | null
+          actual_rpe: number | null
+          actual_weight: number | null
+          exercise_id: string
+          id: string
+          is_completed: boolean
+          is_pr: boolean
+          logged_at: string | null
+          planned_reps: number | null
+          planned_rest_seconds: number | null
+          planned_rir: number | null
+          planned_rpe: number | null
+          planned_tempo: string | null
+          planned_weight: number | null
+          set_order: number
+          set_type: string
+          user_id: string
+          workout_id: string
+        }
+        Insert: {
+          actual_reps?: number | null
+          actual_rir?: number | null
+          actual_rpe?: number | null
+          actual_weight?: number | null
+          exercise_id: string
+          id?: string
+          is_completed?: boolean
+          is_pr?: boolean
+          logged_at?: string | null
+          planned_reps?: number | null
+          planned_rest_seconds?: number | null
+          planned_rir?: number | null
+          planned_rpe?: number | null
+          planned_tempo?: string | null
+          planned_weight?: number | null
+          set_order?: number
+          set_type?: string
+          user_id: string
+          workout_id: string
+        }
+        Update: {
+          actual_reps?: number | null
+          actual_rir?: number | null
+          actual_rpe?: number | null
+          actual_weight?: number | null
+          exercise_id?: string
+          id?: string
+          is_completed?: boolean
+          is_pr?: boolean
+          logged_at?: string | null
+          planned_reps?: number | null
+          planned_rest_seconds?: number | null
+          planned_rir?: number | null
+          planned_rpe?: number | null
+          planned_tempo?: string | null
+          planned_weight?: number | null
+          set_order?: number
+          set_type?: string
+          user_id?: string
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_sets_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_sets_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workouts: {
+        Row: {
+          ai_adjustments: Json | null
+          completed_at: string | null
+          day_label: string
+          estimated_duration: number | null
+          id: string
+          is_completed: boolean
+          is_rest_day: boolean
+          notes: string | null
+          program_id: string
+          scheduled_date: string
+          user_id: string
+          week_number: number
+          workout_type: string
+        }
+        Insert: {
+          ai_adjustments?: Json | null
+          completed_at?: string | null
+          day_label: string
+          estimated_duration?: number | null
+          id?: string
+          is_completed?: boolean
+          is_rest_day?: boolean
+          notes?: string | null
+          program_id: string
+          scheduled_date: string
+          user_id: string
+          week_number?: number
+          workout_type?: string
+        }
+        Update: {
+          ai_adjustments?: Json | null
+          completed_at?: string | null
+          day_label?: string
+          estimated_duration?: number | null
+          id?: string
+          is_completed?: boolean
+          is_rest_day?: boolean
+          notes?: string | null
+          program_id?: string
+          scheduled_date?: string
+          user_id?: string
+          week_number?: number
+          workout_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workouts_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
