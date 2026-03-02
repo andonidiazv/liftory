@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SetCompletion {
   exerciseId: string;
@@ -84,9 +85,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => clearInterval(interval);
   }, [state.restTimerActive, state.restTimeRemaining]);
 
-  const completeOnboarding = useCallback(() => {
+  const completeOnboarding = useCallback(async () => {
     localStorage.setItem("fbb_onboarding", "true");
     setState((s) => ({ ...s, onboardingComplete: true }));
+    // Update the database
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase
+        .from("user_profiles")
+        .update({ onboarding_completed: true })
+        .eq("user_id", user.id);
+    }
   }, []);
 
   const startWorkout = useCallback(() => {
