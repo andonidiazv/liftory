@@ -119,11 +119,13 @@ export default function Workout() {
 
   const getInputs = (setIdx: number): SetInputs => {
     const key = getInputKey(currentExercise.id, setIdx);
+    const rpeVal = currentExercise.rpe.split("-")[0];
+    const rirDefault = String(Math.max(0, 10 - Number(rpeVal)));
     return setInputs[key] || {
       weight: currentExercise.weight.replace(/\s*kg/, ""),
       reps: currentExercise.reps,
-      rpe: currentExercise.rpe.split("-")[0],
-      rir: currentExercise.rir.split("-")[0],
+      rpe: rpeVal,
+      rir: rirDefault,
     };
   };
 
