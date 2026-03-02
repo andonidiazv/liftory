@@ -84,23 +84,14 @@ export default function Profile() {
           <span
             className="font-display"
             style={{
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 800,
               letterSpacing: "-0.04em",
-              color: "hsl(var(--muted-foreground))",
+              color: "#6B6360",
+              textAlign: "center",
             }}
           >
-            LIFTORY
-          </span>
-          <span
-            className="mt-1 font-mono"
-            style={{
-              fontSize: 9,
-              fontWeight: 400,
-              color: "rgba(138,138,142,0.5)",
-            }}
-          >
-            v1.0 · Move better. Lift stronger. Live longer.
+            LIFTORY v1.0
           </span>
         </div>
       </div>
