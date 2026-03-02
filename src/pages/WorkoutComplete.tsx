@@ -25,7 +25,7 @@ export default function WorkoutComplete() {
         </div>
 
         <h1 className="mt-8 text-hero text-foreground text-center">
-          ¡Workout completado!
+          Sesión completada
         </h1>
         <p className="mt-2 text-muted-foreground text-center font-body font-light">
           {todayWorkout.name} — {todayWorkout.subtitle}
@@ -51,15 +51,14 @@ export default function WorkoutComplete() {
 
         {/* Insight — Cormorant Garamond */}
         <div className="mt-6 w-full card-fbb bg-success/5 border border-success/20">
-          <p className="text-motivational text-lg text-foreground">
-            💪 Levantaste <span className="font-semibold text-success not-italic">340 kg más</span> que la semana pasada
+          <p className="font-serif" style={{ fontSize: 17, fontWeight: 400, color: "rgba(250,248,245,0.7)", lineHeight: 1.4 }}>
+            Sesión registrada. Eso es exactamente de lo que está hecho el progreso real.
           </p>
         </div>
 
         <button
           onClick={() => navigate("/home", { replace: true })}
-          className="press-scale mt-8 w-full rounded-xl bg-primary py-4 font-display text-[15px] font-bold text-primary-foreground uppercase"
-          style={{ letterSpacing: "0.8px" }}
+          className="press-scale mt-8 w-full rounded-xl bg-primary py-4 font-body text-[15px] font-medium text-primary-foreground"
         >
           Volver al inicio
         </button>

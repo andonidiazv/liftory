@@ -40,6 +40,9 @@ export default function Home() {
             <p className="mt-1 text-sm text-muted-foreground font-body font-light">
               Jueves, 20 de febrero
             </p>
+            <p className="mt-2 font-serif italic" style={{ fontSize: 15, fontWeight: 300, color: "rgba(138,138,142,0.65)", lineHeight: 1.3 }}>
+              {["Hoy es día de construir.", "Tu cuerpo recuerda el trabajo que le das.", "Cada sesión cuenta. Cada tempo, también.", "Esto es una práctica. No un sprint."][new Date().getDay() % 4]}
+            </p>
           </div>
           <div className="flex items-center gap-1.5 rounded-[4px] bg-primary/10 px-3 py-1.5">
             <Flame className="h-4 w-4 text-primary" />
@@ -68,8 +71,8 @@ export default function Home() {
             <Wifi className="h-4 w-4 text-success" />
             <div className="flex-1">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-body font-normal text-foreground">Recovery</span>
-                <span className="font-mono text-xs font-medium text-success">{user.recovery}%</span>
+                <span className="text-label-tech text-muted-foreground">Recovery</span>
+                <span className="font-mono text-sm font-medium text-success" style={{ letterSpacing: "0.05em" }}>{user.recovery}%</span>
               </div>
               <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-background">
                 <div
@@ -82,10 +85,9 @@ export default function Home() {
 
           <button
             onClick={handleStartWorkout}
-            className="press-scale mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-display text-[15px] font-bold text-primary-foreground glow-primary uppercase"
-            style={{ letterSpacing: "0.8px" }}
+            className="press-scale mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-body text-[15px] font-medium text-primary-foreground glow-primary"
           >
-            COMENZAR WORKOUT
+            Comenzar sesión
           </button>
           <button
             onClick={() => navigate("/session")}
@@ -156,11 +158,13 @@ export default function Home() {
             </div>
             <span className="text-label-tech text-gold">Nuevo insight disponible</span>
           </div>
-          <p className="mt-3 text-sm text-foreground font-serif italic font-light" style={{ lineHeight: 1.3 }}>
+          <p className="mt-3 font-serif italic font-light" style={{ fontSize: 15, color: "hsl(var(--foreground))", lineHeight: 1.3 }}>
             Tu espalda está progresando 2× más rápido que tu pecho. Descubre cómo equilibrar tu desarrollo...
           </p>
-          <button className="press-scale mt-4 flex items-center gap-1 rounded-xl border border-gold/30 bg-gold/5 px-4 py-2.5 text-sm font-body font-medium text-gold">
-            Desbloquear — $2 USD <ChevronRight className="h-4 w-4" />
+          <button className="press-scale mt-4 flex items-center gap-1 rounded-xl border border-gold/30 bg-gold/5 px-4 py-2.5">
+            <span className="text-sm font-body font-medium text-gold">Desbloquear</span>
+            <span className="font-mono text-sm font-medium text-gold" style={{ letterSpacing: "0.05em" }}> — $2 USD</span>
+            <ChevronRight className="h-4 w-4 text-gold" />
           </button>
         </div>
       </div>

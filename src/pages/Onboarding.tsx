@@ -52,11 +52,11 @@ export default function Onboarding() {
         {/* Step 0: Welcome + Gender */}
         {step === 0 && (
           <>
-            <h1 className="text-hero text-foreground">
-              Vamos a construir tu programa perfecto
+            <h1 className="text-hero text-foreground font-body font-normal">
+              Antes de construir tu programa, necesitamos conocerte.
             </h1>
-            <p className="mt-3 text-[15px] text-muted-foreground font-body font-light" style={{ lineHeight: 1.7 }}>
-              Responde algunas preguntas y la IA diseñará un plan hecho para ti
+            <p className="mt-3 font-serif italic" style={{ fontSize: 15, fontWeight: 300, color: "rgba(250,248,245,0.55)", lineHeight: 1.3 }}>
+              Cuatro minutos que cambian todo lo que sigue.
             </p>
             <div className="mt-10 flex flex-col gap-4">
               {[
