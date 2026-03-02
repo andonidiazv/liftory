@@ -82,7 +82,7 @@ export default function Index() {
             className="mt-3 text-center font-body"
             style={{ fontSize: 14, fontWeight: 400, color: "#A89F95", lineHeight: 1.5 }}
           >
-            Entrenamiento inteligente. Resultados reales.
+            Move Better. Lift Stronger. Live Longer.
           </p>
         </div>
 
