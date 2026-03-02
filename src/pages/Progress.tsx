@@ -1,104 +1,116 @@
 import Layout from "@/components/Layout";
-import { user, weeklyVolume, personalRecords } from "@/data/workout";
+import { useAuth } from "@/context/AuthContext";
+import { useProgressData } from "@/hooks/useProgressData";
 import { TrendingUp, Trophy, Flame, Dumbbell } from "lucide-react";
 import {
   XAxis,
   YAxis,
-  CartesianGrid,
   ResponsiveContainer,
-  Area,
-  AreaChart,
   Tooltip,
   RadarChart,
   Radar,
   PolarGrid,
   PolarAngleAxis,
+  BarChart,
+  Bar,
 } from "recharts";
 import PremiumGate from "@/components/PremiumGate";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Heatmap data: 8 weeks × 7 days (Mon-Sun)
-// 0 = future, 1 = rest day, 2 = skipped (should have trained), 3-6 = completed (volume intensity)
-const heatmapWeeks: number[][] = [
-  [4, 5, 1, 6, 3, 1, 1], // Week 1 - fully completed
-  [5, 4, 1, 5, 4, 1, 1], // Week 2
-  [6, 3, 1, 5, 4, 1, 1], // Week 3
-  [4, 5, 1, 2, 3, 1, 1], // Week 4 - one skip
-  [5, 6, 1, 4, 5, 1, 1], // Week 5
-  [4, 2, 1, 5, 4, 1, 1], // Week 6 - one skip
-  [5, 4, 1, 6, 0, 0, 0], // Week 7 (current) - partial
-  [0, 0, 0, 0, 0, 0, 0], // Week 8 - future
-];
-
-const dayLabels = ["L", "M", "M", "J", "V", "S", "D"];
-
-function getCellStyle(val: number): React.CSSProperties {
-  if (val === 0) return { background: "#1A1A1A" };
-  if (val === 1) return { background: "#2A2A2A" };
-  if (val === 2) return { background: "#1A1A1A", border: "1px dashed rgba(224, 82, 82, 0.45)" };
-  // Completed: terracotta with opacity based on volume intensity (3=low, 6=high)
-  const opacity = 0.35 + (val - 3) * 0.22;
-  return { background: `rgba(199, 91, 57, ${opacity})` };
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days === 0) return "hoy";
+  if (days === 1) return "ayer";
+  if (days < 7) return `hace ${days} días`;
+  if (days < 30) return `hace ${Math.floor(days / 7)} sem`;
+  return `hace ${Math.floor(days / 30)} mes`;
 }
 
-const radarData = [
-  { group: "Pecho", semana1: 55, actual: 67, change: 12 },
-  { group: "Espalda", semana1: 50, actual: 68, change: 18 },
-  { group: "Piernas", semana1: 60, actual: 65, change: 5 },
-  { group: "Hombros", semana1: 48, actual: 62, change: 14 },
-  { group: "Core", semana1: 45, actual: 53, change: 8 },
-  { group: "Brazos", semana1: 52, actual: 62, change: 10 },
-];
-
-function getChangeColor(val: number) {
-  if (val < 7) return "#EAB308";
-  return "#22C55E";
+function ProgressSkeleton() {
+  return (
+    <div className="px-5 pt-14 space-y-6">
+      <div className="flex items-center gap-4">
+        <Skeleton className="h-16 w-16 rounded-full bg-muted" />
+        <div className="space-y-2">
+          <Skeleton className="h-6 w-32 bg-muted" />
+          <Skeleton className="h-4 w-48 bg-muted" />
+        </div>
+      </div>
+      <Skeleton className="h-48 w-full rounded-xl bg-muted" />
+      <div className="space-y-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} className="h-20 w-full rounded-xl bg-muted" />
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-24 rounded-xl bg-muted" />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function Progress() {
+  const { profile } = useAuth();
+  const { prs, weeklyVolume, muscleData, stats, loading } = useProgressData();
+
+  if (loading) {
+    return (
+      <Layout>
+        <ProgressSkeleton />
+      </Layout>
+    );
+  }
+
+  const displayName = profile?.full_name || "Atleta";
+  const level = profile?.experience_level || "intermediate";
+  const levelLabel = level === "beginner" ? "Principiante" : level === "advanced" ? "Avanzado" : "Intermedio";
+
   return (
     <Layout>
       <div className="px-5 pt-14 stagger-fade-in">
         {/* Hero */}
         <div className="flex items-center gap-4">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-secondary font-display text-2xl font-bold text-primary">
-            {user.name[0]}
+            {displayName[0]?.toUpperCase() ?? "A"}
           </div>
           <div>
             <h1 className="font-display text-[22px] font-bold text-foreground" style={{ letterSpacing: "-0.03em" }}>
-              {user.name}
+              {displayName}
             </h1>
             <p className="text-sm text-muted-foreground font-body font-light">
-              Nivel: {user.level} · Semana {user.week} de {user.totalWeeks}
+              Nivel: {levelLabel} · Consistencia: {stats.consistency}%
             </p>
             <div className="mt-2 h-1.5 w-40 overflow-hidden rounded-full bg-secondary">
-              <div className="h-full rounded-full bg-primary" style={{ width: `${(user.week / user.totalWeeks) * 100}%` }} />
+              <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${stats.consistency}%` }} />
             </div>
           </div>
         </div>
 
-        {/* Volume Chart */}
+        {/* Weekly Volume Chart */}
         <div className="mt-8">
           <span className="eyebrow-label">VOLUMEN SEMANAL</span>
           <PremiumGate label="Desbloquea tendencias históricas">
             <div className="mt-4 card-fbb">
-              <ResponsiveContainer width="100%" height={180}>
-                <AreaChart data={weeklyVolume}>
-                  <defs>
-                    <linearGradient id="volumeGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(22, 62%, 45%)" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="hsl(22, 62%, 45%)" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(37, 12%, 89%)" />
-                  <XAxis dataKey="week" tick={{ fontSize: 11, fill: "hsl(240, 2%, 55%)" }} axisLine={false} tickLine={false} />
-                  <YAxis hide />
-                  <Tooltip
-                    contentStyle={{ background: "hsl(40, 33%, 97%)", border: "1px solid hsl(37, 12%, 89%)", borderRadius: 12, fontSize: 12 }}
-                    formatter={(value: number) => [`${value.toLocaleString()} kg`, "Volumen"]}
-                  />
-                  <Area type="monotone" dataKey="volume" stroke="hsl(22, 62%, 45%)" strokeWidth={2.5} fill="url(#volumeGrad)" />
-                </AreaChart>
-              </ResponsiveContainer>
+              {weeklyVolume.some((d) => d.volume > 0) ? (
+                <ResponsiveContainer width="100%" height={180}>
+                  <BarChart data={weeklyVolume}>
+                    <XAxis dataKey="day" tick={{ fontSize: 11, fill: "hsl(240, 2%, 55%)" }} axisLine={false} tickLine={false} />
+                    <YAxis hide />
+                    <Tooltip
+                      contentStyle={{ background: "hsl(40, 33%, 97%)", border: "1px solid hsl(37, 12%, 89%)", borderRadius: 12, fontSize: 12 }}
+                      formatter={(value: number) => [`${value.toLocaleString()} kg`, "Volumen"]}
+                    />
+                    <Bar dataKey="volume" fill="hsl(22, 62%, 45%)" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center py-12">
+                  <p className="text-sm text-muted-foreground font-body">Aún no hay datos de volumen esta semana.</p>
+                </div>
+              )}
             </div>
           </PremiumGate>
         </div>
@@ -107,110 +119,67 @@ export default function Progress() {
         <div className="mt-8">
           <span className="eyebrow-label">RECORDS PERSONALES</span>
           <div className="mt-4 space-y-3">
-            {personalRecords.map((pr) => (
-              <div key={pr.exercise} className="card-fbb card-accent-gold flex items-center gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold/10">
-                  <Trophy className="h-5 w-5 text-gold animate-pr-pulse" />
+            {prs.length > 0 ? (
+              prs.map((pr, i) => (
+                <div key={i} className="card-fbb card-accent-gold flex items-center gap-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold/10">
+                    <Trophy className="h-5 w-5 text-gold animate-pr-pulse" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-display font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>
+                      {pr.exercise_name}
+                    </p>
+                    <p className="text-xs text-muted-foreground font-body font-normal">
+                      {pr.logged_at ? timeAgo(pr.logged_at) : "—"}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-mono text-[28px] font-medium text-foreground" style={{ letterSpacing: "0.05em", lineHeight: 1 }}>
+                      {pr.actual_weight}
+                    </p>
+                    <p className="font-mono text-muted-foreground" style={{ fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase" }}>
+                      KG{pr.actual_reps ? ` ×${pr.actual_reps}` : ""}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <p className="font-display font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>{pr.exercise}</p>
-                  <p className="text-xs text-muted-foreground font-body font-normal">{pr.when}</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-mono text-[28px] font-medium text-foreground" style={{ letterSpacing: "0.05em", lineHeight: 1 }}>
-                    {pr.weight}
-                  </p>
-                  <p className="font-mono text-muted-foreground" style={{ fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase" }}>
-                    KG ×{pr.reps}
-                  </p>
-                </div>
+              ))
+            ) : (
+              <div className="card-fbb flex items-center justify-center py-8">
+                <p className="text-sm text-muted-foreground font-body">Aún no hay PRs registrados. ¡Sigue entrenando!</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
 
-        {/* Radar Chart - Balance Muscular */}
+        {/* Radar Chart - Muscle Balance */}
         <div className="mt-8">
           <span className="eyebrow-label">BALANCE MUSCULAR</span>
-          <p className="text-xs font-body" style={{ color: "#6B6360", marginTop: 2 }}>Evolución de fuerza relativa por grupo</p>
+          <p className="text-xs font-body" style={{ color: "#6B6360", marginTop: 2 }}>Volumen relativo por grupo muscular</p>
           <PremiumGate label="Desbloquea tu balance muscular">
             <div className="mt-4 card-fbb">
-              <ResponsiveContainer width="100%" height={260}>
-                <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="75%">
-                  <PolarGrid stroke="hsl(30, 5%, 25%)" />
-                  <PolarAngleAxis dataKey="group" tick={{ fontSize: 11, fill: "#A89F95" }} />
-                  <Radar name="Semana 1" dataKey="semana1" stroke="#6B6360" fill="#6B6360" fillOpacity={0.3} strokeWidth={1.5} />
-                  <Radar name="Actual" dataKey="actual" stroke="#C75B39" fill="#C75B39" fillOpacity={0.6} strokeWidth={2} />
-                </RadarChart>
-              </ResponsiveContainer>
-              {/* Legend */}
-              <div className="mt-2 flex items-center justify-center gap-5">
-                {[
-                  { color: "#6B6360", label: "Semana 1" },
-                  { color: "#C75B39", label: "Actual" },
-                ].map((l) => (
-                  <div key={l.label} className="flex items-center gap-1.5">
-                    <div style={{ width: 10, height: 10, borderRadius: 2, background: l.color }} />
-                    <span className="font-body" style={{ fontSize: 10, color: "#A89F95" }}>{l.label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {/* Change cards */}
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              {radarData.map((d) => (
-                <div key={d.group} className="card-fbb flex flex-col items-center py-3">
-                  <span className="font-body text-xs" style={{ color: "#A89F95" }}>{d.group}</span>
-                  <span className="font-mono text-sm font-semibold mt-1" style={{ color: getChangeColor(d.change) }}>
-                    +{d.change}%
-                  </span>
-                </div>
-              ))}
-            </div>
-          </PremiumGate>
-        </div>
-
-        {/* Heatmap */}
-        <div className="mt-8">
-          <span className="eyebrow-label">CONSISTENCIA</span>
-          <p className="text-xs font-body" style={{ color: "#6B6360", marginTop: 2 }}>Últimas 8 semanas</p>
-          <PremiumGate label="Desbloquea comparativas de consistencia">
-            <div className="mt-4 card-fbb">
-              <div className="flex gap-[3px]">
-                {/* Day labels column */}
-                <div className="flex flex-col gap-[3px] mr-1 justify-center">
-                  {dayLabels.map((d, i) => (
-                    <div key={i} className="font-mono" style={{ width: 14, height: 16, fontSize: 10, color: "#6B6360", display: "flex", alignItems: "center" }}>
-                      {d}
-                    </div>
-                  ))}
-                </div>
-                {/* Grid: columns = weeks, rows = days */}
-                {heatmapWeeks.map((week, wi) => (
-                  <div key={wi} className="flex flex-col gap-[3px]">
-                    {week.map((val, di) => (
-                      <div
-                        key={di}
-                        style={{ width: 16, height: 16, borderRadius: 3, ...getCellStyle(val) }}
-                      />
+              {muscleData.length > 0 ? (
+                <>
+                  <ResponsiveContainer width="100%" height={260}>
+                    <RadarChart data={muscleData} cx="50%" cy="50%" outerRadius="75%">
+                      <PolarGrid stroke="hsl(30, 5%, 25%)" />
+                      <PolarAngleAxis dataKey="group" tick={{ fontSize: 11, fill: "#A89F95" }} />
+                      <Radar name="Volumen" dataKey="volume" stroke="#C75B39" fill="#C75B39" fillOpacity={0.5} strokeWidth={2} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    {muscleData.slice(0, 6).map((d) => (
+                      <div key={d.group} className="card-fbb flex flex-col items-center py-3">
+                        <span className="font-body text-xs" style={{ color: "#A89F95" }}>{d.group}</span>
+                        <span className="font-mono text-sm font-semibold mt-1 text-foreground">{d.volume}%</span>
+                      </div>
                     ))}
                   </div>
-                ))}
-              </div>
-              {/* Legend */}
-              <div className="mt-4 flex items-center gap-4 flex-wrap">
-                {[
-                  { style: { background: "rgba(199, 91, 57, 0.8)" }, label: "Completado" },
-                  { style: { background: "#2A2A2A" }, label: "Descanso" },
-                  { style: { background: "#1A1A1A", border: "1px dashed rgba(224, 82, 82, 0.45)" }, label: "No entrenado" },
-                  { style: { background: "#1A1A1A" }, label: "Futuro" },
-                ].map((item) => (
-                  <div key={item.label} className="flex items-center gap-1.5">
-                    <div style={{ width: 10, height: 10, borderRadius: 2, ...item.style }} />
-                    <span className="font-body" style={{ fontSize: 10, color: "#6B6360" }}>{item.label}</span>
-                  </div>
-                ))}
-              </div>
+                </>
+              ) : (
+                <div className="flex items-center justify-center py-12">
+                  <p className="text-sm text-muted-foreground font-body">Completa algunos workouts para ver tu balance muscular.</p>
+                </div>
+              )}
             </div>
           </PremiumGate>
         </div>
@@ -218,10 +187,10 @@ export default function Progress() {
         {/* Quick Stats */}
         <div className="mt-8 mb-4 grid grid-cols-2 gap-3">
           {[
-            { icon: Dumbbell, label: "TOTAL WORKOUTS", value: user.totalWorkouts, unit: "" },
-            { icon: Flame, label: "RACHA ACTUAL", value: user.streak, unit: "DÍAS" },
-            { icon: TrendingUp, label: "RACHA MÁS LARGA", value: user.longestStreak, unit: "DÍAS" },
-            { icon: Trophy, label: "VOLUMEN LIFETIME", value: `${(user.lifetimeVolume / 1000).toFixed(1)}k`, unit: "KG" },
+            { icon: Dumbbell, label: "TOTAL WORKOUTS", value: String(stats.totalWorkouts), unit: "" },
+            { icon: Flame, label: "RACHA ACTUAL", value: String(stats.streak), unit: "DÍAS" },
+            { icon: TrendingUp, label: "CONSISTENCIA", value: `${stats.consistency}`, unit: "%" },
+            { icon: Trophy, label: "VOLUMEN LIFETIME", value: stats.lifetimeVolume > 1000 ? `${(stats.lifetimeVolume / 1000).toFixed(1)}k` : String(stats.lifetimeVolume), unit: "KG" },
           ].map((stat) => (
             <div key={stat.label} className="card-fbb">
               <stat.icon className="h-5 w-5 text-primary" />
