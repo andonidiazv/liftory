@@ -9,6 +9,15 @@ type UserProfile = {
   subscription_status: string;
   trial_ends_at: string | null;
   onboarding_completed: boolean;
+  gender: string | null;
+  experience_level: string | null;
+  goals: string[] | null;
+  training_days_per_week: number | null;
+  training_location: string | null;
+  injuries: string[] | null;
+  injuries_detail: string | null;
+  emotional_barriers: string | null;
+  wearable: string | null;
 };
 
 type AuthContextType = {
@@ -35,10 +44,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = useCallback(async (userId: string) => {
     const { data } = await supabase
       .from("user_profiles")
-      .select("id, user_id, full_name, subscription_status, trial_ends_at, onboarding_completed")
+      .select("id, user_id, full_name, subscription_status, trial_ends_at, onboarding_completed, gender, experience_level, goals, training_days_per_week, training_location, injuries, injuries_detail, emotional_barriers, wearable")
       .eq("user_id", userId)
       .single();
-    setProfile(data);
+    setProfile(data as UserProfile | null);
   }, []);
 
   const refreshProfile = useCallback(async () => {

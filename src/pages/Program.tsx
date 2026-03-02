@@ -13,14 +13,35 @@ import {
   Layers,
 } from "lucide-react";
 
-/* ── Mock Data ─────────────────────────────────── */
+/* ── Helpers ─────────────────────────────────── */
 
-const PROGRAM = {
-  name: "Programa Hipertrofia — Intermedio 4 días",
-  totalWeeks: 6,
-  currentWeek: 3,
-  block: "ACUMULACIÓN" as const,
+const LEVEL_LABELS: Record<string, string> = {
+  beginner: "Principiante",
+  intermediate: "Intermedio",
+  advanced: "Avanzado",
 };
+
+const GOAL_LABELS: Record<string, string> = {
+  "Ganar músculo": "Hipertrofia",
+  "Perder grasa": "Recomposición",
+  "Mejorar rendimiento": "Rendimiento",
+  "Salud general": "Salud",
+  "Movilidad y flexibilidad": "Movilidad",
+  "Prepararme para un evento": "Competición",
+};
+
+function buildProgramMeta(profile: any) {
+  const level = LEVEL_LABELS[profile?.experience_level || "intermediate"] || "Intermedio";
+  const days = profile?.training_days_per_week || 4;
+  const mainGoal = profile?.goals?.[0] ? (GOAL_LABELS[profile.goals[0]] || profile.goals[0]) : "Hipertrofia";
+  return {
+    name: `Programa ${mainGoal} — ${level} ${days} días`,
+    totalWeeks: 6,
+    currentWeek: 3,
+    block: "ACUMULACIÓN" as const,
+    days,
+  };
+}
 
 type DayStatus = "completed" | "today" | "future" | "rest" | "skipped";
 
@@ -79,9 +100,10 @@ const WEEK_COMPLETIONS: Record<number, boolean> = { 1: true, 2: true, 3: false, 
 /* ── Component ─────────────────────────────────── */
 
 export default function Program() {
-  const [selectedWeek, setSelectedWeek] = useState(PROGRAM.currentWeek);
-  const { isPremium } = useAuth();
+  const [selectedWeek, setSelectedWeek] = useState(3);
+  const { isPremium, profile } = useAuth();
   const navigate = useNavigate();
+  const PROGRAM = buildProgramMeta(profile);
   const days = WEEKS[selectedWeek] || [];
   const premium = isPremium();
 
@@ -89,7 +111,7 @@ export default function Program() {
     <Layout>
       <div className="px-5 pt-14 pb-8 stagger-fade-in">
         {/* Header */}
-        <h1 className="font-display text-foreground" style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em" }}>
+        <h1 className="font-display" style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em", color: "#F5F0EB" }}>
           {PROGRAM.name}
         </h1>
         <div className="mt-2 flex items-center gap-3">
@@ -173,7 +195,7 @@ function CompletedCard({ day }: { day: ProgramDay }) {
     <div className="rounded-xl p-4" style={{ background: "#1A1A1A", border: "1px solid rgba(60,179,113,0.2)" }}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="font-display text-sm font-semibold text-foreground">{day.dayLabel} — {day.name}</p>
+          <p className="font-display text-sm font-semibold" style={{ color: "#F5F0EB" }}>{day.dayLabel} — {day.name}</p>
           <div className="mt-1.5 flex gap-1.5">
             {day.tags?.map((t) => (
               <span key={t} className="rounded-full px-2 py-0.5 font-mono" style={{ fontSize: 9, letterSpacing: "0.05em", color: "#A89F95", background: "rgba(168,159,149,0.1)" }}>{t}</span>
@@ -197,7 +219,7 @@ function SkippedCard({ day }: { day: ProgramDay }) {
     <div className="rounded-xl p-4" style={{ background: "#1A1A1A", border: "1px solid rgba(224,82,82,0.25)" }}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="font-display text-sm font-semibold text-foreground">{day.dayLabel} — {day.name}</p>
+          <p className="font-display text-sm font-semibold" style={{ color: "#F5F0EB" }}>{day.dayLabel} — {day.name}</p>
           <div className="mt-1.5 flex gap-1.5">
             {day.tags?.map((t) => (
               <span key={t} className="rounded-full px-2 py-0.5 font-mono" style={{ fontSize: 9, letterSpacing: "0.05em", color: "#A89F95", background: "rgba(168,159,149,0.1)" }}>{t}</span>
@@ -216,7 +238,7 @@ function TodayCard({ day, onStart }: { day: ProgramDay; onStart: () => void }) {
     <div className="rounded-xl p-4" style={{ background: "#1A1A1A", border: "1.5px solid #C75B39" }}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="font-display text-sm font-bold text-foreground">{day.dayLabel} — {day.name}</p>
+          <p className="font-display text-sm font-bold" style={{ color: "#F5F0EB" }}>{day.dayLabel} — {day.name}</p>
           <div className="mt-1.5 flex gap-1.5">
             {day.tags?.map((t) => (
               <span key={t} className="rounded-full px-2 py-0.5 font-mono" style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.05em", color: "#C75B39", background: "rgba(199,91,57,0.12)" }}>{t}</span>
@@ -250,7 +272,7 @@ function TodayCard({ day, onStart }: { day: ProgramDay; onStart: () => void }) {
 function FutureCard({ day, premium, onUpgrade }: { day: ProgramDay; premium: boolean; onUpgrade: () => void }) {
   return (
     <div className="rounded-xl p-4" style={{ background: "#1A1A1A", border: "1px solid #2A2A2A" }}>
-      <p className="font-display text-sm font-semibold text-foreground">{day.dayLabel} — {day.name}</p>
+      <p className="font-display text-sm font-semibold" style={{ color: "#F5F0EB" }}>{day.dayLabel} — {day.name}</p>
       <div className="mt-1.5 flex gap-1.5">
         {day.tags?.map((t) => (
           <span key={t} className="rounded-full px-2 py-0.5 font-mono" style={{ fontSize: 9, letterSpacing: "0.05em", color: "#A89F95", background: "rgba(168,159,149,0.1)" }}>{t}</span>
