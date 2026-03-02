@@ -1,14 +1,16 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { user, todayWorkout, weekSchedule } from "@/data/workout";
 import { Flame, TrendingUp, Trophy, ChevronRight, Wifi, Bell } from "lucide-react";
 import Layout from "@/components/Layout";
 import { useAuth } from "@/context/AuthContext";
 import TrialBanner from "@/components/home/TrialBanner";
+import PremiumBottomSheet from "@/components/PremiumBottomSheet";
 
 export default function Home() {
   const navigate = useNavigate();
   const { isFreeTrial, isPremium, isExpired, daysLeftInTrial } = useAuth();
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   // Redirect expired users to paywall
   useEffect(() => {
@@ -19,6 +21,15 @@ export default function Home() {
 
   const handleStartWorkout = () => {
     navigate("/briefing");
+  };
+
+  const handleDayTap = (day: typeof weekSchedule[number]) => {
+    if (day.completed || day.isToday) return;
+    if (!isPremium()) {
+      setShowUpgrade(true);
+      return;
+    }
+    // Premium users could see full detail — for now no-op
   };
 
   const completedDays = weekSchedule.filter((d) => d.completed).length;
@@ -116,7 +127,11 @@ export default function Home() {
           <span className="eyebrow-label">SEMANA ACTUAL</span>
           <div className="mt-4 flex items-center justify-between">
             {weekSchedule.map((day, i) => (
-              <div key={i} className="flex flex-col items-center gap-2">
+              <button
+                key={i}
+                onClick={() => handleDayTap(day)}
+                className="flex flex-col items-center gap-2"
+              >
                 <div
                   className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all ${
                     day.completed
@@ -135,7 +150,11 @@ export default function Home() {
                   )}
                 </div>
                 <span className="text-label-tech text-muted-foreground">{day.day}</span>
-              </div>
+                {/* Show label for free users only on completed/today */}
+                {(!isPremium() && !day.completed && !day.isToday) ? null : (
+                  <span className="text-xs text-muted-foreground font-body" style={{ fontSize: 9 }}>{day.label}</span>
+                )}
+              </button>
             ))}
           </div>
           <p className="mt-3 text-center text-sm text-muted-foreground font-body font-light">
@@ -184,6 +203,14 @@ export default function Home() {
           </button>
         </div>
       </div>
+
+      {/* Premium upgrade sheet for future days */}
+      <PremiumBottomSheet
+        open={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        title="Previsualiza tu semana completa"
+        description="Con Premium puedes ver el detalle de cada día de entrenamiento y planificar tu semana."
+      />
     </Layout>
   );
 }

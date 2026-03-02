@@ -10,6 +10,7 @@ import {
   AreaChart,
   Tooltip,
 } from "recharts";
+import PremiumGate from "@/components/PremiumGate";
 
 const heatmapColors = [
   "bg-secondary",
@@ -43,26 +44,28 @@ export default function Progress() {
         {/* Volume Chart */}
         <div className="mt-8">
           <span className="eyebrow-label">VOLUMEN SEMANAL</span>
-          <div className="mt-4 card-fbb">
-            <ResponsiveContainer width="100%" height={180}>
-              <AreaChart data={weeklyVolume}>
-                <defs>
-                  <linearGradient id="volumeGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(22, 62%, 45%)" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="hsl(22, 62%, 45%)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(37, 12%, 89%)" />
-                <XAxis dataKey="week" tick={{ fontSize: 11, fill: "hsl(240, 2%, 55%)" }} axisLine={false} tickLine={false} />
-                <YAxis hide />
-                <Tooltip
-                  contentStyle={{ background: "hsl(40, 33%, 97%)", border: "1px solid hsl(37, 12%, 89%)", borderRadius: 12, fontSize: 12 }}
-                  formatter={(value: number) => [`${value.toLocaleString()} kg`, "Volumen"]}
-                />
-                <Area type="monotone" dataKey="volume" stroke="hsl(22, 62%, 45%)" strokeWidth={2.5} fill="url(#volumeGrad)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          <PremiumGate label="Desbloquea tendencias históricas">
+            <div className="mt-4 card-fbb">
+              <ResponsiveContainer width="100%" height={180}>
+                <AreaChart data={weeklyVolume}>
+                  <defs>
+                    <linearGradient id="volumeGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(22, 62%, 45%)" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="hsl(22, 62%, 45%)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(37, 12%, 89%)" />
+                  <XAxis dataKey="week" tick={{ fontSize: 11, fill: "hsl(240, 2%, 55%)" }} axisLine={false} tickLine={false} />
+                  <YAxis hide />
+                  <Tooltip
+                    contentStyle={{ background: "hsl(40, 33%, 97%)", border: "1px solid hsl(37, 12%, 89%)", borderRadius: 12, fontSize: 12 }}
+                    formatter={(value: number) => [`${value.toLocaleString()} kg`, "Volumen"]}
+                  />
+                  <Area type="monotone" dataKey="volume" stroke="hsl(22, 62%, 45%)" strokeWidth={2.5} fill="url(#volumeGrad)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </PremiumGate>
         </div>
 
         {/* Personal Records */}
@@ -94,14 +97,16 @@ export default function Progress() {
         {/* Heatmap */}
         <div className="mt-8">
           <span className="eyebrow-label">CONSISTENCIA</span>
-          <div className="mt-4 card-fbb">
-            <div className="grid grid-cols-13 gap-1">
-              {heatmapData.flat().map((val, i) => (
-                <div key={i} className={`aspect-square rounded-sm ${heatmapColors[val]}`} />
-              ))}
+          <PremiumGate label="Desbloquea comparativas de consistencia">
+            <div className="mt-4 card-fbb">
+              <div className="grid grid-cols-13 gap-1">
+                {heatmapData.flat().map((val, i) => (
+                  <div key={i} className={`aspect-square rounded-sm ${heatmapColors[val]}`} />
+                ))}
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground text-center font-body font-normal">Últimos 3 meses</p>
             </div>
-            <p className="mt-3 text-xs text-muted-foreground text-center font-body font-normal">Últimos 3 meses</p>
-          </div>
+          </PremiumGate>
         </div>
 
         {/* Quick Stats */}
