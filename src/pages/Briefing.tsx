@@ -157,9 +157,9 @@ export default function Briefing() {
         <div
           style={{ background: "#1C1C1E", border: "1px solid rgba(250,248,245,0.08)", borderRadius: 12, padding: 20 }}
         >
-          <p style={{ color: "#FAF8F5", fontSize: 15, lineHeight: 1.65, fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}>
+          <p className="font-serif italic" style={{ color: "#FAF8F5", fontSize: 15, lineHeight: 1.65, fontWeight: 300 }}>
             Hoy el foco es{" "}
-            <span style={{ color: "#B8622F", fontWeight: 600 }}>
+            <span className="not-italic" style={{ color: "#B8622F", fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>
               tensión mecánica en pecho
             </span>
             . Controla la bajada, domina el peso. Arrancas con movilidad para preparar
@@ -292,16 +292,15 @@ export default function Briefing() {
       >
         <button
           onClick={handleStart}
-          className="press-scale flex w-full items-center justify-center gap-2 py-[18px] font-display font-bold uppercase text-white"
+          className="press-scale flex w-full items-center justify-center gap-2 py-[18px] font-body font-medium text-white"
           style={{
             background: "linear-gradient(to right, #B8622F, #8B4513)",
             boxShadow: "0 8px 28px rgba(184,98,47,0.3)",
-            letterSpacing: "0.8px",
             fontSize: 15,
             borderRadius: 12,
           }}
         >
-          COMENZAR SESIÓN
+          Comenzar sesión
           <ChevronRight className="h-5 w-5" />
         </button>
       </div>

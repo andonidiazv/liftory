@@ -316,10 +316,9 @@ export default function SessionSummary() {
       <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background to-transparent px-5 pb-6 pt-4">
         <button
           onClick={handleStart}
-          className="press-scale flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-display text-[15px] font-bold text-primary-foreground glow-primary uppercase"
-          style={{ letterSpacing: "0.8px" }}
+          className="press-scale flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-body text-[15px] font-medium text-primary-foreground glow-primary"
         >
-          {workoutActive ? "VOLVER AL WORKOUT" : "COMENZAR SESIÓN"}
+          {workoutActive ? "Volver al workout" : "Comenzar sesión"}
           <ChevronRight className="h-5 w-5" />
         </button>
       </div>
