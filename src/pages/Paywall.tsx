@@ -91,8 +91,8 @@ export default function Paywall() {
                   {plan.badge}
                 </span>
               )}
-              <span className="font-body text-foreground" style={{ fontSize: 13, fontWeight: 600 }}>{plan.label}</span>
-              <span className="font-mono text-foreground mt-2" style={{ fontSize: 20, fontWeight: 700 }}>{plan.price}</span>
+              <span className="font-body" style={{ fontSize: 13, fontWeight: 600, color: "#F5F0EB" }}>{plan.label}</span>
+              <span className="font-mono mt-2" style={{ fontSize: 20, fontWeight: 700, color: "#F5F0EB" }}>{plan.price}</span>
               <span className="font-mono" style={{ fontSize: 11, color: "#A89F95" }}>/mes</span>
               {plan.oldPrice && (
                 <span className="mt-1 line-through font-mono" style={{ fontSize: 11, color: "#6B6360" }}>{plan.oldPrice}</span>
