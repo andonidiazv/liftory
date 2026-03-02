@@ -41,9 +41,9 @@ const App = () => (
               {/* Protected routes */}
               <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
               <Route path="/briefing" element={<ProtectedRoute><Briefing /></ProtectedRoute>} />
-              <Route path="/workout" element={<ProtectedRoute><Workout /></ProtectedRoute>} />
+              <Route path="/workout/:id" element={<ProtectedRoute><Workout /></ProtectedRoute>} />
               <Route path="/session" element={<ProtectedRoute><SessionSummary /></ProtectedRoute>} />
-              <Route path="/workout-complete" element={<ProtectedRoute><WorkoutComplete /></ProtectedRoute>} />
+              <Route path="/workout-complete/:id" element={<ProtectedRoute><WorkoutComplete /></ProtectedRoute>} />
               <Route path="/progress" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
               <Route path="/exercises" element={<ProtectedRoute><Exercises /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

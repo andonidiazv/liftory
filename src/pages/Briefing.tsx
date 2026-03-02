@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useApp } from "@/context/AppContext";
 import { todayWorkout, sessionBlocks, user } from "@/data/workout";
 import { ChevronLeft, ChevronRight, Sun, Zap, HeartPulse, Leaf } from "lucide-react";
@@ -13,11 +13,13 @@ const blockMeta = [
 
 export default function Briefing() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { startWorkout } = useApp();
+  const workoutId = searchParams.get("workoutId");
 
   const handleStart = () => {
     startWorkout();
-    navigate("/workout", { replace: true });
+    navigate(workoutId ? `/workout/${workoutId}` : "/home", { replace: true });
   };
 
   const cycleDay = (user.week - 1) * 4 + 4;
