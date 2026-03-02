@@ -27,17 +27,13 @@ export default function SessionSummary() {
   const fromWorkout = searchParams.get("from") === "workout";
   const { startWorkout, workoutActive, completedSets, currentExerciseIndex } = useApp();
 
-  // Determine current block based on exercise index
   const getCurrentBlockId = () => {
     if (!workoutActive) return null;
-    // Simplified: map exercise index to blocks
-    // warmup = first, strength = exercises 0-5, conditioning & cooldown after
     return "strength";
   };
 
   const currentBlockId = getCurrentBlockId();
 
-  // Auto-expand current block when from workout
   const [expanded, setExpanded] = useState<string[]>(
     fromWorkout && currentBlockId ? [currentBlockId] : ["strength"]
   );
@@ -61,7 +57,6 @@ export default function SessionSummary() {
     }
   };
 
-  // Check if exercise is completed (for strength block)
   const isExerciseComplete = (exerciseName: string) => {
     const ex = todayWorkout.exercises.find((e) => e.name === exerciseName);
     if (!ex) return false;
@@ -70,27 +65,23 @@ export default function SessionSummary() {
     );
   };
 
-  // Check if exercise is the current one
   const isCurrentExercise = (exerciseName: string) => {
     if (!workoutActive) return false;
     const ex = todayWorkout.exercises[currentExerciseIndex];
     return ex?.name === exerciseName;
   };
 
-  // Block completion stats
   const getBlockProgress = (block: typeof sessionBlocks[0]) => {
     if (block.type !== "strength") return { completed: 0, total: block.exercises.length };
     const completed = block.exercises.filter((ex) => isExerciseComplete(ex.name)).length;
     return { completed, total: block.exercises.length };
   };
 
-  // Is block fully completed
   const isBlockComplete = (block: typeof sessionBlocks[0]) => {
     const { completed, total } = getBlockProgress(block);
     return completed === total && workoutActive;
   };
 
-  // Is block in the future (after current block)
   const isBlockFuture = (block: typeof sessionBlocks[0]) => {
     if (!workoutActive || !currentBlockId) return false;
     const currentIdx = sessionBlocks.findIndex((b) => b.id === currentBlockId);
@@ -109,10 +100,10 @@ export default function SessionSummary() {
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="font-display text-2xl font-bold text-foreground">
+            <h1 className="font-display text-[22px] font-bold text-foreground" style={{ letterSpacing: "-0.03em" }}>
               {todayWorkout.name} — {todayWorkout.subtitle}
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-sm text-muted-foreground font-body font-light">
               Sesión completa · 55-65 min · 4 bloques
             </p>
           </div>
@@ -140,18 +131,19 @@ export default function SessionSummary() {
               <button
                 key={block.id}
                 onClick={() => toggleBlock(block.id)}
-                className={`press-scale w-full text-left rounded-2xl bg-card transition-all duration-300 ${
+                className={`press-scale w-full text-left bg-card transition-all duration-300 ${
                   isCurrent ? "ring-2 ring-primary" : ""
                 }`}
                 style={{
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                  borderRadius: 12,
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
                   opacity: isFuture && !isExpanded ? 0.6 : 1,
                 }}
               >
-                <div className="flex overflow-hidden rounded-2xl">
+                <div className="flex overflow-hidden" style={{ borderRadius: 12 }}>
                   {/* Accent bar */}
                   <div
-                    className="w-1 shrink-0 rounded-l-2xl"
+                    className="w-1 shrink-0"
                     style={{ backgroundColor: block.accentColor }}
                   />
 
@@ -172,7 +164,7 @@ export default function SessionSummary() {
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <p className="font-display text-sm font-bold text-foreground tracking-wide">
+                            <p className="font-display text-sm font-bold text-foreground" style={{ letterSpacing: "-0.02em" }}>
                               {block.name}
                             </p>
                             {blockComplete && (
@@ -181,7 +173,7 @@ export default function SessionSummary() {
                               </div>
                             )}
                           </div>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-muted-foreground font-body font-normal">
                             {block.exercises.length} ejercicios · {block.estimatedTime}
                           </p>
                         </div>
@@ -189,10 +181,14 @@ export default function SessionSummary() {
                       <div className="flex items-center gap-2">
                         {block.format && (
                           <span
-                            className="rounded-lg px-2 py-1 text-[10px] font-bold tracking-wider"
+                            className="px-2 py-1 font-mono"
                             style={{
                               backgroundColor: `${block.accentColor}15`,
                               color: block.accentColor,
+                              borderRadius: 4,
+                              fontSize: 10,
+                              fontWeight: 700,
+                              letterSpacing: "0.05em",
                             }}
                           >
                             {block.format}
@@ -260,39 +256,42 @@ export default function SessionSummary() {
                                     )}
                                   </>
                                 )}
-                                <span className="text-sm font-medium text-foreground truncate">
+                                <span className="text-sm font-body font-normal text-foreground truncate">
                                   {ex.name}
                                 </span>
                               </div>
                               {!completed && (
                                 <div className="flex items-center gap-2 shrink-0 ml-2">
                                   {ex.duration ? (
-                                    <span className="font-mono text-xs text-muted-foreground">
+                                    <span className="font-mono text-xs text-muted-foreground" style={{ letterSpacing: "0.05em" }}>
                                       {ex.duration}
                                     </span>
                                   ) : (
                                     <>
-                                      <span className="font-mono text-xs text-muted-foreground">
+                                      <span className="font-mono text-xs text-muted-foreground" style={{ letterSpacing: "0.05em" }}>
                                         {ex.sets && `${ex.sets}×`}{ex.reps}
                                       </span>
                                       {ex.weight && (
-                                        <span className="font-mono text-xs text-foreground font-medium">
+                                        <span className="font-mono text-xs text-foreground font-medium" style={{ letterSpacing: "0.05em" }}>
                                           {ex.weight}
                                         </span>
                                       )}
                                     </>
                                   )}
                                   {ex.tempo && (
-                                    <span className="font-mono text-[10px] text-primary">
+                                    <span className="font-mono text-primary" style={{ fontSize: 10, letterSpacing: "0.05em" }}>
                                       {ex.tempo}
                                     </span>
                                   )}
                                   {ex.rpe && (
                                     <span
-                                      className="rounded-md px-1.5 py-0.5 text-[10px] font-semibold"
+                                      className="px-1.5 py-0.5 font-mono"
                                       style={{
                                         backgroundColor: `${block.accentColor}15`,
                                         color: block.accentColor,
+                                        borderRadius: 4,
+                                        fontSize: 10,
+                                        fontWeight: 600,
                                       }}
                                     >
                                       RPE {ex.rpe}
@@ -317,7 +316,8 @@ export default function SessionSummary() {
       <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background to-transparent px-5 pb-6 pt-4">
         <button
           onClick={handleStart}
-          className="press-scale flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 font-display text-lg font-bold text-primary-foreground glow-primary"
+          className="press-scale flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-display text-[15px] font-bold text-primary-foreground glow-primary uppercase"
+          style={{ letterSpacing: "0.8px" }}
         >
           {workoutActive ? "VOLVER AL WORKOUT" : "COMENZAR SESIÓN"}
           <ChevronRight className="h-5 w-5" />

@@ -65,12 +65,10 @@ export default function Workout() {
     )
   );
 
-  // Next exercise name for rest timer
   const nextExercise = currentExerciseIndex < exercises.length - 1
     ? exercises[currentExerciseIndex + 1]
     : null;
 
-  // Find next incomplete set index
   const nextSetIndex = setsForCurrentExercise.find(
     (i) => !isSetCompleted(currentExercise.id, i)
   );
@@ -110,10 +108,10 @@ export default function Workout() {
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm px-5 pb-3 pt-14">
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-display text-sm font-semibold text-foreground">
+            <p className="font-display text-sm font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>
               {todayWorkout.name}
             </p>
-            <p className="font-mono text-xs text-muted-foreground">
+            <p className="font-mono text-xs text-muted-foreground" style={{ letterSpacing: "0.05em" }}>
               {formatTime(workoutElapsed)}
             </p>
           </div>
@@ -126,7 +124,7 @@ export default function Workout() {
             </button>
             <button
               onClick={handleFinish}
-              className="press-scale flex items-center gap-1.5 rounded-xl bg-secondary px-4 py-2 text-sm font-medium text-foreground"
+              className="press-scale flex items-center gap-1.5 rounded-xl bg-secondary px-4 py-2 text-sm font-body font-medium text-foreground"
             >
               <Pause className="h-3.5 w-3.5" /> Terminar
             </button>
@@ -139,7 +137,7 @@ export default function Workout() {
             style={{ width: `${progress * 100}%` }}
           />
         </div>
-        <p className="mt-1 text-[10px] text-muted-foreground text-right">
+        <p className="mt-1 text-muted-foreground text-right font-mono" style={{ fontSize: 10, letterSpacing: "0.15em" }}>
           {currentExerciseIndex + 1}/{exercises.length} ejercicios
         </p>
       </div>
@@ -148,33 +146,27 @@ export default function Workout() {
       {restTimerActive && (
         <div className="fixed inset-0 z-[60] flex flex-col items-center justify-center" style={{ backgroundColor: "#080808" }}>
           {/* Label */}
-          <p className="text-sm uppercase tracking-[4px] text-muted-foreground font-medium">
+          <p className="font-mono uppercase text-muted-foreground" style={{ fontSize: 14, letterSpacing: "4px", fontWeight: 500 }}>
             Descanso
           </p>
 
           {/* Circular timer */}
           <div className="relative mt-6">
             <svg className="h-64 w-64 -rotate-90" viewBox="0 0 100 100">
-              {/* Background ring */}
               <circle
-                cx="50"
-                cy="50"
-                r="42"
+                cx="50" cy="50" r="42"
                 fill="none"
-                stroke="hsl(240 5% 17%)"
+                stroke="#1C1C1E"
                 strokeWidth="3"
               />
-              {/* Gradient ring */}
               <defs>
                 <linearGradient id="restGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#D4784A" />
+                  <stop offset="0%" stopColor="#B8622F" />
                   <stop offset="100%" stopColor="#C9A96E" />
                 </linearGradient>
               </defs>
               <circle
-                cx="50"
-                cy="50"
-                r="42"
+                cx="50" cy="50" r="42"
                 fill="none"
                 stroke="url(#restGradient)"
                 strokeWidth="4"
@@ -186,10 +178,11 @@ export default function Workout() {
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
               <span
-                className="font-mono text-[96px] font-bold leading-none"
+                className="font-mono font-bold leading-none"
                 style={{
-                  color: "#F0EDE8",
-                  textShadow: "0 0 40px hsl(20 60% 56% / 0.2)",
+                  fontSize: 96,
+                  color: "#FAF8F5",
+                  textShadow: "0 0 40px rgba(184,98,47,0.2)",
                 }}
               >
                 {formatRestTime(restTimeRemaining)}
@@ -197,17 +190,15 @@ export default function Workout() {
             </div>
           </div>
 
-          {/* Next exercise preview */}
           {nextExercise && (
-            <p className="mt-8 text-base text-muted-foreground">
+            <p className="mt-8 text-base text-muted-foreground font-body font-light">
               Siguiente: <span className="font-medium text-foreground">{nextExercise.name}</span> · {nextExercise.sets}×{nextExercise.reps}
             </p>
           )}
 
-          {/* Skip button - subtle text only */}
           <button
             onClick={skipRestTimer}
-            className="mt-8 text-sm font-medium text-primary"
+            className="mt-8 text-sm font-body font-medium text-primary"
           >
             Saltar descanso →
           </button>
@@ -217,27 +208,26 @@ export default function Workout() {
       {/* Exercise content */}
       <div className="flex-1">
         {exerciseView === "ficha" ? (
-          /* Vista 1 — Ficha Técnica */
           <div className="animate-fade-up px-5 mt-4 pb-6 flex flex-col flex-1">
             <div className="card-fbb flex-1">
-              <h2 className="font-display text-2xl font-bold text-foreground">
+              <h2 className="font-display text-[22px] font-bold text-foreground" style={{ letterSpacing: "-0.03em" }}>
                 {currentExercise.name}
               </h2>
 
               {/* Tempo */}
               <div className="mt-4 flex items-center gap-2">
                 <Clock className="h-4 w-4 text-primary" />
-                <span className="font-mono text-lg font-semibold text-primary">
+                <span className="font-mono text-lg font-medium text-primary" style={{ letterSpacing: "0.05em" }}>
                   Tempo: {currentExercise.tempo}
                 </span>
               </div>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-1 text-sm text-muted-foreground font-body font-light">
                 {currentExercise.tempoExplain}
               </p>
 
               {/* Muscles */}
               <div className="mt-5">
-                <p className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                <p className="text-label-tech text-foreground">
                   Músculos
                 </p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
@@ -249,19 +239,19 @@ export default function Workout() {
 
               {/* Common mistakes */}
               <div className="mt-5">
-                <p className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                <p className="text-label-tech text-foreground">
                   Errores comunes
                 </p>
                 <div className="mt-2 flex flex-col gap-1.5">
                   {currentExercise.commonMistakes.map((m, i) => (
-                    <p key={i} className="text-sm text-muted-foreground">• {m}</p>
+                    <p key={i} className="text-sm text-muted-foreground font-body font-light">• {m}</p>
                   ))}
                 </div>
               </div>
 
               {/* Substitutions */}
               <div className="mt-5">
-                <p className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                <p className="text-label-tech text-foreground">
                   Sustituciones
                 </p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
@@ -272,40 +262,38 @@ export default function Workout() {
               </div>
             </div>
 
-            {/* CTA */}
             <button
               onClick={() => setExerciseView("execution")}
-              className="press-scale mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 font-display text-base font-bold text-primary-foreground glow-primary"
+              className="press-scale mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-display text-[15px] font-bold text-primary-foreground glow-primary uppercase"
+              style={{ letterSpacing: "0.8px" }}
             >
               INICIAR EJERCICIO
               <ChevronRight className="h-5 w-5" />
             </button>
           </div>
         ) : (
-          /* Vista 2 — Ejecución (Video TikTok + Sets) */
           <div className="animate-fade-up flex flex-col flex-1">
-            {/* Video area — TikTok style, ~50% viewport */}
+            {/* Video area */}
             <div className="relative" style={{ height: "50vh" }}>
               <div
                 className="absolute inset-0 flex flex-col items-center justify-center"
                 style={{
-                  backgroundColor: "#0D0D0F",
-                  borderBottomLeftRadius: "24px",
-                  borderBottomRightRadius: "24px",
+                  backgroundColor: "#0D0C0A",
+                  borderBottomLeftRadius: 24,
+                  borderBottomRightRadius: 24,
                 }}
               >
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm">
                   <Play className="h-7 w-7 text-white/80 ml-0.5" />
                 </div>
-                <span className="mt-3 text-xs text-white/40">Video demo</span>
+                <span className="mt-3 text-xs text-white/40 font-body">Video demo</span>
               </div>
-              {/* Gradient fade into sets area */}
               <div
                 className="absolute bottom-0 left-0 right-0 h-[60px]"
                 style={{
-                  background: "linear-gradient(to bottom, transparent, hsl(240 7% 5%))",
-                  borderBottomLeftRadius: "24px",
-                  borderBottomRightRadius: "24px",
+                  background: "linear-gradient(to bottom, transparent, hsl(var(--background)))",
+                  borderBottomLeftRadius: 24,
+                  borderBottomRightRadius: 24,
                 }}
               />
             </div>
@@ -313,12 +301,12 @@ export default function Workout() {
             {/* Sets logging area */}
             <div className="px-5 -mt-3 pb-6 relative z-10">
               <div className="flex items-center justify-between">
-                <h3 className="font-display text-lg font-semibold text-foreground">
+                <h3 className="font-display text-lg font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>
                   {currentExercise.name}
                 </h3>
                 <button
                   onClick={() => setExerciseView("ficha")}
-                  className="flex items-center gap-1 text-xs text-primary"
+                  className="flex items-center gap-1 text-xs text-primary font-body font-medium"
                 >
                   <Info className="h-3.5 w-3.5" /> Ficha
                 </button>
@@ -326,11 +314,11 @@ export default function Workout() {
 
               {/* Sets Table */}
               <div className="mt-4">
-                <div className="grid grid-cols-[40px_1fr_60px_50px_44px] gap-2 text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-1 mb-2">
-                  <span>Set</span>
-                  <span>Peso</span>
-                  <span>Reps</span>
-                  <span>RPE</span>
+                <div className="grid grid-cols-[40px_1fr_60px_50px_44px] gap-2 px-1 mb-2">
+                  <span className="text-label-tech text-muted-foreground">Set</span>
+                  <span className="text-label-tech text-muted-foreground">Peso</span>
+                  <span className="text-label-tech text-muted-foreground">Reps</span>
+                  <span className="text-label-tech text-muted-foreground">RPE</span>
                   <span></span>
                 </div>
                 {setsForCurrentExercise.map((setIdx) => {
@@ -343,16 +331,16 @@ export default function Workout() {
                         completed ? "bg-success/10" : isNext ? "bg-primary/5" : ""
                       }`}
                     >
-                      <span className="font-mono text-sm font-semibold text-foreground">
+                      <span className="font-mono text-sm font-medium text-foreground">
                         {setIdx + 1}
                       </span>
-                      <span className="font-mono text-sm text-foreground">
+                      <span className="font-mono text-sm text-foreground" style={{ letterSpacing: "0.05em" }}>
                         {currentExercise.weight}
                       </span>
-                      <span className="font-mono text-sm text-foreground">
+                      <span className="font-mono text-sm text-foreground" style={{ letterSpacing: "0.05em" }}>
                         {currentExercise.reps}
                       </span>
-                      <span className="font-mono text-sm text-muted-foreground">
+                      <span className="font-mono text-sm text-muted-foreground" style={{ letterSpacing: "0.05em" }}>
                         {currentExercise.rpe}
                       </span>
                       <button
@@ -378,14 +366,14 @@ export default function Workout() {
                 <button
                   onClick={goPrev}
                   disabled={currentExerciseIndex === 0}
-                  className="press-scale flex h-12 flex-1 items-center justify-center gap-1 rounded-2xl bg-secondary font-display text-sm font-semibold text-foreground disabled:opacity-30"
+                  className="press-scale flex h-12 flex-1 items-center justify-center gap-1 rounded-xl bg-secondary font-display text-sm font-semibold text-foreground disabled:opacity-30"
                 >
                   <ChevronLeft className="h-4 w-4" /> Anterior
                 </button>
                 {allWorkoutComplete ? (
                   <button
                     onClick={handleFinish}
-                    className="press-scale flex h-12 flex-1 items-center justify-center gap-1 rounded-2xl bg-primary font-display text-sm font-bold text-primary-foreground glow-primary"
+                    className="press-scale flex h-12 flex-1 items-center justify-center gap-1 rounded-xl bg-primary font-display text-sm font-bold text-primary-foreground glow-primary"
                   >
                     Finalizar ✓
                   </button>
@@ -393,20 +381,19 @@ export default function Workout() {
                   <button
                     onClick={goNext}
                     disabled={currentExerciseIndex === exercises.length - 1}
-                    className="press-scale flex h-12 flex-1 items-center justify-center gap-1 rounded-2xl bg-primary font-display text-sm font-semibold text-primary-foreground disabled:opacity-30"
+                    className="press-scale flex h-12 flex-1 items-center justify-center gap-1 rounded-xl bg-primary font-display text-sm font-semibold text-primary-foreground disabled:opacity-30"
                   >
                     Siguiente <ChevronRight className="h-4 w-4" />
                   </button>
                 )}
               </div>
 
-              {/* Next exercise preview */}
               {currentExerciseIndex < exercises.length - 1 && (
                 <div className="mt-3 rounded-xl bg-secondary/50 p-3 flex items-center gap-3">
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                  <span className="text-label-tech text-muted-foreground">
                     Siguiente
                   </span>
-                  <span className="text-sm font-medium text-foreground">
+                  <span className="text-sm font-body font-normal text-foreground">
                     {exercises[currentExerciseIndex + 1].name}
                   </span>
                 </div>

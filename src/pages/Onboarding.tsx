@@ -29,7 +29,6 @@ export default function Onboarding() {
     navigate("/home", { replace: true });
   };
 
-  // Start loading animation then finish
   const startLoading = () => {
     setStep(4);
     setTimeout(finish, 2500);
@@ -56,7 +55,7 @@ export default function Onboarding() {
             <h1 className="text-hero text-foreground">
               Vamos a construir tu programa perfecto
             </h1>
-            <p className="mt-3 text-base text-muted-foreground">
+            <p className="mt-3 text-[15px] text-muted-foreground font-body font-light" style={{ lineHeight: 1.7 }}>
               Responde algunas preguntas y la IA diseñará un plan hecho para ti
             </p>
             <div className="mt-10 flex flex-col gap-4">
@@ -76,11 +75,11 @@ export default function Onboarding() {
                       : "hover:shadow-md"
                   }`}
                 >
-                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary text-2xl">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary text-2xl">
                     {g.icon}
                   </span>
                   <div>
-                    <p className="text-card-title text-foreground">{g.id}</p>
+                    <p className="font-display font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>{g.id}</p>
                     <p className="text-caption">{g.desc}</p>
                   </div>
                 </button>
@@ -120,7 +119,7 @@ export default function Onboarding() {
                     }`} />
                   </div>
                   <div className="flex-1">
-                    <p className="font-display font-semibold text-foreground">{g.id}</p>
+                    <p className="font-display font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>{g.id}</p>
                     <p className="text-caption">{g.desc}</p>
                   </div>
                 </button>
@@ -143,7 +142,7 @@ export default function Onboarding() {
             <h1 className="text-hero text-foreground">Tu setup</h1>
             <div className="mt-8 space-y-8">
               <div>
-                <p className="font-display font-semibold text-foreground">
+                <p className="font-display font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>
                   ¿Cuántos días puedes entrenar?
                 </p>
                 <div className="mt-4 flex gap-3">
@@ -151,11 +150,12 @@ export default function Onboarding() {
                     <button
                       key={d}
                       onClick={() => setDays(d)}
-                      className={`press-scale flex h-14 w-14 items-center justify-center rounded-2xl font-mono text-xl font-semibold transition-all ${
+                      className={`press-scale flex h-14 w-14 items-center justify-center font-mono text-xl font-medium transition-all ${
                         days === d
                           ? "bg-primary text-primary-foreground"
                           : "bg-secondary text-foreground"
                       }`}
+                      style={{ borderRadius: 12 }}
                     >
                       {d}
                     </button>
@@ -163,7 +163,7 @@ export default function Onboarding() {
                 </div>
               </div>
               <div>
-                <p className="font-display font-semibold text-foreground">
+                <p className="font-display font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>
                   ¿Dónde entrenas?
                 </p>
                 <div className="mt-4 grid grid-cols-2 gap-3">
@@ -176,7 +176,7 @@ export default function Onboarding() {
                     <button
                       key={loc}
                       onClick={() => setLocation(loc)}
-                      className={`press-scale card-fbb text-left text-sm font-medium transition-all ${
+                      className={`press-scale card-fbb text-left text-sm font-body font-normal transition-all ${
                         location === loc
                           ? "ring-2 ring-primary bg-primary/5"
                           : ""
@@ -188,12 +188,13 @@ export default function Onboarding() {
                 </div>
               </div>
               <div>
-                <p className="font-display font-semibold text-foreground">
+                <p className="font-display font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>
                   ¿Algo que te incomode al entrenar?
                 </p>
                 <textarea
                   placeholder="Ej: me da miedo hacer peso muerto, no me gustan las dominadas..."
-                  className="mt-3 w-full resize-none rounded-2xl border border-border bg-card p-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="mt-3 w-full resize-none border border-border bg-card p-4 text-sm text-foreground font-body font-light placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  style={{ borderRadius: 10 }}
                   rows={3}
                 />
               </div>
@@ -211,7 +212,7 @@ export default function Onboarding() {
         {step === 3 && (
           <>
             <h1 className="text-hero text-foreground">¿Usas algún wearable?</h1>
-            <p className="mt-2 text-muted-foreground">
+            <p className="mt-2 text-muted-foreground font-body font-light">
               Conectar tu wearable permite que la IA ajuste tu entrenamiento a tu
               recuperación real
             </p>
@@ -253,7 +254,7 @@ export default function Onboarding() {
             <h2 className="mt-8 text-section text-foreground text-center">
               Construyendo tu programa...
             </h2>
-            <p className="mt-2 text-center text-muted-foreground">
+            <p className="mt-2 text-center text-muted-foreground font-body font-light">
               La IA está diseñando un plan personalizado para ti
             </p>
           </div>

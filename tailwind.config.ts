@@ -19,9 +19,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['"Plus Jakarta Sans"', "sans-serif"],
+        display: ['"Syne"', "sans-serif"],
         body: ['"DM Sans"', "sans-serif"],
-        mono: ['"JetBrains Mono"', "monospace"],
+        mono: ['"DM Mono"', "monospace"],
+        serif: ['"Cormorant Garamond"', "serif"],
       },
       colors: {
         border: "hsl(var(--border))",
