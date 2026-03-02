@@ -1,0 +1,529 @@
+import { useEffect, useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
+import { Search, ChevronLeft, ChevronRight, X, AlertTriangle } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { format, formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale";
+import { toast } from "@/hooks/use-toast";
+
+/* ─── types ─── */
+interface UserRow {
+  id: string;
+  user_id: string;
+  full_name: string | null;
+  gender: string | null;
+  weight_unit: string;
+  subscription_status: string;
+  subscription_tier: string | null;
+  trial_ends_at: string | null;
+  current_period_end: string | null;
+  experience_level: string | null;
+  training_days_per_week: number | null;
+  training_location: string | null;
+  injuries: string[] | null;
+  injuries_detail: string | null;
+  emotional_barriers: string | null;
+  goals: string[] | null;
+  wearable: string | null;
+  created_at: string;
+  updated_at: string;
+  onboarding_answers: {
+    experience_level: string;
+    primary_goal: string;
+    training_days: number;
+    equipment: string;
+    injuries: string[] | null;
+    emotional_barriers: string[] | null;
+  }[] | null;
+}
+
+interface UserStats {
+  totalWorkouts: number;
+  totalPRs: number;
+  lastWorkoutDate: string | null;
+}
+
+const PAGE_SIZE = 20;
+
+const statusColors: Record<string, string> = {
+  active: "#7A8B5C",
+  trial: "#8A8A8E",
+  expired: "#B8622F",
+  cancelled: "#6B6360",
+};
+
+const levelColors: Record<string, string> = {
+  beginner: "#7A8B5C",
+  intermediate: "#B8622F",
+  advanced: "#C9A96E",
+};
+
+export default function AdminUsers() {
+  const { user: adminUser } = useAuth();
+  const [users, setUsers] = useState<UserRow[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [tierFilter, setTierFilter] = useState("all");
+
+  // Detail panel
+  const [selected, setSelected] = useState<UserRow | null>(null);
+  const [stats, setStats] = useState<UserStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+
+  // Confirm modal
+  const [confirmAction, setConfirmAction] = useState<{ label: string; fn: () => Promise<void> } | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    let query = supabase
+      .from("user_profiles")
+      .select("*, onboarding_answers(experience_level, primary_goal, training_days, equipment, injuries, emotional_barriers)", { count: "exact" })
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: false })
+      .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+
+    if (statusFilter !== "all") query = query.eq("subscription_status", statusFilter);
+    if (tierFilter !== "all") query = query.eq("subscription_tier", tierFilter);
+    if (search.trim()) query = query.ilike("full_name", `%${search.trim()}%`);
+
+    const { data, count } = await query;
+    setUsers((data as unknown as UserRow[]) || []);
+    setTotal(count ?? 0);
+    setLoading(false);
+  }, [page, statusFilter, tierFilter, search]);
+
+  useEffect(() => { fetchUsers(); }, [fetchUsers]);
+
+  // Reset page on filter change
+  useEffect(() => { setPage(0); }, [statusFilter, tierFilter, search]);
+
+  const openDetail = async (u: UserRow) => {
+    setSelected(u);
+    setStatsLoading(true);
+    const [workoutsRes, prsRes, lastRes] = await Promise.all([
+      supabase.from("workouts").select("*", { count: "exact", head: true }).eq("user_id", u.user_id).eq("is_completed", true),
+      supabase.from("workout_sets").select("*", { count: "exact", head: true }).eq("user_id", u.user_id).eq("is_pr", true),
+      supabase.from("workouts").select("completed_at").eq("user_id", u.user_id).eq("is_completed", true).order("completed_at", { ascending: false }).limit(1),
+    ]);
+    setStats({
+      totalWorkouts: workoutsRes.count ?? 0,
+      totalPRs: prsRes.count ?? 0,
+      lastWorkoutDate: lastRes.data?.[0]?.completed_at ?? null,
+    });
+    setStatsLoading(false);
+  };
+
+  /* ─── Admin actions ─── */
+  const auditAndUpdate = async (
+    targetUser: UserRow,
+    actionType: string,
+    newValues: Record<string, unknown>
+  ) => {
+    const oldValues: Record<string, unknown> = {};
+    for (const key of Object.keys(newValues)) {
+      oldValues[key] = (targetUser as any)[key];
+    }
+
+    const { error } = await supabase
+      .from("user_profiles")
+      .update(newValues)
+      .eq("user_id", targetUser.user_id);
+
+    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+
+    await supabase.from("audit_log").insert({
+      admin_user_id: adminUser!.id,
+      action_type: actionType,
+      target_table: "user_profiles",
+      target_id: targetUser.user_id,
+      old_values: oldValues,
+      new_values: newValues,
+    } as any);
+
+    toast({ title: "Acción completada", description: `${actionType} aplicado correctamente.` });
+    await fetchUsers();
+    // refresh selected user in panel
+    setSelected((prev) => prev ? { ...prev, ...newValues } as unknown as UserRow : null);
+  };
+
+  const forcePremium = (u: UserRow) => {
+    setConfirmAction({
+      label: "Forzar upgrade a Premium",
+      fn: async () => {
+        await auditAndUpdate(u, "subscription_forced", {
+          subscription_status: "active",
+          subscription_tier: "monthly",
+          current_period_end: new Date(Date.now() + 30 * 86400000).toISOString(),
+        });
+      },
+    });
+  };
+
+  const forceExpired = (u: UserRow) => {
+    setConfirmAction({
+      label: "Forzar downgrade a Expired",
+      fn: async () => {
+        await auditAndUpdate(u, "subscription_expired_forced", {
+          subscription_status: "expired",
+          subscription_tier: null,
+          current_period_end: null,
+        });
+      },
+    });
+  };
+
+  const forceTrial = (u: UserRow) => {
+    setConfirmAction({
+      label: "Forzar downgrade a Trial",
+      fn: async () => {
+        await auditAndUpdate(u, "subscription_trial_reset", {
+          subscription_status: "trial",
+          subscription_tier: null,
+          trial_ends_at: new Date(Date.now() + 6 * 86400000).toISOString(),
+          current_period_end: null,
+        });
+      },
+    });
+  };
+
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const ob = (u: UserRow) => u.onboarding_answers?.[0] ?? null;
+
+  return (
+    <div className="relative">
+      <h1 className="text-hero" style={{ color: "#FAF8F5" }}>Usuarios</h1>
+      <p className="mt-1 text-sm text-muted-foreground font-body">{total} usuarios registrados</p>
+
+      {/* ─── Filters ─── */}
+      <div className="mt-6 flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[200px] max-w-[300px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por nombre..."
+            className="w-full rounded-lg py-2.5 pl-10 pr-4 text-sm font-body"
+            style={{ background: "#1C1C1E", border: "1px solid rgba(250,248,245,0.08)", color: "#FAF8F5", outline: "none" }}
+          />
+        </div>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="rounded-lg px-3 py-2.5 text-sm font-body"
+          style={{ background: "#1C1C1E", border: "1px solid rgba(250,248,245,0.08)", color: "#FAF8F5", outline: "none" }}
+        >
+          <option value="all">Todos los estados</option>
+          <option value="trial">Trial</option>
+          <option value="active">Active</option>
+          <option value="expired">Expired</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+        <select
+          value={tierFilter}
+          onChange={(e) => setTierFilter(e.target.value)}
+          className="rounded-lg px-3 py-2.5 text-sm font-body"
+          style={{ background: "#1C1C1E", border: "1px solid rgba(250,248,245,0.08)", color: "#FAF8F5", outline: "none" }}
+        >
+          <option value="all">Todos los tiers</option>
+          <option value="monthly">Monthly</option>
+          <option value="semiannual">Semiannual</option>
+          <option value="annual">Annual</option>
+        </select>
+      </div>
+
+      {/* ─── Table ─── */}
+      {loading ? (
+        <div className="mt-6 space-y-2">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="h-12 w-full rounded-lg" style={{ background: "#1C1C1E" }} />
+          ))}
+        </div>
+      ) : (
+        <div className="mt-6 overflow-hidden rounded-xl" style={{ background: "#1C1C1E", border: "1px solid rgba(250,248,245,0.08)" }}>
+          <table className="w-full">
+            <thead>
+              <tr style={{ borderBottom: "1px solid rgba(250,248,245,0.06)" }}>
+                {["Nombre", "Nivel", "Estado", "Tier", "Días", "Registrado"].map((h) => (
+                  <th key={h} className="px-5 py-3 text-left text-label-tech text-muted-foreground font-normal">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((u) => {
+                const onb = ob(u);
+                return (
+                  <tr
+                    key={u.id}
+                    onClick={() => openDetail(u)}
+                    className="cursor-pointer transition-colors"
+                    style={{ borderBottom: "1px solid rgba(250,248,245,0.04)" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(250,248,245,0.03)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                  >
+                    <td className="px-5 py-3 text-[13px] font-body" style={{ color: "#FAF8F5" }}>
+                      {u.full_name || "Sin nombre"}
+                    </td>
+                    <td className="px-5 py-3">
+                      <span
+                        className="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
+                        style={{
+                          background: `${levelColors[u.experience_level || ""] || "#8A8A8E"}20`,
+                          color: levelColors[u.experience_level || ""] || "#8A8A8E",
+                        }}
+                      >
+                        {u.experience_level || "—"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3">
+                      <span
+                        className="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
+                        style={{
+                          background: `${statusColors[u.subscription_status] || "#8A8A8E"}20`,
+                          color: statusColors[u.subscription_status] || "#8A8A8E",
+                        }}
+                      >
+                        {u.subscription_status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 text-[13px] text-muted-foreground">{u.subscription_tier || "—"}</td>
+                    <td className="px-5 py-3 text-[13px] text-muted-foreground font-mono">{onb?.training_days ?? u.training_days_per_week ?? "—"}</td>
+                    <td className="px-5 py-3 font-mono text-xs text-muted-foreground">
+                      {format(new Date(u.created_at), "dd MMM yyyy", { locale: es })}
+                    </td>
+                  </tr>
+                );
+              })}
+              {users.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-5 py-10 text-center text-sm text-muted-foreground">No hay usuarios con estos filtros.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* ─── Pagination ─── */}
+      {totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-between">
+          <span className="text-xs text-muted-foreground font-mono">
+            Página {page + 1} de {totalPages}
+          </span>
+          <div className="flex gap-2">
+            <button
+              disabled={page === 0}
+              onClick={() => setPage((p) => p - 1)}
+              className="rounded-lg p-2 disabled:opacity-30 transition-colors"
+              style={{ background: "#1C1C1E" }}
+            >
+              <ChevronLeft className="h-4 w-4" style={{ color: "#FAF8F5" }} />
+            </button>
+            <button
+              disabled={page >= totalPages - 1}
+              onClick={() => setPage((p) => p + 1)}
+              className="rounded-lg p-2 disabled:opacity-30 transition-colors"
+              style={{ background: "#1C1C1E" }}
+            >
+              <ChevronRight className="h-4 w-4" style={{ color: "#FAF8F5" }} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Detail Panel (slide-in) ─── */}
+      {selected && (
+        <>
+          <div
+            className="fixed inset-0 z-40"
+            style={{ background: "rgba(0,0,0,0.5)" }}
+            onClick={() => setSelected(null)}
+          />
+          <div
+            className="fixed right-0 top-0 z-50 h-full w-[400px] overflow-y-auto animate-fade-up"
+            style={{ background: "#1C1C1E", borderLeft: "1px solid rgba(250,248,245,0.08)" }}
+          >
+            <div className="flex items-center justify-between px-6 pt-6 pb-4">
+              <h2 className="font-display text-lg font-semibold" style={{ color: "#FAF8F5" }}>
+                {selected.full_name || "Sin nombre"}
+              </h2>
+              <button onClick={() => setSelected(null)} className="rounded-lg p-1.5 hover:bg-white/5 transition-colors">
+                <X className="h-5 w-5" style={{ color: "#8A8A8E" }} />
+              </button>
+            </div>
+
+            <div className="separator-dark" />
+
+            {/* Section: Profile */}
+            <div className="px-6 py-5 space-y-3">
+              <span className="eyebrow-label">PERFIL</span>
+              <DetailRow label="User ID" value={selected.user_id} mono />
+              <DetailRow label="Género" value={selected.gender || "—"} />
+              <DetailRow label="Unidad peso" value={selected.weight_unit} />
+              <DetailRow label="Estado" value={selected.subscription_status} color={statusColors[selected.subscription_status]} />
+              <DetailRow label="Tier" value={selected.subscription_tier || "—"} />
+              <DetailRow label="Trial ends" value={selected.trial_ends_at ? format(new Date(selected.trial_ends_at), "dd MMM yyyy", { locale: es }) : "—"} />
+              <DetailRow label="Period end" value={selected.current_period_end ? format(new Date(selected.current_period_end), "dd MMM yyyy", { locale: es }) : "—"} />
+              <DetailRow label="Registrado" value={format(new Date(selected.created_at), "dd MMM yyyy HH:mm", { locale: es })} />
+            </div>
+
+            <div className="separator-dark" />
+
+            {/* Section: Onboarding */}
+            <div className="px-6 py-5 space-y-3">
+              <span className="eyebrow-label">ONBOARDING</span>
+              {(() => {
+                const onb = ob(selected);
+                if (!onb) return <p className="text-sm text-muted-foreground">Sin datos de onboarding.</p>;
+                return (
+                  <>
+                    <DetailRow label="Nivel" value={onb.experience_level} />
+                    <DetailRow label="Objetivo" value={onb.primary_goal} />
+                    <DetailRow label="Días entreno" value={String(onb.training_days)} />
+                    <DetailRow label="Equipamiento" value={onb.equipment} />
+                    {onb.injuries && onb.injuries.length > 0 && (
+                      <div>
+                        <span className="text-label-tech text-muted-foreground">Lesiones</span>
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                          {onb.injuries.map((inj) => (
+                            <span key={inj} className="pill text-xs">{inj}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {onb.emotional_barriers && onb.emotional_barriers.length > 0 && (
+                      <div>
+                        <span className="text-label-tech text-muted-foreground">Barreras emocionales</span>
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                          {onb.emotional_barriers.map((b) => (
+                            <span key={b} className="pill text-xs">{b}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+
+            <div className="separator-dark" />
+
+            {/* Section: Stats */}
+            <div className="px-6 py-5 space-y-3">
+              <span className="eyebrow-label">ESTADÍSTICAS</span>
+              {statsLoading ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32" style={{ background: "rgba(250,248,245,0.06)" }} />
+                  <Skeleton className="h-4 w-24" style={{ background: "rgba(250,248,245,0.06)" }} />
+                </div>
+              ) : stats ? (
+                <>
+                  <DetailRow label="Workouts completados" value={String(stats.totalWorkouts)} />
+                  <DetailRow label="Total PRs" value={String(stats.totalPRs)} />
+                  <DetailRow
+                    label="Último workout"
+                    value={stats.lastWorkoutDate ? format(new Date(stats.lastWorkoutDate), "dd MMM yyyy", { locale: es }) : "Nunca"}
+                  />
+                  <DetailRow
+                    label="Días sin entrenar"
+                    value={stats.lastWorkoutDate
+                      ? String(Math.floor((Date.now() - new Date(stats.lastWorkoutDate).getTime()) / 86400000))
+                      : "—"}
+                  />
+                </>
+              ) : null}
+            </div>
+
+            <div className="separator-dark" />
+
+            {/* Section: Admin Actions */}
+            <div className="px-6 py-5 space-y-3">
+              <span className="eyebrow-label">ACCIONES ADMIN</span>
+              <button
+                onClick={() => forcePremium(selected)}
+                className="w-full rounded-lg px-4 py-2.5 text-sm font-body font-medium text-left transition-colors"
+                style={{ background: "rgba(122,139,92,0.1)", color: "#7A8B5C" }}
+              >
+                ↑ Forzar upgrade a Premium
+              </button>
+              <button
+                onClick={() => forceExpired(selected)}
+                className="w-full rounded-lg px-4 py-2.5 text-sm font-body font-medium text-left transition-colors"
+                style={{ background: "rgba(184,98,47,0.1)", color: "#B8622F" }}
+              >
+                ↓ Forzar downgrade a Expired
+              </button>
+              <button
+                onClick={() => forceTrial(selected)}
+                className="w-full rounded-lg px-4 py-2.5 text-sm font-body font-medium text-left transition-colors"
+                style={{ background: "rgba(138,138,142,0.1)", color: "#8A8A8E" }}
+              >
+                ↻ Resetear Trial (+6 días)
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ─── Confirm Modal ─── */}
+      {confirmAction && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center" style={{ background: "rgba(0,0,0,0.6)" }}>
+          <div className="w-[380px] rounded-xl p-6" style={{ background: "#1C1C1E", border: "1px solid rgba(250,248,245,0.08)" }}>
+            <div className="flex items-center gap-3 mb-4">
+              <AlertTriangle className="h-5 w-5 text-warning" />
+              <h3 className="font-display text-base font-semibold" style={{ color: "#FAF8F5" }}>Confirmar acción</h3>
+            </div>
+            <p className="text-sm text-muted-foreground font-body mb-1">
+              <strong style={{ color: "#FAF8F5" }}>{confirmAction.label}</strong>
+            </p>
+            <p className="text-sm text-muted-foreground font-body mb-6">
+              ¿Estás seguro? Esta acción se registrará en el audit log.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmAction(null)}
+                disabled={actionLoading}
+                className="flex-1 rounded-lg py-2.5 text-sm font-body font-medium transition-colors"
+                style={{ background: "rgba(250,248,245,0.06)", color: "#FAF8F5" }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  setActionLoading(true);
+                  await confirmAction.fn();
+                  setActionLoading(false);
+                  setConfirmAction(null);
+                }}
+                disabled={actionLoading}
+                className="flex-1 rounded-lg py-2.5 text-sm font-body font-medium transition-colors"
+                style={{ background: "#B8622F", color: "#FAF8F5" }}
+              >
+                {actionLoading ? "Procesando..." : "Confirmar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Helper Component ─── */
+function DetailRow({ label, value, mono, color }: { label: string; value: string; mono?: boolean; color?: string }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-label-tech text-muted-foreground">{label}</span>
+      <span
+        className={`text-[13px] ${mono ? "font-mono" : "font-body"}`}
+        style={{ color: color || "#FAF8F5", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
