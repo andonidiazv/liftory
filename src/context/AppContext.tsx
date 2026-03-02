@@ -6,6 +6,8 @@ interface SetCompletion {
   setIndex: number;
   actualWeight?: string;
   actualReps?: string;
+  actualRpe?: string;
+  actualRir?: string;
 }
 
 interface AppState {
@@ -24,7 +26,8 @@ interface AppContextType extends AppState {
   startWorkout: () => void;
   endWorkout: () => void;
   setCurrentExercise: (index: number) => void;
-  completeSet: (exerciseId: string, setIndex: number) => void;
+  completeSet: (exerciseId: string, setIndex: number, data?: { weight?: string; reps?: string; rpe?: string; rir?: string }) => void;
+  getSetData: (exerciseId: string, setIndex: number) => SetCompletion | undefined;
   isSetCompleted: (exerciseId: string, setIndex: number) => boolean;
   startRestTimer: (seconds: number) => void;
   skipRestTimer: () => void;
@@ -122,7 +125,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setState((s) => ({ ...s, currentExerciseIndex: index }));
   }, []);
 
-  const completeSet = useCallback((exerciseId: string, setIndex: number) => {
+  const completeSet = useCallback((exerciseId: string, setIndex: number, data?: { weight?: string; reps?: string; rpe?: string; rir?: string }) => {
     setState((s) => {
       const exists = s.completedSets.some(
         (c) => c.exerciseId === exerciseId && c.setIndex === setIndex
@@ -130,10 +133,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (exists) return s;
       return {
         ...s,
-        completedSets: [...s.completedSets, { exerciseId, setIndex }],
+        completedSets: [...s.completedSets, { exerciseId, setIndex, actualWeight: data?.weight, actualReps: data?.reps, actualRpe: data?.rpe, actualRir: data?.rir }],
       };
     });
   }, []);
+
+  const getSetData = useCallback(
+    (exerciseId: string, setIndex: number) => {
+      return state.completedSets.find(
+        (c) => c.exerciseId === exerciseId && c.setIndex === setIndex
+      );
+    },
+    [state.completedSets]
+  );
 
   const isSetCompleted = useCallback(
     (exerciseId: string, setIndex: number) => {
@@ -161,6 +173,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         endWorkout,
         setCurrentExercise,
         completeSet,
+        getSetData,
         isSetCompleted,
         startRestTimer,
         skipRestTimer,
