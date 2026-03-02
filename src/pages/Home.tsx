@@ -44,14 +44,14 @@ export default function Home() {
             style={{
               fontSize: 18,
               fontWeight: 800,
-              letterSpacing: "-0.04em",
-              color: "hsl(var(--foreground))",
+              letterSpacing: "-0.02em",
+              color: "#FFFFFF",
             }}
           >
             LIFTORY
           </span>
           <button className="flex h-10 w-10 items-center justify-center rounded-full">
-            <Bell className="h-5 w-5" style={{ color: "#8A8A8E" }} />
+            <Bell className="h-5 w-5" style={{ color: "#6B6360" }} />
           </button>
         </div>
 

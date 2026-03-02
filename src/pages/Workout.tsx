@@ -204,7 +204,7 @@ export default function Workout() {
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm px-5 pb-3 pt-14 relative">
         <div className="relative z-10 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="font-display" style={{ fontSize: 12, fontWeight: 800, letterSpacing: "-0.04em", color: "rgba(250,248,245,0.15)" }}>
+            <span className="font-display" style={{ fontSize: 12, fontWeight: 800, letterSpacing: "-0.04em", color: "#333333" }}>
               LIFTORY
             </span>
             <div>
