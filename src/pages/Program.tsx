@@ -57,42 +57,78 @@ interface ProgramDay {
   exercises?: string[];
 }
 
-const WEEKS: Record<number, ProgramDay[]> = {
-  1: buildWeek("completed"),
-  2: buildWeek("completed"),
-  3: [
-    { dayLabel: "Lunes", status: "completed", name: "Upper Pull", tags: ["Hipertrofia"], duration: "50-60 min", blocks: 4, volume: "8,200 kg", actualDuration: "54 min" },
-    { dayLabel: "Martes", status: "completed", name: "Lower Quad", tags: ["Hipertrofia", "Tempo"], duration: "55-65 min", blocks: 4, volume: "11,400 kg", actualDuration: "62 min" },
-    { dayLabel: "Miércoles", status: "rest", dayLabel2: "rest" } as any,
-    { dayLabel: "Jueves", status: "today", name: "Push + Core", tags: ["Hipertrofia", "Conditioning"], duration: "55-65 min", blocks: 4, exercises: ["Bench Press", "Incline DB Press", "Cable Fly", "Shoulder Press"] },
-    { dayLabel: "Viernes", status: "future", name: "Upper Push", tags: ["Hipertrofia"], duration: "50-60 min", blocks: 3, exercises: ["OHP", "Lateral Raise", "Tricep Pushdown", "Face Pull"] },
-    { dayLabel: "Sábado", status: "rest" },
-    { dayLabel: "Domingo", status: "rest" },
-  ],
-  4: buildWeek("future"),
-  5: buildWeek("future"),
-  6: buildWeek("future"),
-};
+const DAY_LABELS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
-function buildWeek(defaultStatus: "completed" | "future"): ProgramDay[] {
-  const trainingDays = [
-    { dayLabel: "Lunes", name: "Upper Pull", tags: ["Hipertrofia"], duration: "50-60 min", blocks: 4 },
-    { dayLabel: "Martes", name: "Lower Quad", tags: ["Hipertrofia", "Tempo"], duration: "55-65 min", blocks: 4 },
-    { dayLabel: "Jueves", name: "Push + Core", tags: ["Hipertrofia", "Conditioning"], duration: "55-65 min", blocks: 4 },
-    { dayLabel: "Viernes", name: "Upper Push", tags: ["Hipertrofia"], duration: "50-60 min", blocks: 3 },
-  ];
-  const restDays = ["Miércoles", "Sábado", "Domingo"];
+const SESSION_TEMPLATES = [
+  { name: "Upper Pull", tags: ["Hipertrofia"], duration: "50-60 min", blocks: 4, exercises: ["Pull-up", "Barbell Row", "Face Pull", "Curl"] },
+  { name: "Lower Quad", tags: ["Hipertrofia", "Tempo"], duration: "55-65 min", blocks: 4, exercises: ["Squat", "Leg Press", "Lunge", "Leg Curl"] },
+  { name: "Push + Core", tags: ["Hipertrofia", "Conditioning"], duration: "55-65 min", blocks: 4, exercises: ["Bench Press", "Incline DB Press", "Cable Fly", "Shoulder Press"] },
+  { name: "Upper Push", tags: ["Hipertrofia"], duration: "50-60 min", blocks: 3, exercises: ["OHP", "Lateral Raise", "Tricep Pushdown", "Face Pull"] },
+  { name: "Lower Posterior", tags: ["Fuerza", "Tempo"], duration: "50-60 min", blocks: 4, exercises: ["Deadlift", "Hip Thrust", "Leg Curl", "Calf Raise"] },
+  { name: "Full Body", tags: ["Hipertrofia", "Conditioning"], duration: "55-65 min", blocks: 4, exercises: ["Clean", "Push Press", "Row", "Squat"] },
+];
 
-  const all: ProgramDay[] = [
-    { ...trainingDays[0], status: defaultStatus, ...(defaultStatus === "completed" ? { volume: "8,100 kg", actualDuration: "52 min" } : {}) },
-    { ...trainingDays[1], status: defaultStatus, ...(defaultStatus === "completed" ? { volume: "11,200 kg", actualDuration: "60 min" } : {}) },
-    { dayLabel: restDays[0], status: "rest" },
-    { ...trainingDays[2], status: defaultStatus === "completed" ? "completed" : "future", ...(defaultStatus === "completed" ? { volume: "9,800 kg", actualDuration: "58 min" } : {}) },
-    { ...trainingDays[3], status: defaultStatus === "completed" ? "skipped" : "future" },
-    { dayLabel: restDays[1], status: "rest" },
-    { dayLabel: restDays[2], status: "rest" },
-  ];
-  return all;
+/** Distribute N training days across 7 weekdays, returning indices of training days */
+function getTrainingDayIndices(numDays: number): number[] {
+  const patterns: Record<number, number[]> = {
+    2: [0, 3],           // Lun, Jue
+    3: [0, 2, 4],        // Lun, Mié, Vie
+    4: [0, 1, 3, 4],     // Lun, Mar, Jue, Vie
+    5: [0, 1, 2, 3, 4],  // Lun-Vie
+    6: [0, 1, 2, 3, 4, 5], // Lun-Sáb
+  };
+  return patterns[numDays] || patterns[4];
+}
+
+function buildDynamicWeek(
+  numDays: number,
+  defaultStatus: "completed" | "future",
+  currentWeekOverrides?: { todayIndex?: number; skippedIndices?: number[] }
+): ProgramDay[] {
+  const trainingIndices = getTrainingDayIndices(numDays);
+  const templates = SESSION_TEMPLATES.slice(0, numDays);
+
+  return DAY_LABELS.map((label, dayIdx) => {
+    const sessionIdx = trainingIndices.indexOf(dayIdx);
+    if (sessionIdx === -1) return { dayLabel: label, status: "rest" as DayStatus };
+
+    const tpl = templates[sessionIdx % templates.length];
+    let status: DayStatus = defaultStatus;
+
+    if (currentWeekOverrides) {
+      if (currentWeekOverrides.todayIndex === sessionIdx) status = "today";
+      else if (currentWeekOverrides.skippedIndices?.includes(sessionIdx)) status = "skipped";
+      else if (currentWeekOverrides.todayIndex !== undefined && sessionIdx > currentWeekOverrides.todayIndex) status = "future";
+    }
+
+    const completedData = status === "completed"
+      ? { volume: `${(8000 + sessionIdx * 1200).toLocaleString("es")} kg`, actualDuration: `${50 + sessionIdx * 4} min` }
+      : {};
+
+    return { dayLabel: label, status, name: tpl.name, tags: tpl.tags, duration: tpl.duration, blocks: tpl.blocks, exercises: tpl.exercises, ...completedData };
+  });
+}
+
+function buildAllWeeks(numDays: number): Record<number, ProgramDay[]> {
+  return {
+    1: buildDynamicWeek(numDays, "completed"),
+    2: buildDynamicWeek(numDays, "completed"),
+    3: buildDynamicWeek(numDays, "future", { todayIndex: Math.min(2, numDays - 1), skippedIndices: [] }),
+    4: buildDynamicWeek(numDays, "future"),
+    5: buildDynamicWeek(numDays, "future"),
+    6: buildDynamicWeek(numDays, "future"),
+  };
+}
+
+// Mark first N sessions as completed for current week
+function applyCurrentWeekProgress(days: ProgramDay[], completedCount: number): ProgramDay[] {
+  let seen = 0;
+  return days.map((d) => {
+    if (d.status === "rest") return d;
+    seen++;
+    if (seen <= completedCount) return { ...d, status: "completed" as DayStatus, volume: `${(8000 + seen * 1100).toLocaleString("es")} kg`, actualDuration: `${50 + seen * 4} min` };
+    return d;
+  });
 }
 
 const WEEK_COMPLETIONS: Record<number, boolean> = { 1: true, 2: true, 3: false, 4: false, 5: false, 6: false };
@@ -104,7 +140,11 @@ export default function Program() {
   const { isPremium, profile } = useAuth();
   const navigate = useNavigate();
   const PROGRAM = buildProgramMeta(profile);
-  const days = WEEKS[selectedWeek] || [];
+  const numDays = profile?.training_days_per_week || 4;
+  const allWeeks = buildAllWeeks(numDays);
+  const rawDays = allWeeks[selectedWeek] || [];
+  // For week 3 (current), mark first 2 sessions as completed
+  const days = selectedWeek === PROGRAM.currentWeek ? applyCurrentWeekProgress(rawDays, 2) : rawDays;
   const premium = isPremium();
 
   return (
