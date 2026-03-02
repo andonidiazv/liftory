@@ -78,6 +78,31 @@ export default function Profile() {
             </button>
           ))}
         </div>
+
+        {/* Footer wordmark */}
+        <div className="flex flex-col items-center py-8">
+          <span
+            className="font-display"
+            style={{
+              fontSize: 12,
+              fontWeight: 800,
+              letterSpacing: "-0.04em",
+              color: "hsl(var(--muted-foreground))",
+            }}
+          >
+            LIFTORY
+          </span>
+          <span
+            className="mt-1 font-mono"
+            style={{
+              fontSize: 9,
+              fontWeight: 400,
+              color: "rgba(138,138,142,0.5)",
+            }}
+          >
+            v1.0 · Move better. Lift stronger. Live longer.
+          </span>
+        </div>
       </div>
     </Layout>
   );

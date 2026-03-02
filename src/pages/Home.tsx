@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { user, todayWorkout, weekSchedule } from "@/data/workout";
-import { Flame, TrendingUp, Trophy, ChevronRight, Wifi } from "lucide-react";
+import { Flame, TrendingUp, Trophy, ChevronRight, Wifi, Bell } from "lucide-react";
 import Layout from "@/components/Layout";
 
 export default function Home() {
@@ -15,7 +15,25 @@ export default function Home() {
   return (
     <Layout>
       <div className="animate-fade-up px-5 pt-14">
-        {/* Header */}
+        {/* Header with wordmark */}
+        <div className="flex items-center justify-between mb-6">
+          <span
+            className="font-display"
+            style={{
+              fontSize: 18,
+              fontWeight: 800,
+              letterSpacing: "-0.04em",
+              color: "hsl(var(--foreground))",
+            }}
+          >
+            LIFTORY
+          </span>
+          <button className="flex h-10 w-10 items-center justify-center rounded-full">
+            <Bell className="h-5 w-5" style={{ color: "#8A8A8E" }} />
+          </button>
+        </div>
+
+        {/* Greeting */}
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-hero text-foreground">Hola, {user.name}</h1>
@@ -114,24 +132,9 @@ export default function Home() {
           <h3 className="text-card-title text-foreground">Progreso rápido</h3>
           <div className="mt-4 flex gap-3 overflow-x-auto no-scrollbar -mx-5 px-5">
             {[
-              {
-                icon: TrendingUp,
-                label: "Volumen semanal",
-                value: "12,450 kg",
-                delta: "+8%",
-              },
-              {
-                icon: Trophy,
-                label: "Fuerza pecho",
-                value: "+12%",
-                delta: "vs mes pasado",
-              },
-              {
-                icon: Flame,
-                label: "Racha más larga",
-                value: "11 días",
-                delta: "record",
-              },
+              { icon: TrendingUp, label: "Volumen semanal", value: "12,450 kg", delta: "+8%" },
+              { icon: Trophy, label: "Fuerza pecho", value: "+12%", delta: "vs mes pasado" },
+              { icon: Flame, label: "Racha más larga", value: "11 días", delta: "record" },
             ].map((stat) => (
               <div key={stat.label} className="card-fbb min-w-[160px] flex-shrink-0">
                 <stat.icon className="h-5 w-5 text-primary" />
@@ -139,9 +142,7 @@ export default function Home() {
                   {stat.value}
                 </p>
                 <p className="text-xs text-muted-foreground font-body font-normal">{stat.label}</p>
-                <span className="mt-1 inline-block text-xs font-medium text-success">
-                  {stat.delta}
-                </span>
+                <span className="mt-1 inline-block text-xs font-medium text-success">{stat.delta}</span>
               </div>
             ))}
           </div>
