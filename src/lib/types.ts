@@ -3,19 +3,28 @@ export interface UserProfile {
   user_id: string;
   full_name: string | null;
   avatar_url: string | null;
-  gender: 'male' | 'female' | null;
-  role: 'athlete' | 'admin';
-  subscription_status: 'trial' | 'active' | 'expired' | 'cancelled' | 'grace' | 'past_due';
-  subscription_tier: 'monthly' | 'semiannual' | 'annual' | null;
-  trial_ends_at: string;
+  gender: string | null;
+  role: string;
+  subscription_status: string;
+  subscription_tier: string | null;
+  trial_ends_at: string | null;
   current_period_end: string | null;
   stripe_customer_id: string | null;
-  weight_unit: 'kg' | 'lb';
+  weight_unit: string;
   onboarding_completed: boolean;
   is_deleted: boolean;
   deleted_at: string | null;
   created_at: string;
   updated_at: string;
+  // Onboarding fields (stored on user_profiles table)
+  experience_level: string | null;
+  goals: string[] | null;
+  training_days_per_week: number | null;
+  training_location: string | null;
+  injuries: string[] | null;
+  injuries_detail: string | null;
+  emotional_barriers: string | null;
+  wearable: string | null;
 }
 
 export interface OnboardingAnswers {
