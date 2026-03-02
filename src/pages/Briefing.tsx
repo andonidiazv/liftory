@@ -18,24 +18,24 @@ const blockMeta = [
     icon: Zap,
     accentFrom: "#B8622F",
     accentTo: "#D4784A",
-    iconColor: "#D4784A",
-    iconBg: "rgba(212,120,74,0.08)",
+    iconColor: "#B8622F",
+    iconBg: "rgba(184,98,47,0.08)",
   },
   {
     id: "conditioning",
     icon: HeartPulse,
-    accentFrom: "#D4784A",
+    accentFrom: "#B8622F",
     accentTo: "#E09060",
-    iconColor: "#D4784A",
-    iconBg: "rgba(212,120,74,0.08)",
+    iconColor: "#B8622F",
+    iconBg: "rgba(184,98,47,0.08)",
   },
   {
     id: "cooldown",
     icon: Leaf,
-    accentFrom: "#8A857F",
+    accentFrom: "#8A8A8E",
     accentTo: "#9B9690",
-    iconColor: "#8A857F",
-    iconBg: "rgba(138,133,127,0.08)",
+    iconColor: "#8A8A8E",
+    iconBg: "rgba(138,138,142,0.08)",
   },
 ];
 
@@ -53,7 +53,7 @@ export default function Briefing() {
   const progressPct = (cycleDay / totalDays) * 100;
 
   return (
-    <div className="min-h-screen" style={{ background: "#0D0D0F" }}>
+    <div className="min-h-screen" style={{ background: "#0D0C0A" }}>
       {/* HERO IMAGE */}
       <div className="relative w-full" style={{ height: "48vh" }}>
         <img
@@ -75,7 +75,7 @@ export default function Briefing() {
           style={{
             height: "60%",
             background:
-              "linear-gradient(to top, #0D0D0F 0%, rgba(13,13,15,0.92) 30%, rgba(13,13,15,0.4) 60%, transparent 100%)",
+              "linear-gradient(to top, #0D0C0A 0%, rgba(13,12,10,0.92) 30%, rgba(13,12,10,0.4) 60%, transparent 100%)",
           }}
         />
 
@@ -91,12 +91,14 @@ export default function Briefing() {
               border: "1px solid rgba(255,255,255,0.08)",
             }}
           >
-            <ChevronLeft className="h-5 w-5" style={{ color: "#F0EDE8" }} />
+            <ChevronLeft className="h-5 w-5" style={{ color: "#FAF8F5" }} />
           </button>
           <div
-            className="font-mono-num rounded-full px-3 py-1.5 text-[11px]"
+            className="font-mono rounded-full px-3 py-1.5"
             style={{
-              color: "#F0EDE8",
+              color: "#FAF8F5",
+              fontSize: 11,
+              letterSpacing: "0.15em",
               background: "rgba(255,255,255,0.08)",
               backdropFilter: "blur(12px)",
               WebkitBackdropFilter: "blur(12px)",
@@ -110,8 +112,8 @@ export default function Briefing() {
         {/* Content over hero */}
         <div className="absolute inset-x-0 bottom-0 px-6 pb-4">
           <p
-            className="font-mono-num text-[11px] uppercase"
-            style={{ color: "#D4784A", letterSpacing: "2.5px" }}
+            className="font-mono uppercase"
+            style={{ color: "#B8622F", fontSize: 11, letterSpacing: "2.5px" }}
           >
             DÍA {cycleDay} DE {totalDays}
           </p>
@@ -120,14 +122,14 @@ export default function Briefing() {
             style={{
               fontSize: 38,
               fontWeight: 800,
-              letterSpacing: "-1.5px",
-              color: "#F0EDE8",
+              letterSpacing: "-0.04em",
+              color: "#FAF8F5",
               lineHeight: 1.1,
             }}
           >
             {todayWorkout.name}
           </h1>
-          <p className="mt-1 text-[15px]" style={{ color: "#8A857F" }}>
+          <p className="mt-1" style={{ color: "#8A8A8E", fontSize: 15, fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}>
             Construye pecho y hombros
           </p>
         </div>
@@ -135,16 +137,17 @@ export default function Briefing() {
 
       {/* PROGRESS BAR */}
       <div className="flex items-center gap-3 px-6 py-3.5">
-        <div className="flex-1 overflow-hidden rounded-sm" style={{ height: 4, background: "#1A1A1E" }}>
+        <div className="flex-1 overflow-hidden" style={{ height: 4, background: "#1C1C1E", borderRadius: 2 }}>
           <div
-            className="h-full rounded-sm"
+            className="h-full"
             style={{
               width: `${progressPct}%`,
-              background: "linear-gradient(to right, #D4784A, #C9A96E)",
+              background: "linear-gradient(to right, #B8622F, #C9A96E)",
+              borderRadius: 2,
             }}
           />
         </div>
-        <span className="font-mono-num text-[11px]" style={{ color: "#5A5650" }}>
+        <span className="font-mono" style={{ color: "#8A8A8E", fontSize: 11, letterSpacing: "0.05em" }}>
           {cycleDay}/{totalDays}
         </span>
       </div>
@@ -152,12 +155,11 @@ export default function Briefing() {
       {/* STATEMENT CARD */}
       <div className="px-6">
         <div
-          className="rounded-[18px] p-5"
-          style={{ background: "#161618", border: "1px solid #2A2A2E" }}
+          style={{ background: "#1C1C1E", border: "1px solid rgba(250,248,245,0.08)", borderRadius: 12, padding: 20 }}
         >
-          <p className="text-[15px] leading-[1.65]" style={{ color: "#F0EDE8" }}>
+          <p style={{ color: "#FAF8F5", fontSize: 15, lineHeight: 1.65, fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}>
             Hoy el foco es{" "}
-            <span style={{ color: "#D4784A", fontWeight: 600 }}>
+            <span style={{ color: "#B8622F", fontWeight: 600 }}>
               tensión mecánica en pecho
             </span>
             . Controla la bajada, domina el peso. Arrancas con movilidad para preparar
@@ -168,11 +170,11 @@ export default function Briefing() {
           {/* Whoop line */}
           <div
             className="mt-4 flex items-center gap-3 pt-3.5"
-            style={{ borderTop: "1px solid #2A2A2E" }}
+            style={{ borderTop: "1px solid rgba(250,248,245,0.08)" }}
           >
             <div
-              className="font-mono-num flex h-5 w-5 shrink-0 items-center justify-center rounded-[5px] text-[10px] font-bold"
-              style={{ background: "#1A1A1E", border: "1px solid #2A2A2E", color: "#5A5650" }}
+              className="font-mono flex h-5 w-5 shrink-0 items-center justify-center"
+              style={{ background: "#1C1C1E", border: "1px solid rgba(250,248,245,0.08)", borderRadius: 5, fontSize: 10, fontWeight: 700, color: "#8A8A8E" }}
             >
               W
             </div>
@@ -185,14 +187,14 @@ export default function Briefing() {
                 <div
                   key={stat.label}
                   className="flex flex-1 flex-col items-center"
-                  style={i < 2 ? { borderRight: "1px solid #2A2A2E" } : undefined}
+                  style={i < 2 ? { borderRight: "1px solid rgba(250,248,245,0.08)" } : undefined}
                 >
-                  <span className="font-mono-num text-sm font-medium" style={{ color: "#F0EDE8" }}>
+                  <span className="font-mono" style={{ color: "#FAF8F5", fontSize: 14, fontWeight: 500 }}>
                     {stat.value}
                   </span>
                   <span
-                    className="mt-0.5 text-[9px] uppercase"
-                    style={{ color: "#5A5650", letterSpacing: "0.8px" }}
+                    className="mt-0.5 uppercase"
+                    style={{ color: "#8A8A8E", fontSize: 9, letterSpacing: "0.8px", fontFamily: "'DM Mono', monospace" }}
                   >
                     {stat.label}
                   </span>
@@ -205,10 +207,10 @@ export default function Briefing() {
 
       {/* SESSION LABEL */}
       <div className="flex items-center gap-3 px-6 pb-2 pt-6">
-        <span className="shrink-0 text-xs" style={{ color: "#5A5650" }}>
+        <span className="shrink-0" style={{ color: "#8A8A8E", fontSize: 12, fontFamily: "'DM Sans', sans-serif", fontWeight: 400 }}>
           55-65 min · 4 bloques
         </span>
-        <div className="flex-1" style={{ height: 1, background: "#2A2A2E" }} />
+        <div className="flex-1" style={{ height: 1, background: "rgba(250,248,245,0.08)" }} />
       </div>
 
       {/* BLOCK GRID */}
@@ -220,10 +222,11 @@ export default function Briefing() {
           return (
             <div
               key={block.id}
-              className="relative overflow-hidden rounded-[18px]"
+              className="relative overflow-hidden"
               style={{
-                background: "#161618",
-                border: "1px solid #2A2A2E",
+                background: "#1C1C1E",
+                border: "1px solid rgba(250,248,245,0.08)",
+                borderRadius: 12,
                 animationDelay: `${index * 0.06}s`,
                 animation: "fade-up-in 0.4s ease-out both",
               }}
@@ -238,8 +241,8 @@ export default function Briefing() {
               <div className="p-4">
                 <div className="flex items-start justify-between">
                   <div
-                    className="flex h-[38px] w-[38px] items-center justify-center rounded-xl"
-                    style={{ background: meta.iconBg }}
+                    className="flex h-[38px] w-[38px] items-center justify-center"
+                    style={{ background: meta.iconBg, borderRadius: 12 }}
                   >
                     <Icon
                       className="h-[18px] w-[18px]"
@@ -247,26 +250,28 @@ export default function Briefing() {
                       strokeWidth={1.5}
                     />
                   </div>
-                  <span className="font-mono-num text-[11px]" style={{ color: "#5A5650" }}>
+                  <span className="font-mono" style={{ color: "#8A8A8E", fontSize: 11, letterSpacing: "0.05em" }}>
                     {block.estimatedTime}
                   </span>
                 </div>
                 <p
-                  className="mt-3 text-sm font-bold"
-                  style={{ color: "#F0EDE8" }}
+                  className="mt-3 font-display font-bold"
+                  style={{ color: "#FAF8F5", fontSize: 14 }}
                 >
                   {block.name}
                 </p>
-                <p className="mt-0.5 text-xs" style={{ color: "#8A857F" }}>
+                <p className="mt-0.5" style={{ color: "#8A8A8E", fontSize: 12, fontFamily: "'DM Sans', sans-serif", fontWeight: 400 }}>
                   {block.exercises.length} ejercicios
                 </p>
                 {block.format && (
                   <span
-                    className="font-mono-num mt-2 inline-block rounded-md px-2 py-1 text-[10px]"
+                    className="font-mono mt-2 inline-block px-2 py-1"
                     style={{
-                      color: "#D4784A",
-                      background: "rgba(212,120,74,0.08)",
-                      border: "1px solid rgba(212,120,74,0.12)",
+                      color: "#B8622F",
+                      background: "rgba(184,98,47,0.08)",
+                      border: "1px solid rgba(184,98,47,0.12)",
+                      borderRadius: 4,
+                      fontSize: 10,
                     }}
                   >
                     {block.format}
@@ -282,16 +287,18 @@ export default function Briefing() {
       <div
         className="fixed inset-x-0 bottom-0 z-50 px-6 pb-8 pt-4"
         style={{
-          background: "linear-gradient(to top, #0D0D0F 60%, transparent)",
+          background: "linear-gradient(to top, #0D0C0A 60%, transparent)",
         }}
       >
         <button
           onClick={handleStart}
-          className="press-scale flex w-full items-center justify-center gap-2 rounded-2xl py-[18px] text-[15px] font-bold uppercase text-white"
+          className="press-scale flex w-full items-center justify-center gap-2 py-[18px] font-display font-bold uppercase text-white"
           style={{
-            background: "linear-gradient(to right, #D4784A, #B8622F)",
-            boxShadow: "0 8px 28px rgba(212,120,74,0.3)",
+            background: "linear-gradient(to right, #B8622F, #8B4513)",
+            boxShadow: "0 8px 28px rgba(184,98,47,0.3)",
             letterSpacing: "0.8px",
+            fontSize: 15,
+            borderRadius: 12,
           }}
         >
           COMENZAR SESIÓN

@@ -4,41 +4,41 @@
 
 @layer base {
   :root {
-    /* FBB Light Mode — Warm, premium, organic */
-    --background: 36 33% 97%;
-    --foreground: 240 3% 11%;
+    /* LIFTORY Light Mode */
+    --background: 40 33% 97%;       /* #FAF8F5 */
+    --foreground: 40 10% 11%;       /* #1C1C1E */
 
     --card: 0 0% 100%;
-    --card-foreground: 240 3% 11%;
+    --card-foreground: 40 10% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 3% 11%;
+    --popover-foreground: 40 10% 11%;
 
-    --primary: 22 59% 45%;
-    --primary-foreground: 36 33% 97%;
+    --primary: 22 62% 45%;          /* #B8622F */
+    --primary-foreground: 40 33% 97%;
 
-    --secondary: 30 26% 93%;
-    --secondary-foreground: 240 3% 11%;
+    --secondary: 37 18% 93%;        /* #F5F2ED */
+    --secondary-foreground: 40 10% 11%;
 
-    --muted: 30 26% 93%;
-    --muted-foreground: 27 5% 40%;
+    --muted: 37 18% 93%;
+    --muted-foreground: 240 2% 55%; /* #8A8A8E */
 
-    --accent: 39 44% 61%;
-    --accent-foreground: 240 3% 11%;
+    --accent: 39 37% 60%;           /* #C9A96E */
+    --accent-foreground: 40 10% 11%;
 
-    --destructive: 5 54% 50%;
-    --destructive-foreground: 36 33% 97%;
+    --destructive: 4 53% 47%;       /* #C0392B */
+    --destructive-foreground: 40 33% 97%;
 
-    --border: 30 19% 89%;
-    --input: 30 19% 89%;
-    --ring: 22 59% 45%;
+    --border: 37 12% 89%;
+    --input: 37 12% 89%;
+    --ring: 22 62% 45%;
 
-    --radius: 1rem;
+    --radius: 0.75rem;
 
-    --success: 82 20% 45%;
-    --success-foreground: 36 33% 97%;
+    --success: 90 22% 45%;          /* #7A8B5C */
+    --success-foreground: 40 33% 97%;
     --warning: 38 69% 50%;
-    --gold: 39 44% 61%;
+    --gold: 39 37% 60%;             /* #C9A96E */
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -50,35 +50,35 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
-  /* Workout Dark Mode — High contrast, gym-optimized */
+  /* Workout Dark Mode */
   .workout-mode {
-    --background: 240 7% 5%;
-    --foreground: 37 24% 93%;
+    --background: 40 14% 4%;        /* #0D0C0A */
+    --foreground: 37 24% 93%;       /* #FAF8F5 mapped */
 
-    --card: 240 7% 11%;
+    --card: 240 3% 12%;             /* #1C1C1E */
     --card-foreground: 37 24% 93%;
 
-    --popover: 240 7% 11%;
+    --popover: 240 3% 12%;
     --popover-foreground: 37 24% 93%;
 
-    --primary: 20 60% 56%;
-    --primary-foreground: 240 7% 5%;
+    --primary: 22 62% 45%;          /* #B8622F */
+    --primary-foreground: 40 33% 97%;
 
-    --secondary: 240 5% 17%;
+    --secondary: 240 3% 15%;
     --secondary-foreground: 37 24% 93%;
 
-    --muted: 240 5% 17%;
-    --muted-foreground: 33 5% 52%;
+    --muted: 240 3% 15%;
+    --muted-foreground: 240 2% 55%; /* #8A8A8E */
 
-    --accent: 20 60% 56%;
-    --accent-foreground: 240 7% 5%;
+    --accent: 22 62% 45%;
+    --accent-foreground: 40 14% 4%;
 
-    --border: 240 5% 17%;
-    --input: 240 5% 17%;
-    --ring: 20 60% 56%;
+    --border: 0 0% 100% / 0.08;
+    --input: 240 3% 15%;
+    --ring: 22 62% 45%;
 
-    --success: 88 25% 54%;
-    --success-foreground: 240 7% 5%;
+    --success: 90 22% 45%;          /* #7A8B5C */
+    --success-foreground: 40 14% 4%;
   }
 }
 
@@ -89,6 +89,7 @@
 
   html {
     font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -100,8 +101,9 @@
 }
 
 @layer utilities {
+  /* ═══ FONT FAMILIES ═══ */
   .font-display {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Syne', sans-serif;
   }
 
   .font-body {
@@ -109,87 +111,133 @@
   }
 
   .font-mono-num {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'DM Mono', monospace;
   }
 
+  .font-serif {
+    font-family: 'Cormorant Garamond', serif;
+  }
+
+  /* ═══ TYPOGRAPHY SCALE ═══ */
   .text-hero {
-    @apply font-display text-[32px] font-bold leading-tight tracking-tight;
+    @apply font-display font-bold leading-tight;
+    font-size: 22px;
+    letter-spacing: -0.03em;
   }
 
   .text-section {
-    @apply font-display text-2xl font-bold leading-tight;
+    @apply font-display font-semibold leading-tight;
+    font-size: 16px;
+    letter-spacing: -0.02em;
   }
 
   .text-card-title {
-    @apply font-display text-xl font-semibold;
+    @apply font-display font-semibold;
+    font-size: 16px;
+    letter-spacing: -0.02em;
   }
 
   .text-stat {
-    @apply font-mono-num text-[28px] font-medium leading-none;
+    @apply font-mono-num font-medium leading-none;
+    font-size: 28px;
+    letter-spacing: 0.05em;
   }
 
   .text-stat-lg {
-    @apply font-mono-num text-4xl font-medium leading-none;
+    @apply font-mono-num font-medium leading-none;
+    font-size: 32px;
+    letter-spacing: 0.05em;
   }
 
   .text-caption {
     @apply text-sm text-muted-foreground;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
   }
 
-  /* Press state for interactive elements */
+  .text-eyebrow {
+    @apply font-mono-num uppercase;
+    font-size: 9px;
+    letter-spacing: 0.20em;
+    font-weight: 400;
+  }
+
+  .text-label-tech {
+    @apply font-mono-num uppercase;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    font-weight: 400;
+  }
+
+  .text-motivational {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-style: italic;
+    line-height: 1.3;
+  }
+
+  /* ═══ PRESS STATE ═══ */
   .press-scale {
     @apply transition-transform duration-150 active:scale-[0.97];
   }
 
-  /* Card styles */
+  /* ═══ CARD STYLES ═══ */
   .card-fbb {
-    @apply bg-card rounded-2xl p-5;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    @apply bg-card rounded-xl p-5;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   }
 
   .card-hero {
-    @apply bg-card rounded-3xl p-6;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    @apply bg-card rounded-xl p-6;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   }
 
-  /* Pill / tag */
+  /* ═══ PILL / TAG ═══ */
   .pill {
-    @apply inline-flex items-center rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground;
+    @apply inline-flex items-center bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground;
+    border-radius: 4px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
   }
 
   .pill-primary {
-    @apply inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary;
+    @apply inline-flex items-center bg-primary/10 px-3 py-1 text-xs font-medium text-primary;
+    border-radius: 4px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
   }
 
-  /* Glow effects */
+  /* ═══ GLOW EFFECTS ═══ */
   .glow-primary {
-    box-shadow: 0 0 20px hsl(22 59% 45% / 0.3);
+    box-shadow: 0 0 20px hsl(22 62% 45% / 0.3);
   }
 
   .glow-success {
-    box-shadow: 0 0 16px hsl(82 20% 45% / 0.3);
+    box-shadow: 0 0 16px hsl(90 22% 45% / 0.3);
   }
 
   .glow-gold {
-    box-shadow: 0 0 16px hsl(39 44% 61% / 0.25);
+    box-shadow: 0 0 16px hsl(39 37% 60% / 0.25);
   }
 
-  /* Safe area padding */
+  /* ═══ SAFE AREA ═══ */
   .pb-safe {
     padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
   }
 
-  /* Workout mode specific */
+  /* ═══ WORKOUT MODE GLOWS ═══ */
   .workout-mode .glow-primary {
-    box-shadow: 0 0 24px hsl(20 60% 56% / 0.4);
+    box-shadow: 0 0 24px hsl(22 62% 45% / 0.4);
   }
 
   .workout-mode .glow-success {
-    box-shadow: 0 0 20px hsl(88 25% 54% / 0.35);
+    box-shadow: 0 0 20px hsl(90 22% 45% / 0.35);
   }
 }
 
-/* Custom scrollbar hide */
+/* ═══ SCROLLBAR HIDE ═══ */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -198,33 +246,20 @@
   scrollbar-width: none;
 }
 
-/* Pulse animation for terracotta ring */
+/* ═══ ANIMATIONS ═══ */
 @keyframes pulse-ring {
-  0% {
-    box-shadow: 0 0 0 0 hsl(22 59% 45% / 0.4);
-  }
-  70% {
-    box-shadow: 0 0 0 8px hsl(22 59% 45% / 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 hsl(22 59% 45% / 0);
-  }
+  0% { box-shadow: 0 0 0 0 hsl(22 62% 45% / 0.4); }
+  70% { box-shadow: 0 0 0 8px hsl(22 62% 45% / 0); }
+  100% { box-shadow: 0 0 0 0 hsl(22 62% 45% / 0); }
 }
 
 .animate-pulse-ring {
   animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Fade transition for page changes */
 @keyframes fade-up-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-up {
@@ -232,24 +267,15 @@
 }
 
 @keyframes gentle-pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
 
 .animate-gentle-pulse {
   animation: gentle-pulse 2s ease-in-out infinite;
 }
 
-/* Countdown circle animation */
 @keyframes countdown-stroke {
-  from {
-    stroke-dashoffset: 0;
-  }
-  to {
-    stroke-dashoffset: 283;
-  }
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: 283; }
 }

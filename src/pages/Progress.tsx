@@ -2,8 +2,6 @@ import Layout from "@/components/Layout";
 import { user, weeklyVolume, personalRecords, heatmapData } from "@/data/workout";
 import { TrendingUp, Trophy, Flame, Dumbbell } from "lucide-react";
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -30,10 +28,10 @@ export default function Progress() {
             {user.name[0]}
           </div>
           <div>
-            <h1 className="font-display text-xl font-bold text-foreground">
+            <h1 className="font-display text-[22px] font-bold text-foreground" style={{ letterSpacing: "-0.03em" }}>
               {user.name}
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground font-body font-light">
               Nivel: {user.level} · Semana {user.week} de {user.totalWeeks}
             </p>
             <div className="mt-2 h-1.5 w-40 overflow-hidden rounded-full bg-secondary">
@@ -53,22 +51,22 @@ export default function Progress() {
               <AreaChart data={weeklyVolume}>
                 <defs>
                   <linearGradient id="volumeGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(22, 59%, 45%)" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="hsl(22, 59%, 45%)" stopOpacity={0} />
+                    <stop offset="5%" stopColor="hsl(22, 62%, 45%)" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="hsl(22, 62%, 45%)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(30, 19%, 89%)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(37, 12%, 89%)" />
                 <XAxis
                   dataKey="week"
-                  tick={{ fontSize: 11, fill: "hsl(27, 5%, 40%)" }}
+                  tick={{ fontSize: 11, fill: "hsl(240, 2%, 55%)" }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis hide />
                 <Tooltip
                   contentStyle={{
-                    background: "hsl(0, 0%, 100%)",
-                    border: "1px solid hsl(30, 19%, 89%)",
+                    background: "hsl(40, 33%, 97%)",
+                    border: "1px solid hsl(37, 12%, 89%)",
                     borderRadius: 12,
                     fontSize: 12,
                   }}
@@ -77,7 +75,7 @@ export default function Progress() {
                 <Area
                   type="monotone"
                   dataKey="volume"
-                  stroke="hsl(22, 59%, 45%)"
+                  stroke="hsl(22, 62%, 45%)"
                   strokeWidth={2.5}
                   fill="url(#volumeGrad)"
                 />
@@ -96,12 +94,12 @@ export default function Progress() {
                   <Trophy className="h-5 w-5 text-gold" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-display font-semibold text-foreground">
+                  <p className="font-display font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>
                     {pr.exercise}
                   </p>
-                  <p className="text-xs text-muted-foreground">{pr.when}</p>
+                  <p className="text-xs text-muted-foreground font-body font-normal">{pr.when}</p>
                 </div>
-                <p className="font-mono text-lg font-semibold text-foreground">
+                <p className="font-mono text-lg font-medium text-foreground" style={{ letterSpacing: "0.05em" }}>
                   {pr.weight} ×{pr.reps}
                 </p>
               </div>
@@ -121,7 +119,7 @@ export default function Progress() {
                 />
               ))}
             </div>
-            <p className="mt-3 text-xs text-muted-foreground text-center">
+            <p className="mt-3 text-xs text-muted-foreground text-center font-body font-normal">
               Últimos 3 meses
             </p>
           </div>
@@ -137,10 +135,10 @@ export default function Progress() {
           ].map((stat) => (
             <div key={stat.label} className="card-fbb">
               <stat.icon className="h-5 w-5 text-primary" />
-              <p className="mt-2 font-mono text-xl font-semibold text-foreground">
+              <p className="mt-2 font-mono text-xl font-medium text-foreground" style={{ letterSpacing: "0.05em" }}>
                 {stat.value}
               </p>
-              <p className="text-xs text-muted-foreground">{stat.label}</p>
+              <p className="text-xs text-muted-foreground font-body font-normal">{stat.label}</p>
             </div>
           ))}
         </div>

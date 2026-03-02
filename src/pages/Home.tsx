@@ -19,13 +19,13 @@ export default function Home() {
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-hero text-foreground">Hola, {user.name}</h1>
-            <p className="mt-1 text-muted-foreground">
+            <p className="mt-1 text-sm text-muted-foreground font-body font-light">
               Jueves, 20 de febrero
             </p>
           </div>
-          <div className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5">
+          <div className="flex items-center gap-1.5 rounded-[4px] bg-primary/10 px-3 py-1.5">
             <Flame className="h-4 w-4 text-primary" />
-            <span className="font-mono text-sm font-semibold text-primary">
+            <span className="font-mono text-sm font-medium text-primary">
               {user.streak} días
             </span>
           </div>
@@ -38,20 +38,20 @@ export default function Home() {
               <span key={tag} className="pill-primary">{tag}</span>
             ))}
           </div>
-          <h2 className="mt-4 font-display text-2xl font-bold text-foreground">
+          <h2 className="mt-4 font-display text-[16px] font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>
             {todayWorkout.name} — {todayWorkout.subtitle}
           </h2>
-          <p className="mt-1 text-muted-foreground">
+          <p className="mt-1 text-sm text-muted-foreground font-body font-light">
             {todayWorkout.exercises.length} ejercicios · {todayWorkout.estimatedTime} min · Intensidad {todayWorkout.intensity.toLowerCase()}
           </p>
 
           {/* Whoop Recovery */}
-          <div className="mt-5 flex items-center gap-3 rounded-2xl bg-secondary p-3">
+          <div className="mt-5 flex items-center gap-3 rounded-xl bg-secondary p-3">
             <Wifi className="h-4 w-4 text-success" />
             <div className="flex-1">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-foreground">Recovery</span>
-                <span className="font-mono text-xs font-semibold text-success">{user.recovery}%</span>
+                <span className="text-xs font-body font-normal text-foreground">Recovery</span>
+                <span className="font-mono text-xs font-medium text-success">{user.recovery}%</span>
               </div>
               <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-background">
                 <div
@@ -64,13 +64,14 @@ export default function Home() {
 
           <button
             onClick={handleStartWorkout}
-            className="press-scale mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 font-display text-lg font-bold text-primary-foreground glow-primary"
+            className="press-scale mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-display text-[15px] font-bold text-primary-foreground glow-primary uppercase"
+            style={{ letterSpacing: "0.8px" }}
           >
             COMENZAR WORKOUT
           </button>
           <button
             onClick={() => navigate("/session")}
-            className="mt-3 flex w-full items-center justify-center gap-1 text-sm font-semibold text-primary"
+            className="mt-3 flex w-full items-center justify-center gap-1 text-sm font-body font-medium text-primary"
           >
             Ver sesión completa <ChevronRight className="h-4 w-4" />
           </button>
@@ -94,16 +95,16 @@ export default function Home() {
                   {day.completed ? (
                     <span className="text-sm font-bold">✓</span>
                   ) : (
-                    <span className={`text-xs font-medium ${day.isToday ? "text-primary" : "text-muted-foreground"}`}>
+                    <span className={`text-xs font-body font-normal ${day.isToday ? "text-primary" : "text-muted-foreground"}`}>
                       {day.day}
                     </span>
                   )}
                 </div>
-                <span className="text-[10px] text-muted-foreground">{day.day}</span>
+                <span className="text-label-tech text-muted-foreground">{day.day}</span>
               </div>
             ))}
           </div>
-          <p className="mt-3 text-center text-sm text-muted-foreground">
+          <p className="mt-3 text-center text-sm text-muted-foreground font-body font-light">
             {completedDays} de {user.daysPerWeek} workouts esta semana
           </p>
         </div>
@@ -134,10 +135,10 @@ export default function Home() {
             ].map((stat) => (
               <div key={stat.label} className="card-fbb min-w-[160px] flex-shrink-0">
                 <stat.icon className="h-5 w-5 text-primary" />
-                <p className="mt-3 font-mono text-xl font-semibold text-foreground">
+                <p className="mt-3 font-mono text-xl font-medium text-foreground" style={{ letterSpacing: "0.05em" }}>
                   {stat.value}
                 </p>
-                <p className="text-xs text-muted-foreground">{stat.label}</p>
+                <p className="text-xs text-muted-foreground font-body font-normal">{stat.label}</p>
                 <span className="mt-1 inline-block text-xs font-medium text-success">
                   {stat.delta}
                 </span>
@@ -147,17 +148,17 @@ export default function Home() {
         </div>
 
         {/* Insight Card */}
-        <div className="mt-8 mb-4 overflow-hidden rounded-2xl border border-gold/30 bg-card p-5">
+        <div className="mt-8 mb-4 overflow-hidden rounded-xl border border-gold/30 bg-card p-5">
           <div className="flex items-center gap-2">
             <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gold/20">
               <span className="text-xs">✨</span>
             </div>
-            <span className="text-xs font-semibold text-gold">Nuevo insight disponible</span>
+            <span className="text-label-tech text-gold">Nuevo insight disponible</span>
           </div>
-          <p className="mt-3 text-sm text-foreground">
+          <p className="mt-3 text-sm text-foreground font-serif italic font-light" style={{ lineHeight: 1.3 }}>
             Tu espalda está progresando 2× más rápido que tu pecho. Descubre cómo equilibrar tu desarrollo...
           </p>
-          <button className="press-scale mt-4 flex items-center gap-1 rounded-xl border border-gold/30 bg-gold/5 px-4 py-2.5 text-sm font-semibold text-gold">
+          <button className="press-scale mt-4 flex items-center gap-1 rounded-xl border border-gold/30 bg-gold/5 px-4 py-2.5 text-sm font-body font-medium text-gold">
             Desbloquear — $2 USD <ChevronRight className="h-4 w-4" />
           </button>
         </div>

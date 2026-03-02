@@ -19,11 +19,11 @@ export default function Profile() {
             {user.name[0]}
           </div>
           <div>
-            <h1 className="font-display text-2xl font-bold text-foreground">{user.name}</h1>
-            <p className="text-sm text-muted-foreground">
+            <h1 className="font-display text-[22px] font-bold text-foreground" style={{ letterSpacing: "-0.03em" }}>{user.name}</h1>
+            <p className="text-sm text-muted-foreground font-body font-light">
               {user.level} · {user.goal}
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground font-body font-normal">
               {user.daysPerWeek} días/semana · {user.equipment}
             </p>
           </div>
@@ -37,27 +37,27 @@ export default function Profile() {
             { label: "Volumen", value: `${(user.lifetimeVolume / 1000).toFixed(0)}k kg` },
           ].map((s) => (
             <div key={s.label} className="card-fbb text-center">
-              <p className="font-mono text-xl font-semibold text-foreground">{s.value}</p>
-              <p className="text-[10px] text-muted-foreground">{s.label}</p>
+              <p className="font-mono text-xl font-medium text-foreground" style={{ letterSpacing: "0.05em" }}>{s.value}</p>
+              <p className="text-label-tech text-muted-foreground">{s.label}</p>
             </div>
           ))}
         </div>
 
         {/* Wearable info */}
         <div className="mt-8 card-fbb">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Whoop — Hoy</p>
+          <p className="text-label-tech text-muted-foreground">Whoop — Hoy</p>
           <div className="mt-3 grid grid-cols-3 gap-4">
             <div>
-              <p className="font-mono text-lg font-semibold text-success">{user.recovery}%</p>
-              <p className="text-[10px] text-muted-foreground">Recovery</p>
+              <p className="font-mono text-lg font-medium text-success" style={{ letterSpacing: "0.05em" }}>{user.recovery}%</p>
+              <p className="text-label-tech text-muted-foreground">Recovery</p>
             </div>
             <div>
-              <p className="font-mono text-lg font-semibold text-foreground">{user.hrv}ms</p>
-              <p className="text-[10px] text-muted-foreground">HRV</p>
+              <p className="font-mono text-lg font-medium text-foreground" style={{ letterSpacing: "0.05em" }}>{user.hrv}ms</p>
+              <p className="text-label-tech text-muted-foreground">HRV</p>
             </div>
             <div>
-              <p className="font-mono text-lg font-semibold text-foreground">{user.sleep}h</p>
-              <p className="text-[10px] text-muted-foreground">Sueño</p>
+              <p className="font-mono text-lg font-medium text-foreground" style={{ letterSpacing: "0.05em" }}>{user.sleep}h</p>
+              <p className="text-label-tech text-muted-foreground">Sueño</p>
             </div>
           </div>
         </div>
@@ -67,12 +67,12 @@ export default function Profile() {
           {menuItems.map((item) => (
             <button
               key={item.label}
-              className="press-scale flex w-full items-center gap-4 rounded-2xl p-4 text-left transition-colors hover:bg-secondary/50"
+              className="press-scale flex w-full items-center gap-4 rounded-xl p-4 text-left transition-colors hover:bg-secondary/50"
             >
               <item.icon className="h-5 w-5 text-muted-foreground" />
-              <span className="flex-1 text-sm font-medium text-foreground">{item.label}</span>
+              <span className="flex-1 text-sm font-body font-normal text-foreground">{item.label}</span>
               {item.detail && (
-                <span className="text-xs text-muted-foreground">{item.detail}</span>
+                <span className="text-xs text-muted-foreground font-body">{item.detail}</span>
               )}
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </button>

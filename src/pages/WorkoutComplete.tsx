@@ -27,7 +27,7 @@ export default function WorkoutComplete() {
         <h1 className="mt-8 text-hero text-foreground text-center">
           ¡Workout completado!
         </h1>
-        <p className="mt-2 text-muted-foreground text-center">
+        <p className="mt-2 text-muted-foreground text-center font-body font-light">
           {todayWorkout.name} — {todayWorkout.subtitle}
         </p>
 
@@ -41,24 +41,25 @@ export default function WorkoutComplete() {
           ].map((stat) => (
             <div key={stat.label} className="card-fbb text-center">
               <stat.icon className="mx-auto h-5 w-5 text-primary" />
-              <p className="mt-2 font-mono text-2xl font-semibold text-foreground">
+              <p className="mt-2 font-mono text-2xl font-medium text-foreground" style={{ letterSpacing: "0.05em" }}>
                 {stat.value}
               </p>
-              <p className="text-xs text-muted-foreground">{stat.label}</p>
+              <p className="text-xs text-muted-foreground font-body font-normal">{stat.label}</p>
             </div>
           ))}
         </div>
 
-        {/* Insight */}
+        {/* Insight — Cormorant Garamond */}
         <div className="mt-6 w-full card-fbb bg-success/5 border border-success/20">
-          <p className="text-sm font-medium text-foreground">
-            💪 Levantaste <span className="font-semibold text-success">340 kg más</span> que la semana pasada
+          <p className="text-motivational text-lg text-foreground">
+            💪 Levantaste <span className="font-semibold text-success not-italic">340 kg más</span> que la semana pasada
           </p>
         </div>
 
         <button
           onClick={() => navigate("/home", { replace: true })}
-          className="press-scale mt-8 w-full rounded-2xl bg-primary py-4 font-display text-lg font-bold text-primary-foreground"
+          className="press-scale mt-8 w-full rounded-xl bg-primary py-4 font-display text-[15px] font-bold text-primary-foreground uppercase"
+          style={{ letterSpacing: "0.8px" }}
         >
           Volver al inicio
         </button>
