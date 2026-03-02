@@ -25,6 +25,7 @@ import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminPlaceholder from "./pages/admin/AdminPlaceholder";
 import AdminUsers from "./pages/admin/AdminUsers";
+import AdminExercises from "./pages/admin/AdminExercises";
 
 const queryClient = new QueryClient();
 
@@ -58,7 +59,7 @@ const App = () => (
               {/* Admin routes */}
               <Route path="/admin" element={<ProtectedRoute><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/users" element={<ProtectedRoute><AdminLayout><AdminUsers /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/exercises" element={<ProtectedRoute><AdminLayout><AdminPlaceholder title="Ejercicios" /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/exercises" element={<ProtectedRoute><AdminLayout><AdminExercises /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/insights" element={<ProtectedRoute><AdminLayout><AdminPlaceholder title="Insights" /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/ai-rules" element={<ProtectedRoute><AdminLayout><AdminPlaceholder title="Reglas de IA" /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/audit" element={<ProtectedRoute><AdminLayout><AdminPlaceholder title="Audit Log" /></AdminLayout></ProtectedRoute>} />
