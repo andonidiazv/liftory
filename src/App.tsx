@@ -19,6 +19,7 @@ import SessionSummary from "./pages/SessionSummary";
 import Briefing from "./pages/Briefing";
 import Paywall from "./pages/Paywall";
 import Insights from "./pages/Insights";
+import Program from "./pages/Program";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ const App = () => (
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/paywall" element={<ProtectedRoute><Paywall /></ProtectedRoute>} />
               <Route path="/insights" element={<ProtectedRoute><Insights /></ProtectedRoute>} />
+              <Route path="/program" element={<ProtectedRoute><Program /></ProtectedRoute>} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>

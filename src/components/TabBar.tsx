@@ -1,12 +1,12 @@
-import { Home, BarChart3, Play, Lightbulb, User } from "lucide-react";
+import { Home, CalendarDays, BarChart3, Play, Lightbulb, User } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const tabs = [
   { id: "home", icon: Home, label: "Hoy", path: "/home" },
-  { id: "progress", icon: BarChart3, label: "Progreso", path: "/progress" },
+  { id: "program", icon: CalendarDays, label: "Programa", path: "/program" },
   { id: "workout", icon: Play, label: "Workout", path: "__workout__" },
+  { id: "progress", icon: BarChart3, label: "Progreso", path: "/progress" },
   { id: "insights", icon: Lightbulb, label: "Insights", path: "/insights" },
-  { id: "profile", icon: User, label: "Perfil", path: "/profile" },
 ];
 
 export default function TabBar({ onStartWorkout }: { onStartWorkout: () => void }) {
