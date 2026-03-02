@@ -1,10 +1,21 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { user, todayWorkout, weekSchedule } from "@/data/workout";
 import { Flame, TrendingUp, Trophy, ChevronRight, Wifi, Bell } from "lucide-react";
 import Layout from "@/components/Layout";
+import { useAuth } from "@/context/AuthContext";
+import TrialBanner from "@/components/home/TrialBanner";
 
 export default function Home() {
   const navigate = useNavigate();
+  const { isFreeTrial, isPremium, isExpired, daysLeftInTrial } = useAuth();
+
+  // Redirect expired users to paywall
+  useEffect(() => {
+    if (isExpired()) {
+      navigate("/paywall", { replace: true });
+    }
+  }, [isExpired, navigate]);
 
   const handleStartWorkout = () => {
     navigate("/briefing");
@@ -51,6 +62,9 @@ export default function Home() {
             </span>
           </div>
         </div>
+
+        {/* Trial Banner */}
+        <TrialBanner />
 
         {/* Hero Workout Card */}
         <div className="mt-8 card-hero card-accent-terracotta">
