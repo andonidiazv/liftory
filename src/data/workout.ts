@@ -7,6 +7,7 @@ export interface Exercise {
   reps: string;
   weight: string;
   rpe: string;
+  rir: string;
   muscles: string[];
   equipment: string;
   type: string;
@@ -38,6 +39,7 @@ export const todayWorkout: WorkoutDay = {
       reps: "8",
       weight: "70 kg",
       rpe: "7-8",
+      rir: "2-3",
       muscles: ["Pecho", "Tríceps", "Hombros"],
       equipment: "Barra",
       type: "Compound",
@@ -57,6 +59,7 @@ export const todayWorkout: WorkoutDay = {
       reps: "10",
       weight: "22 kg",
       rpe: "7",
+      rir: "3",
       muscles: ["Pecho superior", "Hombros", "Tríceps"],
       equipment: "Mancuernas",
       type: "Compound",
@@ -75,6 +78,7 @@ export const todayWorkout: WorkoutDay = {
       reps: "12",
       weight: "15 kg",
       rpe: "8",
+      rir: "2",
       muscles: ["Pecho", "Hombros anteriores"],
       equipment: "Poleas",
       type: "Isolation",
@@ -93,6 +97,7 @@ export const todayWorkout: WorkoutDay = {
       reps: "10",
       weight: "16 kg",
       rpe: "7",
+      rir: "3",
       muscles: ["Hombros", "Tríceps"],
       equipment: "Mancuernas",
       type: "Compound",
@@ -111,6 +116,7 @@ export const todayWorkout: WorkoutDay = {
       reps: "15",
       weight: "8 kg",
       rpe: "8",
+      rir: "2",
       muscles: ["Deltoides lateral"],
       equipment: "Mancuernas",
       type: "Isolation",
@@ -129,6 +135,7 @@ export const todayWorkout: WorkoutDay = {
       reps: "12",
       weight: "20 kg",
       rpe: "7",
+      rir: "3",
       muscles: ["Tríceps"],
       equipment: "Poleas",
       type: "Isolation",
@@ -147,6 +154,7 @@ export const todayWorkout: WorkoutDay = {
       reps: "30 seg",
       weight: "—",
       rpe: "6",
+      rir: "4",
       muscles: ["Core", "Oblicuos"],
       equipment: "Poleas",
       type: "Functional",
@@ -165,6 +173,7 @@ export const todayWorkout: WorkoutDay = {
       reps: "10 c/lado",
       weight: "—",
       rpe: "6",
+      rir: "4",
       muscles: ["Core", "Transverso abdominal"],
       equipment: "Sin equipo",
       type: "Functional",

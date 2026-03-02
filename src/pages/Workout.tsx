@@ -123,7 +123,7 @@ export default function Workout() {
       weight: currentExercise.weight.replace(/\s*kg/, ""),
       reps: currentExercise.reps,
       rpe: currentExercise.rpe.split("-")[0],
-      rir: "",
+      rir: currentExercise.rir.split("-")[0],
     };
   };
 
