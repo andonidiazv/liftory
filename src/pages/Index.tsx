@@ -12,18 +12,25 @@ export default function Index() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session?.user) {
-          const { data: profile } = await supabase
-            .from("user_profiles")
-            .select("onboarding_completed, subscription_status")
-            .eq("user_id", session.user.id)
-            .single();
+          try {
+            const { data: profile } = await supabase
+              .from("user_profiles")
+              .select("onboarding_completed, subscription_status")
+              .eq("user_id", session.user.id)
+              .single();
 
-          if (!profile || !profile.onboarding_completed) {
-            navigate("/onboarding", { replace: true });
-          } else if (profile.subscription_status === "expired") {
-            navigate("/paywall", { replace: true });
-          } else {
-            navigate("/home", { replace: true });
+            if (!profile || !profile.onboarding_completed) {
+              navigate("/onboarding", { replace: true });
+            } else if (profile.subscription_status === "expired") {
+              navigate("/paywall", { replace: true });
+            } else {
+              navigate("/home", { replace: true });
+            }
+          } catch {
+            // If profile fetch fails, still show splash
+            setChecking(false);
+            requestAnimationFrame(() => setShowContent(true));
+            setTimeout(() => setShowCta(true), 600);
           }
           return;
         }
@@ -35,7 +42,17 @@ export default function Index() {
 
     supabase.auth.getSession();
 
-    return () => subscription.unsubscribe();
+    // Fallback: if nothing happens in 3s, show splash
+    const timeout = setTimeout(() => {
+      setChecking(false);
+      requestAnimationFrame(() => setShowContent(true));
+      setTimeout(() => setShowCta(true), 600);
+    }, 3000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
   }, [navigate]);
 
   if (checking) {
