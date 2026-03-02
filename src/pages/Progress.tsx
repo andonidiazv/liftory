@@ -9,6 +9,10 @@ import {
   Area,
   AreaChart,
   Tooltip,
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
 } from "recharts";
 import PremiumGate from "@/components/PremiumGate";
 
@@ -34,6 +38,20 @@ function getCellStyle(val: number): React.CSSProperties {
   // Completed: terracotta with opacity based on volume intensity (3=low, 6=high)
   const opacity = 0.35 + (val - 3) * 0.22;
   return { background: `rgba(199, 91, 57, ${opacity})` };
+}
+
+const radarData = [
+  { group: "Pecho", semana1: 55, actual: 67, change: 12 },
+  { group: "Espalda", semana1: 50, actual: 68, change: 18 },
+  { group: "Piernas", semana1: 60, actual: 65, change: 5 },
+  { group: "Hombros", semana1: 48, actual: 62, change: 14 },
+  { group: "Core", semana1: 45, actual: 53, change: 8 },
+  { group: "Brazos", semana1: 52, actual: 62, change: 10 },
+];
+
+function getChangeColor(val: number) {
+  if (val < 7) return "#EAB308";
+  return "#22C55E";
 }
 
 export default function Progress() {
@@ -109,6 +127,47 @@ export default function Progress() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Radar Chart - Balance Muscular */}
+        <div className="mt-8">
+          <span className="eyebrow-label">BALANCE MUSCULAR</span>
+          <p className="text-xs font-body" style={{ color: "#6B6360", marginTop: 2 }}>Evolución de fuerza relativa por grupo</p>
+          <PremiumGate label="Desbloquea tu balance muscular">
+            <div className="mt-4 card-fbb">
+              <ResponsiveContainer width="100%" height={260}>
+                <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="75%">
+                  <PolarGrid stroke="hsl(30, 5%, 25%)" />
+                  <PolarAngleAxis dataKey="group" tick={{ fontSize: 11, fill: "#A89F95" }} />
+                  <Radar name="Semana 1" dataKey="semana1" stroke="#6B6360" fill="#6B6360" fillOpacity={0.3} strokeWidth={1.5} />
+                  <Radar name="Actual" dataKey="actual" stroke="#C75B39" fill="#C75B39" fillOpacity={0.6} strokeWidth={2} />
+                </RadarChart>
+              </ResponsiveContainer>
+              {/* Legend */}
+              <div className="mt-2 flex items-center justify-center gap-5">
+                {[
+                  { color: "#6B6360", label: "Semana 1" },
+                  { color: "#C75B39", label: "Actual" },
+                ].map((l) => (
+                  <div key={l.label} className="flex items-center gap-1.5">
+                    <div style={{ width: 10, height: 10, borderRadius: 2, background: l.color }} />
+                    <span className="font-body" style={{ fontSize: 10, color: "#A89F95" }}>{l.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Change cards */}
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              {radarData.map((d) => (
+                <div key={d.group} className="card-fbb flex flex-col items-center py-3">
+                  <span className="font-body text-xs" style={{ color: "#A89F95" }}>{d.group}</span>
+                  <span className="font-mono text-sm font-semibold mt-1" style={{ color: getChangeColor(d.change) }}>
+                    +{d.change}%
+                  </span>
+                </div>
+              ))}
+            </div>
+          </PremiumGate>
         </div>
 
         {/* Heatmap */}
