@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ChevronRight, Watch, Activity, Dumbbell, Heart, Flame, Target, Zap, Sprout, TrendingUp, Bolt, Loader2 } from "lucide-react";
 import LoadingScreen from "@/components/onboarding/LoadingScreen";
+import { generateMockProgram } from "@/lib/generateMockProgram";
 
 const TOTAL_STEPS = 6;
 
@@ -52,6 +53,8 @@ export default function Onboarding() {
   const [injuries, setInjuries] = useState<string[]>([]);
   const [injuriesDetail, setInjuriesDetail] = useState("");
   const [emotionalBarriers, setEmotionalBarriers] = useState("");
+  const [generationPromise, setGenerationPromise] = useState<Promise<any> | undefined>();
+  const [generationWarning, setGenerationWarning] = useState<string | null>(null);
   const navigate = useNavigate();
   const { user, refreshProfile } = useAuth();
 
@@ -176,6 +179,21 @@ export default function Onboarding() {
       return;
     }
 
+    // 4. Start mock program generation (runs in background)
+    const genPromise = generateMockProgram(user.id, {
+      experience_level: experienceLevel || "beginner",
+      primary_goal: dbGoals[0] || "hypertrophy",
+      training_days: days,
+      equipment: dbEquipment,
+      emotional_barriers: barriers,
+      gender: gender ? GENDER_MAP[gender] : null,
+    }).then((result) => {
+      if (result.noExercises) {
+        setGenerationWarning("Tu programa se generará cuando la biblioteca de ejercicios esté lista.");
+      }
+    });
+
+    setGenerationPromise(genPromise);
     setSaving(false);
     setStep(LOADING_STEP);
   };
@@ -469,7 +487,11 @@ export default function Onboarding() {
 
         {/* Step 5: Loading */}
         {step === LOADING_STEP && (
-          <LoadingScreen onComplete={finish} />
+          <LoadingScreen
+            onComplete={finish}
+            generationPromise={generationPromise}
+            warningMessage={generationWarning}
+          />
         )}
       </div>
     </div>
