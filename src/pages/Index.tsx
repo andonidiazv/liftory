@@ -7,10 +7,55 @@ const Index = () => {
   const { onboardingComplete } = useApp();
 
   useEffect(() => {
-    navigate(onboardingComplete ? "/home" : "/onboarding", { replace: true });
+    const timer = setTimeout(() => {
+      navigate(onboardingComplete ? "/home" : "/onboarding", { replace: true });
+    }, 2800);
+    return () => clearTimeout(timer);
   }, [onboardingComplete, navigate]);
 
-  return null;
+  return (
+    <div
+      className="flex min-h-screen flex-col items-center justify-center"
+      style={{ background: "#0D0C0A" }}
+    >
+      <h1
+        className="font-display"
+        style={{
+          fontSize: 40,
+          fontWeight: 800,
+          letterSpacing: "-0.04em",
+          lineHeight: 1,
+        }}
+      >
+        <span style={{ color: "#FAF8F5" }}>LIFT</span>
+        <span style={{ color: "#C9A96E" }}>ORY</span>
+      </h1>
+
+      <p
+        className="mt-4 font-serif italic"
+        style={{
+          fontSize: 18,
+          fontWeight: 300,
+          color: "rgba(250,248,245,0.55)",
+          lineHeight: 1.3,
+        }}
+      >
+        Move better. Lift stronger. Live longer.
+      </p>
+
+      <p
+        className="mt-4 font-mono uppercase"
+        style={{
+          fontSize: 10,
+          fontWeight: 400,
+          letterSpacing: "0.20em",
+          color: "rgba(250,248,245,0.25)",
+        }}
+      >
+        HYBRID PERFORMANCE FOR REAL HUMANS
+      </p>
+    </div>
+  );
 };
 
 export default Index;

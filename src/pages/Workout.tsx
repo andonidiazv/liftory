@@ -107,13 +107,26 @@ export default function Workout() {
       {/* Header */}
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm px-5 pb-3 pt-14">
         <div className="flex items-center justify-between">
-          <div>
-            <p className="font-display text-sm font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>
-              {todayWorkout.name}
-            </p>
-            <p className="font-mono text-xs text-muted-foreground" style={{ letterSpacing: "0.05em" }}>
-              {formatTime(workoutElapsed)}
-            </p>
+          <div className="flex items-center gap-3">
+            <span
+              className="font-display"
+              style={{
+                fontSize: 12,
+                fontWeight: 800,
+                letterSpacing: "-0.04em",
+                color: "rgba(250,248,245,0.15)",
+              }}
+            >
+              LIFTORY
+            </span>
+            <div>
+              <p className="font-display text-sm font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>
+                {todayWorkout.name}
+              </p>
+              <p className="font-mono text-xs text-muted-foreground" style={{ letterSpacing: "0.05em" }}>
+                {formatTime(workoutElapsed)}
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <button
