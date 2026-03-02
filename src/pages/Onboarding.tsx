@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "@/context/AppContext";
+import { useAuth } from "@/context/AuthContext";
 import { ChevronRight, Watch, Activity, Dumbbell, Heart, Flame, Target, Zap, Sparkles } from "lucide-react";
 
 const TOTAL_STEPS = 5;
@@ -13,6 +14,7 @@ export default function Onboarding() {
   const [location, setLocation] = useState<string | null>(null);
   const navigate = useNavigate();
   const { completeOnboarding } = useApp();
+  const { refreshProfile } = useAuth();
 
   const next = () => {
     if (step < TOTAL_STEPS - 1) setStep(step + 1);
@@ -24,8 +26,9 @@ export default function Onboarding() {
     );
   };
 
-  const finish = () => {
-    completeOnboarding();
+  const finish = async () => {
+    await completeOnboarding();
+    await refreshProfile();
     navigate("/home", { replace: true });
   };
 
