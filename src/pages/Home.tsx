@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { user, todayWorkout, weekSchedule } from "@/data/workout";
+import { todayWorkout, weekSchedule } from "@/data/workout";
 import { Flame, TrendingUp, Trophy, ChevronRight, Wifi, Bell } from "lucide-react";
 import Layout from "@/components/Layout";
 import { useAuth } from "@/context/AuthContext";
@@ -9,8 +9,12 @@ import PremiumBottomSheet from "@/components/PremiumBottomSheet";
 
 export default function Home() {
   const navigate = useNavigate();
-  const { isFreeTrial, isPremium, isExpired, daysLeftInTrial } = useAuth();
+  const { profile, isFreeTrial, isPremium, isExpired, daysLeftInTrial } = useAuth();
   const [showUpgrade, setShowUpgrade] = useState(false);
+
+  const displayName = profile?.full_name || "Atleta";
+  const streak = 4; // TODO: compute from real workout data
+  const daysPerWeek = profile?.training_days_per_week || 4;
 
   // Redirect expired users to paywall
   useEffect(() => {
@@ -29,7 +33,6 @@ export default function Home() {
       setShowUpgrade(true);
       return;
     }
-    // Premium users could see full detail — for now no-op
   };
 
   const completedDays = weekSchedule.filter((d) => d.completed).length;
@@ -58,9 +61,9 @@ export default function Home() {
         {/* Greeting */}
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-hero text-foreground">Hola, {user.name}</h1>
+            <h1 className="text-hero text-foreground">Hola, {displayName.split(" ")[0]}</h1>
             <p className="mt-1 text-sm text-muted-foreground font-body font-light">
-              Jueves, 20 de febrero
+              {new Date().toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" })}
             </p>
             <p className="mt-2 font-serif italic" style={{ fontSize: 15, fontWeight: 300, color: "rgba(138,138,142,0.65)", lineHeight: 1.3 }}>
               {["Hoy es día de construir.", "Tu cuerpo recuerda el trabajo que le das.", "Cada sesión cuenta. Cada tempo, también.", "Esto es una práctica. No un sprint."][new Date().getDay() % 4]}
@@ -69,7 +72,7 @@ export default function Home() {
           <div className="flex items-center gap-1.5 rounded-[4px] bg-primary/10 px-3 py-1.5">
             <Flame className="h-4 w-4 text-primary" />
             <span className="font-mono text-sm font-medium text-primary">
-              {user.streak} días
+              {streak} días
             </span>
           </div>
         </div>
@@ -91,19 +94,16 @@ export default function Home() {
             {todayWorkout.exercises.length} ejercicios · {todayWorkout.estimatedTime} min · Intensidad {todayWorkout.intensity.toLowerCase()}
           </p>
 
-          {/* Whoop Recovery */}
+          {/* Recovery indicator */}
           <div className="mt-5 flex items-center gap-3 rounded-xl bg-secondary p-3">
             <Wifi className="h-4 w-4 text-success" />
             <div className="flex-1">
               <div className="flex items-center justify-between">
                 <span className="text-label-tech text-muted-foreground">Recovery</span>
-                <span className="font-mono text-sm font-medium text-success" style={{ letterSpacing: "0.05em" }}>{user.recovery}%</span>
+                <span className="font-mono text-sm font-medium text-success" style={{ letterSpacing: "0.05em" }}>—</span>
               </div>
               <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-background">
-                <div
-                  className="h-full rounded-full bg-success transition-all"
-                  style={{ width: `${user.recovery}%` }}
-                />
+                <div className="h-full rounded-full bg-success transition-all" style={{ width: "0%" }} />
               </div>
             </div>
           </div>
@@ -150,7 +150,6 @@ export default function Home() {
                   )}
                 </div>
                 <span className="text-label-tech text-muted-foreground">{day.day}</span>
-                {/* Show label for free users only on completed/today */}
                 {(!isPremium() && !day.completed && !day.isToday) ? null : (
                   <span className="text-xs text-muted-foreground font-body" style={{ fontSize: 9 }}>{day.label}</span>
                 )}
@@ -158,7 +157,7 @@ export default function Home() {
             ))}
           </div>
           <p className="mt-3 text-center text-sm text-muted-foreground font-body font-light">
-            {completedDays} de {user.daysPerWeek} workouts esta semana
+            {completedDays} de {daysPerWeek} workouts esta semana
           </p>
         </div>
 
@@ -167,9 +166,9 @@ export default function Home() {
           <span className="eyebrow-label">PROGRESO RÁPIDO</span>
           <div className="mt-4 flex gap-3 overflow-x-auto no-scrollbar -mx-5 px-5">
             {[
-              { icon: TrendingUp, label: "VOLUMEN SEMANAL", value: "12,450", unit: "KG" , delta: "+8%" },
-              { icon: Trophy, label: "FUERZA PECHO", value: "+12", unit: "%" , delta: "vs mes pasado" },
-              { icon: Flame, label: "RACHA MÁS LARGA", value: "11", unit: "DÍAS" , delta: "record" },
+              { icon: TrendingUp, label: "VOLUMEN SEMANAL", value: "—", unit: "KG" , delta: "—" },
+              { icon: Trophy, label: "FUERZA", value: "—", unit: "%" , delta: "—" },
+              { icon: Flame, label: "RACHA", value: String(streak), unit: "DÍAS" , delta: "" },
             ].map((stat) => (
               <div key={stat.label} className="card-fbb min-w-[160px] flex-shrink-0">
                 <stat.icon className="h-5 w-5 text-primary" />
@@ -179,7 +178,7 @@ export default function Home() {
                 <p className="mt-1 font-mono text-muted-foreground" style={{ fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase" }}>
                   {stat.unit}
                 </p>
-                <span className="mt-1 inline-block text-xs font-medium text-success">{stat.delta}</span>
+                {stat.delta && <span className="mt-1 inline-block text-xs font-medium text-success">{stat.delta}</span>}
               </div>
             ))}
           </div>

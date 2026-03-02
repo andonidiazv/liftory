@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
+import { useAuth } from "@/context/AuthContext";
 import { z } from "zod";
 
 const signupSchema = z.object({
@@ -17,6 +16,7 @@ const loginSchema = z.object({
 
 export default function Login() {
   const navigate = useNavigate();
+  const { signUp, signIn, signInWithGoogle, fetchProfile } = useAuth();
   const [tab, setTab] = useState<"signup" | "login">("signup");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -50,16 +50,20 @@ export default function Login() {
   };
 
   const redirectByProfile = async (userId: string) => {
-    const { data: profile } = await supabase
+    await fetchProfile(userId);
+    // Small delay to let profile state update
+    const { data } = await (await import("@/integrations/supabase/client")).supabase
       .from("user_profiles")
-      .select("onboarding_completed, subscription_status")
+      .select("onboarding_completed, subscription_status, role")
       .eq("user_id", userId)
       .single();
 
-    if (!profile || !profile.onboarding_completed) {
+    if (!data || !data.onboarding_completed) {
       navigate("/onboarding", { replace: true });
-    } else if (profile.subscription_status === "expired") {
+    } else if (data.subscription_status === "expired") {
       navigate("/paywall", { replace: true });
+    } else if (data.role === "admin") {
+      navigate("/admin", { replace: true });
     } else {
       navigate("/home", { replace: true });
     }
@@ -80,14 +84,7 @@ export default function Login() {
     }
 
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
-      email: result.data.email,
-      password: result.data.password,
-      options: {
-        data: { full_name: result.data.fullName },
-        emailRedirectTo: window.location.origin,
-      },
-    });
+    const { data, error } = await signUp(result.data.email, result.data.password, result.data.fullName);
 
     if (error) {
       setGeneralError(error.message);
@@ -116,10 +113,7 @@ export default function Login() {
     }
 
     setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: result.data.email,
-      password: result.data.password,
-    });
+    const { data, error } = await signIn(result.data.email, result.data.password);
 
     if (error) {
       setGeneralError(error.message);
@@ -136,9 +130,7 @@ export default function Login() {
   const handleGoogle = async () => {
     setGoogleLoading(true);
     setGeneralError("");
-    const { error } = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
+    const { error } = await signInWithGoogle();
     if (error) {
       setGeneralError(error.message);
     }

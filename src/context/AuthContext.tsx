@@ -1,36 +1,26 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import type { User, Session } from "@supabase/supabase-js";
-
-type UserProfile = {
-  id: string;
-  user_id: string;
-  full_name: string | null;
-  subscription_status: string;
-  trial_ends_at: string | null;
-  onboarding_completed: boolean;
-  gender: string | null;
-  experience_level: string | null;
-  goals: string[] | null;
-  training_days_per_week: number | null;
-  training_location: string | null;
-  injuries: string[] | null;
-  injuries_detail: string | null;
-  emotional_barriers: string | null;
-  wearable: string | null;
-};
+import type { UserProfile } from "@/lib/types";
 
 type AuthContextType = {
   user: User | null;
   session: Session | null;
   profile: UserProfile | null;
   loading: boolean;
+  signUp: (email: string, password: string, fullName?: string) => Promise<{ data: any; error: any }>;
+  signIn: (email: string, password: string) => Promise<{ data: any; error: any }>;
   signOut: () => Promise<void>;
+  signInWithGoogle: () => Promise<{ error: any }>;
   isFreeTrial: () => boolean;
   isPremium: () => boolean;
   isExpired: () => boolean;
+  isAdmin: () => boolean;
+  hasOnboarded: () => boolean;
   daysLeftInTrial: () => number;
   refreshProfile: () => Promise<void>;
+  fetchProfile: (userId: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -44,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = useCallback(async (userId: string) => {
     const { data } = await supabase
       .from("user_profiles")
-      .select("id, user_id, full_name, subscription_status, trial_ends_at, onboarding_completed, gender, experience_level, goals, training_days_per_week, training_location, injuries, injuries_detail, emotional_barriers, wearable")
+      .select("*")
       .eq("user_id", userId)
       .single();
     setProfile(data as UserProfile | null);
@@ -55,13 +45,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user, fetchProfile]);
 
   useEffect(() => {
+    // Set up listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
 
         if (newSession?.user) {
-          // Defer profile fetch to avoid Supabase client deadlock
           setTimeout(() => fetchProfile(newSession.user.id), 0);
         } else {
           setProfile(null);
@@ -70,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
+    // THEN get current session
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
       setUser(s?.user ?? null);
@@ -82,11 +73,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, [fetchProfile]);
 
+  const signUp = async (email: string, password: string, fullName?: string) => {
+    return supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullName || "" },
+        emailRedirectTo: window.location.origin,
+      },
+    });
+  };
+
+  const signIn = async (email: string, password: string) => {
+    return supabase.auth.signInWithPassword({ email, password });
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
     setProfile(null);
+  };
+
+  const signInWithGoogle = async () => {
+    return lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
   };
 
   const isFreeTrial = () => {
@@ -108,6 +120,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return false;
   };
 
+  const isAdmin = () => profile?.role === "admin";
+
+  const hasOnboarded = () => profile?.onboarding_completed === true;
+
   const daysLeftInTrial = () => {
     if (!profile?.trial_ends_at) return 0;
     const diff = new Date(profile.trial_ends_at).getTime() - Date.now();
@@ -116,7 +132,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, session, profile, loading, signOut, isFreeTrial, isPremium, isExpired, daysLeftInTrial, refreshProfile }}
+      value={{
+        user, session, profile, loading,
+        signUp, signIn, signOut, signInWithGoogle,
+        isFreeTrial, isPremium, isExpired, isAdmin, hasOnboarded, daysLeftInTrial,
+        refreshProfile, fetchProfile,
+      }}
     >
       {children}
     </AuthContext.Provider>
