@@ -14,7 +14,7 @@ export default function Home() {
 
   return (
     <Layout>
-      <div className="animate-fade-up px-5 pt-14">
+      <div className="px-5 pt-14 stagger-fade-in">
         {/* Header with wordmark */}
         <div className="flex items-center justify-between mb-6">
           <span
@@ -53,7 +53,7 @@ export default function Home() {
         </div>
 
         {/* Hero Workout Card */}
-        <div className="mt-8 card-hero">
+        <div className="mt-8 card-hero card-accent-terracotta">
           <div className="flex items-center gap-2 text-xs">
             {todayWorkout.tags.map((tag) => (
               <span key={tag} className="pill-primary">{tag}</span>
@@ -99,7 +99,7 @@ export default function Home() {
 
         {/* Week Overview */}
         <div className="mt-8">
-          <h3 className="text-card-title text-foreground">Tu semana</h3>
+          <span className="eyebrow-label">SEMANA ACTUAL</span>
           <div className="mt-4 flex items-center justify-between">
             {weekSchedule.map((day, i) => (
               <div key={i} className="flex flex-col items-center gap-2">
@@ -131,19 +131,21 @@ export default function Home() {
 
         {/* Quick Stats */}
         <div className="mt-8">
-          <h3 className="text-card-title text-foreground">Progreso rápido</h3>
+          <span className="eyebrow-label">PROGRESO RÁPIDO</span>
           <div className="mt-4 flex gap-3 overflow-x-auto no-scrollbar -mx-5 px-5">
             {[
-              { icon: TrendingUp, label: "Volumen semanal", value: "12,450 kg", delta: "+8%" },
-              { icon: Trophy, label: "Fuerza pecho", value: "+12%", delta: "vs mes pasado" },
-              { icon: Flame, label: "Racha más larga", value: "11 días", delta: "record" },
+              { icon: TrendingUp, label: "VOLUMEN SEMANAL", value: "12,450", unit: "KG" , delta: "+8%" },
+              { icon: Trophy, label: "FUERZA PECHO", value: "+12", unit: "%" , delta: "vs mes pasado" },
+              { icon: Flame, label: "RACHA MÁS LARGA", value: "11", unit: "DÍAS" , delta: "record" },
             ].map((stat) => (
               <div key={stat.label} className="card-fbb min-w-[160px] flex-shrink-0">
                 <stat.icon className="h-5 w-5 text-primary" />
-                <p className="mt-3 font-mono text-xl font-medium text-foreground" style={{ letterSpacing: "0.05em" }}>
+                <p className="mt-3 font-mono text-[28px] font-medium text-foreground" style={{ letterSpacing: "0.05em", lineHeight: 1 }}>
                   {stat.value}
                 </p>
-                <p className="text-xs text-muted-foreground font-body font-normal">{stat.label}</p>
+                <p className="mt-1 font-mono text-muted-foreground" style={{ fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase" }}>
+                  {stat.unit}
+                </p>
                 <span className="mt-1 inline-block text-xs font-medium text-success">{stat.delta}</span>
               </div>
             ))}
@@ -151,7 +153,7 @@ export default function Home() {
         </div>
 
         {/* Insight Card */}
-        <div className="mt-8 mb-4 overflow-hidden rounded-xl border border-gold/30 bg-card p-5">
+        <div className="mt-8 mb-4 overflow-hidden rounded-xl border border-gold/30 bg-card p-5 card-accent-gold">
           <div className="flex items-center gap-2">
             <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gold/20">
               <span className="text-xs">✨</span>

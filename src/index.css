@@ -246,6 +246,90 @@
   scrollbar-width: none;
 }
 
+/* ═══ GRAIN OVERLAY ═══ */
+.grain-overlay {
+  position: relative;
+}
+.grain-overlay::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ═══ EYEBROW LABEL WITH LINE ═══ */
+.eyebrow-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: #B8622F;
+}
+.eyebrow-label::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: #B8622F;
+  flex-shrink: 0;
+}
+
+/* ═══ ACCENT BORDERS ═══ */
+.card-accent-terracotta {
+  border-left: 3px solid hsl(22, 62%, 45%);
+}
+.card-accent-gold {
+  border-left: 3px solid hsl(39, 37%, 60%);
+}
+
+/* ═══ SEPARATORS ═══ */
+.separator-dark {
+  border-bottom: 1px solid rgba(250,248,245,0.06);
+}
+.separator-light {
+  border-bottom: 1px solid rgba(28,28,30,0.06);
+}
+
+/* ═══ STAGGERED FADE-IN ═══ */
+.stagger-fade-in > * {
+  opacity: 0;
+  animation: fade-up-in 0.4s ease-out forwards;
+}
+.stagger-fade-in > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-fade-in > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-fade-in > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-fade-in > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-fade-in > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-fade-in > *:nth-child(6) { animation-delay: 250ms; }
+.stagger-fade-in > *:nth-child(7) { animation-delay: 300ms; }
+.stagger-fade-in > *:nth-child(8) { animation-delay: 350ms; }
+.stagger-fade-in > *:nth-child(9) { animation-delay: 400ms; }
+.stagger-fade-in > *:nth-child(10) { animation-delay: 450ms; }
+
+/* ═══ SET COMPLETE ANIMATION ═══ */
+@keyframes set-complete {
+  0% { transform: scale(0.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-set-complete {
+  animation: set-complete 0.2s ease-out;
+}
+
+/* ═══ PR PULSE ═══ */
+@keyframes pr-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+.animate-pr-pulse {
+  animation: pr-pulse 0.6s ease-in-out;
+}
+
 /* ═══ ANIMATIONS ═══ */
 @keyframes pulse-ring {
   0% { box-shadow: 0 0 0 0 hsl(22 62% 45% / 0.4); }

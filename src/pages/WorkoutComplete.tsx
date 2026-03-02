@@ -16,10 +16,10 @@ export default function WorkoutComplete() {
 
   return (
     <Layout>
-      <div className="flex flex-col items-center px-6 pt-20 animate-fade-up">
+      <div className="flex flex-col items-center px-6 pt-20 stagger-fade-in">
         {/* Celebration glow */}
         <div className="relative">
-          <div className="h-24 w-24 rounded-full bg-primary/20 glow-primary flex items-center justify-center">
+          <div className="h-24 w-24 rounded-full bg-primary/20 glow-primary flex items-center justify-center animate-set-complete">
             <Trophy className="h-10 w-10 text-primary" />
           </div>
         </div>
@@ -34,23 +34,30 @@ export default function WorkoutComplete() {
         {/* Stats */}
         <div className="mt-10 grid w-full grid-cols-2 gap-3">
           {[
-            { icon: Clock, label: "Duración", value: formatTime(workoutElapsed || 2340) },
-            { icon: Dumbbell, label: "Sets completados", value: `${completedSets.length}` },
-            { icon: TrendingUp, label: "Volumen total", value: "3,420 kg" },
-            { icon: Trophy, label: "Ejercicios", value: `${todayWorkout.exercises.length}` },
+            { icon: Clock, label: "DURACIÓN", value: formatTime(workoutElapsed || 2340), unit: "MIN" },
+            { icon: Dumbbell, label: "SETS", value: `${completedSets.length}`, unit: "COMPLETADOS" },
+            { icon: TrendingUp, label: "VOLUMEN", value: "3,420", unit: "KG TOTAL" },
+            { icon: Trophy, label: "EJERCICIOS", value: `${todayWorkout.exercises.length}`, unit: "" },
           ].map((stat) => (
             <div key={stat.label} className="card-fbb text-center">
               <stat.icon className="mx-auto h-5 w-5 text-primary" />
-              <p className="mt-2 font-mono text-2xl font-medium text-foreground" style={{ letterSpacing: "0.05em" }}>
+              <p className="mt-2 font-mono text-[28px] font-medium text-foreground" style={{ letterSpacing: "0.05em", lineHeight: 1 }}>
                 {stat.value}
               </p>
-              <p className="text-xs text-muted-foreground font-body font-normal">{stat.label}</p>
+              {stat.unit && (
+                <p className="mt-1 font-mono text-muted-foreground" style={{ fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase" }}>
+                  {stat.unit}
+                </p>
+              )}
+              <p className="mt-1 font-mono text-muted-foreground" style={{ fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase" }}>
+                {stat.label}
+              </p>
             </div>
           ))}
         </div>
 
-        {/* Insight — Cormorant Garamond */}
-        <div className="mt-6 w-full card-fbb bg-success/5 border border-success/20">
+        {/* Insight */}
+        <div className="mt-6 w-full card-fbb card-accent-gold bg-success/5 border border-success/20">
           <p className="font-serif" style={{ fontSize: 17, fontWeight: 400, color: "rgba(250,248,245,0.7)", lineHeight: 1.4 }}>
             Sesión registrada. Eso es exactamente de lo que está hecho el progreso real.
           </p>
