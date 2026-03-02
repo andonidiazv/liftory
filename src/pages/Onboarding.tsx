@@ -28,7 +28,7 @@ export default function Onboarding() {
 
   const toggleGoal = (g: string) => {
     setGoals((prev) =>
-      prev.includes(g) ? prev.filter((x) => x !== g) : prev.length < 2 ? [...prev, g] : prev
+      prev.includes(g) ? prev.filter((x) => x !== g) : prev.length < 3 ? [...prev, g] : prev
     );
   };
 
@@ -163,7 +163,7 @@ export default function Onboarding() {
         {step === 2 && (
           <>
             <h1 className="text-hero text-foreground">¿Qué quieres lograr?</h1>
-            <p className="mt-2 text-caption">Selecciona hasta 2 objetivos</p>
+            <p className="mt-2 text-caption">Selecciona hasta 3 objetivos</p>
             <div className="mt-8 flex flex-col gap-3">
               {[
                 { id: "Ganar músculo", icon: Dumbbell, desc: "Hipertrofia y fuerza" },
@@ -249,8 +249,8 @@ export default function Onboarding() {
                       onClick={() => setLocation(loc)}
                       className={`press-scale card-fbb p-4 text-left text-sm font-body font-normal transition-all ${
                         location === loc
-                          ? "ring-2 ring-primary bg-primary/5"
-                          : ""
+                          ? "ring-2 ring-primary bg-primary/5 text-foreground"
+                          : "text-muted-foreground hover:shadow-md"
                       }`}
                     >
                       {loc}
