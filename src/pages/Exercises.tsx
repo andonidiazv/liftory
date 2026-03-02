@@ -1,7 +1,9 @@
 import { useState } from "react";
 import Layout from "@/components/Layout";
 import { exerciseLibrary } from "@/data/workout";
-import { Search, Play, X } from "lucide-react";
+import { Search, Play, X, Heart } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import PremiumBottomSheet from "@/components/PremiumBottomSheet";
 
 const muscleFilters = ["Todos", "Pecho", "Espalda", "Piernas", "Hombros", "Core", "Bíceps", "Tríceps", "Glúteos"];
 
@@ -9,6 +11,9 @@ export default function Exercises() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("Todos");
   const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const { isPremium } = useAuth();
 
   const filtered = exerciseLibrary.filter((ex) => {
     const matchSearch = ex.name.toLowerCase().includes(search.toLowerCase());
@@ -17,6 +22,20 @@ export default function Exercises() {
   });
 
   const selected = exerciseLibrary.find((ex) => ex.id === selectedExercise);
+
+  const handleFavorite = (e: React.MouseEvent, exId: string) => {
+    e.stopPropagation();
+    if (!isPremium()) {
+      setShowUpgrade(true);
+      return;
+    }
+    setFavorites((prev) => {
+      const next = new Set(prev);
+      if (next.has(exId)) next.delete(exId);
+      else next.add(exId);
+      return next;
+    });
+  };
 
   return (
     <Layout>
@@ -59,7 +78,7 @@ export default function Exercises() {
             <button
               key={ex.id}
               onClick={() => setSelectedExercise(ex.id)}
-              className="press-scale overflow-hidden bg-card text-left"
+              className="press-scale overflow-hidden bg-card text-left relative"
               style={{ borderRadius: 12, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
             >
               <div
@@ -68,6 +87,20 @@ export default function Exercises() {
               >
                 <Play className="h-8 w-8 text-muted-foreground/40" />
               </div>
+              {/* Favorite button */}
+              <button
+                onClick={(e) => handleFavorite(e, ex.id)}
+                className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full"
+                style={{ background: "rgba(0,0,0,0.3)" }}
+              >
+                <Heart
+                  className="h-4 w-4"
+                  style={{
+                    color: isPremium() && favorites.has(ex.id) ? "#C75B39" : "#6B6360",
+                    fill: isPremium() && favorites.has(ex.id) ? "#C75B39" : "none",
+                  }}
+                />
+              </button>
               <div className="p-3">
                 <p className="font-display text-sm font-semibold text-foreground leading-tight" style={{ letterSpacing: "-0.02em" }}>
                   {ex.name}
@@ -115,6 +148,14 @@ export default function Exercises() {
           </div>
         </div>
       )}
+
+      {/* Premium upgrade sheet */}
+      <PremiumBottomSheet
+        open={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        title="Guarda tus ejercicios favoritos"
+        description="Con Premium puedes crear tu biblioteca personal de ejercicios favoritos."
+      />
     </Layout>
   );
 }
