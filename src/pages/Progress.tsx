@@ -21,7 +21,7 @@ const heatmapColors = [
 export default function Progress() {
   return (
     <Layout>
-      <div className="animate-fade-up px-5 pt-14">
+      <div className="px-5 pt-14 stagger-fade-in">
         {/* Hero */}
         <div className="flex items-center gap-4">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-secondary font-display text-2xl font-bold text-primary">
@@ -35,17 +35,14 @@ export default function Progress() {
               Nivel: {user.level} · Semana {user.week} de {user.totalWeeks}
             </p>
             <div className="mt-2 h-1.5 w-40 overflow-hidden rounded-full bg-secondary">
-              <div
-                className="h-full rounded-full bg-primary"
-                style={{ width: `${(user.week / user.totalWeeks) * 100}%` }}
-              />
+              <div className="h-full rounded-full bg-primary" style={{ width: `${(user.week / user.totalWeeks) * 100}%` }} />
             </div>
           </div>
         </div>
 
         {/* Volume Chart */}
         <div className="mt-8">
-          <h3 className="text-card-title text-foreground">Volumen semanal</h3>
+          <span className="eyebrow-label">VOLUMEN SEMANAL</span>
           <div className="mt-4 card-fbb">
             <ResponsiveContainer width="100%" height={180}>
               <AreaChart data={weeklyVolume}>
@@ -56,29 +53,13 @@ export default function Progress() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(37, 12%, 89%)" />
-                <XAxis
-                  dataKey="week"
-                  tick={{ fontSize: 11, fill: "hsl(240, 2%, 55%)" }}
-                  axisLine={false}
-                  tickLine={false}
-                />
+                <XAxis dataKey="week" tick={{ fontSize: 11, fill: "hsl(240, 2%, 55%)" }} axisLine={false} tickLine={false} />
                 <YAxis hide />
                 <Tooltip
-                  contentStyle={{
-                    background: "hsl(40, 33%, 97%)",
-                    border: "1px solid hsl(37, 12%, 89%)",
-                    borderRadius: 12,
-                    fontSize: 12,
-                  }}
+                  contentStyle={{ background: "hsl(40, 33%, 97%)", border: "1px solid hsl(37, 12%, 89%)", borderRadius: 12, fontSize: 12 }}
                   formatter={(value: number) => [`${value.toLocaleString()} kg`, "Volumen"]}
                 />
-                <Area
-                  type="monotone"
-                  dataKey="volume"
-                  stroke="hsl(22, 62%, 45%)"
-                  strokeWidth={2.5}
-                  fill="url(#volumeGrad)"
-                />
+                <Area type="monotone" dataKey="volume" stroke="hsl(22, 62%, 45%)" strokeWidth={2.5} fill="url(#volumeGrad)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -86,22 +67,25 @@ export default function Progress() {
 
         {/* Personal Records */}
         <div className="mt-8">
-          <h3 className="text-card-title text-foreground">Records personales</h3>
+          <span className="eyebrow-label">RECORDS PERSONALES</span>
           <div className="mt-4 space-y-3">
             {personalRecords.map((pr) => (
-              <div key={pr.exercise} className="card-fbb flex items-center gap-4">
+              <div key={pr.exercise} className="card-fbb card-accent-gold flex items-center gap-4">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold/10">
-                  <Trophy className="h-5 w-5 text-gold" />
+                  <Trophy className="h-5 w-5 text-gold animate-pr-pulse" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-display font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>
-                    {pr.exercise}
-                  </p>
+                  <p className="font-display font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>{pr.exercise}</p>
                   <p className="text-xs text-muted-foreground font-body font-normal">{pr.when}</p>
                 </div>
-                <p className="font-mono text-lg font-medium text-foreground" style={{ letterSpacing: "0.05em" }}>
-                  {pr.weight} ×{pr.reps}
-                </p>
+                <div className="text-right">
+                  <p className="font-mono text-[28px] font-medium text-foreground" style={{ letterSpacing: "0.05em", lineHeight: 1 }}>
+                    {pr.weight}
+                  </p>
+                  <p className="font-mono text-muted-foreground" style={{ fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase" }}>
+                    KG ×{pr.reps}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
@@ -109,36 +93,38 @@ export default function Progress() {
 
         {/* Heatmap */}
         <div className="mt-8">
-          <h3 className="text-card-title text-foreground">Consistencia</h3>
+          <span className="eyebrow-label">CONSISTENCIA</span>
           <div className="mt-4 card-fbb">
             <div className="grid grid-cols-13 gap-1">
               {heatmapData.flat().map((val, i) => (
-                <div
-                  key={i}
-                  className={`aspect-square rounded-sm ${heatmapColors[val]}`}
-                />
+                <div key={i} className={`aspect-square rounded-sm ${heatmapColors[val]}`} />
               ))}
             </div>
-            <p className="mt-3 text-xs text-muted-foreground text-center font-body font-normal">
-              Últimos 3 meses
-            </p>
+            <p className="mt-3 text-xs text-muted-foreground text-center font-body font-normal">Últimos 3 meses</p>
           </div>
         </div>
 
         {/* Quick Stats */}
         <div className="mt-8 mb-4 grid grid-cols-2 gap-3">
           {[
-            { icon: Dumbbell, label: "Total workouts", value: user.totalWorkouts },
-            { icon: Flame, label: "Racha actual", value: `${user.streak} días` },
-            { icon: TrendingUp, label: "Racha más larga", value: `${user.longestStreak} días` },
-            { icon: Trophy, label: "Volumen lifetime", value: `${(user.lifetimeVolume / 1000).toFixed(1)}k kg` },
+            { icon: Dumbbell, label: "TOTAL WORKOUTS", value: user.totalWorkouts, unit: "" },
+            { icon: Flame, label: "RACHA ACTUAL", value: user.streak, unit: "DÍAS" },
+            { icon: TrendingUp, label: "RACHA MÁS LARGA", value: user.longestStreak, unit: "DÍAS" },
+            { icon: Trophy, label: "VOLUMEN LIFETIME", value: `${(user.lifetimeVolume / 1000).toFixed(1)}k`, unit: "KG" },
           ].map((stat) => (
             <div key={stat.label} className="card-fbb">
               <stat.icon className="h-5 w-5 text-primary" />
-              <p className="mt-2 font-mono text-xl font-medium text-foreground" style={{ letterSpacing: "0.05em" }}>
+              <p className="mt-2 font-mono text-[28px] font-medium text-foreground" style={{ letterSpacing: "0.05em", lineHeight: 1 }}>
                 {stat.value}
               </p>
-              <p className="text-xs text-muted-foreground font-body font-normal">{stat.label}</p>
+              {stat.unit && (
+                <p className="mt-1 font-mono text-muted-foreground" style={{ fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase" }}>
+                  {stat.unit}
+                </p>
+              )}
+              <p className="mt-1 font-mono text-muted-foreground" style={{ fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase" }}>
+                {stat.label}
+              </p>
             </div>
           ))}
         </div>
