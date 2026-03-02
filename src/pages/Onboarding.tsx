@@ -13,6 +13,9 @@ export default function Onboarding() {
   const [goals, setGoals] = useState<string[]>([]);
   const [days, setDays] = useState(4);
   const [location, setLocation] = useState<string | null>(null);
+  const [injuries, setInjuries] = useState<string[]>([]);
+  const [injuriesDetail, setInjuriesDetail] = useState("");
+  const [emotionalBarriers, setEmotionalBarriers] = useState("");
   const navigate = useNavigate();
   const { completeOnboarding } = useApp();
   const { refreshProfile } = useAuth();
@@ -244,7 +247,7 @@ export default function Onboarding() {
                     <button
                       key={loc}
                       onClick={() => setLocation(loc)}
-                      className={`press-scale card-fbb text-left text-sm font-body font-normal transition-all ${
+                      className={`press-scale card-fbb p-4 text-left text-sm font-body font-normal transition-all ${
                         location === loc
                           ? "ring-2 ring-primary bg-primary/5"
                           : ""
@@ -257,10 +260,48 @@ export default function Onboarding() {
               </div>
               <div>
                 <p className="font-display font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>
-                  ¿Algo que te incomode al entrenar?
+                  ¿Tienes alguna lesión o limitación física?
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {[
+                    "Hombro", "Rodilla", "Espalda baja", "Muñeca",
+                    "Cuello", "Cadera", "Tobillo", "Codo",
+                  ].map((zone) => (
+                    <button
+                      key={zone}
+                      type="button"
+                      onClick={() =>
+                        setInjuries((prev) =>
+                          prev.includes(zone) ? prev.filter((z) => z !== zone) : [...prev, zone]
+                        )
+                      }
+                      className={`press-scale rounded-full border px-4 py-2 text-sm font-body transition-all ${
+                        injuries.includes(zone)
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-card text-muted-foreground"
+                      }`}
+                    >
+                      {zone}
+                    </button>
+                  ))}
+                </div>
+                <textarea
+                  value={injuriesDetail}
+                  onChange={(e) => setInjuriesDetail(e.target.value)}
+                  placeholder="Ej: Me operaron el menisco hace 6 meses"
+                  className="mt-3 w-full resize-none border border-border bg-card p-4 text-sm text-foreground font-body font-light placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  style={{ borderRadius: 10 }}
+                  rows={2}
+                />
+              </div>
+              <div>
+                <p className="font-display font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>
+                  ¿Hay algo que te incomode o intimide al entrenar?
                 </p>
                 <textarea
-                  placeholder="Ej: me da miedo hacer peso muerto, no me gustan las dominadas..."
+                  value={emotionalBarriers}
+                  onChange={(e) => setEmotionalBarriers(e.target.value)}
+                  placeholder="Ej: Me da miedo hacer peso muerto, me siento incómodo con ciertos ejercicios"
                   className="mt-3 w-full resize-none border border-border bg-card p-4 text-sm text-foreground font-body font-light placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   style={{ borderRadius: 10 }}
                   rows={3}
