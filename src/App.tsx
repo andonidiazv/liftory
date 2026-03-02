@@ -21,6 +21,9 @@ import Paywall from "./pages/Paywall";
 import Insights from "./pages/Insights";
 import Program from "./pages/Program";
 import NotFound from "./pages/NotFound";
+import AdminLayout from "./components/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminPlaceholder from "./pages/admin/AdminPlaceholder";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +53,14 @@ const App = () => (
               <Route path="/paywall" element={<ProtectedRoute><Paywall /></ProtectedRoute>} />
               <Route path="/insights" element={<ProtectedRoute><Insights /></ProtectedRoute>} />
               <Route path="/program" element={<ProtectedRoute><Program /></ProtectedRoute>} />
+
+              {/* Admin routes */}
+              <Route path="/admin" element={<ProtectedRoute><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/users" element={<ProtectedRoute><AdminLayout><AdminPlaceholder title="Usuarios" /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/exercises" element={<ProtectedRoute><AdminLayout><AdminPlaceholder title="Ejercicios" /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/insights" element={<ProtectedRoute><AdminLayout><AdminPlaceholder title="Insights" /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/ai-rules" element={<ProtectedRoute><AdminLayout><AdminPlaceholder title="Reglas de IA" /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/audit" element={<ProtectedRoute><AdminLayout><AdminPlaceholder title="Audit Log" /></AdminLayout></ProtectedRoute>} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
