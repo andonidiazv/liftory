@@ -176,6 +176,38 @@ export type Database = {
         }
         Relationships: []
       }
+      insights_unlocked: {
+        Row: {
+          generated_content: string
+          id: string
+          insight_id: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          generated_content?: string
+          id?: string
+          insight_id: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          generated_content?: string
+          id?: string
+          insight_id?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insights_unlocked_insight_id_fkey"
+            columns: ["insight_id"]
+            isOneToOne: false
+            referencedRelation: "insights"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       onboarding_answers: {
         Row: {
           connected_wearable: string | null
