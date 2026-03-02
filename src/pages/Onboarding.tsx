@@ -38,9 +38,19 @@ export default function Onboarding() {
     navigate("/home", { replace: true });
   };
 
-  const startLoading = async () => {
+  const startLoading = async (selectedWearable?: string) => {
     setStep(LOADING_STEP);
-    await completeOnboarding();
+    await completeOnboarding({
+      gender,
+      experience_level: experienceLevel,
+      goals,
+      training_days_per_week: days,
+      training_location: location,
+      injuries,
+      injuries_detail: injuriesDetail || null,
+      emotional_barriers: emotionalBarriers || null,
+      wearable: selectedWearable || null,
+    });
   };
 
   return (
@@ -334,7 +344,7 @@ export default function Onboarding() {
               ].map((w) => (
                 <button
                   key={w.id}
-                  onClick={startLoading}
+                  onClick={() => startLoading(w.id)}
                   className="press-scale card-fbb flex flex-col items-center gap-2 py-6 text-center"
                 >
                   <Watch className="h-8 w-8 text-muted-foreground" />
@@ -343,7 +353,7 @@ export default function Onboarding() {
               ))}
             </div>
             <button
-              onClick={startLoading}
+              onClick={() => startLoading()}
               className="press-scale mt-6 w-full rounded-xl border border-border py-4 text-center font-display font-medium text-muted-foreground"
             >
               Ninguno · Conectar después

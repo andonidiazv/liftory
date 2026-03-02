@@ -17,33 +17,60 @@ export type Database = {
       user_profiles: {
         Row: {
           created_at: string
+          emotional_barriers: string | null
+          experience_level: string | null
           full_name: string | null
+          gender: string | null
+          goals: string[] | null
           id: string
+          injuries: string[] | null
+          injuries_detail: string | null
           onboarding_completed: boolean
           subscription_status: string
+          training_days_per_week: number | null
+          training_location: string | null
           trial_ends_at: string | null
           updated_at: string
           user_id: string
+          wearable: string | null
         }
         Insert: {
           created_at?: string
+          emotional_barriers?: string | null
+          experience_level?: string | null
           full_name?: string | null
+          gender?: string | null
+          goals?: string[] | null
           id?: string
+          injuries?: string[] | null
+          injuries_detail?: string | null
           onboarding_completed?: boolean
           subscription_status?: string
+          training_days_per_week?: number | null
+          training_location?: string | null
           trial_ends_at?: string | null
           updated_at?: string
           user_id: string
+          wearable?: string | null
         }
         Update: {
           created_at?: string
+          emotional_barriers?: string | null
+          experience_level?: string | null
           full_name?: string | null
+          gender?: string | null
+          goals?: string[] | null
           id?: string
+          injuries?: string[] | null
+          injuries_detail?: string | null
           onboarding_completed?: boolean
           subscription_status?: string
+          training_days_per_week?: number | null
+          training_location?: string | null
           trial_ends_at?: string | null
           updated_at?: string
           user_id?: string
+          wearable?: string | null
         }
         Relationships: []
       }
