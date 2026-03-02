@@ -50,7 +50,11 @@ export default function Home() {
   }, [isExpired, navigate]);
 
   const handleStartWorkout = () => {
-    navigate("/briefing");
+    if (todayWorkout) {
+      navigate(`/briefing?workoutId=${todayWorkout.id}`);
+    } else {
+      navigate("/briefing");
+    }
   };
 
   const handleDayTap = (day: typeof weekDays[number]) => {
