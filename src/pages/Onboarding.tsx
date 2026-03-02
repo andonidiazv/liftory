@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "@/context/AppContext";
 import { useAuth } from "@/context/AuthContext";
 import { ChevronRight, Watch, Activity, Dumbbell, Heart, Flame, Target, Zap, Sparkles, Sprout, TrendingUp, Bolt } from "lucide-react";
+import LoadingScreen from "@/components/onboarding/LoadingScreen";
 
 const TOTAL_STEPS = 6;
 
@@ -33,14 +34,13 @@ export default function Onboarding() {
   };
 
   const finish = async () => {
-    await completeOnboarding();
     await refreshProfile();
     navigate("/home", { replace: true });
   };
 
-  const startLoading = () => {
+  const startLoading = async () => {
     setStep(LOADING_STEP);
-    setTimeout(finish, 2500);
+    await completeOnboarding();
   };
 
   return (
@@ -353,20 +353,7 @@ export default function Onboarding() {
 
         {/* Step 5: Loading */}
         {step === LOADING_STEP && (
-          <div className="flex flex-1 flex-col items-center justify-center">
-            <div className="relative">
-              <div className="h-20 w-20 rounded-full bg-primary/20 animate-gentle-pulse" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Sparkles className="h-8 w-8 text-primary" />
-              </div>
-            </div>
-            <h2 className="mt-8 text-section text-foreground text-center">
-              Construyendo tu programa...
-            </h2>
-            <p className="mt-2 text-center text-muted-foreground font-body font-light">
-              La IA está diseñando un plan personalizado para ti
-            </p>
-          </div>
+          <LoadingScreen onComplete={finish} />
         )}
       </div>
     </div>
