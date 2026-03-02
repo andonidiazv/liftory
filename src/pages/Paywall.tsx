@@ -42,7 +42,7 @@ export default function Paywall() {
             <X className="h-4 w-4 text-foreground" />
           </button>
         )}
-        <h1 className="text-center font-display text-foreground" style={{ fontSize: 20, fontWeight: 700 }}>
+        <h1 className="text-center font-display" style={{ fontSize: 20, fontWeight: 700, color: "#F5F0EB" }}>
           Tu progreso en {trialDays} días
         </h1>
       </div>
@@ -52,7 +52,7 @@ export default function Paywall() {
         {METRICS.map((m) => (
           <div key={m.label} className="flex flex-col items-center rounded-xl p-4" style={{ background: "#1A1A1A" }}>
             <m.icon className="h-5 w-5 mb-2" style={{ color: "#C75B39" }} />
-            <span className="font-mono text-foreground" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1 }}>
+            <span className="font-mono" style={{ fontSize: 28, fontWeight: 700, lineHeight: 1, color: "#F5F0EB" }}>
               {m.value}<span style={{ fontSize: 16 }}>{m.suffix.includes("%") ? "%" : ""}</span>
             </span>
             <span className="font-mono mt-1" style={{ fontSize: 12, color: "#A89F95", letterSpacing: "0.05em" }}>
@@ -63,7 +63,7 @@ export default function Paywall() {
       </div>
 
       {/* Main Message */}
-      <p className="text-center px-8 font-display text-foreground" style={{ fontSize: 18, fontWeight: 600, padding: "24px 32px" }}>
+      <p className="text-center px-8 font-display" style={{ fontSize: 18, fontWeight: 600, padding: "24px 32px", color: "#F5F0EB" }}>
         Lo que construiste en {trialDays} días es tuyo. Continúa.
       </p>
 
