@@ -28,14 +28,15 @@ interface UserRow {
   wearable: string | null;
   created_at: string;
   updated_at: string;
-  onboarding_answers: {
-    experience_level: string;
-    primary_goal: string;
-    training_days: number;
-    equipment: string;
-    injuries: string[] | null;
-    emotional_barriers: string[] | null;
-  }[] | null;
+}
+
+interface OnboardingRow {
+  experience_level: string;
+  primary_goal: string;
+  training_days: number;
+  equipment: string;
+  injuries: string[] | null;
+  emotional_barriers: string[] | null;
 }
 
 interface UserStats {
@@ -71,6 +72,7 @@ export default function AdminUsers() {
 
   // Detail panel
   const [selected, setSelected] = useState<UserRow | null>(null);
+  const [selectedOnboarding, setSelectedOnboarding] = useState<OnboardingRow | null>(null);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
 
@@ -82,7 +84,7 @@ export default function AdminUsers() {
     setLoading(true);
     let query = supabase
       .from("user_profiles")
-      .select("*, onboarding_answers(experience_level, primary_goal, training_days, equipment, injuries, emotional_barriers)", { count: "exact" })
+      .select("*", { count: "exact" })
       .eq("is_deleted", false)
       .order("created_at", { ascending: false })
       .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
@@ -104,17 +106,20 @@ export default function AdminUsers() {
 
   const openDetail = async (u: UserRow) => {
     setSelected(u);
+    setSelectedOnboarding(null);
     setStatsLoading(true);
-    const [workoutsRes, prsRes, lastRes] = await Promise.all([
+    const [workoutsRes, prsRes, lastRes, onbRes] = await Promise.all([
       supabase.from("workouts").select("*", { count: "exact", head: true }).eq("user_id", u.user_id).eq("is_completed", true),
       supabase.from("workout_sets").select("*", { count: "exact", head: true }).eq("user_id", u.user_id).eq("is_pr", true),
       supabase.from("workouts").select("completed_at").eq("user_id", u.user_id).eq("is_completed", true).order("completed_at", { ascending: false }).limit(1),
+      supabase.from("onboarding_answers").select("experience_level, primary_goal, training_days, equipment, injuries, emotional_barriers").eq("user_id", u.user_id).maybeSingle(),
     ]);
     setStats({
       totalWorkouts: workoutsRes.count ?? 0,
       totalPRs: prsRes.count ?? 0,
       lastWorkoutDate: lastRes.data?.[0]?.completed_at ?? null,
     });
+    setSelectedOnboarding(onbRes.data as OnboardingRow | null);
     setStatsLoading(false);
   };
 
@@ -192,7 +197,6 @@ export default function AdminUsers() {
   };
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
-  const ob = (u: UserRow) => u.onboarding_answers?.[0] ?? null;
 
   return (
     <div className="relative">
@@ -255,7 +259,6 @@ export default function AdminUsers() {
             </thead>
             <tbody>
               {users.map((u) => {
-                const onb = ob(u);
                 return (
                   <tr
                     key={u.id}
@@ -291,7 +294,7 @@ export default function AdminUsers() {
                       </span>
                     </td>
                     <td className="px-5 py-3 text-[13px] text-muted-foreground">{u.subscription_tier || "—"}</td>
-                    <td className="px-5 py-3 text-[13px] text-muted-foreground font-mono">{onb?.training_days ?? u.training_days_per_week ?? "—"}</td>
+                    <td className="px-5 py-3 text-[13px] text-muted-foreground font-mono">{u.training_days_per_week ?? "—"}</td>
                     <td className="px-5 py-3 font-mono text-xs text-muted-foreground">
                       {format(new Date(u.created_at), "dd MMM yyyy", { locale: es })}
                     </td>
@@ -376,38 +379,36 @@ export default function AdminUsers() {
             {/* Section: Onboarding */}
             <div className="px-6 py-5 space-y-3">
               <span className="eyebrow-label">ONBOARDING</span>
-              {(() => {
-                const onb = ob(selected);
-                if (!onb) return <p className="text-sm text-muted-foreground">Sin datos de onboarding.</p>;
-                return (
-                  <>
-                    <DetailRow label="Nivel" value={onb.experience_level} />
-                    <DetailRow label="Objetivo" value={onb.primary_goal} />
-                    <DetailRow label="Días entreno" value={String(onb.training_days)} />
-                    <DetailRow label="Equipamiento" value={onb.equipment} />
-                    {onb.injuries && onb.injuries.length > 0 && (
-                      <div>
-                        <span className="text-label-tech text-muted-foreground">Lesiones</span>
-                        <div className="mt-1 flex flex-wrap gap-1.5">
-                          {onb.injuries.map((inj) => (
-                            <span key={inj} className="pill text-xs">{inj}</span>
-                          ))}
-                        </div>
+              {!selectedOnboarding ? (
+                <p className="text-sm text-muted-foreground">Sin datos de onboarding.</p>
+              ) : (
+                <>
+                  <DetailRow label="Nivel" value={selectedOnboarding.experience_level} />
+                  <DetailRow label="Objetivo" value={selectedOnboarding.primary_goal} />
+                  <DetailRow label="Días entreno" value={String(selectedOnboarding.training_days)} />
+                  <DetailRow label="Equipamiento" value={selectedOnboarding.equipment} />
+                  {selectedOnboarding.injuries && selectedOnboarding.injuries.length > 0 && (
+                    <div>
+                      <span className="text-label-tech text-muted-foreground">Lesiones</span>
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        {selectedOnboarding.injuries.map((inj) => (
+                          <span key={inj} className="pill text-xs">{inj}</span>
+                        ))}
                       </div>
-                    )}
-                    {onb.emotional_barriers && onb.emotional_barriers.length > 0 && (
-                      <div>
-                        <span className="text-label-tech text-muted-foreground">Barreras emocionales</span>
-                        <div className="mt-1 flex flex-wrap gap-1.5">
-                          {onb.emotional_barriers.map((b) => (
-                            <span key={b} className="pill text-xs">{b}</span>
-                          ))}
-                        </div>
+                    </div>
+                  )}
+                  {selectedOnboarding.emotional_barriers && selectedOnboarding.emotional_barriers.length > 0 && (
+                    <div>
+                      <span className="text-label-tech text-muted-foreground">Barreras emocionales</span>
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        {selectedOnboarding.emotional_barriers.map((b) => (
+                          <span key={b} className="pill text-xs">{b}</span>
+                        ))}
                       </div>
-                    )}
-                  </>
-                );
-              })()}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
             <div className="separator-dark" />
