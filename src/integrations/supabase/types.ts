@@ -53,6 +53,8 @@ export type Database = {
           admin_user_id: string
           created_at: string
           id: string
+          ip_address: unknown
+          is_impersonation: boolean
           new_values: Json | null
           old_values: Json | null
           target_id: string
@@ -63,6 +65,8 @@ export type Database = {
           admin_user_id: string
           created_at?: string
           id?: string
+          ip_address?: unknown
+          is_impersonation?: boolean
           new_values?: Json | null
           old_values?: Json | null
           target_id: string
@@ -73,6 +77,8 @@ export type Database = {
           admin_user_id?: string
           created_at?: string
           id?: string
+          ip_address?: unknown
+          is_impersonation?: boolean
           new_values?: Json | null
           old_values?: Json | null
           target_id?: string
@@ -85,6 +91,7 @@ export type Database = {
           category: string
           coaching_cue: string | null
           contraindications: string[] | null
+          created_at: string
           default_tempo: string | null
           description: string | null
           difficulty: string
@@ -98,6 +105,7 @@ export type Database = {
           name_es: string
           primary_muscles: string[] | null
           thumbnail_url: string | null
+          updated_at: string
           video_duration_seconds: number | null
           video_url: string | null
         }
@@ -105,6 +113,7 @@ export type Database = {
           category?: string
           coaching_cue?: string | null
           contraindications?: string[] | null
+          created_at?: string
           default_tempo?: string | null
           description?: string | null
           difficulty?: string
@@ -118,6 +127,7 @@ export type Database = {
           name_es: string
           primary_muscles?: string[] | null
           thumbnail_url?: string | null
+          updated_at?: string
           video_duration_seconds?: number | null
           video_url?: string | null
         }
@@ -125,6 +135,7 @@ export type Database = {
           category?: string
           coaching_cue?: string | null
           contraindications?: string[] | null
+          created_at?: string
           default_tempo?: string | null
           description?: string | null
           difficulty?: string
@@ -138,6 +149,7 @@ export type Database = {
           name_es?: string
           primary_muscles?: string[] | null
           thumbnail_url?: string | null
+          updated_at?: string
           video_duration_seconds?: number | null
           video_url?: string | null
         }
@@ -146,6 +158,7 @@ export type Database = {
       insights: {
         Row: {
           category: string
+          created_at: string
           description_template: string
           id: string
           is_active: boolean
@@ -156,6 +169,7 @@ export type Database = {
         }
         Insert: {
           category?: string
+          created_at?: string
           description_template: string
           id?: string
           is_active?: boolean
@@ -166,6 +180,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          created_at?: string
           description_template?: string
           id?: string
           is_active?: boolean
@@ -181,6 +196,7 @@ export type Database = {
           generated_content: string
           id: string
           insight_id: string
+          payment_id: string | null
           unlocked_at: string
           user_id: string
         }
@@ -188,6 +204,7 @@ export type Database = {
           generated_content?: string
           id?: string
           insight_id: string
+          payment_id?: string | null
           unlocked_at?: string
           user_id: string
         }
@@ -195,6 +212,7 @@ export type Database = {
           generated_content?: string
           id?: string
           insight_id?: string
+          payment_id?: string | null
           unlocked_at?: string
           user_id?: string
         }
@@ -206,11 +224,19 @@ export type Database = {
             referencedRelation: "insights"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "insights_unlocked_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
         ]
       }
       onboarding_answers: {
         Row: {
           connected_wearable: string | null
+          created_at: string
           emotional_barriers: string[] | null
           equipment: string
           event_date: string | null
@@ -226,6 +252,7 @@ export type Database = {
         }
         Insert: {
           connected_wearable?: string | null
+          created_at?: string
           emotional_barriers?: string[] | null
           equipment?: string
           event_date?: string | null
@@ -241,6 +268,7 @@ export type Database = {
         }
         Update: {
           connected_wearable?: string | null
+          created_at?: string
           emotional_barriers?: string[] | null
           equipment?: string
           event_date?: string | null
@@ -256,9 +284,64 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          currency: string
+          id: string
+          insight_id: string | null
+          payment_type: string
+          status: string
+          stripe_payment_intent_id: string
+          subscription_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          currency?: string
+          id?: string
+          insight_id?: string | null
+          payment_type: string
+          status: string
+          stripe_payment_intent_id: string
+          subscription_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          insight_id?: string | null
+          payment_type?: string
+          status?: string
+          stripe_payment_intent_id?: string
+          subscription_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_insight_id_fkey"
+            columns: ["insight_id"]
+            isOneToOne: false
+            referencedRelation: "insights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       programs: {
         Row: {
           ai_params: Json | null
+          created_at: string
           current_block: string
           current_week: number
           generated_at: string
@@ -270,6 +353,7 @@ export type Database = {
         }
         Insert: {
           ai_params?: Json | null
+          created_at?: string
           current_block?: string
           current_week?: number
           generated_at?: string
@@ -281,6 +365,7 @@ export type Database = {
         }
         Update: {
           ai_params?: Json | null
+          created_at?: string
           current_block?: string
           current_week?: number
           generated_at?: string
@@ -288,6 +373,51 @@ export type Database = {
           is_active?: boolean
           name?: string
           total_weeks?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean
+          cancelled_at: string | null
+          created_at: string
+          current_period_end: string
+          current_period_start: string
+          id: string
+          status: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          tier: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean
+          cancelled_at?: string | null
+          created_at?: string
+          current_period_end: string
+          current_period_start: string
+          id?: string
+          status: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          tier: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean
+          cancelled_at?: string | null
+          created_at?: string
+          current_period_end?: string
+          current_period_start?: string
+          id?: string
+          status?: string
+          stripe_customer_id?: string
+          stripe_subscription_id?: string
+          tier?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -381,36 +511,42 @@ export type Database = {
           date: string
           hrv_ms: number | null
           id: string
+          raw_data: Json | null
           recovery_score: number | null
           resting_hr: number | null
           sleep_duration_minutes: number | null
           sleep_score: number | null
           source: string
           strain_score: number | null
+          synced_at: string
           user_id: string
         }
         Insert: {
           date: string
           hrv_ms?: number | null
           id?: string
+          raw_data?: Json | null
           recovery_score?: number | null
           resting_hr?: number | null
           sleep_duration_minutes?: number | null
           sleep_score?: number | null
           source: string
           strain_score?: number | null
+          synced_at?: string
           user_id: string
         }
         Update: {
           date?: string
           hrv_ms?: number | null
           id?: string
+          raw_data?: Json | null
           recovery_score?: number | null
           resting_hr?: number | null
           sleep_duration_minutes?: number | null
           sleep_score?: number | null
           source?: string
           strain_score?: number | null
+          synced_at?: string
           user_id?: string
         }
         Relationships: []
