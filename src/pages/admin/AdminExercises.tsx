@@ -534,7 +534,7 @@ export default function AdminExercises() {
                       {videoFile ? "Cambiar video" : "Seleccionar video"}
                       <input
                         type="file"
-                        accept="video/mp4"
+                        accept="video/mp4,video/quicktime,video/x-m4v,video/webm,.mov,.mp4,.m4v,.webm"
                         className="hidden"
                         onChange={(e) => {
                           const f = e.target.files?.[0];
