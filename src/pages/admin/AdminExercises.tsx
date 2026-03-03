@@ -13,16 +13,15 @@ const CATEGORIES = ["strength", "olympic", "conditioning", "mobility", "accessor
 const PATTERNS = ["squat", "hinge", "push", "pull", "carry", "rotation", "core"];
 const DIFFICULTIES = ["beginner", "intermediate", "advanced"];
 const EQUIPMENT_OPTIONS = [
-  "barbell", "dumbbell", "kettlebell", "cable", "machine", "bands",
-  "bodyweight", "rack", "bench", "pull_up_bar", "rings", "box", "none"
+  "barbell", "dumbbell", "kettlebell", "cable", "machine", "band",
+  "bodyweight", "rack", "bench", "box", "none"
 ];
 const MUSCLE_OPTIONS = [
-  "chest", "back", "quads", "hamstrings", "glutes", "shoulders",
-  "biceps", "triceps", "core", "calves", "traps", "forearms", "hip_flexors"
+  "chest", "back", "shoulders", "biceps", "triceps", "quads", "hamstrings",
+  "glutes", "calves", "core", "lats", "traps", "rhomboids", "forearms", "hip_flexors"
 ];
 const CONTRAINDICATION_OPTIONS = [
-  "shoulder_injury", "knee_injury", "lower_back_injury", "wrist_injury",
-  "neck_injury", "hip_injury", "ankle_injury"
+  "lower_back", "shoulder", "knee", "wrist", "neck", "ankle", "hip"
 ];
 
 const difficultyColors: Record<string, string> = {
@@ -52,6 +51,7 @@ interface ExerciseRow {
   video_url: string | null;
   thumbnail_url: string | null;
   is_active: boolean;
+  video_duration_seconds: number | null;
 }
 
 type FormData = Omit<ExerciseRow, "id"> & { id?: string };
@@ -62,6 +62,7 @@ const emptyForm: FormData = {
   equipment_required: [], primary_muscles: [], contraindications: [],
   emotional_barrier_tag: "", default_tempo: "", coaching_cue: "",
   founder_notes: "", video_url: null, thumbnail_url: null, is_active: true,
+  video_duration_seconds: null,
 };
 
 export default function AdminExercises() {
@@ -212,6 +213,7 @@ export default function AdminExercises() {
         coaching_cue: form.coaching_cue || null,
         founder_notes: form.founder_notes || null,
         video_url: videoUrl, thumbnail_url: thumbUrl,
+        video_duration_seconds: form.video_duration_seconds,
         is_active: form.is_active,
       };
 
@@ -475,12 +477,33 @@ export default function AdminExercises() {
 
               {activeTab === 1 && (
                 <>
-                  <ChipSelect label="Equipamiento" options={EQUIPMENT_OPTIONS} selected={form.equipment_required || []} onToggle={(v) => toggleChip("equipment_required", v)} />
-                  <ChipSelect label="Músculos primarios" options={MUSCLE_OPTIONS} selected={form.primary_muscles || []} onToggle={(v) => toggleChip("primary_muscles", v)} />
+                  <ChipSelect label="Equipo requerido" options={EQUIPMENT_OPTIONS} selected={form.equipment_required || []} onToggle={(v) => toggleChip("equipment_required", v)} />
+                  <ChipSelect label="Músculos principales" options={MUSCLE_OPTIONS} selected={form.primary_muscles || []} onToggle={(v) => toggleChip("primary_muscles", v)} />
                   <ChipSelect label="Contraindicaciones" options={CONTRAINDICATION_OPTIONS} selected={form.contraindications || []} onToggle={(v) => toggleChip("contraindications", v)} />
-                  <FormField label="Emotional barrier tag" value={form.emotional_barrier_tag || ""} onChange={(v) => setForm((p) => ({ ...p, emotional_barrier_tag: v }))} placeholder="Ej: fear_of_failure" />
-                  <FormField label="Default tempo" value={form.default_tempo || ""} onChange={(v) => setForm((p) => ({ ...p, default_tempo: v }))} placeholder="3.1.1.0" />
-                  <FormField label="Coaching cue" value={form.coaching_cue || ""} onChange={(v) => setForm((p) => ({ ...p, coaching_cue: v }))} placeholder="Empuja el suelo, no la barra" />
+                  <FormField label="Etiqueta de barrera emocional" value={form.emotional_barrier_tag || ""} onChange={(v) => setForm((p) => ({ ...p, emotional_barrier_tag: v }))} placeholder="Ej: fear_of_failure" />
+                  <FormField label="Tempo base" value={form.default_tempo || ""} onChange={(v) => setForm((p) => ({ ...p, default_tempo: v }))} placeholder="3.1.1.0" />
+                  <div>
+                    <label className="text-label-tech text-muted-foreground">Coaching cue</label>
+                    <textarea
+                      value={form.coaching_cue || ""}
+                      onChange={(e) => setForm((p) => ({ ...p, coaching_cue: e.target.value }))}
+                      rows={2}
+                      placeholder="Frase corta de coaching durante el set"
+                      className="mt-1 w-full rounded-lg px-3 py-2.5 text-sm font-body resize-none"
+                      style={{ background: "#0D0C0A", border: "1px solid rgba(250,248,245,0.08)", color: "#FAF8F5", outline: "none" }}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-label-tech text-muted-foreground">Notas del founder (privado)</label>
+                    <textarea
+                      value={form.founder_notes || ""}
+                      onChange={(e) => setForm((p) => ({ ...p, founder_notes: e.target.value }))}
+                      rows={3}
+                      placeholder="Notas solo visibles en Admin..."
+                      className="mt-1 w-full rounded-lg px-3 py-2.5 text-sm font-body resize-none"
+                      style={{ background: "#0D0C0A", border: "1px solid rgba(250,248,245,0.08)", color: "#FAF8F5", outline: "none" }}
+                    />
+                  </div>
                 </>
               )}
 
@@ -559,16 +582,17 @@ export default function AdminExercises() {
                     </label>
                   </div>
 
-                  {/* Founder notes */}
+                  {/* Video duration */}
                   <div>
-                    <label className="text-label-tech text-muted-foreground">Notas del founder (privado)</label>
-                    <textarea
-                      value={form.founder_notes || ""}
-                      onChange={(e) => setForm((p) => ({ ...p, founder_notes: e.target.value }))}
-                      rows={3}
-                      className="mt-1 w-full rounded-lg px-3 py-2.5 text-sm font-body resize-none"
+                    <label className="text-label-tech text-muted-foreground">Duración del video (segundos)</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={form.video_duration_seconds ?? ""}
+                      onChange={(e) => setForm((p) => ({ ...p, video_duration_seconds: e.target.value ? Number(e.target.value) : null }))}
+                      placeholder="Ej: 45"
+                      className="mt-1 w-full rounded-lg px-3 py-2.5 text-sm font-body"
                       style={{ background: "#0D0C0A", border: "1px solid rgba(250,248,245,0.08)", color: "#FAF8F5", outline: "none" }}
-                      placeholder="Notas solo visibles aquí..."
                     />
                   </div>
                 </>
