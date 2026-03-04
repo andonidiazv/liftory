@@ -55,7 +55,7 @@ function parseTempo(tempo: string | null): string {
 export default function Exercises() {
   const [search, setSearch] = useState("");
   const [muscleFilter, setMuscleFilter] = useState("All");
-  const [difficultyFilter, setDifficultyFilter] = useState("Todos");
+  const [difficultyFilter, setDifficultyFilter] = useState("All");
   const [exercises, setExercises] = useState<ExerciseRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedExercise, setSelectedExercise] = useState<ExerciseRow | null>(null);
