@@ -127,7 +127,7 @@ export default function Exercises() {
 
         {/* Muscle Filters */}
         <div className="mt-4 flex gap-2 overflow-x-auto no-scrollbar -mx-5 px-5">
-          {muscleFilters.map((f) => (
+          {muscleFilterKeys.map((f) => (
             <button
               key={f}
               onClick={() => setMuscleFilter(f)}
