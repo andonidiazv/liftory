@@ -88,7 +88,7 @@ export async function generateMockProgram(
     .from("programs")
     .insert({
       user_id: userId,
-      name: `Programa ${goalLabel(answers.primary_goal)} — ${levelLabel(answers.experience_level)} ${daysPerWeek} días`,
+      name: getProgramName(answers),
       total_weeks: totalWeeks,
       current_week: 1,
       current_block: "accumulation",
