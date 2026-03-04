@@ -51,29 +51,42 @@ export default function Login() {
   };
 
   const redirectByProfile = async (userId: string) => {
-    await fetchProfile(userId);
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .select("onboarding_completed, subscription_status, role")
-      .eq("user_id", userId)
-      .maybeSingle();
+    try {
+      // Race with a timeout to prevent infinite hang
+      const profilePromise = supabase
+        .from("user_profiles")
+        .select("onboarding_completed, subscription_status, role")
+        .eq("user_id", userId)
+        .maybeSingle();
 
-    console.log("redirectByProfile result:", { data, error });
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Profile fetch timeout")), 8000)
+      );
 
-    if (error) {
-      console.error("Profile fetch error:", error);
-      // Still navigate somewhere reasonable
-      navigate("/home", { replace: true });
-      return;
-    }
+      const { data, error } = await Promise.race([profilePromise, timeoutPromise]) as any;
 
-    if (!data || !data.onboarding_completed) {
-      navigate("/onboarding", { replace: true });
-    } else if (data.subscription_status === "expired") {
-      navigate("/paywall", { replace: true });
-    } else if (data.role === "admin") {
-      navigate("/admin", { replace: true });
-    } else {
+      console.log("redirectByProfile result:", { data, error });
+
+      // Also trigger AuthContext profile fetch (fire-and-forget)
+      fetchProfile(userId).catch(console.error);
+
+      if (error) {
+        console.error("Profile fetch error:", error);
+        navigate("/home", { replace: true });
+        return;
+      }
+
+      if (!data || !data.onboarding_completed) {
+        navigate("/onboarding", { replace: true });
+      } else if (data.subscription_status === "expired") {
+        navigate("/paywall", { replace: true });
+      } else if (data.role === "admin") {
+        navigate("/admin", { replace: true });
+      } else {
+        navigate("/home", { replace: true });
+      }
+    } catch (err) {
+      console.error("redirectByProfile error:", err);
       navigate("/home", { replace: true });
     }
   };
