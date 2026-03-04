@@ -113,18 +113,24 @@ export default function Login() {
     }
 
     setLoading(true);
-    const { data, error } = await signIn(result.data.email, result.data.password);
+    try {
+      const { data, error } = await signIn(result.data.email, result.data.password);
 
-    if (error) {
-      setGeneralError(error.message);
+      if (error) {
+        setGeneralError(error.message);
+        setLoading(false);
+        return;
+      }
+
+      if (data.user) {
+        await redirectByProfile(data.user.id);
+      }
+    } catch (err: any) {
+      console.error("Login redirect error:", err);
+      setGeneralError("Error al iniciar sesión. Intenta de nuevo.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    if (data.user) {
-      await redirectByProfile(data.user.id);
-    }
-    setLoading(false);
   };
 
   const handleGoogle = async () => {
