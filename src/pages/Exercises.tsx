@@ -24,7 +24,18 @@ interface ExerciseRow {
   emotional_barrier_tag: string | null;
 }
 
-const muscleFilters = ["Todos", "Pecho", "Espalda", "Piernas", "Hombros", "Core", "Bíceps", "Tríceps", "Glúteos"];
+const muscleGroups: Record<string, string[]> = {
+  "All": [],
+  "Chest": ["pectoralis_major", "upper_pectoralis"],
+  "Back": ["lats", "rhomboids", "upper_back", "teres_major"],
+  "Legs": ["quadriceps", "hamstrings", "calves", "gastrocnemius", "soleus"],
+  "Shoulders": ["deltoid", "deltoid_anterior", "deltoid_medial", "anterior_deltoid", "rear_deltoid"],
+  "Core": ["core", "transverse_abdominis", "obliques", "serratus_anterior"],
+  "Biceps": ["biceps", "biceps_brachii", "brachialis", "brachioradialis"],
+  "Triceps": ["triceps", "triceps_brachii", "triceps_brachii_long_head"],
+  "Glutes": ["gluteus_maximus", "gluteus_medius", "gluteus_minimus"],
+};
+const muscleFilterKeys = Object.keys(muscleGroups);
 const difficultyFilters = ["Todos", "beginner", "intermediate", "advanced"];
 const difficultyLabels: Record<string, string> = { beginner: "Principiante", intermediate: "Intermedio", advanced: "Avanzado" };
 const difficultyColors: Record<string, string> = {
