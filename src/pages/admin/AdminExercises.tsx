@@ -348,7 +348,7 @@ export default function AdminExercises() {
                   onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(250,248,245,0.03)")}
                   onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                 >
-                  <td className="px-4 py-3 text-[13px] font-body" style={{ color: "#FAF8F5" }}>{ex.name_es}</td>
+                  <td className="px-4 py-3 text-[13px] font-body" style={{ color: "#FAF8F5" }}>{ex.name}</td>
                   <td className="px-4 py-3 text-[13px] text-muted-foreground capitalize">{ex.category}</td>
                   <td className="px-4 py-3">
                     <span
