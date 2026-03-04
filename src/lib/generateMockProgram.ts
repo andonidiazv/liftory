@@ -62,7 +62,7 @@ export async function generateMockProgram(
     // Create program stub flagged for regeneration
     await supabase.from("programs").insert({
       user_id: userId,
-      name: `Programa ${goalLabel(answers.primary_goal)} — ${levelLabel(answers.experience_level)}`,
+      name: getProgramName(answers),
       total_weeks: answers.experience_level === "beginner" ? 8 : 6,
       current_week: 1,
       current_block: "accumulation",
