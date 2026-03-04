@@ -105,14 +105,14 @@ export default function AdminExercises() {
     let query = supabase
       .from("exercises")
       .select("*", { count: "exact" })
-      .order("name_es", { ascending: true })
+      .order("name", { ascending: true })
       .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
 
     if (catFilter !== "all") query = query.eq("category", catFilter);
     if (diffFilter !== "all") query = query.eq("difficulty", diffFilter);
     if (patternFilter !== "all") query = query.eq("movement_pattern", patternFilter);
     if (noVideoOnly) query = query.is("video_url", null);
-    if (search.trim()) query = query.ilike("name_es", `%${search.trim()}%`);
+    if (search.trim()) query = query.or(`name.ilike.%${search.trim()}%,name_es.ilike.%${search.trim()}%`);
 
     const { data, count } = await query;
     setExercises((data as ExerciseRow[]) || []);
@@ -334,7 +334,7 @@ export default function AdminExercises() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: "1px solid rgba(250,248,245,0.06)" }}>
-                {["Nombre (ES)", "Categoría", "Dificultad", "Músculos", "Patrón", "Video", "Estado", ""].map((h) => (
+                {["Name", "Category", "Difficulty", "Muscles", "Pattern", "Video", "Status", ""].map((h) => (
                   <th key={h} className="px-4 py-3 text-left text-label-tech text-muted-foreground font-normal">{h}</th>
                 ))}
               </tr>
@@ -348,7 +348,7 @@ export default function AdminExercises() {
                   onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(250,248,245,0.03)")}
                   onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                 >
-                  <td className="px-4 py-3 text-[13px] font-body" style={{ color: "#FAF8F5" }}>{ex.name_es}</td>
+                  <td className="px-4 py-3 text-[13px] font-body" style={{ color: "#FAF8F5" }}>{ex.name}</td>
                   <td className="px-4 py-3 text-[13px] text-muted-foreground capitalize">{ex.category}</td>
                   <td className="px-4 py-3">
                     <span
