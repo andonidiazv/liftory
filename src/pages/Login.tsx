@@ -51,12 +51,20 @@ export default function Login() {
 
   const redirectByProfile = async (userId: string) => {
     await fetchProfile(userId);
-    // Small delay to let profile state update
-    const { data } = await (await import("@/integrations/supabase/client")).supabase
+    const { data, error } = await supabase
       .from("user_profiles")
       .select("onboarding_completed, subscription_status, role")
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
+
+    console.log("redirectByProfile result:", { data, error });
+
+    if (error) {
+      console.error("Profile fetch error:", error);
+      // Still navigate somewhere reasonable
+      navigate("/home", { replace: true });
+      return;
+    }
 
     if (!data || !data.onboarding_completed) {
       navigate("/onboarding", { replace: true });
