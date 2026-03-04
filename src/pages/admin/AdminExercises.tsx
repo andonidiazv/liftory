@@ -112,7 +112,7 @@ export default function AdminExercises() {
     if (diffFilter !== "all") query = query.eq("difficulty", diffFilter);
     if (patternFilter !== "all") query = query.eq("movement_pattern", patternFilter);
     if (noVideoOnly) query = query.is("video_url", null);
-    if (search.trim()) query = query.ilike("name_es", `%${search.trim()}%`);
+    if (search.trim()) query = query.or(`name.ilike.%${search.trim()}%,name_es.ilike.%${search.trim()}%`);
 
     const { data, count } = await query;
     setExercises((data as ExerciseRow[]) || []);
