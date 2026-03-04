@@ -172,7 +172,7 @@ export default function Exercises() {
           ) : exercises.length === 0 ? (
             <div className="col-span-2 flex flex-col items-center justify-center py-16">
               <p className="text-muted-foreground font-body text-sm text-center">
-                {search || muscleFilter !== "Todos" || difficultyFilter !== "Todos"
+                {search || muscleFilter !== "All" || difficultyFilter !== "All"
                   ? "No hay ejercicios con estos filtros."
                   : "La biblioteca se está cargando. Vuelve pronto."}
               </p>
