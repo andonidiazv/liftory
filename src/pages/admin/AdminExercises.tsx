@@ -105,7 +105,7 @@ export default function AdminExercises() {
     let query = supabase
       .from("exercises")
       .select("*", { count: "exact" })
-      .order("name_es", { ascending: true })
+      .order("name", { ascending: true })
       .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
 
     if (catFilter !== "all") query = query.eq("category", catFilter);
