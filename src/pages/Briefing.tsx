@@ -1,30 +1,126 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useApp } from "@/context/AppContext";
-import { todayWorkout, sessionBlocks, user } from "@/data/workout";
-import { ChevronLeft, ChevronRight, Sun, Zap, HeartPulse, Leaf } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { useWorkoutData, WorkoutSetData } from "@/hooks/useWorkoutData";
+import { ChevronLeft, ChevronRight, Sun, Zap, HeartPulse, Leaf, Loader2 } from "lucide-react";
 import heroImage from "@/assets/briefing-hero.jpg";
 
-const blockMeta = [
-  { id: "warmup", icon: Sun, accentFrom: "#C9A96E", accentTo: "#D4A055", iconColor: "#C9A96E", iconBg: "rgba(201,169,110,0.08)" },
-  { id: "strength", icon: Zap, accentFrom: "#B8622F", accentTo: "#D4784A", iconColor: "#B8622F", iconBg: "rgba(184,98,47,0.08)" },
-  { id: "conditioning", icon: HeartPulse, accentFrom: "#B8622F", accentTo: "#E09060", iconColor: "#B8622F", iconBg: "rgba(184,98,47,0.08)" },
-  { id: "cooldown", icon: Leaf, accentFrom: "#8A8A8E", accentTo: "#9B9690", iconColor: "#8A8A8E", iconBg: "rgba(138,138,142,0.08)" },
-];
+/* ── Block metadata for visual styling ── */
+const BLOCK_META: Record<string, { icon: typeof Sun; accentFrom: string; accentTo: string; iconColor: string; iconBg: string }> = {
+  warmup: { icon: Sun, accentFrom: "#C9A96E", accentTo: "#D4A055", iconColor: "#C9A96E", iconBg: "rgba(201,169,110,0.08)" },
+  working: { icon: Zap, accentFrom: "#B8622F", accentTo: "#D4784A", iconColor: "#B8622F", iconBg: "rgba(184,98,47,0.08)" },
+  emom: { icon: HeartPulse, accentFrom: "#B8622F", accentTo: "#E09060", iconColor: "#B8622F", iconBg: "rgba(184,98,47,0.08)" },
+  backoff: { icon: Leaf, accentFrom: "#8A8A8E", accentTo: "#9B9690", iconColor: "#8A8A8E", iconBg: "rgba(138,138,142,0.08)" },
+};
+
+/* ── Map set_type to LIFTORY block names ── */
+const BLOCK_LABELS: Record<string, string> = {
+  warmup: "MOVILIDAD",
+  working: "FUERZA",
+  emom: "FINISHER",
+  backoff: "SCULPT",
+  amrap: "FINISHER",
+};
+
+interface SessionBlock {
+  id: string;
+  name: string;
+  setType: string;
+  exerciseCount: number;
+  setCount: number;
+  estimatedTime: string;
+  format?: string;
+}
+
+function groupSetsIntoBlocks(sets: WorkoutSetData[]): SessionBlock[] {
+  if (!sets.length) return [];
+
+  // Group consecutive sets by set_type
+  const groups: { type: string; sets: WorkoutSetData[] }[] = [];
+  let current: { type: string; sets: WorkoutSetData[] } | null = null;
+
+  for (const s of sets) {
+    if (!current || current.type !== s.set_type) {
+      current = { type: s.set_type, sets: [s] };
+      groups.push(current);
+    } else {
+      current.sets.push(s);
+    }
+  }
+
+  return groups.map((g, i) => {
+    const uniqueExercises = new Set(g.sets.map((s) => s.exercise_id));
+    const avgRest = g.sets[0]?.planned_rest_seconds ?? 60;
+    const repsPerSet = g.sets[0]?.planned_reps ?? 10;
+    const timePerSet = (repsPerSet * 3 + avgRest) / 60; // rough mins
+    const totalMins = Math.round(timePerSet * g.sets.length);
+
+    return {
+      id: `${g.type}-${i}`,
+      name: BLOCK_LABELS[g.type] || g.type.toUpperCase(),
+      setType: g.type,
+      exerciseCount: uniqueExercises.size,
+      setCount: g.sets.length,
+      estimatedTime: `${Math.max(totalMins, 3)}-${Math.max(totalMins + 3, 5)} min`,
+      format: g.type === "emom" ? "EMOM" : g.type === "amrap" ? "AMRAP" : undefined,
+    };
+  });
+}
+
+/* ── Briefing description based on day_label ── */
+function getBriefingStatement(dayLabel: string): string {
+  const l = dayLabel.toUpperCase();
+  if (l.includes("PULL"))
+    return "Hoy el foco es tracción y espalda. Controla la fase excéntrica, aprieta en la contracción. Arrancas con movilidad escapular, construyes fuerza con compuestos pesados, defines con aislamiento y cierras con un finisher metabólico.";
+  if (l.includes("PRESS") || l.includes("PUSH"))
+    return "Hoy el foco es tensión mecánica en pecho y hombros. Controla la bajada, domina el peso. Arrancas con movilidad para preparar articulaciones, construyes fuerza con tempos que transforman cada rep y cierras con recuperación activa.";
+  if (l.includes("QUAD") || l.includes("LOWER"))
+    return "Hoy toca tren inferior con foco en cuádriceps. Activa glúteos, estabiliza rodillas y empuja con intención. Cada rep cuenta cuando el peso está en tus piernas.";
+  if (l.includes("POSTERIOR") || l.includes("HIP"))
+    return "Hoy el foco es cadena posterior: isquios, glúteos y espalda baja. Bisagra perfecta, extensión completa. Construye potencia desde la cadera.";
+  if (l.includes("UPPER"))
+    return "Sesión de tren superior completa. Combina empuje y tracción para un desarrollo simétrico y funcional. Volumen controlado, técnica impecable.";
+  if (l.includes("FLOW") || l.includes("MOBILITY"))
+    return "Sesión de recuperación activa y movilidad. Respira, mueve, restaura. Tu cuerpo necesita esto tanto como las sesiones de fuerza.";
+  if (l.includes("FULL FORCE"))
+    return "Sesión de fuerza total: movimientos compuestos pesados que reclutan todo tu cuerpo. Máxima intención en cada repetición.";
+  return "Sesión diseñada con la metodología LIFTORY. Movilidad, fuerza, volumen y finisher en un flujo inteligente.";
+}
 
 export default function Briefing() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { startWorkout } = useApp();
-  const workoutId = searchParams.get("workoutId");
+  const { profile } = useAuth();
+  const workoutId = searchParams.get("workoutId") || undefined;
+
+  const { workout, sets, loading } = useWorkoutData(workoutId);
 
   const handleStart = () => {
     startWorkout();
     navigate(workoutId ? `/workout/${workoutId}` : "/home", { replace: true });
   };
 
-  const cycleDay = (user.week - 1) * 4 + 4;
-  const totalDays = user.totalWeeks * 4;
-  const progressPct = (cycleDay / totalDays) * 100;
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center" style={{ background: "#0D0C0A" }}>
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: "#B8622F" }} />
+      </div>
+    );
+  }
+
+  if (!workout) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6" style={{ background: "#0D0C0A" }}>
+        <p style={{ color: "#8A8A8E", fontSize: 15 }}>No se encontró el workout.</p>
+        <button onClick={() => navigate(-1)} className="font-mono" style={{ color: "#B8622F", fontSize: 13 }}>← Volver</button>
+      </div>
+    );
+  }
+
+  const blocks = groupSetsIntoBlocks(sets);
+  const totalSets = sets.length;
+  const estDuration = workout.estimated_duration ?? 55;
 
   return (
     <div className="grain-overlay min-h-screen" style={{ background: "#0D0C0A" }}>
@@ -40,31 +136,31 @@ export default function Briefing() {
             <ChevronLeft className="h-5 w-5" style={{ color: "#FAF8F5" }} />
           </button>
           <div className="font-mono rounded-full px-3 py-1.5" style={{ color: "#FAF8F5", fontSize: 11, letterSpacing: "0.15em", background: "rgba(255,255,255,0.08)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.08)" }}>
-            Sem {user.week} de {user.totalWeeks}
+            {workout.day_label}
           </div>
         </div>
 
         {/* Content over hero */}
         <div className="absolute inset-x-0 bottom-0 px-6 pb-4 relative z-10">
           <p className="font-mono uppercase" style={{ color: "#B8622F", fontSize: 11, letterSpacing: "2.5px" }}>
-            DÍA {cycleDay} DE {totalDays}
+            {workout.workout_type.toUpperCase()}
           </p>
           <h1 className="font-display mt-1" style={{ fontSize: 38, fontWeight: 800, letterSpacing: "-0.04em", color: "#FAF8F5", lineHeight: 1.1 }}>
-            {todayWorkout.name}
+            {workout.day_label}
           </h1>
           <p className="mt-1" style={{ color: "#8A8A8E", fontSize: 15, fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}>
-            Construye pecho y hombros
+            {totalSets} series · ~{estDuration} min
           </p>
         </div>
       </div>
 
-      {/* PROGRESS BAR */}
+      {/* PROGRESS BAR (sets completed vs total) */}
       <div className="relative z-10 flex items-center gap-3 px-6 py-3.5">
         <div className="flex-1 overflow-hidden" style={{ height: 4, background: "#1C1C1E", borderRadius: 2 }}>
-          <div className="h-full" style={{ width: `${progressPct}%`, background: "linear-gradient(to right, #B8622F, #C9A96E)", borderRadius: 2 }} />
+          <div className="h-full" style={{ width: `${sets.length > 0 ? (sets.filter((s) => s.is_completed).length / sets.length) * 100 : 0}%`, background: "linear-gradient(to right, #B8622F, #C9A96E)", borderRadius: 2 }} />
         </div>
         <span className="font-mono" style={{ color: "#8A8A8E", fontSize: 11, letterSpacing: "0.05em" }}>
-          {cycleDay}/{totalDays}
+          {sets.filter((s) => s.is_completed).length}/{sets.length}
         </span>
       </div>
 
@@ -72,33 +168,8 @@ export default function Briefing() {
       <div className="relative z-10 px-6">
         <div style={{ background: "#1C1C1E", border: "1px solid rgba(250,248,245,0.06)", borderRadius: 12, padding: 20 }}>
           <p className="font-serif italic" style={{ color: "#FAF8F5", fontSize: 15, lineHeight: 1.65, fontWeight: 300 }}>
-            Hoy el foco es{" "}
-            <span className="not-italic" style={{ color: "#B8622F", fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>
-              tensión mecánica en pecho
-            </span>
-            . Controla la bajada, domina el peso. Arrancas con movilidad para preparar
-            articulaciones, construyes fuerza con tempos que transforman cada rep, subes la
-            intensidad con un EMOM de 10 minutos y cierras con recuperación activa.
+            {getBriefingStatement(workout.day_label)}
           </p>
-
-          {/* Whoop line */}
-          <div className="mt-4 flex items-center gap-3 pt-3.5 separator-dark" style={{ borderBottom: "none" }}>
-            <div className="font-mono flex h-5 w-5 shrink-0 items-center justify-center" style={{ background: "#1C1C1E", border: "1px solid rgba(250,248,245,0.06)", borderRadius: 5, fontSize: 10, fontWeight: 700, color: "#8A8A8E" }}>
-              W
-            </div>
-            <div className="flex flex-1 items-center">
-              {[
-                { value: "78%", label: "Recovery" },
-                { value: "14.2", label: "Esfuerzo" },
-                { value: "485", label: "kcal target" },
-              ].map((stat, i) => (
-                <div key={stat.label} className="flex flex-1 flex-col items-center" style={i < 2 ? { borderRight: "1px solid rgba(250,248,245,0.06)" } : undefined}>
-                  <span className="font-mono" style={{ color: "#FAF8F5", fontSize: 14, fontWeight: 500 }}>{stat.value}</span>
-                  <span className="mt-0.5 uppercase" style={{ color: "#8A8A8E", fontSize: 9, letterSpacing: "0.8px", fontFamily: "'DM Mono', monospace" }}>{stat.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
 
@@ -107,14 +178,14 @@ export default function Briefing() {
         <span className="eyebrow-label">BLOQUES DE SESIÓN</span>
         <div className="flex-1" style={{ height: 1, background: "rgba(250,248,245,0.06)" }} />
         <span className="shrink-0" style={{ color: "#8A8A8E", fontSize: 11, fontFamily: "'DM Mono', monospace", fontWeight: 400 }}>
-          55-65 min
+          ~{estDuration} min
         </span>
       </div>
 
       {/* BLOCK GRID */}
       <div className="relative z-10 grid grid-cols-2 gap-2.5 px-6 pb-40 stagger-fade-in">
-        {sessionBlocks.map((block) => {
-          const meta = blockMeta.find((m) => m.id === block.id) || blockMeta[0];
+        {blocks.map((block) => {
+          const meta = BLOCK_META[block.setType] || BLOCK_META.working;
           const Icon = meta.icon;
 
           return (
@@ -132,7 +203,9 @@ export default function Briefing() {
                   <span className="font-mono" style={{ color: "#8A8A8E", fontSize: 11, letterSpacing: "0.05em" }}>{block.estimatedTime}</span>
                 </div>
                 <p className="mt-3 font-display font-bold" style={{ color: "#FAF8F5", fontSize: 14 }}>{block.name}</p>
-                <p className="mt-0.5" style={{ color: "#8A8A8E", fontSize: 12, fontFamily: "'DM Sans', sans-serif", fontWeight: 400 }}>{block.exercises.length} ejercicios</p>
+                <p className="mt-0.5" style={{ color: "#8A8A8E", fontSize: 12, fontFamily: "'DM Sans', sans-serif", fontWeight: 400 }}>
+                  {block.exerciseCount} ejercicio{block.exerciseCount !== 1 ? "s" : ""} · {block.setCount} series
+                </p>
                 {block.format && (
                   <span className="font-mono mt-2 inline-block px-2 py-1" style={{ color: "#B8622F", background: "rgba(184,98,47,0.08)", border: "1px solid rgba(184,98,47,0.12)", borderRadius: 4, fontSize: 10 }}>
                     {block.format}
