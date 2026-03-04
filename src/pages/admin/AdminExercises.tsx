@@ -334,7 +334,7 @@ export default function AdminExercises() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: "1px solid rgba(250,248,245,0.06)" }}>
-                {["Nombre (ES)", "Categoría", "Dificultad", "Músculos", "Patrón", "Video", "Estado", ""].map((h) => (
+                {["Name", "Category", "Difficulty", "Muscles", "Pattern", "Video", "Status", ""].map((h) => (
                   <th key={h} className="px-4 py-3 text-left text-label-tech text-muted-foreground font-normal">{h}</th>
                 ))}
               </tr>
