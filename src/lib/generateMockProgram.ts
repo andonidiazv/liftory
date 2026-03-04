@@ -31,11 +31,22 @@ function levelLabel(level: string): string {
 }
 
 const SPLITS: Record<number, string[]> = {
-  3: ["Full Body A", "Full Body B", "Full Body C"],
-  4: ["Upper Push", "Lower Quad", "Upper Pull", "Lower Hinge"],
-  5: ["Push", "Pull", "Legs", "Upper", "Lower"],
-  6: ["Push", "Pull", "Legs", "Push B", "Pull B", "Legs B"],
+  3: ["LIFTORY PRESS ENGINE", "LIFTORY PULL ENGINE", "LIFTORY FULL FORCE"],
+  4: ["LIFTORY UPPER STRENGTH", "LIFTORY LOWER FORCE", "LIFTORY UPPER SCULPT", "LIFTORY POSTERIOR FORCE"],
+  5: ["LIFTORY PULL PERFORMANCE", "LIFTORY QUAD ENGINE", "LIFTORY PRESS POWER", "LIFTORY FLOW & ENGINE", "LIFTORY POSTERIOR FORCE"],
+  6: ["LIFTORY PRESS ENGINE", "LIFTORY PULL ENGINE", "LIFTORY FULL FORCE", "LIFTORY PRESS ENGINE B", "LIFTORY PULL ENGINE B", "LIFTORY FULL FORCE B"],
 };
+
+function getProgramName(answers: OnboardingAnswers): string {
+  const days = answers.training_days;
+  const gender = answers.gender;
+  if (days === 3) return "LIFTORY FOUNDATION — 3 días";
+  if (days === 5 && gender === "female") return "LIFTORY SCULPT HER™ — 5 días";
+  if (days === 5) return "LIFTORY METHOD — 5 días";
+  if (days === 4 && gender === "female") return "SCULPT HER™ — 4 días";
+  if (days === 4) return "LIFTORY METHOD — 4 días";
+  return `LIFTORY METHOD — ${days} días`;
+}
 
 export async function generateMockProgram(
   userId: string,
@@ -51,7 +62,7 @@ export async function generateMockProgram(
     // Create program stub flagged for regeneration
     await supabase.from("programs").insert({
       user_id: userId,
-      name: `Programa ${goalLabel(answers.primary_goal)} — ${levelLabel(answers.experience_level)}`,
+      name: getProgramName(answers),
       total_weeks: answers.experience_level === "beginner" ? 8 : 6,
       current_week: 1,
       current_block: "accumulation",
@@ -77,7 +88,7 @@ export async function generateMockProgram(
     .from("programs")
     .insert({
       user_id: userId,
-      name: `Programa ${goalLabel(answers.primary_goal)} — ${levelLabel(answers.experience_level)} ${daysPerWeek} días`,
+      name: getProgramName(answers),
       total_weeks: totalWeeks,
       current_week: 1,
       current_block: "accumulation",
