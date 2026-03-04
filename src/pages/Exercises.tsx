@@ -71,10 +71,13 @@ export default function Exercises() {
       .eq("is_active", true)
       .order("name_es", { ascending: true });
 
-    if (muscleFilter !== "Todos") {
-      query = query.contains("primary_muscles", [muscleFilter]);
+    if (muscleFilter !== "All") {
+      const muscles = muscleGroups[muscleFilter] ?? [];
+      if (muscles.length > 0) {
+        query = query.overlaps("primary_muscles", muscles);
+      }
     }
-    if (difficultyFilter !== "Todos") {
+    if (difficultyFilter !== "All") {
       query = query.eq("difficulty", difficultyFilter);
     }
     if (search.trim()) {
