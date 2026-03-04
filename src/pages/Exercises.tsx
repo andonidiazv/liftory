@@ -24,8 +24,19 @@ interface ExerciseRow {
   emotional_barrier_tag: string | null;
 }
 
-const muscleFilters = ["Todos", "Pecho", "Espalda", "Piernas", "Hombros", "Core", "Bíceps", "Tríceps", "Glúteos"];
-const difficultyFilters = ["Todos", "beginner", "intermediate", "advanced"];
+const muscleGroups: Record<string, string[]> = {
+  "All": [],
+  "Chest": ["pectoralis_major", "upper_pectoralis"],
+  "Back": ["lats", "rhomboids", "upper_back", "teres_major"],
+  "Legs": ["quadriceps", "hamstrings", "calves", "gastrocnemius", "soleus"],
+  "Shoulders": ["deltoid", "deltoid_anterior", "deltoid_medial", "anterior_deltoid", "rear_deltoid"],
+  "Core": ["core", "transverse_abdominis", "obliques", "serratus_anterior"],
+  "Biceps": ["biceps", "biceps_brachii", "brachialis", "brachioradialis"],
+  "Triceps": ["triceps", "triceps_brachii", "triceps_brachii_long_head"],
+  "Glutes": ["gluteus_maximus", "gluteus_medius", "gluteus_minimus"],
+};
+const muscleFilterKeys = Object.keys(muscleGroups);
+const difficultyFilters = ["All", "beginner", "intermediate", "advanced"];
 const difficultyLabels: Record<string, string> = { beginner: "Principiante", intermediate: "Intermedio", advanced: "Avanzado" };
 const difficultyColors: Record<string, string> = {
   beginner: "bg-success/20 text-success",
@@ -43,8 +54,8 @@ function parseTempo(tempo: string | null): string {
 
 export default function Exercises() {
   const [search, setSearch] = useState("");
-  const [muscleFilter, setMuscleFilter] = useState("Todos");
-  const [difficultyFilter, setDifficultyFilter] = useState("Todos");
+  const [muscleFilter, setMuscleFilter] = useState("All");
+  const [difficultyFilter, setDifficultyFilter] = useState("All");
   const [exercises, setExercises] = useState<ExerciseRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedExercise, setSelectedExercise] = useState<ExerciseRow | null>(null);
@@ -60,10 +71,13 @@ export default function Exercises() {
       .eq("is_active", true)
       .order("name_es", { ascending: true });
 
-    if (muscleFilter !== "Todos") {
-      query = query.contains("primary_muscles", [muscleFilter]);
+    if (muscleFilter !== "All") {
+      const muscles = muscleGroups[muscleFilter] ?? [];
+      if (muscles.length > 0) {
+        query = query.overlaps("primary_muscles", muscles);
+      }
     }
-    if (difficultyFilter !== "Todos") {
+    if (difficultyFilter !== "All") {
       query = query.eq("difficulty", difficultyFilter);
     }
     if (search.trim()) {
@@ -113,7 +127,7 @@ export default function Exercises() {
 
         {/* Muscle Filters */}
         <div className="mt-4 flex gap-2 overflow-x-auto no-scrollbar -mx-5 px-5">
-          {muscleFilters.map((f) => (
+          {muscleFilterKeys.map((f) => (
             <button
               key={f}
               onClick={() => setMuscleFilter(f)}
@@ -138,7 +152,7 @@ export default function Exercises() {
               }`}
               style={{ borderRadius: 4 }}
             >
-              {f === "Todos" ? "Nivel" : difficultyLabels[f]}
+              {f === "All" ? "Level" : difficultyLabels[f]}
             </button>
           ))}
         </div>
@@ -158,7 +172,7 @@ export default function Exercises() {
           ) : exercises.length === 0 ? (
             <div className="col-span-2 flex flex-col items-center justify-center py-16">
               <p className="text-muted-foreground font-body text-sm text-center">
-                {search || muscleFilter !== "Todos" || difficultyFilter !== "Todos"
+                {search || muscleFilter !== "All" || difficultyFilter !== "All"
                   ? "No hay ejercicios con estos filtros."
                   : "La biblioteca se está cargando. Vuelve pronto."}
               </p>
