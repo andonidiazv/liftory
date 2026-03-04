@@ -152,7 +152,7 @@ export default function Exercises() {
               }`}
               style={{ borderRadius: 4 }}
             >
-              {f === "Todos" ? "Nivel" : difficultyLabels[f]}
+              {f === "All" ? "Level" : difficultyLabels[f]}
             </button>
           ))}
         </div>
