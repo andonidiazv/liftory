@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 
 const signupSchema = z.object({
@@ -51,12 +52,20 @@ export default function Login() {
 
   const redirectByProfile = async (userId: string) => {
     await fetchProfile(userId);
-    // Small delay to let profile state update
-    const { data } = await (await import("@/integrations/supabase/client")).supabase
+    const { data, error } = await supabase
       .from("user_profiles")
       .select("onboarding_completed, subscription_status, role")
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
+
+    console.log("redirectByProfile result:", { data, error });
+
+    if (error) {
+      console.error("Profile fetch error:", error);
+      // Still navigate somewhere reasonable
+      navigate("/home", { replace: true });
+      return;
+    }
 
     if (!data || !data.onboarding_completed) {
       navigate("/onboarding", { replace: true });
@@ -113,18 +122,24 @@ export default function Login() {
     }
 
     setLoading(true);
-    const { data, error } = await signIn(result.data.email, result.data.password);
+    try {
+      const { data, error } = await signIn(result.data.email, result.data.password);
 
-    if (error) {
-      setGeneralError(error.message);
+      if (error) {
+        setGeneralError(error.message);
+        setLoading(false);
+        return;
+      }
+
+      if (data.user) {
+        await redirectByProfile(data.user.id);
+      }
+    } catch (err: any) {
+      console.error("Login redirect error:", err);
+      setGeneralError("Error al iniciar sesión. Intenta de nuevo.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    if (data.user) {
-      await redirectByProfile(data.user.id);
-    }
-    setLoading(false);
   };
 
   const handleGoogle = async () => {
