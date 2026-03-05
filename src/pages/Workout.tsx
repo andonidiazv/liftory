@@ -462,11 +462,25 @@ export default function Workout() {
               <div className="absolute bottom-0 left-0 right-0 h-[60px]" style={{ background: "linear-gradient(to bottom, transparent, hsl(var(--background)))", borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }} />
             </div>
 
-            <div className="px-5 -mt-3 pb-6 relative z-10">
+              <div className="px-5 -mt-3 pb-6 relative z-10">
               <div className="flex items-center justify-between">
-                <h3 className="font-display text-lg font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>
-                  {currentExercise.name}
-                </h3>
+                <div className="flex items-center gap-2">
+                  {groupingInfo && (
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full font-mono text-xs font-bold shrink-0" style={{ backgroundColor: "hsl(var(--primary) / 0.15)", color: "hsl(var(--primary))" }}>
+                      {groupingInfo.letter}
+                    </span>
+                  )}
+                  <div>
+                    {groupingInfo && (
+                      <span className="font-mono uppercase text-primary block" style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.08em" }}>
+                        {groupingInfo.label} · {groupingInfo.position + 1}/{groupingInfo.count}
+                      </span>
+                    )}
+                    <h3 className="font-display text-lg font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>
+                      {currentExercise.name}
+                    </h3>
+                  </div>
+                </div>
                 <button onClick={() => setExerciseView("ficha")} className="flex items-center gap-1 text-xs text-primary font-body font-medium">
                   <Info className="h-3.5 w-3.5" /> Ficha
                 </button>
