@@ -512,7 +512,7 @@ export default function Workout() {
                       )}
 
                       {/* Reps */}
-                      {isActive ? (
+                      {isEditable ? (
                         <input
                           type="number"
                           step={1}
