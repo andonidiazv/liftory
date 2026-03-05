@@ -214,40 +214,92 @@ export default function SessionSummary() {
 
                     {/* Expanded exercises */}
                     {isExpanded && (
-                      <div className="mt-4 flex flex-col gap-2 animate-fade-up">
-                        {block.exercises.map((ex, i) => (
-                          <div
-                            key={i}
-                            className="flex items-center justify-between rounded-xl px-3 py-2.5 bg-secondary"
-                          >
-                            <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                              <div className="h-5 w-5 shrink-0 rounded-full border border-border" />
-                              <span className="text-sm font-body font-normal text-foreground truncate">
-                                {ex.name}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0 ml-2">
-                              <span className="font-mono text-xs text-muted-foreground" style={{ letterSpacing: "0.05em" }}>
-                                {ex.setsCount}×{ex.reps ?? "?"}
-                              </span>
-                              {ex.weight != null && ex.weight > 0 && (
-                                <span className="font-mono text-xs text-foreground font-medium" style={{ letterSpacing: "0.05em" }}>
-                                  {ex.weight} kg
-                                </span>
-                              )}
-                              {ex.tempo && (
-                                <span className="font-mono text-primary" style={{ fontSize: 10, letterSpacing: "0.05em" }}>
-                                  {ex.tempo}
-                                </span>
-                              )}
-                              {ex.rpe != null && (
-                                <span className="px-1.5 py-0.5 font-mono" style={{ backgroundColor: `${block.accentColor}15`, color: block.accentColor, borderRadius: 4, fontSize: 10, fontWeight: 600 }}>
-                                  RPE {ex.rpe}
-                                </span>
-                              )}
-                            </div>
+                      <div className="mt-4 animate-fade-up">
+                        {/* Grouping label */}
+                        {block.exercises.length > 1 && (block.setType === "warmup" || block.setType === "backoff") && (
+                          <div className="flex items-center gap-2 mb-2">
+                            <span
+                              className="px-2 py-0.5 font-mono uppercase"
+                              style={{
+                                backgroundColor: `${block.accentColor}15`,
+                                color: block.accentColor,
+                                borderRadius: 4,
+                                fontSize: 9,
+                                fontWeight: 700,
+                                letterSpacing: "0.08em",
+                              }}
+                            >
+                              {block.setType === "warmup"
+                                ? block.exercises.length >= 3 ? "TRI-SET · CIRCUITO" : "SUPERSET · CIRCUITO"
+                                : "SUPERSET"}
+                            </span>
+                            <div className="flex-1 h-px bg-border" />
                           </div>
-                        ))}
+                        )}
+
+                        <div className="relative flex flex-col gap-0">
+                          {/* Vertical connector line for grouped exercises */}
+                          {block.exercises.length > 1 && (block.setType === "warmup" || block.setType === "backoff") && (
+                            <div
+                              className="absolute left-[14px] top-3 bottom-3 w-px"
+                              style={{ backgroundColor: `${block.accentColor}30` }}
+                            />
+                          )}
+
+                          {block.exercises.map((ex, i) => {
+                            const isGrouped = block.exercises.length > 1 && (block.setType === "warmup" || block.setType === "backoff");
+                            return (
+                              <div
+                                key={i}
+                                className="flex items-center justify-between px-3 py-2.5 bg-secondary relative"
+                                style={{
+                                  borderRadius: isGrouped
+                                    ? i === 0 ? "12px 12px 0 0"
+                                    : i === block.exercises.length - 1 ? "0 0 12px 12px"
+                                    : "0"
+                                    : "12px",
+                                  marginTop: isGrouped && i > 0 ? 1 : i > 0 ? 8 : 0,
+                                }}
+                              >
+                                <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                                  {isGrouped ? (
+                                    <div
+                                      className="h-5 w-5 shrink-0 rounded-full flex items-center justify-center font-mono relative z-10"
+                                      style={{ backgroundColor: `${block.accentColor}20`, color: block.accentColor, fontSize: 9, fontWeight: 700 }}
+                                    >
+                                      {String.fromCharCode(65 + i)}
+                                    </div>
+                                  ) : (
+                                    <div className="h-5 w-5 shrink-0 rounded-full border border-border" />
+                                  )}
+                                  <span className="text-sm font-body font-normal text-foreground truncate">
+                                    {ex.name}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0 ml-2">
+                                  <span className="font-mono text-xs text-muted-foreground" style={{ letterSpacing: "0.05em" }}>
+                                    {ex.setsCount}×{ex.reps ?? "?"}
+                                  </span>
+                                  {ex.weight != null && ex.weight > 0 && (
+                                    <span className="font-mono text-xs text-foreground font-medium" style={{ letterSpacing: "0.05em" }}>
+                                      {ex.weight} kg
+                                    </span>
+                                  )}
+                                  {ex.tempo && (
+                                    <span className="font-mono text-primary" style={{ fontSize: 10, letterSpacing: "0.05em" }}>
+                                      {ex.tempo}
+                                    </span>
+                                  )}
+                                  {ex.rpe != null && (
+                                    <span className="px-1.5 py-0.5 font-mono" style={{ backgroundColor: `${block.accentColor}15`, color: block.accentColor, borderRadius: 4, fontSize: 10, fontWeight: 600 }}>
+                                      RPE {ex.rpe}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                   </div>

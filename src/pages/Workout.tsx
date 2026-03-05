@@ -126,6 +126,28 @@ export default function Workout() {
   );
   const progress = totalSets > 0 ? completedSetsCount / totalSets : 0;
 
+  // Compute superset/circuit grouping for current exercise
+  const getGroupingInfo = (idx: number) => {
+    const group = exerciseGroups[idx];
+    if (!group) return null;
+    const setType = group.sets[0]?.set_type;
+    if (setType !== "warmup" && setType !== "backoff") return null;
+    // Find consecutive exercises with same set_type
+    let start = idx;
+    while (start > 0 && exerciseGroups[start - 1].sets[0]?.set_type === setType) start--;
+    let end = idx;
+    while (end < exerciseGroups.length - 1 && exerciseGroups[end + 1].sets[0]?.set_type === setType) end++;
+    const count = end - start + 1;
+    if (count < 2) return null;
+    const position = idx - start;
+    const label = setType === "warmup"
+      ? (count >= 3 ? "TRI-SET" : "SUPERSET")
+      : "SUPERSET";
+    return { label, position, count, letter: String.fromCharCode(65 + position) };
+  };
+
+  const groupingInfo = getGroupingInfo(currentExerciseIndex);
+
   const allCurrentExerciseDone = currentSets.every((s) => s.is_completed);
   const nextPendingSet = currentSets.find((s) => !s.is_completed);
 
@@ -333,6 +355,17 @@ export default function Workout() {
         {exerciseView === "ficha" ? (
           <div className="animate-fade-up px-5 mt-4 pb-6 flex flex-col flex-1 stagger-fade-in">
             <div className="card-fbb flex-1">
+              {groupingInfo && (
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full font-mono text-xs font-bold" style={{ backgroundColor: "hsl(var(--primary) / 0.15)", color: "hsl(var(--primary))" }}>
+                    {groupingInfo.letter}
+                  </span>
+                  <span className="font-mono uppercase text-primary" style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em" }}>
+                    {groupingInfo.label} · {groupingInfo.position + 1}/{groupingInfo.count}
+                  </span>
+                  <div className="flex-1 h-px bg-border" />
+                </div>
+              )}
               <h2 className="font-display text-[22px] font-bold text-foreground" style={{ letterSpacing: "-0.03em" }}>
                 {currentExercise.name}
               </h2>
@@ -428,11 +461,25 @@ export default function Workout() {
               <div className="absolute bottom-0 left-0 right-0 h-[60px]" style={{ background: "linear-gradient(to bottom, transparent, hsl(var(--background)))", borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }} />
             </div>
 
-            <div className="px-5 -mt-3 pb-6 relative z-10">
+              <div className="px-5 -mt-3 pb-6 relative z-10">
               <div className="flex items-center justify-between">
-                <h3 className="font-display text-lg font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>
-                  {currentExercise.name}
-                </h3>
+                <div className="flex items-center gap-2">
+                  {groupingInfo && (
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full font-mono text-xs font-bold shrink-0" style={{ backgroundColor: "hsl(var(--primary) / 0.15)", color: "hsl(var(--primary))" }}>
+                      {groupingInfo.letter}
+                    </span>
+                  )}
+                  <div>
+                    {groupingInfo && (
+                      <span className="font-mono uppercase text-primary block" style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.08em" }}>
+                        {groupingInfo.label} · {groupingInfo.position + 1}/{groupingInfo.count}
+                      </span>
+                    )}
+                    <h3 className="font-display text-lg font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>
+                      {currentExercise.name}
+                    </h3>
+                  </div>
+                </div>
                 <button onClick={() => setExerciseView("ficha")} className="flex items-center gap-1 text-xs text-primary font-body font-medium">
                   <Info className="h-3.5 w-3.5" /> Ficha
                 </button>
