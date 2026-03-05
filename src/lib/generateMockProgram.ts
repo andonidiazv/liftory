@@ -304,7 +304,7 @@ function getSessionBlocks(
   const sculptSets = 3 + (genderBiasCategory === "upper_push" && isPress ? 1 : 0) + (genderBiasCategory === "lower_hip" && isPosterior ? 1 : 0);
   blocks.push({
     exercises: sculptExercises,
-    setType: "working",
+    setType: "backoff",
     sets: sculptSets,
     reps: 12,
     restSeconds: 60,

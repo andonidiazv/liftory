@@ -565,8 +565,8 @@ export default function Workout() {
 
                       {/* Check */}
                       <button
-                        onClick={(e) => { e.stopPropagation(); if (!completed && isActive) handleCompleteSet(set); }}
-                        disabled={completed || !isActive || saving}
+                        onClick={(e) => { e.stopPropagation(); if (!completed) { setActiveSetId(set.id); handleCompleteSet(set); } }}
+                        disabled={completed || saving}
                         className={`press-scale flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all ${
                           completed ? "border-success bg-success glow-success" : isActive ? "border-primary" : "border-border"
                         }`}
