@@ -477,7 +477,7 @@ export async function generateMockProgram(
                 set_order: setOrder++,
                 set_type: block.setType,
                 planned_reps: block.reps,
-                planned_weight: block.setType === "warmup" ? 15 : 25 + Math.floor(Math.random() * 35),
+                planned_weight: 0,
                 planned_tempo: exercise.default_tempo || (block.setType === "warmup" ? "2.0.1.0" : "3.1.1.0"),
                 planned_rpe: block.rpe ?? 7,
                 planned_rir: block.rir ?? 3,
