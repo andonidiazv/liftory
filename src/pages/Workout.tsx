@@ -369,7 +369,6 @@ export default function Workout() {
               <h2 className="font-display text-[22px] font-bold text-foreground" style={{ letterSpacing: "-0.03em" }}>
                 {currentExercise.name}
               </h2>
-              </h2>
 
               {currentExercise.default_tempo && (
                 <>
