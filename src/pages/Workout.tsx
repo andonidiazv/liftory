@@ -613,7 +613,7 @@ export default function Workout() {
                 <div className="mt-3 rounded-xl bg-secondary/50 p-3 flex items-center gap-3">
                   <span className="text-label-tech text-muted-foreground">Siguiente</span>
                   <span className="text-sm font-body font-normal text-foreground">
-                    {nextExerciseGroup.exercise.name_es || nextExerciseGroup.exercise.name}
+                    {nextExerciseGroup.exercise.name}
                   </span>
                 </div>
               )}
