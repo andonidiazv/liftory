@@ -546,7 +546,7 @@ export default function Workout() {
                       )}
 
                       {/* RIR */}
-                      {isActive ? (
+                      {isEditable ? (
                         <input
                           type="number"
                           step={1}
