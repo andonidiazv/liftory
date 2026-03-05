@@ -263,6 +263,15 @@ export function useWorkoutData(workoutId: string | undefined) {
 
   const allSetsCompleted = sets.length > 0 && sets.every((s) => s.is_completed);
 
+  // Helper to get last best weight for a given exercise + reps combo
+  const getLastBestWeight = useCallback(
+    (exerciseId: string, plannedReps: number | null): number | null => {
+      const key = `${exerciseId}_${plannedReps}`;
+      return lastBestWeights[key] ?? null;
+    },
+    [lastBestWeights]
+  );
+
   return {
     workout,
     sets,
@@ -274,5 +283,6 @@ export function useWorkoutData(workoutId: string | undefined) {
     completeSet,
     finishWorkout,
     refetch: fetchWorkout,
+    getLastBestWeight,
   };
 }
