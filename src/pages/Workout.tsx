@@ -58,6 +58,7 @@ export default function Workout() {
     allSetsCompleted,
     completeSet,
     finishWorkout,
+    getLastBestWeight,
   } = useWorkoutData(id);
 
   const {
