@@ -294,7 +294,7 @@ export default function Workout() {
             </div>
             {nextExerciseGroup && (
               <p className="mt-8 text-base text-muted-foreground font-body font-light">
-                Siguiente: <span className="font-medium text-foreground">{nextExerciseGroup.exercise.name_es || nextExerciseGroup.exercise.name}</span>
+                Siguiente: <span className="font-medium text-foreground">{nextExerciseGroup.exercise.name}</span>
               </p>
             )}
             <button onClick={skipRestTimer} className="mt-8 text-sm font-body font-medium text-primary">
