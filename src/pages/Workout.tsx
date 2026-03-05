@@ -58,6 +58,7 @@ export default function Workout() {
     allSetsCompleted,
     completeSet,
     finishWorkout,
+    getLastBestWeight,
   } = useWorkoutData(id);
 
   const {
@@ -135,8 +136,12 @@ export default function Workout() {
   const getInputs = (set: WorkoutSetData): SetInputs => {
     if (setInputs[set.id]) return setInputs[set.id];
     const rirDefault = set.planned_rpe != null ? String(Math.max(0, 10 - set.planned_rpe)) : "";
+    // Weight: use planned if > 0, else try last best weight, else empty
+    const plannedW = set.planned_weight ?? 0;
+    const lastBest = getLastBestWeight(set.exercise_id, set.planned_reps);
+    const weightDefault = plannedW > 0 ? String(plannedW) : lastBest != null ? String(lastBest) : "";
     return {
-      weight: String(set.planned_weight ?? ""),
+      weight: weightDefault,
       reps: String(set.planned_reps ?? ""),
       rpe: String(set.planned_rpe ?? ""),
       rir: set.planned_rir != null ? String(set.planned_rir) : rirDefault,
@@ -458,9 +463,10 @@ export default function Workout() {
                   <span className="text-label-tech text-muted-foreground">RIR</span>
                   <span></span>
                 </div>
-                {currentSets.map((set) => {
+                {currentSets.map((set, setIndex) => {
                   const completed = set.is_completed;
                   const isActive = activeSetId === set.id && !completed;
+                  const isEditable = !completed; // All non-completed sets are editable
                   const isNext = set.id === nextPendingSet?.id;
                   const inputs = getInputs(set);
 
@@ -480,7 +486,7 @@ export default function Workout() {
                         completed ? "bg-success/10" : isActive ? "bg-primary/8" : isNext ? "bg-primary/5" : ""
                       }`}
                     >
-                      <span className="font-mono text-sm font-medium text-foreground">{set.set_order}</span>
+                      <span className="font-mono text-sm font-medium text-foreground">{setIndex + 1}</span>
 
                       {/* Type badge */}
                       <span className={`rounded px-1.5 py-0.5 text-center font-mono ${setTypeBadge(set.set_type)}`} style={{ fontSize: 9, letterSpacing: "0.05em" }}>
@@ -488,7 +494,7 @@ export default function Workout() {
                       </span>
 
                       {/* Weight */}
-                      {isActive ? (
+                      {isEditable ? (
                         <input
                           type="number"
                           step={0.5}
@@ -511,7 +517,7 @@ export default function Workout() {
                       )}
 
                       {/* Reps */}
-                      {isActive ? (
+                      {isEditable ? (
                         <input
                           type="number"
                           step={1}
@@ -527,7 +533,7 @@ export default function Workout() {
                       )}
 
                       {/* RPE */}
-                      {isActive ? (
+                      {isEditable ? (
                         <input
                           type="number"
                           step={0.5}
@@ -545,7 +551,7 @@ export default function Workout() {
                       )}
 
                       {/* RIR */}
-                      {isActive ? (
+                      {isEditable ? (
                         <input
                           type="number"
                           step={1}
@@ -564,8 +570,8 @@ export default function Workout() {
 
                       {/* Check */}
                       <button
-                        onClick={(e) => { e.stopPropagation(); if (!completed && isActive) handleCompleteSet(set); }}
-                        disabled={completed || !isActive || saving}
+                        onClick={(e) => { e.stopPropagation(); if (!completed) { setActiveSetId(set.id); handleCompleteSet(set); } }}
+                        disabled={completed || saving}
                         className={`press-scale flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all ${
                           completed ? "border-success bg-success glow-success" : isActive ? "border-primary" : "border-border"
                         }`}

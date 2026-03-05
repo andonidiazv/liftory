@@ -64,6 +64,7 @@ export function useWorkoutData(workoutId: string | undefined) {
   const [exerciseGroups, setExerciseGroups] = useState<ExerciseGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [lastBestWeights, setLastBestWeights] = useState<Record<string, number>>({});
 
   const weightUnit = profile?.weight_unit || "kg";
 
@@ -123,6 +124,31 @@ export function useWorkoutData(workoutId: string | undefined) {
       }
     }
     setExerciseGroups(groups);
+
+    // Fetch last best weights for all exercises in this workout
+    const exerciseIds = [...new Set(rawSets.map((s) => s.exercise_id))];
+    if (exerciseIds.length > 0 && user) {
+      const { data: pastSets } = await supabase
+        .from("workout_sets")
+        .select("exercise_id, planned_reps, actual_weight")
+        .eq("user_id", user.id)
+        .eq("is_completed", true)
+        .in("exercise_id", exerciseIds)
+        .not("actual_weight", "is", null)
+        .order("actual_weight", { ascending: false });
+
+      if (pastSets && pastSets.length > 0) {
+        const bestWeights: Record<string, number> = {};
+        for (const ps of pastSets) {
+          const key = `${ps.exercise_id}_${ps.planned_reps}`;
+          if (!(key in bestWeights) && ps.actual_weight != null) {
+            bestWeights[key] = ps.actual_weight;
+          }
+        }
+        setLastBestWeights(bestWeights);
+      }
+    }
+
     setLoading(false);
   }, [workoutId, user]);
 
@@ -237,6 +263,15 @@ export function useWorkoutData(workoutId: string | undefined) {
 
   const allSetsCompleted = sets.length > 0 && sets.every((s) => s.is_completed);
 
+  // Helper to get last best weight for a given exercise + reps combo
+  const getLastBestWeight = useCallback(
+    (exerciseId: string, plannedReps: number | null): number | null => {
+      const key = `${exerciseId}_${plannedReps}`;
+      return lastBestWeights[key] ?? null;
+    },
+    [lastBestWeights]
+  );
+
   return {
     workout,
     sets,
@@ -248,5 +283,6 @@ export function useWorkoutData(workoutId: string | undefined) {
     completeSet,
     finishWorkout,
     refetch: fetchWorkout,
+    getLastBestWeight,
   };
 }
