@@ -355,8 +355,20 @@ export default function Workout() {
         {exerciseView === "ficha" ? (
           <div className="animate-fade-up px-5 mt-4 pb-6 flex flex-col flex-1 stagger-fade-in">
             <div className="card-fbb flex-1">
+              {groupingInfo && (
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full font-mono text-xs font-bold" style={{ backgroundColor: "hsl(var(--primary) / 0.15)", color: "hsl(var(--primary))" }}>
+                    {groupingInfo.letter}
+                  </span>
+                  <span className="font-mono uppercase text-primary" style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em" }}>
+                    {groupingInfo.label} · {groupingInfo.position + 1}/{groupingInfo.count}
+                  </span>
+                  <div className="flex-1 h-px bg-border" />
+                </div>
+              )}
               <h2 className="font-display text-[22px] font-bold text-foreground" style={{ letterSpacing: "-0.03em" }}>
                 {currentExercise.name}
+              </h2>
               </h2>
 
               {currentExercise.default_tempo && (
