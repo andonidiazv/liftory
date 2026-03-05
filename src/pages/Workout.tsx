@@ -528,7 +528,7 @@ export default function Workout() {
                       )}
 
                       {/* RPE */}
-                      {isActive ? (
+                      {isEditable ? (
                         <input
                           type="number"
                           step={0.5}
