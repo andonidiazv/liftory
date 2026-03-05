@@ -64,6 +64,7 @@ export function useWorkoutData(workoutId: string | undefined) {
   const [exerciseGroups, setExerciseGroups] = useState<ExerciseGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [lastBestWeights, setLastBestWeights] = useState<Record<string, number>>({});
 
   const weightUnit = profile?.weight_unit || "kg";
 
