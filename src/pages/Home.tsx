@@ -183,7 +183,7 @@ export default function Home() {
                   </button>
                 )}
                 <button
-                  onClick={() => navigate("/session")}
+                  onClick={() => navigate(`/session?workoutId=${todayWorkout.id}`)}
                   className="mt-3 flex w-full items-center justify-center gap-1 text-sm font-body font-medium text-primary"
                 >
                   Ver sesión completa <ChevronRight className="h-4 w-4" />

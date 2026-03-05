@@ -294,7 +294,7 @@ export default function Workout() {
             </div>
             {nextExerciseGroup && (
               <p className="mt-8 text-base text-muted-foreground font-body font-light">
-                Siguiente: <span className="font-medium text-foreground">{nextExerciseGroup.exercise.name_es || nextExerciseGroup.exercise.name}</span>
+                Siguiente: <span className="font-medium text-foreground">{nextExerciseGroup.exercise.name}</span>
               </p>
             )}
             <button onClick={skipRestTimer} className="mt-8 text-sm font-body font-medium text-primary">
@@ -334,7 +334,7 @@ export default function Workout() {
           <div className="animate-fade-up px-5 mt-4 pb-6 flex flex-col flex-1 stagger-fade-in">
             <div className="card-fbb flex-1">
               <h2 className="font-display text-[22px] font-bold text-foreground" style={{ letterSpacing: "-0.03em" }}>
-                {currentExercise.name_es || currentExercise.name}
+                {currentExercise.name}
               </h2>
 
               {currentExercise.default_tempo && (
@@ -431,7 +431,7 @@ export default function Workout() {
             <div className="px-5 -mt-3 pb-6 relative z-10">
               <div className="flex items-center justify-between">
                 <h3 className="font-display text-lg font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>
-                  {currentExercise.name_es || currentExercise.name}
+                  {currentExercise.name}
                 </h3>
                 <button onClick={() => setExerciseView("ficha")} className="flex items-center gap-1 text-xs text-primary font-body font-medium">
                   <Info className="h-3.5 w-3.5" /> Ficha
@@ -613,7 +613,7 @@ export default function Workout() {
                 <div className="mt-3 rounded-xl bg-secondary/50 p-3 flex items-center gap-3">
                   <span className="text-label-tech text-muted-foreground">Siguiente</span>
                   <span className="text-sm font-body font-normal text-foreground">
-                    {nextExerciseGroup.exercise.name_es || nextExerciseGroup.exercise.name}
+                    {nextExerciseGroup.exercise.name}
                   </span>
                 </div>
               )}
