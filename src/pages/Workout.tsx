@@ -458,9 +458,10 @@ export default function Workout() {
                   <span className="text-label-tech text-muted-foreground">RIR</span>
                   <span></span>
                 </div>
-                {currentSets.map((set) => {
+                {currentSets.map((set, setIndex) => {
                   const completed = set.is_completed;
                   const isActive = activeSetId === set.id && !completed;
+                  const isEditable = !completed; // All non-completed sets are editable
                   const isNext = set.id === nextPendingSet?.id;
                   const inputs = getInputs(set);
 
@@ -480,7 +481,7 @@ export default function Workout() {
                         completed ? "bg-success/10" : isActive ? "bg-primary/8" : isNext ? "bg-primary/5" : ""
                       }`}
                     >
-                      <span className="font-mono text-sm font-medium text-foreground">{set.set_order}</span>
+                      <span className="font-mono text-sm font-medium text-foreground">{setIndex + 1}</span>
 
                       {/* Type badge */}
                       <span className={`rounded px-1.5 py-0.5 text-center font-mono ${setTypeBadge(set.set_type)}`} style={{ fontSize: 9, letterSpacing: "0.05em" }}>
