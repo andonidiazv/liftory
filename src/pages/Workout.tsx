@@ -334,7 +334,7 @@ export default function Workout() {
           <div className="animate-fade-up px-5 mt-4 pb-6 flex flex-col flex-1 stagger-fade-in">
             <div className="card-fbb flex-1">
               <h2 className="font-display text-[22px] font-bold text-foreground" style={{ letterSpacing: "-0.03em" }}>
-                {currentExercise.name_es || currentExercise.name}
+                {currentExercise.name}
               </h2>
 
               {currentExercise.default_tempo && (
