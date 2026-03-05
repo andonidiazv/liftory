@@ -431,7 +431,7 @@ export default function Workout() {
             <div className="px-5 -mt-3 pb-6 relative z-10">
               <div className="flex items-center justify-between">
                 <h3 className="font-display text-lg font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>
-                  {currentExercise.name_es || currentExercise.name}
+                  {currentExercise.name}
                 </h3>
                 <button onClick={() => setExerciseView("ficha")} className="flex items-center gap-1 text-xs text-primary font-body font-medium">
                   <Info className="h-3.5 w-3.5" /> Ficha
