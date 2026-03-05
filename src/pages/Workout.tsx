@@ -489,7 +489,7 @@ export default function Workout() {
                       </span>
 
                       {/* Weight */}
-                      {isActive ? (
+                      {isEditable ? (
                         <input
                           type="number"
                           step={0.5}
