@@ -126,6 +126,28 @@ export default function Workout() {
   );
   const progress = totalSets > 0 ? completedSetsCount / totalSets : 0;
 
+  // Compute superset/circuit grouping for current exercise
+  const getGroupingInfo = (idx: number) => {
+    const group = exerciseGroups[idx];
+    if (!group) return null;
+    const setType = group.sets[0]?.set_type;
+    if (setType !== "warmup" && setType !== "backoff") return null;
+    // Find consecutive exercises with same set_type
+    let start = idx;
+    while (start > 0 && exerciseGroups[start - 1].sets[0]?.set_type === setType) start--;
+    let end = idx;
+    while (end < exerciseGroups.length - 1 && exerciseGroups[end + 1].sets[0]?.set_type === setType) end++;
+    const count = end - start + 1;
+    if (count < 2) return null;
+    const position = idx - start;
+    const label = setType === "warmup"
+      ? (count >= 3 ? "TRI-SET" : "SUPERSET")
+      : "SUPERSET";
+    return { label, position, count, letter: String.fromCharCode(65 + position) };
+  };
+
+  const groupingInfo = getGroupingInfo(currentExerciseIndex);
+
   const allCurrentExerciseDone = currentSets.every((s) => s.is_completed);
   const nextPendingSet = currentSets.find((s) => !s.is_completed);
 
