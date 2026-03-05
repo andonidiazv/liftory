@@ -184,18 +184,44 @@ function getSessionBlocks(
   // Determine session type from label
   const sessionKey = label.replace("LIFTORY ", "").replace(" B", "");
 
-  const isFlow = sessionKey.includes("FLOW") || sessionKey.includes("ENGINE") && sessionKey.includes("FLOW");
+  const isFlowEngine = sessionKey === "FLOW & ENGINE";
   const isPull = sessionKey.includes("PULL");
   const isPress = sessionKey.includes("PRESS");
   const isQuad = sessionKey.includes("QUAD") || sessionKey === "LOWER FORCE";
-  const isPosterior = sessionKey.includes("POSTERIOR") || sessionKey.includes("FULL FORCE");
-  const isUpper = sessionKey.includes("UPPER");
-  const isFlowEngine = sessionKey === "FLOW & ENGINE";
+  const isPosterior = sessionKey.includes("POSTERIOR");
+  const isFullForce = sessionKey.includes("FULL FORCE");
+  const isUpper = sessionKey.includes("UPPER") && !isPull && !isPress;
 
-  // ─── Block 1: Mobility (warmup) ───
-  const mobilityPool = [...classified.mobility, ...classified.activation];
+  // ─── Block 1: Mobility (warmup) — session-relevant ───
+  // Filter mobility/activation exercises relevant to the session
+  let warmupPool: ExRow[] = [];
+  if (isPull) {
+    // Scapular / upper back mobility
+    warmupPool = [...classified.mobility, ...classified.activation].filter(
+      (e) => hasMuscleOverlap(e.primary_muscles, UPPER_PULL_MUSCLES) || e.movement_pattern === "pull" || e.category === "mobility"
+    );
+  } else if (isPress) {
+    // Shoulder / chest mobility
+    warmupPool = [...classified.mobility, ...classified.activation].filter(
+      (e) => hasMuscleOverlap(e.primary_muscles, UPPER_PUSH_MUSCLES) || e.movement_pattern === "push" || e.category === "mobility"
+    );
+  } else if (isQuad) {
+    // Hip / knee / ankle mobility
+    warmupPool = [...classified.mobility, ...classified.activation].filter(
+      (e) => hasMuscleOverlap(e.primary_muscles, [...LOWER_QUAD_MUSCLES, ...LOWER_HIP_MUSCLES]) || e.movement_pattern === "squat" || e.category === "mobility"
+    );
+  } else if (isPosterior) {
+    // Hip hinge / hamstring mobility
+    warmupPool = [...classified.mobility, ...classified.activation].filter(
+      (e) => hasMuscleOverlap(e.primary_muscles, LOWER_HIP_MUSCLES) || e.movement_pattern === "hinge" || e.category === "mobility"
+    );
+  } else {
+    warmupPool = [...classified.mobility, ...classified.activation];
+  }
+  if (warmupPool.length < 2) warmupPool = [...classified.mobility, ...classified.activation];
+
   blocks.push({
-    exercises: pickRandom(mobilityPool, 2 + Math.floor(Math.random() * 2)),
+    exercises: pickRandom(warmupPool, 2 + Math.floor(Math.random() * 2)),
     setType: "warmup",
     sets: 1,
     reps: 10,
@@ -204,8 +230,8 @@ function getSessionBlocks(
     rir: 6,
   });
 
+  // ─── FLOW & ENGINE: only mobility + conditioning ───
   if (isFlowEngine) {
-    // Flow & Engine: only mobility + conditioning
     blocks.push({
       exercises: pickRandom(classified.mobility, 3),
       setType: "warmup",
@@ -227,50 +253,56 @@ function getSessionBlocks(
     return blocks;
   }
 
-  // Determine primary and sculpt pools
+  // ─── Determine pools STRICTLY by session type ───
   let strengthAPool: ExRow[] = [];
   let strengthBPool: ExRow[] = [];
   let sculptPool: ExRow[] = [];
-  let genderBiasCategory: "lower_hip" | "upper_push" | null = null;
-
-  if (gender === "female") genderBiasCategory = "lower_hip";
-  if (gender === "male") genderBiasCategory = "upper_push";
 
   if (isPull) {
+    // PULL ENGINE / PULL PERFORMANCE: ONLY pull exercises
     strengthAPool = classified.upper_pull_compound;
     strengthBPool = classified.upper_pull_compound;
     sculptPool = classified.upper_pull_isolation;
   } else if (isPress) {
+    // PRESS ENGINE / PRESS POWER: ONLY push exercises
     strengthAPool = classified.upper_push_compound;
     strengthBPool = classified.upper_push_compound;
     sculptPool = classified.upper_push_isolation;
   } else if (isQuad) {
+    // QUAD ENGINE / LOWER FORCE: ONLY quad-dominant lower body
     strengthAPool = classified.lower_quad;
     strengthBPool = classified.lower_quad;
     sculptPool = classified.lower_quad.filter(isIsolation);
     if (sculptPool.length === 0) sculptPool = classified.lower_quad;
   } else if (isPosterior) {
+    // POSTERIOR FORCE: ONLY hip-hinge / glute / hamstring
     strengthAPool = classified.lower_hip;
     strengthBPool = classified.lower_hip;
     sculptPool = classified.lower_hip.filter(isIsolation);
     if (sculptPool.length === 0) sculptPool = classified.lower_hip;
-    // Female bias: prefer lower_hip for strength_a
-    if (gender === "female") {
-      strengthAPool = classified.lower_hip;
-    }
+  } else if (isFullForce) {
+    // FULL FORCE: big compound movements — one upper, one lower
+    strengthAPool = [...classified.lower_quad, ...classified.lower_hip]; // heavy squat/deadlift
+    strengthBPool = [...classified.upper_push_compound, ...classified.upper_pull_compound]; // heavy press/row
+    sculptPool = [...classified.upper_push_isolation, ...classified.upper_pull_isolation];
   } else if (isUpper) {
-    // Mix push and pull
+    // UPPER STRENGTH / UPPER SCULPT: upper body only (push + pull)
     strengthAPool = [...classified.upper_push_compound, ...classified.upper_pull_compound];
     strengthBPool = [...classified.upper_push_compound, ...classified.upper_pull_compound];
     sculptPool = [...classified.upper_push_isolation, ...classified.upper_pull_isolation];
   } else {
-    // Default: mix everything
-    strengthAPool = [...classified.upper_push_compound, ...classified.upper_pull_compound, ...classified.lower_quad, ...classified.lower_hip];
-    strengthBPool = strengthAPool;
+    // Fallback: use push + pull for upper sessions
+    strengthAPool = [...classified.upper_push_compound, ...classified.upper_pull_compound];
+    strengthBPool = [...classified.upper_push_compound, ...classified.upper_pull_compound];
     sculptPool = [...classified.upper_push_isolation, ...classified.upper_pull_isolation];
   }
 
-  // ─── Block 2: Strength A (1 compound, 4 working sets) ───
+  // Gender bias: add extra sets for specific blocks
+  let genderBiasCategory: "lower_hip" | "upper_push" | null = null;
+  if (gender === "female") genderBiasCategory = "lower_hip";
+  if (gender === "male") genderBiasCategory = "upper_push";
+
+  // ─── Block 2: FUERZA A (1 compound, 4 working sets × 6 reps) ───
   const strengthAExercises = pickRandom(strengthAPool, 1);
   const strengthASets = 4 + (genderBiasCategory === "upper_push" && isPress ? 1 : 0) + (genderBiasCategory === "lower_hip" && isPosterior ? 1 : 0);
   blocks.push({
@@ -283,7 +315,7 @@ function getSessionBlocks(
     rir: 2,
   });
 
-  // ─── Block 3: Strength B (1 compound/unilateral, 3 working sets) ───
+  // ─── Block 3: FUERZA B (1 compound/unilateral, 3 working sets × 8 reps) ───
   const usedIds = new Set(strengthAExercises.map((e) => e.id));
   const strengthBFiltered = strengthBPool.filter((e) => !usedIds.has(e.id));
   const strengthBExercises = pickRandom(strengthBFiltered.length > 0 ? strengthBFiltered : strengthBPool, 1);
@@ -297,7 +329,7 @@ function getSessionBlocks(
     rir: 3,
   });
 
-  // ─── Block 4: Sculpt (2 isolation, 3 sets each — superset) ───
+  // ─── Block 4: SCULPT (2 isolation, 3 sets each — superset) ───
   const allUsedIds = new Set([...usedIds, ...strengthBExercises.map((e) => e.id)]);
   const sculptFiltered = sculptPool.filter((e) => !allUsedIds.has(e.id));
   const sculptExercises = pickRandom(sculptFiltered.length >= 2 ? sculptFiltered : sculptPool, 2);
@@ -312,7 +344,7 @@ function getSessionBlocks(
     rir: 2,
   });
 
-  // ─── Block 5: Finisher (1-2 conditioning/athletic, EMOM) ───
+  // ─── Block 5: FINISHER (1-2 conditioning/athletic, EMOM) ───
   const finisherPool = [...classified.conditioning, ...classified.activation.filter((e) => e.category === "olympic" || e.movement_pattern === "carry")];
   const finisherExercises = pickRandom(finisherPool.length > 0 ? finisherPool : classified.conditioning, 1 + Math.floor(Math.random() * 2));
   if (finisherExercises.length > 0) {
