@@ -124,6 +124,31 @@ export function useWorkoutData(workoutId: string | undefined) {
       }
     }
     setExerciseGroups(groups);
+
+    // Fetch last best weights for all exercises in this workout
+    const exerciseIds = [...new Set(rawSets.map((s) => s.exercise_id))];
+    if (exerciseIds.length > 0 && user) {
+      const { data: pastSets } = await supabase
+        .from("workout_sets")
+        .select("exercise_id, planned_reps, actual_weight")
+        .eq("user_id", user.id)
+        .eq("is_completed", true)
+        .in("exercise_id", exerciseIds)
+        .not("actual_weight", "is", null)
+        .order("actual_weight", { ascending: false });
+
+      if (pastSets && pastSets.length > 0) {
+        const bestWeights: Record<string, number> = {};
+        for (const ps of pastSets) {
+          const key = `${ps.exercise_id}_${ps.planned_reps}`;
+          if (!(key in bestWeights) && ps.actual_weight != null) {
+            bestWeights[key] = ps.actual_weight;
+          }
+        }
+        setLastBestWeights(bestWeights);
+      }
+    }
+
     setLoading(false);
   }, [workoutId, user]);
 
