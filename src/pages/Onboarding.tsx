@@ -12,7 +12,6 @@ import {
   Zap,
   Sprout,
   TrendingUp,
-  Bolt,
   Loader2,
   Shield,
   Calendar,
@@ -349,7 +348,7 @@ export default function Onboarding() {
               {[
                 { id: "beginner", label: "Principiante", icon: Sprout, desc: "Menos de 6 meses entrenando. Necesito aprender técnica y construir base." },
                 { id: "intermediate", label: "Intermedio", icon: TrendingUp, desc: "1-3 años entrenando con consistencia. Conozco los básicos, busco estructura." },
-                { id: "advanced", label: "Avanzado", icon: Bolt, desc: "3+ años. Vengo de fuerza, bodybuilding o funcional. Busco metodología elite." },
+                { id: "advanced", label: "Avanzado", icon: Zap, desc: "3+ años. Vengo de fuerza, bodybuilding o funcional. Busco metodología elite." },
               ].map((lvl) => (
                 <button
                   key={lvl.id}
