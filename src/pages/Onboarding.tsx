@@ -12,7 +12,6 @@ import {
   Zap,
   Sprout,
   TrendingUp,
-  Bolt,
   Loader2,
   Shield,
   Calendar,
