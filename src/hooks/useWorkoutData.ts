@@ -69,87 +69,104 @@ export function useWorkoutData(workoutId: string | undefined) {
   const weightUnit = profile?.weight_unit || "kg";
 
   const fetchWorkout = useCallback(async () => {
-    if (!workoutId || !user) return;
-    setLoading(true);
-
-    const { data, error } = await supabase
-      .from("workouts")
-      .select(`
-        *,
-        workout_sets (
-          *,
-          exercise:exercises (
-            id, name, name_es, description, category, movement_pattern,
-            equipment_required, primary_muscles, default_tempo,
-            video_url, thumbnail_url, coaching_cue, founder_notes
-          )
-        )
-      `)
-      .eq("id", workoutId)
-      .maybeSingle();
-
-    if (error || !data) {
+    // Prevent infinite loading when route/session has no workout context yet
+    if (!user || !workoutId) {
+      setWorkout(null);
+      setSets([]);
+      setExerciseGroups([]);
+      setLastBestWeights({});
       setLoading(false);
       return;
     }
 
-    const w: WorkoutData = {
-      id: data.id,
-      day_label: data.day_label,
-      workout_type: data.workout_type,
-      estimated_duration: data.estimated_duration,
-      is_completed: data.is_completed,
-      is_rest_day: data.is_rest_day,
-      notes: data.notes,
-      completed_at: data.completed_at,
-      scheduled_date: data.scheduled_date,
-    };
-    setWorkout(w);
+    setLoading(true);
 
-    const rawSets = ((data.workout_sets as any[]) ?? []).sort(
-      (a: any, b: any) => a.set_order - b.set_order
-    ) as WorkoutSetData[];
-    setSets(rawSets);
+    try {
+      const { data, error } = await supabase
+        .from("workouts")
+        .select(`
+          *,
+          workout_sets (
+            *,
+            exercise:exercises (
+              id, name, name_es, description, category, movement_pattern,
+              equipment_required, primary_muscles, default_tempo,
+              video_url, thumbnail_url, coaching_cue, founder_notes
+            )
+          )
+        `)
+        .eq("id", workoutId)
+        .maybeSingle();
 
-    // Group by exercise_id preserving order
-    const groups: ExerciseGroup[] = [];
-    const seen = new Set<string>();
-    for (const s of rawSets) {
-      if (!seen.has(s.exercise_id) && s.exercise) {
-        seen.add(s.exercise_id);
-        groups.push({
-          exercise: s.exercise,
-          sets: rawSets.filter((x) => x.exercise_id === s.exercise_id),
-        });
+      if (error || !data) {
+        setWorkout(null);
+        setSets([]);
+        setExerciseGroups([]);
+        return;
       }
-    }
-    setExerciseGroups(groups);
 
-    // Fetch last best weights for all exercises in this workout
-    const exerciseIds = [...new Set(rawSets.map((s) => s.exercise_id))];
-    if (exerciseIds.length > 0 && user) {
-      const { data: pastSets } = await supabase
-        .from("workout_sets")
-        .select("exercise_id, planned_reps, actual_weight")
-        .eq("user_id", user.id)
-        .eq("is_completed", true)
-        .in("exercise_id", exerciseIds)
-        .not("actual_weight", "is", null)
-        .order("actual_weight", { ascending: false });
+      const w: WorkoutData = {
+        id: data.id,
+        day_label: data.day_label,
+        workout_type: data.workout_type,
+        estimated_duration: data.estimated_duration,
+        is_completed: data.is_completed,
+        is_rest_day: data.is_rest_day,
+        notes: data.notes,
+        completed_at: data.completed_at,
+        scheduled_date: data.scheduled_date,
+      };
+      setWorkout(w);
 
-      if (pastSets && pastSets.length > 0) {
-        const bestWeights: Record<string, number> = {};
-        for (const ps of pastSets) {
-          const key = `${ps.exercise_id}_${ps.planned_reps}`;
-          if (!(key in bestWeights) && ps.actual_weight != null) {
-            bestWeights[key] = ps.actual_weight;
-          }
+      const rawSets = ((data.workout_sets as any[]) ?? []).sort(
+        (a: any, b: any) => a.set_order - b.set_order
+      ) as WorkoutSetData[];
+      setSets(rawSets);
+
+      // Group by exercise_id preserving order
+      const groups: ExerciseGroup[] = [];
+      const seen = new Set<string>();
+      for (const s of rawSets) {
+        if (!seen.has(s.exercise_id) && s.exercise) {
+          seen.add(s.exercise_id);
+          groups.push({
+            exercise: s.exercise,
+            sets: rawSets.filter((x) => x.exercise_id === s.exercise_id),
+          });
         }
-        setLastBestWeights(bestWeights);
       }
-    }
+      setExerciseGroups(groups);
 
-    setLoading(false);
+      // Fetch last best weights for all exercises in this workout
+      const exerciseIds = [...new Set(rawSets.map((s) => s.exercise_id))];
+      if (exerciseIds.length > 0) {
+        const { data: pastSets } = await supabase
+          .from("workout_sets")
+          .select("exercise_id, planned_reps, actual_weight")
+          .eq("user_id", user.id)
+          .eq("is_completed", true)
+          .in("exercise_id", exerciseIds)
+          .not("actual_weight", "is", null)
+          .order("actual_weight", { ascending: false });
+
+        if (pastSets && pastSets.length > 0) {
+          const bestWeights: Record<string, number> = {};
+          for (const ps of pastSets) {
+            const key = `${ps.exercise_id}_${ps.planned_reps}`;
+            if (!(key in bestWeights) && ps.actual_weight != null) {
+              bestWeights[key] = ps.actual_weight;
+            }
+          }
+          setLastBestWeights(bestWeights);
+        } else {
+          setLastBestWeights({});
+        }
+      } else {
+        setLastBestWeights({});
+      }
+    } finally {
+      setLoading(false);
+    }
   }, [workoutId, user]);
 
   useEffect(() => {
