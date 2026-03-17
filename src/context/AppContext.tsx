@@ -25,7 +25,7 @@ interface AppContextType extends AppState {
   startWorkout: () => void;
   endWorkout: () => void;
   setCurrentExercise: (index: number) => void;
-  completeSet: (exerciseId: string, setIndex: number, data?: { weight?: string; reps?: string; rpe?: string; rir?: string }) => void;
+  completeSet: (exerciseId: string, setIndex: number, data?: { weight?: string; reps?: string; rir?: string }) => void;
   getSetData: (exerciseId: string, setIndex: number) => SetCompletion | undefined;
   isSetCompleted: (exerciseId: string, setIndex: number) => boolean;
   startRestTimer: (seconds: number) => void;
