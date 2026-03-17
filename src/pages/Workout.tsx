@@ -784,8 +784,9 @@ export default function Workout() {
                   </span>
                 </div>
               )}
+              </div>{/* close flex-1 inner */}
+              </div>{/* close flex gap-3 or standalone */}
             </div>
-          </div>
         )}
       </div>
     </div>
