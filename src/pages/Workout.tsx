@@ -264,7 +264,10 @@ export default function Workout() {
       working: "bg-primary/20 text-primary",
       amrap: "bg-destructive/20 text-destructive",
       emom: "bg-accent/20 text-accent",
-      backoff: "bg-muted text-muted-foreground",
+      backoff: "bg-primary/15 text-primary",
+      superset: "bg-primary/15 text-primary",
+      cooldown: "bg-muted text-muted-foreground",
+      cardio: "bg-accent/20 text-accent",
     };
     return colors[type] || "bg-secondary text-secondary-foreground";
   };
