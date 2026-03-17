@@ -827,6 +827,146 @@ export default function Workout() {
             </div>
           </div>
         )}
+
+        {/* COOL-DOWN Section */}
+        {showCooldown && !cooldownSkipped && cooldownGroups.length > 0 && (
+          <div className="animate-fade-up px-5 pb-8 mt-4">
+            {/* Header */}
+            <div className="flex items-center gap-2 mb-5">
+              <Leaf className="h-5 w-5" style={{ color: "hsl(var(--success))" }} />
+              <h2 className="font-display text-lg font-bold" style={{ color: "hsl(var(--success))", letterSpacing: "-0.02em" }}>
+                COOL-DOWN
+              </h2>
+              <div className="flex-1 h-px" style={{ backgroundColor: "hsl(var(--success) / 0.25)" }} />
+            </div>
+
+            <div className="flex flex-col gap-3">
+              {cooldownGroups.map((group) => {
+                const set = group.sets[0];
+                if (!set) return null;
+                const durationSec = (set.planned_reps ?? 30);
+                const timerId = set.id;
+                const timerValue = cooldownTimers[timerId] ?? durationSec;
+                const isTimerRunning = activeCooldownTimer === timerId;
+                const isTimerDone = timerValue <= 0 || set.is_completed;
+
+                return (
+                  <div
+                    key={group.exercise.id}
+                    className={`rounded-xl border p-4 transition-all ${
+                      isTimerDone
+                        ? "border-success/30 bg-success/5"
+                        : "border-border bg-card"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-display text-[15px] font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>
+                          {group.exercise.name}
+                        </h3>
+                        {group.exercise.coaching_cue && (
+                          <p className="mt-1 font-serif italic text-muted-foreground" style={{ fontSize: 13, lineHeight: 1.3 }}>
+                            {group.exercise.coaching_cue}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Timer / Complete */}
+                      <div className="flex items-center gap-2 ml-3">
+                        {isTimerDone ? (
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full" style={{ backgroundColor: "hsl(var(--success))" }}>
+                            <Check className="h-5 w-5 text-success-foreground" />
+                          </div>
+                        ) : (
+                          <>
+                            <span className="font-mono text-xl font-medium text-foreground" style={{ letterSpacing: "0.05em", minWidth: 48, textAlign: "center" }}>
+                              {formatTime(timerValue)}
+                            </span>
+                            {!isTimerRunning ? (
+                              <button
+                                onClick={() => {
+                                  if (!(timerId in cooldownTimers)) {
+                                    setCooldownTimers((prev) => ({ ...prev, [timerId]: durationSec }));
+                                  }
+                                  setActiveCooldownTimer(timerId);
+                                }}
+                                className="press-scale flex h-10 w-10 items-center justify-center rounded-full"
+                                style={{ backgroundColor: "hsl(var(--success) / 0.15)" }}
+                              >
+                                <Play className="h-4 w-4 ml-0.5" style={{ color: "hsl(var(--success))" }} />
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  if (cooldownIntervalRef.current) clearInterval(cooldownIntervalRef.current);
+                                  setActiveCooldownTimer(null);
+                                }}
+                                className="press-scale flex h-10 w-10 items-center justify-center rounded-full"
+                                style={{ backgroundColor: "hsl(var(--success) / 0.15)" }}
+                              >
+                                <Pause className="h-4 w-4" style={{ color: "hsl(var(--success))" }} />
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Duration label */}
+                    <p className="mt-2 font-mono text-xs text-muted-foreground" style={{ letterSpacing: "0.1em" }}>
+                      {durationSec}s · {set.set_type === "cooldown" ? "Estiramiento" : "Movilidad"}
+                    </p>
+
+                    {/* Complete button (manual) */}
+                    {!isTimerDone && (
+                      <button
+                        onClick={async () => {
+                          if (cooldownIntervalRef.current) clearInterval(cooldownIntervalRef.current);
+                          setActiveCooldownTimer(null);
+                          setCooldownTimers((prev) => ({ ...prev, [timerId]: 0 }));
+                          await completeSet(set.id, {
+                            actual_weight: 0,
+                            actual_reps: durationSec,
+                            actual_rpe: 0,
+                            actual_rir: 0,
+                          });
+                        }}
+                        className="mt-3 w-full rounded-lg py-2 font-body text-sm font-medium transition-colors"
+                        style={{ backgroundColor: "hsl(var(--success) / 0.1)", color: "hsl(var(--success))" }}
+                      >
+                        <Check className="inline h-4 w-4 mr-1 -mt-0.5" /> Completar
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Skip cool-down */}
+            <button
+              onClick={() => {
+                setCooldownSkipped(true);
+                setShowCooldown(false);
+                setShowFinishModal(true);
+              }}
+              className="mt-4 w-full text-center font-body text-sm text-muted-foreground"
+            >
+              Saltar cool-down →
+            </button>
+
+            {/* Finish after cooldown */}
+            {(cooldownCompleted || cooldownGroups.every((g) => (cooldownTimers[g.sets[0]?.id ?? ""] ?? 1) <= 0)) && (
+              <button
+                onClick={() => setShowFinishModal(true)}
+                className="press-scale mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-4 font-body text-[15px] font-medium text-success-foreground"
+                style={{ backgroundColor: "hsl(var(--success))" }}
+              >
+                <Check className="h-4 w-4" />
+                Finalizar workout
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

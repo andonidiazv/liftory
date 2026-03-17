@@ -118,6 +118,16 @@ export default function WorkoutComplete() {
           </p>
         </div>
 
+        {/* Cool-down badge */}
+        {cooldownCompleted && (
+          <div className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl py-3" style={{ backgroundColor: "hsl(var(--success) / 0.1)", border: "1px solid hsl(var(--success) / 0.25)" }}>
+            <Leaf className="h-4 w-4" style={{ color: "hsl(var(--success))" }} />
+            <span className="font-body text-sm font-medium" style={{ color: "hsl(var(--success))" }}>
+              Cool-down completado ✓
+            </span>
+          </div>
+        )}
+
         <button
           onClick={() => navigate("/home", { replace: true })}
           className="press-scale mt-8 mb-8 w-full rounded-xl bg-primary py-4 font-body text-[15px] font-medium text-primary-foreground"
