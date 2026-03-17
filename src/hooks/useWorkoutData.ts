@@ -125,6 +125,7 @@ export function useWorkoutData(workoutId: string | undefined) {
         notes: data.notes,
         completed_at: data.completed_at,
         scheduled_date: data.scheduled_date,
+        week_number: data.week_number,
       };
       setWorkout(w);
 
