@@ -52,6 +52,7 @@ export default function Workout() {
   const {
     workout,
     exerciseGroups,
+    supersetGroups,
     loading,
     saving,
     weightUnit,
