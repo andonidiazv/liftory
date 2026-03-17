@@ -52,10 +52,10 @@ const WEARABLE_MAP: Record<string, string> = {
 };
 
 /* ─── Split previews for each day count ─── */
-const SPLIT_PREVIEWS: Record<number, { name: string; sessions: string[] }> = {
+const SPLIT_PREVIEWS_MALE: Record<number, { name: string; sessions: string[] }> = {
   3: {
     name: "LIFTORY FOUNDATION",
-    sessions: ["PRESS ENGINE — Empuje", "PULL ENGINE — Tracción", "FULL FORCE — Full body"],
+    sessions: ["PRESS ENGINE — Empuje", "PULL ENGINE — Tracción", "LOWER BODY — Tren inferior"],
   },
   4: {
     name: "LIFTORY METHOD",
@@ -72,28 +72,45 @@ const SPLIT_PREVIEWS: Record<number, { name: string; sessions: string[] }> = {
       "PULL PERFORMANCE — Tracción",
       "QUAD ENGINE — Cuádriceps",
       "PRESS POWER — Empuje",
-      "FLOW & ENGINE — Movilidad + Metcon",
+      "FLOW & ENGINE — Movilidad + Zone 2",
+      "SHOULDER + ARMS + ABS — Hombro, brazos y core",
       "POSTERIOR FORCE — Cadena posterior",
-    ],
-  },
-  6: {
-    name: "LIFTORY METHOD PRO",
-    sessions: [
-      "PRESS ENGINE — Empuje A",
-      "PULL ENGINE — Tracción A",
-      "FULL FORCE — Full body",
-      "PRESS ENGINE B — Empuje B",
-      "PULL ENGINE B — Tracción B",
-      "FULL FORCE B — Full body B",
     ],
   },
 };
 
-function getSplitNameForGender(days: number, gender: string | null): string {
-  const preview = SPLIT_PREVIEWS[days];
-  if (!preview) return "LIFTORY METHOD";
-  if (gender === "Mujer" && (days === 4 || days === 5)) return "LIFTORY SCULPT HER™";
-  return preview.name;
+const SPLIT_PREVIEWS_FEMALE: Record<number, { name: string; sessions: string[] }> = {
+  3: {
+    name: "SCULPT HER™ FOUNDATION",
+    sessions: ["POSTERIOR POWER — Glúteo y cadena posterior", "UPPER SCULPT — Tren superior", "QUAD & SHAPE — Cuádriceps y forma"],
+  },
+  4: {
+    name: "SCULPT HER™",
+    sessions: [
+      "GLUTE THRONE — Glúteo dominante",
+      "UPPER BUILD — Tren superior",
+      "QUAD QUEEN — Cuádriceps dominante",
+      "SCULPT & DEFINE — Definición y forma",
+    ],
+  },
+  5: {
+    name: "SCULPT HER™ ADVANCED",
+    sessions: [
+      "GLUTE THRONE — Glúteo dominante",
+      "QUAD QUEEN — Cuádriceps dominante",
+      "UPPER PULL POWER — Tracción y bíceps",
+      "FLOW & RESTORE — Movilidad + Zone 2",
+      "UPPER PRESS SCULPT — Empuje y hombros",
+      "TOTAL SHAPE SESSION — Full lower + brazos",
+    ],
+  },
+};
+
+function getSplitPreview(days: number, gender: string | null): { name: string; sessions: string[] } | undefined {
+  if (gender === "SCULPT HER™" || gender === "female") {
+    return SPLIT_PREVIEWS_FEMALE[days] || SPLIT_PREVIEWS_FEMALE[3];
+  }
+  return SPLIT_PREVIEWS_MALE[days] || SPLIT_PREVIEWS_MALE[3];
 }
 
 export default function Onboarding() {
