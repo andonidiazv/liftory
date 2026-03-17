@@ -89,6 +89,26 @@ export default function Workout() {
   const [activeCooldownTimer, setActiveCooldownTimer] = useState<string | null>(null);
   const cooldownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Cooldown timer effect
+  useEffect(() => {
+    if (activeCooldownTimer) {
+      cooldownIntervalRef.current = setInterval(() => {
+        setCooldownTimers((prev) => {
+          const remaining = (prev[activeCooldownTimer] ?? 0) - 1;
+          if (remaining <= 0) {
+            clearInterval(cooldownIntervalRef.current!);
+            setActiveCooldownTimer(null);
+            return { ...prev, [activeCooldownTimer]: 0 };
+          }
+          return { ...prev, [activeCooldownTimer]: remaining };
+        });
+      }, 1000);
+    }
+    return () => {
+      if (cooldownIntervalRef.current) clearInterval(cooldownIntervalRef.current);
+    };
+  }, [activeCooldownTimer]);
+
   // Start workout timer on mount
   useEffect(() => {
     if (!workoutActive && workout && !workout.is_completed) {
