@@ -1487,6 +1487,3 @@ export async function checkMesocycleComplete(userId: string): Promise<{
 
   return { isComplete: false, programId: null };
 }
-
-// Backward compatibility alias
-export const generateMockProgram = generateProgram;
