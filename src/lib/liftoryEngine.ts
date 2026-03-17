@@ -1117,7 +1117,7 @@ const MESOCYCLE_PROGRESSION: Record<number, { weightMultiplier: number; extraPri
 export async function generateNextMesocycle(
   userId: string,
   completedProgramId: string
-): Promise<{ success: boolean }> {
+): Promise<{ success: boolean; isTransition?: boolean }> {
   // 1. Read completed program
   const { data: oldProgram } = await supabase
     .from("programs")
@@ -1127,9 +1127,10 @@ export async function generateNextMesocycle(
 
   if (!oldProgram) return { success: false };
 
-  const aiParams = oldProgram.ai_params as any;
-  const currentMC = (aiParams?.mesocycle_number || 1);
+  const aiParams = (oldProgram.ai_params as any) || {};
+  const currentMC = aiParams.mesocycle_number || 1;
   const nextMC = currentMC >= 8 ? 1 : currentMC + 1;
+  const isTransition = currentMC >= 8; // MC8→MC1 annual transition
 
   // 2. Get onboarding answers
   const { data: onboarding } = await supabase
@@ -1140,10 +1141,43 @@ export async function generateNextMesocycle(
 
   if (!onboarding) return { success: false };
 
-  // 3. Deactivate old program
+  // 3. Calculate progression from completed workout_sets
+  const { data: completedSets } = await supabase
+    .from("workout_sets")
+    .select("exercise_id, actual_weight, actual_rir, set_type")
+    .eq("user_id", userId)
+    .eq("is_completed", true)
+    .in("workout_id", (
+      await supabase
+        .from("workouts")
+        .select("id")
+        .eq("program_id", completedProgramId)
+    ).data?.map((w) => w.id) || []);
+
+  // Calculate avg weight per exercise for base weights
+  const exerciseWeightMap = new Map<string, number>();
+  if (completedSets) {
+    const exerciseWeights: Record<string, number[]> = {};
+    for (const s of completedSets) {
+      if (s.actual_weight && s.actual_weight > 0 && s.set_type === "working") {
+        if (!exerciseWeights[s.exercise_id]) exerciseWeights[s.exercise_id] = [];
+        exerciseWeights[s.exercise_id].push(Number(s.actual_weight));
+      }
+    }
+    for (const [exId, weights] of Object.entries(exerciseWeights)) {
+      const avg = weights.reduce((a, b) => a + b, 0) / weights.length;
+      exerciseWeightMap.set(exId, avg);
+    }
+  }
+
+  // Progression params
+  const prog = MESOCYCLE_PROGRESSION[nextMC] || MESOCYCLE_PROGRESSION[2];
+  const compoundLoadIncrease = Math.round((prog.weightMultiplier - 1) * 100);
+
+  // 4. Deactivate old program
   await supabase.from("programs").update({ is_active: false }).eq("id", completedProgramId);
 
-  // 4. Generate new program with progression
+  // 5. Build answers
   const answers: OnboardingAnswers = {
     experience_level: aiParams.experience_level || onboarding.experience_level,
     primary_goal: aiParams.primary_goal || onboarding.primary_goal,
@@ -1154,7 +1188,304 @@ export async function generateNextMesocycle(
     injuries: onboarding.injuries || [],
   };
 
-  return generateProgram(userId, answers);
+  // 6. Handle MC8→MC1 transition: 4-week recovery program
+  if (isTransition) {
+    const gender = answers.gender || null;
+    const programName = gender === "female"
+      ? "SCULPT HER™ TRANSITION — Recovery"
+      : "LIFTORY TRANSITION — Recovery";
+
+    const { data: program, error: pErr } = await supabase
+      .from("programs")
+      .insert({
+        user_id: userId,
+        name: programName,
+        total_weeks: 4,
+        current_week: 1,
+        current_block: "deload",
+        is_active: true,
+        ai_params: {
+          mesocycle_number: 0, // transition
+          generated_by: "liftory_engine_v1",
+          experience_level: answers.experience_level,
+          primary_goal: answers.primary_goal,
+          training_days: answers.training_days,
+          equipment: answers.equipment,
+          gender: gender,
+          wave_applied: false,
+          is_transition: true,
+          previous_program_id: completedProgramId,
+          progression_applied: {
+            compound_load_increase_pct: 0,
+            sculpt_sets_change: -2,
+            new_techniques_added: ["active_recovery", "mobility_focus"],
+          },
+        },
+      })
+      .select()
+      .single();
+
+    if (pErr || !program) return { success: false };
+
+    // Generate 4 weeks of recovery: mobility + zone 2 + light strength
+    const { data: exercises } = await supabase
+      .from("exercises")
+      .select("*")
+      .eq("is_active", true);
+
+    if (exercises && exercises.length > 0) {
+      const available = filterExercises(exercises as ExRow[], answers);
+      const classified = classifyExercises(available);
+      const schedule = getWeeklySchedule(gender, answers.training_days);
+      const startDate = new Date();
+      const dayOfWeekToday = startDate.getDay();
+      const daysToMonday = dayOfWeekToday === 0 ? 1 : dayOfWeekToday === 1 ? 0 : 8 - dayOfWeekToday;
+      startDate.setDate(startDate.getDate() + daysToMonday);
+
+      const workoutInserts: any[] = [];
+      const setInserts: { tempId: string; data: any }[] = [];
+
+      for (let d = 0; d < 28; d++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + d);
+        const dateStr = date.toISOString().split("T")[0];
+        const weekNumber = Math.floor(d / 7) + 1;
+        const dayInWeek = d % 7;
+        const sessionDef = schedule[dayInWeek];
+        if (!sessionDef) continue;
+
+        // Recovery wave: all sessions are deload-like
+        const wave: WaveParams = { rir: 3, setsMultiplier: 0, weightMultiplier: 0.7, isDeload: true, deloadSetReduction: 2 };
+
+        if (sessionDef.isRest) {
+          workoutInserts.push({
+            tempId: `temp_${d}`, isRest: true,
+            data: { program_id: program.id, user_id: userId, scheduled_date: dateStr, week_number: weekNumber, day_label: sessionDef.restLabel || "Recovery", workout_type: "rest", is_rest_day: true },
+          });
+        } else {
+          const tempId = `temp_${d}`;
+          // For transition: use flow engine for all sessions (mobility + light cardio + light strength)
+          const usedIds = new Set<string>();
+          const sessionSets = buildFlowEngineSession(classified, usedIds);
+          // Add a few light strength sets
+          const lightSets = buildStrengthBlock(
+            [...classified.push_compound, ...classified.pull_compound, ...classified.quad_compound, ...classified.hip_compound],
+            2, 8, 90, wave, usedIds, "primary"
+          );
+          const allSets = numberSets([...sessionSets, ...lightSets]);
+
+          workoutInserts.push({
+            tempId, isRest: false,
+            data: { program_id: program.id, user_id: userId, scheduled_date: dateStr, week_number: weekNumber, day_label: `RECOVERY — ${sessionDef.label}`, workout_type: "mobility", estimated_duration: 40, is_rest_day: false },
+          });
+
+          for (const s of allSets) {
+            setInserts.push({
+              tempId,
+              data: { user_id: userId, exercise_id: s.exercise_id, set_order: s.set_order, set_type: s.set_type, planned_reps: s.planned_reps, planned_weight: s.planned_weight, planned_tempo: s.planned_tempo, planned_rpe: null, planned_rir: s.planned_rir, planned_rest_seconds: s.planned_rest_seconds },
+            });
+          }
+        }
+      }
+
+      const { data: createdWorkouts } = await supabase
+        .from("workouts")
+        .insert(workoutInserts.map((w) => w.data))
+        .select("id, scheduled_date");
+
+      if (createdWorkouts) {
+        const dateToId = new Map<string, string>();
+        createdWorkouts.forEach((w) => dateToId.set(w.scheduled_date, w.id));
+        const dateByTemp = new Map<string, string>();
+        workoutInserts.filter((w) => !w.isRest).forEach((w) => dateByTemp.set(w.tempId, w.data.scheduled_date));
+
+        const finalSets = setInserts
+          .map((s) => { const dt = dateByTemp.get(s.tempId); if (!dt) return null; const wid = dateToId.get(dt); if (!wid) return null; return { ...s.data, workout_id: wid }; })
+          .filter(Boolean);
+
+        for (let i = 0; i < finalSets.length; i += 500) {
+          await supabase.from("workout_sets").insert(finalSets.slice(i, i + 500) as any[]);
+        }
+      }
+    }
+
+    return { success: true, isTransition: true };
+  }
+
+  // 7. Normal next mesocycle — generate with enriched ai_params
+  // Override generateProgram to include progression data
+  const { data: exercises } = await supabase
+    .from("exercises")
+    .select("*")
+    .eq("is_active", true);
+
+  if (!exercises || exercises.length === 0) return { success: false };
+
+  const available = filterExercises(exercises as ExRow[], answers);
+  const classified = classifyExercises(available);
+  const gender = answers.gender || null;
+  const level = answers.experience_level;
+  const daysPerWeek = answers.training_days;
+  const programName = getProgramName(gender, daysPerWeek);
+
+  const { data: program, error: pErr } = await supabase
+    .from("programs")
+    .insert({
+      user_id: userId,
+      name: programName,
+      total_weeks: 6,
+      current_week: 1,
+      current_block: "accumulation",
+      is_active: true,
+      ai_params: {
+        mesocycle_number: nextMC,
+        generated_by: "liftory_engine_v1",
+        experience_level: level,
+        primary_goal: answers.primary_goal,
+        training_days: daysPerWeek,
+        equipment: answers.equipment,
+        gender: gender,
+        wave_applied: true,
+        previous_program_id: completedProgramId,
+        progression_applied: {
+          compound_load_increase_pct: compoundLoadIncrease,
+          sculpt_sets_change: prog.extraSculptSets,
+          new_techniques_added: prog.notes ? [prog.notes] : [],
+        },
+      },
+    })
+    .select()
+    .single();
+
+  if (pErr || !program) return { success: false };
+
+  // Generate 42 days with the schedule
+  const schedule = getWeeklySchedule(gender, daysPerWeek);
+  const startDate = new Date();
+  const dayOfWeekToday = startDate.getDay();
+  const daysToMonday = dayOfWeekToday === 0 ? 1 : dayOfWeekToday === 1 ? 0 : 8 - dayOfWeekToday;
+  startDate.setDate(startDate.getDate() + daysToMonday);
+
+  const workoutInserts: any[] = [];
+  const setInserts: { tempId: string; data: any }[] = [];
+
+  for (let d = 0; d < 42; d++) {
+    const date = new Date(startDate);
+    date.setDate(date.getDate() + d);
+    const dateStr = date.toISOString().split("T")[0];
+    const weekNumber = Math.floor(d / 7) + 1;
+    const dayInWeek = d % 7;
+    const sessionDef = schedule[dayInWeek];
+    if (!sessionDef) continue;
+
+    const wave = getWaveParams(weekNumber);
+
+    if (sessionDef.isRest) {
+      workoutInserts.push({
+        tempId: `temp_${d}`, isRest: true,
+        data: { program_id: program.id, user_id: userId, scheduled_date: dateStr, week_number: weekNumber, day_label: sessionDef.restLabel || sessionDef.label, workout_type: "rest", is_rest_day: true },
+      });
+    } else {
+      const tempId = `temp_${d}`;
+      workoutInserts.push({
+        tempId, isRest: false,
+        data: { program_id: program.id, user_id: userId, scheduled_date: dateStr, week_number: weekNumber, day_label: sessionDef.label, workout_type: sessionDef.isFlowEngine ? "mobility" : "hypertrophy", estimated_duration: sessionDef.isFlowEngine ? 45 : 55 + Math.floor(Math.random() * 20), is_rest_day: false, ai_adjustments: sessionDef.isFlowEngine ? null : generateFinisherMeta() },
+      });
+
+      const sessionSets = buildSession(sessionDef.label, classified, level, wave, gender, sessionDef.isFlowEngine);
+
+      // Apply weight progression from previous mesocycle
+      for (const s of sessionSets) {
+        let weight = s.planned_weight;
+        if (s.set_type === "working" && exerciseWeightMap.has(s.exercise_id)) {
+          weight = Math.round(exerciseWeightMap.get(s.exercise_id)! * prog.weightMultiplier * 2) / 2; // round to 0.5
+        }
+        setInserts.push({
+          tempId,
+          data: { user_id: userId, exercise_id: s.exercise_id, set_order: s.set_order, set_type: s.set_type, planned_reps: s.planned_reps, planned_weight: weight, planned_tempo: s.planned_tempo, planned_rpe: null, planned_rir: s.planned_rir, planned_rest_seconds: s.planned_rest_seconds },
+        });
+      }
+
+      dayInWeek; // no-op, just for clarity
+    }
+  }
+
+  const { data: createdWorkouts, error: wErr } = await supabase
+    .from("workouts")
+    .insert(workoutInserts.map((w) => w.data))
+    .select("id, scheduled_date");
+
+  if (wErr || !createdWorkouts) return { success: false };
+
+  const dateToWorkoutId = new Map<string, string>();
+  createdWorkouts.forEach((w) => dateToWorkoutId.set(w.scheduled_date, w.id));
+  const dateByTemp = new Map<string, string>();
+  workoutInserts.filter((w) => !w.isRest).forEach((w) => dateByTemp.set(w.tempId, w.data.scheduled_date));
+
+  const finalSets = setInserts
+    .map((s) => { const dt = dateByTemp.get(s.tempId); if (!dt) return null; const wid = dateToWorkoutId.get(dt); if (!wid) return null; return { ...s.data, workout_id: wid }; })
+    .filter(Boolean);
+
+  for (let i = 0; i < finalSets.length; i += 500) {
+    await supabase.from("workout_sets").insert(finalSets.slice(i, i + 500) as any[]);
+  }
+
+  return { success: true };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CHECK IF MESOCYCLE IS COMPLETE
+   ═══════════════════════════════════════════════════════════════ */
+
+export async function checkMesocycleComplete(userId: string): Promise<{
+  isComplete: boolean;
+  programId: string | null;
+}> {
+  // Get active program
+  const { data: program } = await supabase
+    .from("programs")
+    .select("id, total_weeks, current_week, ai_params")
+    .eq("user_id", userId)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (!program) return { isComplete: false, programId: null };
+
+  // Get the last scheduled date of the program
+  const { data: lastWorkout } = await supabase
+    .from("workouts")
+    .select("scheduled_date")
+    .eq("program_id", program.id)
+    .order("scheduled_date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!lastWorkout) return { isComplete: false, programId: null };
+
+  const today = new Date();
+  const lastDate = new Date(lastWorkout.scheduled_date + "T23:59:59");
+
+  // Option 1: date has passed
+  if (today > lastDate) {
+    return { isComplete: true, programId: program.id };
+  }
+
+  // Option 2: all workouts in last week completed
+  const { data: lastWeekWorkouts } = await supabase
+    .from("workouts")
+    .select("is_completed, is_rest_day")
+    .eq("program_id", program.id)
+    .eq("week_number", program.total_weeks);
+
+  if (lastWeekWorkouts && lastWeekWorkouts.length > 0) {
+    const trainingDays = lastWeekWorkouts.filter((w) => !w.is_rest_day);
+    const allCompleted = trainingDays.length > 0 && trainingDays.every((w) => w.is_completed);
+    if (allCompleted) {
+      return { isComplete: true, programId: program.id };
+    }
+  }
+
+  return { isComplete: false, programId: null };
 }
 
 // Backward compatibility alias
