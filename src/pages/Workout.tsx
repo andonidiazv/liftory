@@ -219,12 +219,7 @@ export default function Workout() {
     const set = currentSets.find((s) => s.id === setId);
     if (!set) return;
     const current = getInputs(set);
-    let updated = { ...current, [field]: value };
-    // Auto-compute RIR from RPE
-    if (field === "rpe") {
-      const rpe = parseFloat(value);
-      if (!isNaN(rpe)) updated.rir = String(Math.max(0, 10 - rpe));
-    }
+    const updated = { ...current, [field]: value };
     setSetInputs((prev) => ({ ...prev, [setId]: updated }));
   };
 
