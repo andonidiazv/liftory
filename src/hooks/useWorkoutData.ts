@@ -69,6 +69,7 @@ export function useWorkoutData(workoutId: string | undefined) {
   const [workout, setWorkout] = useState<WorkoutData | null>(null);
   const [sets, setSets] = useState<WorkoutSetData[]>([]);
   const [exerciseGroups, setExerciseGroups] = useState<ExerciseGroup[]>([]);
+  const [supersetGroups, setSupersetGroups] = useState<SupersetGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [lastBestWeights, setLastBestWeights] = useState<Record<string, number>>({});
