@@ -6,7 +6,6 @@ interface SetCompletion {
   setIndex: number;
   actualWeight?: string;
   actualReps?: string;
-  actualRpe?: string;
   actualRir?: string;
 }
 
