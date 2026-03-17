@@ -67,6 +67,11 @@ export default function Home() {
 
   const completedDays = weekDays.filter((d) => d.isCompleted).length;
 
+  // Show mesocycle transition screen
+  if (mesocycleTransition.active) {
+    return <MesocycleTransitionScreen generationPromise={mesocycleTransition.promise} />;
+  }
+
   if (loading) {
     return (
       <Layout>
