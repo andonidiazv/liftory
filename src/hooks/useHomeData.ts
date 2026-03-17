@@ -231,5 +231,5 @@ export function useHomeData() {
     fetchAll();
   }, [fetchAll]);
 
-  return { todayWorkout, weekDays, wearable, quickStats, loading, refetch: fetchAll };
+  return { todayWorkout, weekDays, wearable, quickStats, loading, refetch: fetchAll, mesocycleTransition };
 }
