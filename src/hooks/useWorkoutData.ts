@@ -347,7 +347,9 @@ export function useWorkoutData(workoutId: string | undefined) {
     workout,
     sets,
     exerciseGroups: mainExerciseGroups,
-    supersetGroups,
+    supersetGroups: supersetGroups.filter(
+      (sg) => !sg.groups.every((g) => g.sets[0]?.set_type === "cooldown")
+    ),
     cooldownGroups,
     cooldownSets,
     cooldownCompleted,
