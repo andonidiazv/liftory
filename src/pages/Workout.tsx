@@ -228,7 +228,7 @@ export default function Workout() {
     const result = await completeSet(set.id, {
       actual_weight: parseFloat(inputs.weight) || 0,
       actual_reps: parseInt(inputs.reps) || 0,
-      actual_rpe: parseFloat(inputs.rpe) || 0,
+      actual_rpe: 0,
       actual_rir: parseInt(inputs.rir) || 0,
     });
 
