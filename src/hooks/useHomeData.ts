@@ -66,6 +66,15 @@ export function useHomeData() {
     if (!user) return;
     setLoading(true);
 
+    // Check if mesocycle is complete before fetching home data
+    const mcCheck = await checkMesocycleComplete(user.id);
+    if (mcCheck.isComplete && mcCheck.programId) {
+      const genPromise = generateNextMesocycle(user.id, mcCheck.programId);
+      setMesocycleTransition({ active: true, promise: genPromise });
+      setLoading(false);
+      return;
+    }
+
     const today = new Date();
     const todayStr = formatDate(today);
     const monday = getMonday(today);
