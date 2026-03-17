@@ -653,6 +653,37 @@ export default function Workout() {
                   <span className="text-label-tech text-muted-foreground">RIR</span>
                   <span></span>
                 </div>
+
+                {/* Smart weight suggestion */}
+                {(() => {
+                  const firstSet = currentSets[0];
+                  if (!firstSet) return null;
+                  const suggestion = getSuggestedWeight(firstSet.exercise_id, firstSet.planned_reps);
+                  if (suggestion.weight != null) {
+                    return (
+                      <div className="flex items-center gap-1.5 px-1 mb-2">
+                        <span className="font-mono text-xs font-medium" style={{ color: "hsl(var(--primary))", letterSpacing: "0.05em" }}>
+                          Sugerido: {suggestion.weight} {weightUnit}
+                        </span>
+                        {suggestion.hint && (
+                          <span className="font-mono text-xs text-muted-foreground" style={{ fontSize: 10, letterSpacing: "0.05em" }}>
+                            · {suggestion.hint}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  }
+                  const hasHistory = getLastBestWeight(firstSet.exercise_id, firstSet.planned_reps) != null;
+                  if (!hasHistory && !firstSet.is_completed) {
+                    return (
+                      <p className="px-1 mb-2 font-body text-xs text-muted-foreground" style={{ fontStyle: "italic" }}>
+                        Ingresa tu peso. Lo recordaremos.
+                      </p>
+                    );
+                  }
+                  return null;
+                })()}
+
                 {currentSets.map((set, setIndex) => {
                   const completed = set.is_completed;
                   const isActive = activeSetId === set.id && !completed;
