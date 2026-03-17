@@ -13,6 +13,7 @@ import {
   List,
   ArrowUp,
   Loader2,
+  Leaf,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
