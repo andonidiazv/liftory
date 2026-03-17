@@ -38,7 +38,7 @@ function HomeSkeleton() {
 export default function Home() {
   const navigate = useNavigate();
   const { profile, isFreeTrial, isPremium, isExpired, daysLeftInTrial } = useAuth();
-  const { todayWorkout, weekDays, wearable, quickStats, loading } = useHomeData();
+  const { todayWorkout, weekDays, wearable, quickStats, loading, mesocycleTransition } = useHomeData();
   const [showUpgrade, setShowUpgrade] = useState(false);
 
   const displayName = profile?.full_name || "Atleta";
