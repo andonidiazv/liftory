@@ -50,6 +50,7 @@ export interface WorkoutData {
   notes: string | null;
   completed_at: string | null;
   scheduled_date: string;
+  week_number: number;
 }
 
 export interface ExerciseGroup {
