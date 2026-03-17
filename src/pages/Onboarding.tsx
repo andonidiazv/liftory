@@ -280,12 +280,11 @@ export default function Onboarding() {
     navigate("/home", { replace: true });
   };
 
-  const SavingOverlay = () =>
-    saving ? (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    ) : null;
+  const savingOverlay = saving ? (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  ) : null;
 
   const splitPreview = getSplitPreview(days, gender);
   const splitName = splitPreview?.name || "LIFTORY METHOD";
@@ -293,7 +292,7 @@ export default function Onboarding() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <SavingOverlay />
+      {savingOverlay}
 
       {/* Progress bar */}
       {step < LOADING_STEP && (
