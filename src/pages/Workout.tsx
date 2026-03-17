@@ -207,8 +207,12 @@ export default function Workout() {
   const getInputs = (set: WorkoutSetData): SetInputs => {
     if (setInputs[set.id]) return setInputs[set.id];
     const plannedW = set.planned_weight ?? 0;
-    const lastBest = getLastBestWeight(set.exercise_id, set.planned_reps);
-    const weightDefault = plannedW > 0 ? String(plannedW) : lastBest != null ? String(lastBest) : "";
+    const suggestion = getSuggestedWeight(set.exercise_id, set.planned_reps);
+    const weightDefault = plannedW > 0
+      ? String(plannedW)
+      : suggestion.weight != null
+        ? String(suggestion.weight)
+        : "";
     return {
       weight: weightDefault,
       reps: String(set.planned_reps ?? ""),
