@@ -57,6 +57,13 @@ export interface ExerciseGroup {
   sets: WorkoutSetData[];
 }
 
+/** A superset group is 2-3 consecutive ExerciseGroups that share set_type 'superset' or 'backoff' */
+export interface SupersetGroup {
+  type: "single" | "superset" | "triset";
+  label: string; // "SUPERSET", "TRISET", or empty
+  groups: ExerciseGroup[];
+}
+
 export function useWorkoutData(workoutId: string | undefined) {
   const { user, profile } = useAuth();
   const [workout, setWorkout] = useState<WorkoutData | null>(null);
