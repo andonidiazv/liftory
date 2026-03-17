@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useWorkoutData } from "@/hooks/useWorkoutData";
-import { Trophy, TrendingUp, Clock, Dumbbell, Star } from "lucide-react";
+import { Trophy, TrendingUp, Clock, Dumbbell, Star, Leaf } from "lucide-react";
 import Layout from "@/components/Layout";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMemo } from "react";
@@ -8,7 +8,7 @@ import { useMemo } from "react";
 export default function WorkoutComplete() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { workout, sets, loading, weightUnit } = useWorkoutData(id);
+  const { workout, sets, loading, weightUnit, cooldownCompleted } = useWorkoutData(id);
 
   const stats = useMemo(() => {
     if (!sets.length) return { totalSets: 0, volume: 0, prs: 0, avgRpe: 0, duration: "" };
@@ -117,6 +117,16 @@ export default function WorkoutComplete() {
             {motivationalMessage}
           </p>
         </div>
+
+        {/* Cool-down badge */}
+        {cooldownCompleted && (
+          <div className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl py-3" style={{ backgroundColor: "hsl(var(--success) / 0.1)", border: "1px solid hsl(var(--success) / 0.25)" }}>
+            <Leaf className="h-4 w-4" style={{ color: "hsl(var(--success))" }} />
+            <span className="font-body text-sm font-medium" style={{ color: "hsl(var(--success))" }}>
+              Cool-down completado ✓
+            </span>
+          </div>
+        )}
 
         <button
           onClick={() => navigate("/home", { replace: true })}
