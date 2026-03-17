@@ -336,6 +336,7 @@ export function useWorkoutData(workoutId: string | undefined) {
     workout,
     sets,
     exerciseGroups,
+    supersetGroups,
     loading,
     saving,
     weightUnit,
