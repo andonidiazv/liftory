@@ -43,7 +43,6 @@ function parseTempo(tempo: string | null): string {
 interface SetInputs {
   weight: string;
   reps: string;
-  rpe: string;
   rir: string;
 }
 
