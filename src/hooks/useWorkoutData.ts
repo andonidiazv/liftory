@@ -188,27 +188,45 @@ export function useWorkoutData(workoutId: string | undefined) {
       if (exerciseIds.length > 0) {
         const { data: pastSets } = await supabase
           .from("workout_sets")
-          .select("exercise_id, planned_reps, actual_weight")
+          .select("exercise_id, planned_reps, actual_weight, actual_rir, logged_at")
           .eq("user_id", user.id)
           .eq("is_completed", true)
           .in("exercise_id", exerciseIds)
           .not("actual_weight", "is", null)
-          .order("actual_weight", { ascending: false });
+          .order("logged_at", { ascending: false });
 
         if (pastSets && pastSets.length > 0) {
           const bestWeights: Record<string, number> = {};
+          // Also compute avg RIR from last 3 sessions per exercise
+          const rirAccum: Record<string, number[]> = {};
+
           for (const ps of pastSets) {
             const key = `${ps.exercise_id}_${ps.planned_reps}`;
             if (!(key in bestWeights) && ps.actual_weight != null) {
               bestWeights[key] = ps.actual_weight;
             }
+            // Collect RIR values (up to ~9 sets = ~3 sessions × 3 sets)
+            if (ps.actual_rir != null) {
+              if (!rirAccum[ps.exercise_id]) rirAccum[ps.exercise_id] = [];
+              if (rirAccum[ps.exercise_id].length < 9) {
+                rirAccum[ps.exercise_id].push(ps.actual_rir);
+              }
+            }
           }
           setLastBestWeights(bestWeights);
+
+          const avgRir: Record<string, number> = {};
+          for (const [exId, rirs] of Object.entries(rirAccum)) {
+            avgRir[exId] = rirs.reduce((a, b) => a + b, 0) / rirs.length;
+          }
+          setAvgRirByExercise(avgRir);
         } else {
           setLastBestWeights({});
+          setAvgRirByExercise({});
         }
       } else {
         setLastBestWeights({});
+        setAvgRirByExercise({});
       }
     } finally {
       setLoading(false);
