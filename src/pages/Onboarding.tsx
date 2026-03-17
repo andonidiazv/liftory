@@ -292,7 +292,7 @@ export default function Onboarding() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <SavingOverlay />
+      {savingOverlay}
 
       {/* Progress bar */}
       {step < LOADING_STEP && (
