@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useHomeData } from "@/hooks/useHomeData";
 import TrialBanner from "@/components/home/TrialBanner";
 import PremiumBottomSheet from "@/components/PremiumBottomSheet";
+import MesocycleTransitionScreen from "@/components/home/MesocycleTransitionScreen";
 import { Skeleton } from "@/components/ui/skeleton";
 
 function HomeSkeleton() {
@@ -37,7 +38,7 @@ function HomeSkeleton() {
 export default function Home() {
   const navigate = useNavigate();
   const { profile, isFreeTrial, isPremium, isExpired, daysLeftInTrial } = useAuth();
-  const { todayWorkout, weekDays, wearable, quickStats, loading } = useHomeData();
+  const { todayWorkout, weekDays, wearable, quickStats, loading, mesocycleTransition } = useHomeData();
   const [showUpgrade, setShowUpgrade] = useState(false);
 
   const displayName = profile?.full_name || "Atleta";
@@ -65,6 +66,11 @@ export default function Home() {
   };
 
   const completedDays = weekDays.filter((d) => d.isCompleted).length;
+
+  // Show mesocycle transition screen
+  if (mesocycleTransition.active) {
+    return <MesocycleTransitionScreen generationPromise={mesocycleTransition.promise} />;
+  }
 
   if (loading) {
     return (

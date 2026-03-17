@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
+import { checkMesocycleComplete, generateNextMesocycle } from "@/lib/liftoryEngine";
 
 export interface TodayWorkout {
   id: string;
@@ -59,10 +60,20 @@ export function useHomeData() {
   const [wearable, setWearable] = useState<WearableInfo>({ connected: false, recovery_score: null, hrv_ms: null, sleep_score: null, sleep_duration_minutes: null });
   const [quickStats, setQuickStats] = useState<QuickStats>({ totalCompleted: 0, monthPRs: 0, streak: 0 });
   const [loading, setLoading] = useState(true);
+  const [mesocycleTransition, setMesocycleTransition] = useState<{ active: boolean; promise?: Promise<any> }>({ active: false });
 
   const fetchAll = useCallback(async () => {
     if (!user) return;
     setLoading(true);
+
+    // Check if mesocycle is complete before fetching home data
+    const mcCheck = await checkMesocycleComplete(user.id);
+    if (mcCheck.isComplete && mcCheck.programId) {
+      const genPromise = generateNextMesocycle(user.id, mcCheck.programId);
+      setMesocycleTransition({ active: true, promise: genPromise });
+      setLoading(false);
+      return;
+    }
 
     const today = new Date();
     const todayStr = formatDate(today);
@@ -220,5 +231,5 @@ export function useHomeData() {
     fetchAll();
   }, [fetchAll]);
 
-  return { todayWorkout, weekDays, wearable, quickStats, loading, refetch: fetchAll };
+  return { todayWorkout, weekDays, wearable, quickStats, loading, refetch: fetchAll, mesocycleTransition };
 }
