@@ -785,10 +785,10 @@ export default function Workout() {
                   </span>
                 </div>
               )}
-              </div>{/* close flex-1 */}
-              </div>{/* close flex gap-3 wrapper */}
-            </div>{/* close px-5 */}
-          </div>{/* close animate-fade-up */}
+              </div>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
