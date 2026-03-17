@@ -83,6 +83,11 @@ export default function Workout() {
   const [exerciseCompleteFlash, setExerciseCompleteFlash] = useState(false);
   const [finishNotes, setFinishNotes] = useState("");
   const [showFinishModal, setShowFinishModal] = useState(false);
+  const [showCooldown, setShowCooldown] = useState(false);
+  const [cooldownSkipped, setCooldownSkipped] = useState(false);
+  const [cooldownTimers, setCooldownTimers] = useState<Record<string, number>>({});
+  const [activeCooldownTimer, setActiveCooldownTimer] = useState<string | null>(null);
+  const cooldownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Start workout timer on mount
   useEffect(() => {

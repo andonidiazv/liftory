@@ -321,7 +321,18 @@ export function useWorkoutData(workoutId: string | undefined) {
     [workoutId]
   );
 
-  const allSetsCompleted = sets.length > 0 && sets.every((s) => s.is_completed);
+  // Separate cooldown sets from main exercise groups
+  const cooldownGroups = exerciseGroups.filter(
+    (g) => g.sets[0]?.set_type === "cooldown"
+  );
+  const mainExerciseGroups = exerciseGroups.filter(
+    (g) => g.sets[0]?.set_type !== "cooldown"
+  );
+
+  const mainSets = sets.filter((s) => s.set_type !== "cooldown");
+  const cooldownSets = sets.filter((s) => s.set_type === "cooldown");
+  const allSetsCompleted = mainSets.length > 0 && mainSets.every((s) => s.is_completed);
+  const cooldownCompleted = cooldownSets.length > 0 && cooldownSets.every((s) => s.is_completed);
 
   // Helper to get last best weight for a given exercise + reps combo
   const getLastBestWeight = useCallback(
@@ -335,8 +346,11 @@ export function useWorkoutData(workoutId: string | undefined) {
   return {
     workout,
     sets,
-    exerciseGroups,
+    exerciseGroups: mainExerciseGroups,
     supersetGroups,
+    cooldownGroups,
+    cooldownSets,
+    cooldownCompleted,
     loading,
     saving,
     weightUnit,
