@@ -795,8 +795,17 @@ export default function Workout() {
                   <ChevronLeft className="h-4 w-4" /> Anterior
                 </button>
                 {allSetsCompleted ? (
-                  <button onClick={() => setShowFinishModal(true)} className="press-scale flex h-12 flex-1 items-center justify-center gap-1 rounded-xl bg-primary font-display text-sm font-bold text-primary-foreground glow-primary">
-                    Finalizar workout ✓
+                  <button
+                    onClick={() => {
+                      if (cooldownGroups.length > 0 && !cooldownSkipped && !cooldownCompleted && !showCooldown) {
+                        setShowCooldown(true);
+                      } else {
+                        setShowFinishModal(true);
+                      }
+                    }}
+                    className="press-scale flex h-12 flex-1 items-center justify-center gap-1 rounded-xl bg-primary font-display text-sm font-bold text-primary-foreground glow-primary"
+                  >
+                    {showCooldown ? "Finalizar workout ✓" : cooldownGroups.length > 0 && !cooldownSkipped && !cooldownCompleted ? "Cool-down →" : "Finalizar workout ✓"}
                   </button>
                 ) : (
                   <button onClick={goNext} disabled={currentExerciseIndex === exerciseGroups.length - 1} className="press-scale flex h-12 flex-1 items-center justify-center gap-1 rounded-xl bg-primary font-display text-sm font-semibold text-primary-foreground disabled:opacity-30">
