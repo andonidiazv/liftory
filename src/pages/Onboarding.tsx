@@ -451,7 +451,7 @@ export default function Onboarding() {
             <p className="mt-2 text-caption">Cada frecuencia activa un split diferente de la metodología LIFTORY.</p>
 
             <div className="mt-8 flex gap-3 justify-center">
-              {[3, 4, 5, 6].map((d) => (
+              {[3, 4, 5].map((d) => (
                 <button
                   key={d}
                   onClick={() => setDays(d)}
