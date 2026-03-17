@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useWorkoutData, type WorkoutSetData, type ExerciseGroup } from "@/hooks/useWorkoutData";
+import { useWorkoutData, type WorkoutSetData, type ExerciseGroup, type SupersetGroup } from "@/hooks/useWorkoutData";
 import { useApp } from "@/context/AppContext";
 import {
   ChevronLeft,
@@ -52,6 +52,7 @@ export default function Workout() {
   const {
     workout,
     exerciseGroups,
+    supersetGroups,
     loading,
     saving,
     weightUnit,
@@ -126,27 +127,47 @@ export default function Workout() {
   );
   const progress = totalSets > 0 ? completedSetsCount / totalSets : 0;
 
-  // Compute superset/circuit grouping for current exercise
+  // Compute superset/circuit grouping for current exercise using supersetGroups
   const getGroupingInfo = (idx: number) => {
     const group = exerciseGroups[idx];
     if (!group) return null;
-    const setType = group.sets[0]?.set_type;
-    if (setType !== "warmup" && setType !== "backoff") return null;
-    // Find consecutive exercises with same set_type
-    let start = idx;
-    while (start > 0 && exerciseGroups[start - 1].sets[0]?.set_type === setType) start--;
-    let end = idx;
-    while (end < exerciseGroups.length - 1 && exerciseGroups[end + 1].sets[0]?.set_type === setType) end++;
-    const count = end - start + 1;
-    if (count < 2) return null;
-    const position = idx - start;
-    const label = setType === "warmup"
-      ? (count >= 3 ? "TRI-SET" : "SUPERSET")
-      : "SUPERSET";
-    return { label, position, count, letter: String.fromCharCode(65 + position) };
+    // Find which supersetGroup contains this exerciseGroup
+    let flatIdx = 0;
+    for (const sg of supersetGroups) {
+      for (let gi = 0; gi < sg.groups.length; gi++) {
+        if (flatIdx === idx) {
+          if (sg.type === "single") return null;
+          return {
+            label: sg.label,
+            position: gi,
+            count: sg.groups.length,
+            letter: String.fromCharCode(65 + gi),
+            supersetGroup: sg,
+          };
+        }
+        flatIdx++;
+      }
+    }
+    return null;
   };
 
   const groupingInfo = getGroupingInfo(currentExerciseIndex);
+
+  // Find the superset group for the current exercise to manage flow
+  const getCurrentSupersetGroup = (): SupersetGroup | null => {
+    let flatIdx = 0;
+    for (const sg of supersetGroups) {
+      for (let gi = 0; gi < sg.groups.length; gi++) {
+        if (flatIdx === currentExerciseIndex && sg.type !== "single") {
+          return sg;
+        }
+        flatIdx++;
+      }
+    }
+    return null;
+  };
+
+  const currentSupersetGroup = getCurrentSupersetGroup();
 
   const allCurrentExerciseDone = currentSets.every((s) => s.is_completed);
   const nextPendingSet = currentSets.find((s) => !s.is_completed);
@@ -243,7 +264,10 @@ export default function Workout() {
       working: "bg-primary/20 text-primary",
       amrap: "bg-destructive/20 text-destructive",
       emom: "bg-accent/20 text-accent",
-      backoff: "bg-muted text-muted-foreground",
+      backoff: "bg-primary/15 text-primary",
+      superset: "bg-primary/15 text-primary",
+      cooldown: "bg-muted text-muted-foreground",
+      cardio: "bg-accent/20 text-accent",
     };
     return colors[type] || "bg-secondary text-secondary-foreground";
   };
@@ -354,76 +378,133 @@ export default function Workout() {
       <div className="flex-1 relative z-10">
         {exerciseView === "ficha" ? (
           <div className="animate-fade-up px-5 mt-4 pb-6 flex flex-col flex-1 stagger-fade-in">
-            <div className="card-fbb flex-1">
-              {groupingInfo && (
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full font-mono text-xs font-bold" style={{ backgroundColor: "hsl(var(--primary) / 0.15)", color: "hsl(var(--primary))" }}>
-                    {groupingInfo.letter}
-                  </span>
-                  <span className="font-mono uppercase text-primary" style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em" }}>
-                    {groupingInfo.label} · {groupingInfo.position + 1}/{groupingInfo.count}
-                  </span>
-                  <div className="flex-1 h-px bg-border" />
+            {/* Superset container with terracotta sidebar */}
+            {currentSupersetGroup ? (
+              <div className="flex gap-3">
+                {/* Terracotta sidebar */}
+                <div className="flex flex-col items-center pt-1">
+                  <div className="w-0.5 flex-1 rounded-full" style={{ backgroundColor: "hsl(var(--primary))" }} />
                 </div>
-              )}
-              <h2 className="font-display text-[22px] font-bold text-foreground" style={{ letterSpacing: "-0.03em" }}>
-                {currentExercise.name}
-              </h2>
-
-              {currentExercise.default_tempo && (
-                <>
-                  <div className="mt-4 flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-primary" />
-                    <span className="font-mono text-lg font-medium text-primary" style={{ letterSpacing: "0.05em" }}>
-                      Tempo: {currentExercise.default_tempo}
+                <div className="flex-1 flex flex-col gap-3">
+                  {/* Superset label */}
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono uppercase" style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", color: "hsl(var(--primary))" }}>
+                      {currentSupersetGroup.label} · CIRCUITO
                     </span>
+                    <div className="flex-1 h-px bg-primary/20" />
                   </div>
-                  <p className="mt-1 text-sm text-muted-foreground font-body font-light">
-                    {parseTempo(currentExercise.default_tempo)}
+                  {/* All exercises in superset */}
+                  {currentSupersetGroup.groups.map((sg, sgIdx) => {
+                    const isCurrentInGroup = sg.exercise.id === currentExercise.id;
+                    const letter = String.fromCharCode(65 + sgIdx);
+                    return (
+                      <div
+                        key={sg.exercise.id}
+                        className={`card-fbb transition-all ${isCurrentInGroup ? "ring-1 ring-primary" : "opacity-70"}`}
+                        onClick={() => {
+                          // Navigate to this exercise in the superset
+                          const globalIdx = exerciseGroups.findIndex((g) => g.exercise.id === sg.exercise.id);
+                          if (globalIdx >= 0) setCurrentExerciseIndex(globalIdx);
+                        }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-full font-mono text-xs font-bold" style={{ backgroundColor: "hsl(var(--primary) / 0.15)", color: "hsl(var(--primary))" }}>
+                            {letter}
+                          </span>
+                          <h3 className="font-display text-[16px] font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>
+                            {sg.exercise.name}
+                          </h3>
+                        </div>
+                        <p className="mt-1 ml-8 text-xs text-muted-foreground font-body">
+                          {sg.sets.length} sets × {sg.sets[0]?.planned_reps ?? "—"} reps
+                        </p>
+                        {sg.exercise.coaching_cue && (
+                          <p className="mt-1 ml-8 font-serif italic text-muted-foreground" style={{ fontSize: 12, lineHeight: 1.3 }}>
+                            {sg.exercise.coaching_cue}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {/* Rest info for superset */}
+                  <p className="text-xs text-muted-foreground font-body text-center">
+                    Descanso: {formatRestDisplay(currentSets[0]?.planned_rest_seconds ?? 60)} después de completar {currentSupersetGroup.label.toLowerCase()}
                   </p>
-                </>
-              )}
-
-              {currentExercise.primary_muscles && currentExercise.primary_muscles.length > 0 && (
-                <div className="mt-5">
-                  <p className="text-label-tech text-foreground">Músculos</p>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {currentExercise.primary_muscles.map((m) => (
-                      <span key={m} className="pill">{m}</span>
-                    ))}
+                </div>
+              </div>
+            ) : (
+              /* Normal single exercise ficha */
+              <div className="card-fbb flex-1">
+                {groupingInfo && (
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full font-mono text-xs font-bold" style={{ backgroundColor: "hsl(var(--primary) / 0.15)", color: "hsl(var(--primary))" }}>
+                      {groupingInfo.letter}
+                    </span>
+                    <span className="font-mono uppercase text-primary" style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em" }}>
+                      {groupingInfo.label} · {groupingInfo.position + 1}/{groupingInfo.count}
+                    </span>
+                    <div className="flex-1 h-px bg-border" />
                   </div>
-                </div>
-              )}
+                )}
+                <h2 className="font-display text-[22px] font-bold text-foreground" style={{ letterSpacing: "-0.03em" }}>
+                  {currentExercise.name}
+                </h2>
 
-              {currentExercise.coaching_cue && (
-                <div className="mt-5">
-                  <p className="text-label-tech text-foreground">Coaching cue</p>
-                  <p className="mt-2 font-serif italic text-muted-foreground" style={{ fontSize: 15, lineHeight: 1.4 }}>
-                    {currentExercise.coaching_cue}
-                  </p>
-                </div>
-              )}
+                {currentExercise.default_tempo && (
+                  <>
+                    <div className="mt-4 flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-primary" />
+                      <span className="font-mono text-lg font-medium text-primary" style={{ letterSpacing: "0.05em" }}>
+                        Tempo: {currentExercise.default_tempo}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm text-muted-foreground font-body font-light">
+                      {parseTempo(currentExercise.default_tempo)}
+                    </p>
+                  </>
+                )}
 
-              {currentExercise.founder_notes && (
-                <div className="mt-5">
-                  <p className="text-label-tech text-foreground">Notas del coach</p>
-                  <p className="mt-2 text-sm text-muted-foreground font-body font-light">
-                    {currentExercise.founder_notes}
-                  </p>
-                </div>
-              )}
-
-              {currentExercise.equipment_required && currentExercise.equipment_required.length > 0 && (
-                <div className="mt-5">
-                  <p className="text-label-tech text-foreground">Equipo</p>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {currentExercise.equipment_required.map((e) => (
-                      <span key={e} className="pill">{e}</span>
-                    ))}
+                {currentExercise.primary_muscles && currentExercise.primary_muscles.length > 0 && (
+                  <div className="mt-5">
+                    <p className="text-label-tech text-foreground">Músculos</p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {currentExercise.primary_muscles.map((m) => (
+                        <span key={m} className="pill">{m}</span>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+
+                {currentExercise.coaching_cue && (
+                  <div className="mt-5">
+                    <p className="text-label-tech text-foreground">Coaching cue</p>
+                    <p className="mt-2 font-serif italic text-muted-foreground" style={{ fontSize: 15, lineHeight: 1.4 }}>
+                      {currentExercise.coaching_cue}
+                    </p>
+                  </div>
+                )}
+
+                {currentExercise.founder_notes && (
+                  <div className="mt-5">
+                    <p className="text-label-tech text-foreground">Notas del coach</p>
+                    <p className="mt-2 text-sm text-muted-foreground font-body font-light">
+                      {currentExercise.founder_notes}
+                    </p>
+                  </div>
+                )}
+
+                {currentExercise.equipment_required && currentExercise.equipment_required.length > 0 && (
+                  <div className="mt-5">
+                    <p className="text-label-tech text-foreground">Equipo</p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {currentExercise.equipment_required.map((e) => (
+                        <span key={e} className="pill">{e}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             <button
               onClick={() => {
@@ -462,6 +543,45 @@ export default function Workout() {
             </div>
 
               <div className="px-5 -mt-3 pb-6 relative z-10">
+              {/* Superset indicator bar at top when in superset */}
+              {currentSupersetGroup && (
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-1 h-4 rounded-full" style={{ backgroundColor: "hsl(var(--primary))" }} />
+                  <span className="font-mono uppercase" style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: "hsl(var(--primary))" }}>
+                    {currentSupersetGroup.label}
+                  </span>
+                  <div className="flex gap-1">
+                    {currentSupersetGroup.groups.map((sg, sgIdx) => {
+                      const isCurrent = sg.exercise.id === currentExercise.id;
+                      const letter = String.fromCharCode(65 + sgIdx);
+                      return (
+                        <button
+                          key={sg.exercise.id}
+                          onClick={() => {
+                            const globalIdx = exerciseGroups.findIndex((g) => g.exercise.id === sg.exercise.id);
+                            if (globalIdx >= 0) setCurrentExerciseIndex(globalIdx);
+                          }}
+                          className={`flex h-6 w-6 items-center justify-center rounded-full font-mono text-xs font-bold transition-all ${
+                            isCurrent ? "bg-primary text-primary-foreground" : "bg-primary/15 text-primary"
+                          }`}
+                        >
+                          {letter}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex-1 h-px bg-primary/20" />
+                </div>
+              )}
+
+              <div className={`${currentSupersetGroup ? "flex gap-3" : ""}`}>
+                {/* Terracotta sidebar in execution */}
+                {currentSupersetGroup && (
+                  <div className="flex flex-col items-center">
+                    <div className="w-0.5 flex-1 rounded-full" style={{ backgroundColor: "hsl(var(--primary))" }} />
+                  </div>
+                )}
+                <div className="flex-1">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {groupingInfo && (
@@ -537,7 +657,7 @@ export default function Workout() {
 
                       {/* Type badge */}
                       <span className={`rounded px-1.5 py-0.5 text-center font-mono ${setTypeBadge(set.set_type)}`} style={{ fontSize: 9, letterSpacing: "0.05em" }}>
-                        {set.set_type === "working" ? "W" : set.set_type === "warmup" ? "WU" : set.set_type.toUpperCase().slice(0, 2)}
+                        {set.set_type === "working" ? "W" : set.set_type === "warmup" ? "WU" : set.set_type === "superset" ? "SS" : set.set_type === "backoff" ? "SS" : set.set_type === "cooldown" ? "CD" : set.set_type === "cardio" ? "Z2" : set.set_type.toUpperCase().slice(0, 2)}
                       </span>
 
                       {/* Weight */}
@@ -637,6 +757,7 @@ export default function Workout() {
                 {currentSets[0]?.planned_rest_seconds && (
                   <p className="mt-2 text-xs text-muted-foreground font-body text-center">
                     Descanso: {formatRestDisplay(currentSets[0].planned_rest_seconds)}
+                    {currentSupersetGroup && ` después del ${currentSupersetGroup.label.toLowerCase()}`}
                   </p>
                 )}
               </div>
@@ -664,6 +785,8 @@ export default function Workout() {
                   </span>
                 </div>
               )}
+              </div>
+              </div>
             </div>
           </div>
         )}

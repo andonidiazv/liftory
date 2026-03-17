@@ -57,11 +57,19 @@ export interface ExerciseGroup {
   sets: WorkoutSetData[];
 }
 
+/** A superset group is 2-3 consecutive ExerciseGroups that share set_type 'superset' or 'backoff' */
+export interface SupersetGroup {
+  type: "single" | "superset" | "triset";
+  label: string; // "SUPERSET", "TRISET", or empty
+  groups: ExerciseGroup[];
+}
+
 export function useWorkoutData(workoutId: string | undefined) {
   const { user, profile } = useAuth();
   const [workout, setWorkout] = useState<WorkoutData | null>(null);
   const [sets, setSets] = useState<WorkoutSetData[]>([]);
   const [exerciseGroups, setExerciseGroups] = useState<ExerciseGroup[]>([]);
+  const [supersetGroups, setSupersetGroups] = useState<SupersetGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [lastBestWeights, setLastBestWeights] = useState<Record<string, number>>({});
@@ -136,6 +144,41 @@ export function useWorkoutData(workoutId: string | undefined) {
         }
       }
       setExerciseGroups(groups);
+
+      // Build superset groups: consecutive exercises with set_type 'superset' or 'backoff'
+      const ssGroups: SupersetGroup[] = [];
+      let i = 0;
+      while (i < groups.length) {
+        const g = groups[i];
+        const setType = g.sets[0]?.set_type;
+        const isSupersetType = setType === "superset" || setType === "backoff";
+
+        if (isSupersetType) {
+          // Collect consecutive exercises with same superset-type
+          const cluster: ExerciseGroup[] = [g];
+          while (i + 1 < groups.length) {
+            const nextType = groups[i + 1].sets[0]?.set_type;
+            if (nextType === setType) {
+              cluster.push(groups[++i]);
+            } else {
+              break;
+            }
+          }
+          if (cluster.length >= 2) {
+            ssGroups.push({
+              type: cluster.length >= 3 ? "triset" : "superset",
+              label: cluster.length >= 3 ? "TRI-SET" : "SUPERSET",
+              groups: cluster,
+            });
+          } else {
+            ssGroups.push({ type: "single", label: "", groups: cluster });
+          }
+        } else {
+          ssGroups.push({ type: "single", label: "", groups: [g] });
+        }
+        i++;
+      }
+      setSupersetGroups(ssGroups);
 
       // Fetch last best weights for all exercises in this workout
       const exerciseIds = [...new Set(rawSets.map((s) => s.exercise_id))];
@@ -293,6 +336,7 @@ export function useWorkoutData(workoutId: string | undefined) {
     workout,
     sets,
     exerciseGroups,
+    supersetGroups,
     loading,
     saving,
     weightUnit,
