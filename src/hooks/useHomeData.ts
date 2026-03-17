@@ -60,6 +60,7 @@ export function useHomeData() {
   const [wearable, setWearable] = useState<WearableInfo>({ connected: false, recovery_score: null, hrv_ms: null, sleep_score: null, sleep_duration_minutes: null });
   const [quickStats, setQuickStats] = useState<QuickStats>({ totalCompleted: 0, monthPRs: 0, streak: 0 });
   const [loading, setLoading] = useState(true);
+  const [mesocycleTransition, setMesocycleTransition] = useState<{ active: boolean; promise?: Promise<any> }>({ active: false });
 
   const fetchAll = useCallback(async () => {
     if (!user) return;
