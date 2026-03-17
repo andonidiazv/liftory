@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useWorkoutData, type WorkoutSetData, type ExerciseGroup } from "@/hooks/useWorkoutData";
+import { useWorkoutData, type WorkoutSetData, type ExerciseGroup, type SupersetGroup } from "@/hooks/useWorkoutData";
 import { useApp } from "@/context/AppContext";
 import {
   ChevronLeft,
