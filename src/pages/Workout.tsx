@@ -54,6 +54,8 @@ export default function Workout() {
     workout,
     exerciseGroups,
     supersetGroups,
+    cooldownGroups,
+    cooldownCompleted,
     loading,
     saving,
     weightUnit,
