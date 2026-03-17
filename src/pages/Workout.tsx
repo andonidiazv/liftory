@@ -618,7 +618,7 @@ export default function Workout() {
 
                       {/* Type badge */}
                       <span className={`rounded px-1.5 py-0.5 text-center font-mono ${setTypeBadge(set.set_type)}`} style={{ fontSize: 9, letterSpacing: "0.05em" }}>
-                        {set.set_type === "working" ? "W" : set.set_type === "warmup" ? "WU" : set.set_type.toUpperCase().slice(0, 2)}
+                        {set.set_type === "working" ? "W" : set.set_type === "warmup" ? "WU" : set.set_type === "superset" ? "SS" : set.set_type === "backoff" ? "SS" : set.set_type === "cooldown" ? "CD" : set.set_type === "cardio" ? "Z2" : set.set_type.toUpperCase().slice(0, 2)}
                       </span>
 
                       {/* Weight */}
