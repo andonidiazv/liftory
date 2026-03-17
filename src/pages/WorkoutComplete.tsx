@@ -8,7 +8,7 @@ import { useMemo } from "react";
 export default function WorkoutComplete() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { workout, sets, loading, weightUnit } = useWorkoutData(id);
+  const { workout, sets, loading, weightUnit, cooldownCompleted } = useWorkoutData(id);
 
   const stats = useMemo(() => {
     if (!sets.length) return { totalSets: 0, volume: 0, prs: 0, avgRpe: 0, duration: "" };
