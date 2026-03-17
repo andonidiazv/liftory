@@ -17,7 +17,7 @@ import {
   Calendar,
 } from "lucide-react";
 import LoadingScreen from "@/components/onboarding/LoadingScreen";
-import { generateMockProgram } from "@/lib/generateMockProgram";
+import { generateProgram } from "@/lib/liftoryEngine";
 
 const TOTAL_STEPS = 8;
 
