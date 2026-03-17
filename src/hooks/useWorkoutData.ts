@@ -364,6 +364,55 @@ export function useWorkoutData(workoutId: string | undefined) {
     [lastBestWeights]
   );
 
+  // Smart weight suggestion based on wave periodization + RIR history
+  const getSuggestedWeight = useCallback(
+    (exerciseId: string, plannedReps: number | null): { weight: number | null; hint: string | null } => {
+      const lastWeight = getLastBestWeight(exerciseId, plannedReps);
+      if (lastWeight == null || lastWeight === 0) {
+        return { weight: null, hint: null };
+      }
+
+      const weekInCycle = ((workout?.week_number ?? 1) - 1) % 6 + 1;
+      const isKg = weightUnit === "kg";
+      const smallIncrement = isKg ? 2.5 : 5;
+      const bigIncrement = isKg ? 5 : 10;
+
+      // Base wave progression
+      let waveWeight = lastWeight;
+      if (weekInCycle <= 2) {
+        waveWeight = lastWeight; // same weight
+      } else if (weekInCycle <= 4) {
+        waveWeight = lastWeight + smallIncrement;
+      } else if (weekInCycle === 5) {
+        waveWeight = lastWeight + bigIncrement;
+      } else {
+        // Week 6 deload: same weight as peak (no reduction)
+        waveWeight = lastWeight + bigIncrement;
+      }
+
+      // RIR-based adjustment
+      const avgRir = avgRirByExercise[exerciseId];
+      let hint: string | null = null;
+      if (avgRir != null) {
+        if (avgRir > 3) {
+          // User had too much reserve → bump up
+          waveWeight = Math.max(waveWeight, lastWeight + smallIncrement);
+          hint = "RIR alto — sube peso";
+        } else if (avgRir < 1) {
+          // User was grinding → keep or reduce
+          waveWeight = lastWeight;
+          hint = "RIR bajo — mantén peso";
+        }
+      }
+
+      // Round to nearest 0.5
+      waveWeight = Math.round(waveWeight * 2) / 2;
+
+      return { weight: waveWeight, hint };
+    },
+    [getLastBestWeight, workout?.week_number, weightUnit, avgRirByExercise]
+  );
+
   return {
     workout,
     sets,
@@ -382,5 +431,6 @@ export function useWorkoutData(workoutId: string | undefined) {
     finishWorkout,
     refetch: fetchWorkout,
     getLastBestWeight,
+    getSuggestedWeight,
   };
 }
