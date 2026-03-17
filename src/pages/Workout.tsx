@@ -127,27 +127,47 @@ export default function Workout() {
   );
   const progress = totalSets > 0 ? completedSetsCount / totalSets : 0;
 
-  // Compute superset/circuit grouping for current exercise
+  // Compute superset/circuit grouping for current exercise using supersetGroups
   const getGroupingInfo = (idx: number) => {
     const group = exerciseGroups[idx];
     if (!group) return null;
-    const setType = group.sets[0]?.set_type;
-    if (setType !== "warmup" && setType !== "backoff") return null;
-    // Find consecutive exercises with same set_type
-    let start = idx;
-    while (start > 0 && exerciseGroups[start - 1].sets[0]?.set_type === setType) start--;
-    let end = idx;
-    while (end < exerciseGroups.length - 1 && exerciseGroups[end + 1].sets[0]?.set_type === setType) end++;
-    const count = end - start + 1;
-    if (count < 2) return null;
-    const position = idx - start;
-    const label = setType === "warmup"
-      ? (count >= 3 ? "TRI-SET" : "SUPERSET")
-      : "SUPERSET";
-    return { label, position, count, letter: String.fromCharCode(65 + position) };
+    // Find which supersetGroup contains this exerciseGroup
+    let flatIdx = 0;
+    for (const sg of supersetGroups) {
+      for (let gi = 0; gi < sg.groups.length; gi++) {
+        if (flatIdx === idx) {
+          if (sg.type === "single") return null;
+          return {
+            label: sg.label,
+            position: gi,
+            count: sg.groups.length,
+            letter: String.fromCharCode(65 + gi),
+            supersetGroup: sg,
+          };
+        }
+        flatIdx++;
+      }
+    }
+    return null;
   };
 
   const groupingInfo = getGroupingInfo(currentExerciseIndex);
+
+  // Find the superset group for the current exercise to manage flow
+  const getCurrentSupersetGroup = (): SupersetGroup | null => {
+    let flatIdx = 0;
+    for (const sg of supersetGroups) {
+      for (let gi = 0; gi < sg.groups.length; gi++) {
+        if (flatIdx === currentExerciseIndex && sg.type !== "single") {
+          return sg;
+        }
+        flatIdx++;
+      }
+    }
+    return null;
+  };
+
+  const currentSupersetGroup = getCurrentSupersetGroup();
 
   const allCurrentExerciseDone = currentSets.every((s) => s.is_completed);
   const nextPendingSet = currentSets.find((s) => !s.is_completed);
