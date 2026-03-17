@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useWorkoutData } from "@/hooks/useWorkoutData";
-import { Trophy, TrendingUp, Clock, Dumbbell, Star } from "lucide-react";
+import { Trophy, TrendingUp, Clock, Dumbbell, Star, Leaf } from "lucide-react";
 import Layout from "@/components/Layout";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMemo } from "react";
