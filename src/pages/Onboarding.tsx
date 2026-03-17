@@ -287,8 +287,8 @@ export default function Onboarding() {
       </div>
     ) : null;
 
-  const splitPreview = SPLIT_PREVIEWS[days];
-  const splitName = getSplitNameForGender(days, gender);
+  const splitPreview = getSplitPreview(days, gender);
+  const splitName = splitPreview?.name || "LIFTORY METHOD";
   const visibleSteps = TOTAL_STEPS - 1; // exclude loading
 
   return (
