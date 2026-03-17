@@ -205,16 +205,13 @@ export default function Workout() {
 
   const getInputs = (set: WorkoutSetData): SetInputs => {
     if (setInputs[set.id]) return setInputs[set.id];
-    const rirDefault = set.planned_rpe != null ? String(Math.max(0, 10 - set.planned_rpe)) : "";
-    // Weight: use planned if > 0, else try last best weight, else empty
     const plannedW = set.planned_weight ?? 0;
     const lastBest = getLastBestWeight(set.exercise_id, set.planned_reps);
     const weightDefault = plannedW > 0 ? String(plannedW) : lastBest != null ? String(lastBest) : "";
     return {
       weight: weightDefault,
       reps: String(set.planned_reps ?? ""),
-      rpe: String(set.planned_rpe ?? ""),
-      rir: set.planned_rir != null ? String(set.planned_rir) : rirDefault,
+      rir: set.planned_rir != null ? String(set.planned_rir) : "",
     };
   };
 
