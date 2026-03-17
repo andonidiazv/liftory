@@ -543,6 +543,45 @@ export default function Workout() {
             </div>
 
               <div className="px-5 -mt-3 pb-6 relative z-10">
+              {/* Superset indicator bar at top when in superset */}
+              {currentSupersetGroup && (
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-1 h-4 rounded-full" style={{ backgroundColor: "hsl(var(--primary))" }} />
+                  <span className="font-mono uppercase" style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: "hsl(var(--primary))" }}>
+                    {currentSupersetGroup.label}
+                  </span>
+                  <div className="flex gap-1">
+                    {currentSupersetGroup.groups.map((sg, sgIdx) => {
+                      const isCurrent = sg.exercise.id === currentExercise.id;
+                      const letter = String.fromCharCode(65 + sgIdx);
+                      return (
+                        <button
+                          key={sg.exercise.id}
+                          onClick={() => {
+                            const globalIdx = exerciseGroups.findIndex((g) => g.exercise.id === sg.exercise.id);
+                            if (globalIdx >= 0) setCurrentExerciseIndex(globalIdx);
+                          }}
+                          className={`flex h-6 w-6 items-center justify-center rounded-full font-mono text-xs font-bold transition-all ${
+                            isCurrent ? "bg-primary text-primary-foreground" : "bg-primary/15 text-primary"
+                          }`}
+                        >
+                          {letter}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex-1 h-px bg-primary/20" />
+                </div>
+              )}
+
+              <div className={`${currentSupersetGroup ? "flex gap-3" : ""}`}>
+                {/* Terracotta sidebar in execution */}
+                {currentSupersetGroup && (
+                  <div className="flex flex-col items-center">
+                    <div className="w-0.5 flex-1 rounded-full" style={{ backgroundColor: "hsl(var(--primary))" }} />
+                  </div>
+                )}
+                <div className="flex-1">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {groupingInfo && (
