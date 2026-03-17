@@ -328,8 +328,8 @@ export default function Onboarding() {
             </p>
             <div className="mt-10 flex flex-col gap-4">
               {[
-                { id: "Hombre", icon: "♂", desc: "Volumen y fuerza optimizados para fisiología masculina" },
-                { id: "Mujer", icon: "♀", desc: "Énfasis en glúteo, cadena posterior y sculpt femenino" },
+                { id: "BUILD HIM", icon: "♂", desc: "Programa diseñado para fuerza, masa muscular y rendimiento atlético" },
+                { id: "SCULPT HER™", icon: "♀", desc: "Programa diseñado para esculpir, fortalecer y definir con inteligencia" },
               ].map((g) => (
                 <button
                   key={g.id}
