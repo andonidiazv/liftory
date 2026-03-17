@@ -21,7 +21,7 @@ import { generateProgram } from "@/lib/liftoryEngine";
 
 const TOTAL_STEPS = 8;
 
-const GENDER_MAP: Record<string, string> = { Hombre: "male", Mujer: "female" };
+const GENDER_MAP: Record<string, string> = { "BUILD HIM": "male", "SCULPT HER™": "female" };
 const GOAL_MAP: Record<string, string> = {
   "Ganar músculo": "hypertrophy",
   "Fuerza y rendimiento": "performance",
