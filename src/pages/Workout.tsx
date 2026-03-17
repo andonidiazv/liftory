@@ -757,6 +757,7 @@ export default function Workout() {
                 {currentSets[0]?.planned_rest_seconds && (
                   <p className="mt-2 text-xs text-muted-foreground font-body text-center">
                     Descanso: {formatRestDisplay(currentSets[0].planned_rest_seconds)}
+                    {currentSupersetGroup && ` después del ${currentSupersetGroup.label.toLowerCase()}`}
                   </p>
                 )}
               </div>
@@ -784,9 +785,10 @@ export default function Workout() {
                   </span>
                 </div>
               )}
-              </div>{/* close flex-1 inner */}
-              </div>{/* close flex gap-3 or standalone */}
-            </div>
+              </div>{/* close flex-1 */}
+              </div>{/* close flex gap-3 wrapper */}
+            </div>{/* close px-5 */}
+          </div>{/* close animate-fade-up */}
         )}
       </div>
     </div>
