@@ -123,7 +123,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setState((s) => ({ ...s, currentExerciseIndex: index }));
   }, []);
 
-  const completeSet = useCallback((exerciseId: string, setIndex: number, data?: { weight?: string; reps?: string; rpe?: string; rir?: string }) => {
+  const completeSet = useCallback((exerciseId: string, setIndex: number, data?: { weight?: string; reps?: string; rir?: string }) => {
     setState((s) => {
       const exists = s.completedSets.some(
         (c) => c.exerciseId === exerciseId && c.setIndex === setIndex
@@ -131,7 +131,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (exists) return s;
       return {
         ...s,
-        completedSets: [...s.completedSets, { exerciseId, setIndex, actualWeight: data?.weight, actualReps: data?.reps, actualRpe: data?.rpe, actualRir: data?.rir }],
+        completedSets: [...s.completedSets, { exerciseId, setIndex, actualWeight: data?.weight, actualReps: data?.reps, actualRir: data?.rir }],
       };
     });
   }, []);

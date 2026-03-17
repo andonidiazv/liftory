@@ -640,25 +640,23 @@ export default function Workout() {
 
               {/* Interactive Set Table */}
               <div className="mt-4">
-                <div className="grid grid-cols-[36px_44px_1fr_52px_44px_44px_38px] gap-1 px-1 mb-2">
+                <div className="grid grid-cols-[36px_44px_1fr_52px_52px_38px] gap-1 px-1 mb-2">
                   <span className="text-label-tech text-muted-foreground">Set</span>
                   <span className="text-label-tech text-muted-foreground">Tipo</span>
                   <span className="text-label-tech text-muted-foreground">Peso</span>
                   <span className="text-label-tech text-muted-foreground">Reps</span>
-                  <span className="text-label-tech text-muted-foreground">RPE</span>
                   <span className="text-label-tech text-muted-foreground">RIR</span>
                   <span></span>
                 </div>
                 {currentSets.map((set, setIndex) => {
                   const completed = set.is_completed;
                   const isActive = activeSetId === set.id && !completed;
-                  const isEditable = !completed; // All non-completed sets are editable
+                  const isEditable = !completed;
                   const isNext = set.id === nextPendingSet?.id;
                   const inputs = getInputs(set);
 
                   const displayWeight = completed ? String(set.actual_weight ?? inputs.weight) : inputs.weight;
                   const displayReps = completed ? String(set.actual_reps ?? inputs.reps) : inputs.reps;
-                  const displayRpe = completed ? String(set.actual_rpe ?? inputs.rpe) : inputs.rpe;
                   const displayRir = completed ? String(set.actual_rir ?? "—") : inputs.rir;
 
                   const actualW = completed ? (set.actual_weight ?? 0) : 0;
@@ -668,7 +666,7 @@ export default function Workout() {
                     <div
                       key={set.id}
                       onClick={() => { if (!completed && !isActive) setActiveSetId(set.id); }}
-                      className={`grid grid-cols-[36px_44px_1fr_52px_44px_44px_38px] gap-1 items-center rounded-xl px-1 py-2.5 transition-all cursor-pointer ${
+                      className={`grid grid-cols-[36px_44px_1fr_52px_52px_38px] gap-1 items-center rounded-xl px-1 py-2.5 transition-all cursor-pointer ${
                         completed ? "bg-success/10" : isActive ? "bg-primary/8" : isNext ? "bg-primary/5" : ""
                       }`}
                     >
@@ -715,24 +713,6 @@ export default function Workout() {
                       ) : (
                         <span className={`font-mono text-sm ${completed ? "font-semibold text-foreground" : ""}`} style={{ color: completed ? "#FAF8F5" : "#6B6360", letterSpacing: "0.05em" }}>
                           {displayReps}
-                        </span>
-                      )}
-
-                      {/* RPE */}
-                      {isEditable ? (
-                        <input
-                          type="number"
-                          step={0.5}
-                          min={1}
-                          max={10}
-                          value={inputs.rpe}
-                          onChange={(e) => updateInput(set.id, "rpe", e.target.value)}
-                          className="font-mono text-sm text-foreground rounded-lg px-1.5 py-1.5 w-full outline-none focus:ring-1 focus:ring-primary/50"
-                          style={{ background: "#1A1A1A", border: "1px solid #2A2A2A", fontSize: 14 }}
-                        />
-                      ) : (
-                        <span className={`font-mono text-sm ${completed ? "font-semibold text-foreground" : ""}`} style={{ color: completed ? "#FAF8F5" : "#6B6360", letterSpacing: "0.05em" }}>
-                          {displayRpe}
                         </span>
                       )}
 
