@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useHomeData } from "@/hooks/useHomeData";
 import TrialBanner from "@/components/home/TrialBanner";
 import PremiumBottomSheet from "@/components/PremiumBottomSheet";
+import MesocycleTransitionScreen from "@/components/home/MesocycleTransitionScreen";
 import { Skeleton } from "@/components/ui/skeleton";
 
 function HomeSkeleton() {
