@@ -256,13 +256,14 @@ export default function Onboarding() {
       return;
     }
 
-    const genPromise = generateMockProgram(user.id, {
+    const genPromise = generateProgram(user.id, {
       experience_level: experienceLevel || "beginner",
       primary_goal: dbGoal,
       training_days: days,
       equipment: dbEquipment,
       emotional_barriers: [],
       gender: gender ? GENDER_MAP[gender] : null,
+      injuries: dbInjuries,
     }).then((result) => {
       if (result.noExercises) {
         setGenerationWarning("Tu programa se generará cuando la biblioteca de ejercicios esté lista.");
