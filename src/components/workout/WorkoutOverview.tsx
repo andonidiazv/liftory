@@ -7,7 +7,7 @@ export interface WorkoutBlock {
   id: string;
   name: string;
   type: "mobility" | "strength" | "sculpt" | "conditioning" | "cooldown";
-  formatBadge: string | null; // "SUPERSET", "TRISERIE", "EMOM 12 min", "AMRAP 16 min"
+  formatBadge: string | null;
   exerciseNames: string[];
   totalSets: number;
   completedSets: number;
@@ -16,13 +16,35 @@ export interface WorkoutBlock {
   supersetGroup?: SupersetGroup;
 }
 
-const BLOCK_COLORS: Record<string, string> = {
+/** Color mapping by block label name */
+const BLOCK_LABEL_COLORS: Record<string, string> = {
+  'MOVILIDAD': '#7A8B5C',
+  'RESET & BREATHE': '#7A8B5C',
+  'SPINE & HIPS': '#7A8B5C',
+  'DYNAMIC FLOW': '#7A8B5C',
+  'ATHLETIC INTEGRATION': '#7A8B5C',
+  'FUERZA A': '#C75B39',
+  'FUERZA B': '#C75B39',
+  'SCULPT A': '#C9A96E',
+  'SCULPT B': '#C9A96E',
+  'ATHLETIC HINGE': '#D4836B',
+  'CONDITIONING': '#D45555',
+  'CARDIO': '#D45555',
+  'COOLDOWN': '#7A8B5C',
+};
+
+/** Fallback colors by block type */
+const BLOCK_TYPE_COLORS: Record<string, string> = {
   mobility: "#7A8B5C",
   cooldown: "#7A8B5C",
   strength: "#C75B39",
   sculpt: "#C9A96E",
   conditioning: "#D45555",
 };
+
+function getBlockColor(block: WorkoutBlock): string {
+  return BLOCK_LABEL_COLORS[block.name] || BLOCK_TYPE_COLORS[block.type] || "#C75B39";
+}
 
 function getDayName(date: string): string {
   const d = new Date(date + "T12:00:00");
@@ -89,7 +111,7 @@ export default function WorkoutOverview({
         <div className="flex flex-col gap-3">
           {blocks.map((block) => {
             const done = block.completedSets >= block.totalSets && block.totalSets > 0;
-            const color = BLOCK_COLORS[block.type] || "#C75B39";
+            const color = getBlockColor(block);
             return (
               <button
                 key={block.id}

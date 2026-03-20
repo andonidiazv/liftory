@@ -38,6 +38,7 @@ export interface WorkoutSetData {
   is_pr: boolean;
   logged_at: string | null;
   coaching_cue_override: string | null;
+  block_label: string | null;
   exercise: WorkoutExercise | null;
 }
 
@@ -83,7 +84,6 @@ export function useWorkoutData(workoutId: string | undefined) {
   const weightUnit = profile?.weight_unit || "kg";
 
   const fetchWorkout = useCallback(async () => {
-    // Prevent infinite loading when route/session has no workout context yet
     if (!user || !workoutId) {
       setWorkout(null);
       setSets([]);
@@ -138,7 +138,10 @@ export function useWorkoutData(workoutId: string | undefined) {
 
       const rawSets = ((data.workout_sets as any[]) ?? []).sort(
         (a: any, b: any) => a.set_order - b.set_order
-      ) as WorkoutSetData[];
+      ).map((s: any) => ({
+        ...s,
+        block_label: s.block_label ?? null,
+      })) as WorkoutSetData[];
       setSets(rawSets);
 
       // Group by exercise_id preserving order
@@ -164,7 +167,6 @@ export function useWorkoutData(workoutId: string | undefined) {
         const isSupersetType = setType === "superset" || setType === "backoff";
 
         if (isSupersetType) {
-          // Collect consecutive exercises with same superset-type
           const cluster: ExerciseGroup[] = [g];
           while (i + 1 < groups.length) {
             const nextType = groups[i + 1].sets[0]?.set_type;
@@ -204,7 +206,6 @@ export function useWorkoutData(workoutId: string | undefined) {
 
         if (pastSets && pastSets.length > 0) {
           const bestWeights: Record<string, number> = {};
-          // Also compute avg RIR from last 3 sessions per exercise
           const rirAccum: Record<string, number[]> = {};
 
           for (const ps of pastSets) {
@@ -212,7 +213,6 @@ export function useWorkoutData(workoutId: string | undefined) {
             if (!(key in bestWeights) && ps.actual_weight != null) {
               bestWeights[key] = ps.actual_weight;
             }
-            // Collect RIR values (up to ~9 sets = ~3 sessions × 3 sets)
             if (ps.actual_rir != null) {
               if (!rirAccum[ps.exercise_id]) rirAccum[ps.exercise_id] = [];
               if (rirAccum[ps.exercise_id].length < 9) {
@@ -273,14 +273,12 @@ export function useWorkoutData(workoutId: string | undefined) {
         return null;
       }
 
-      // Refetch the set to check is_pr
       const { data: updated } = await supabase
         .from("workout_sets")
         .select("*")
         .eq("id", setId)
         .maybeSingle();
 
-      // Update local state
       setSets((prev) =>
         prev.map((s) =>
           s.id === setId
@@ -298,7 +296,6 @@ export function useWorkoutData(workoutId: string | undefined) {
         )
       );
 
-      // Update exercise groups too
       setExerciseGroups((prev) =>
         prev.map((g) => ({
           ...g,
@@ -362,7 +359,6 @@ export function useWorkoutData(workoutId: string | undefined) {
   const allSetsCompleted = mainSets.length > 0 && mainSets.every((s) => s.is_completed);
   const cooldownCompleted = cooldownSets.length > 0 && cooldownSets.every((s) => s.is_completed);
 
-  // Helper to get last best weight for a given exercise + reps combo
   const getLastBestWeight = useCallback(
     (exerciseId: string, plannedReps: number | null): number | null => {
       const key = `${exerciseId}_${plannedReps}`;
@@ -371,7 +367,6 @@ export function useWorkoutData(workoutId: string | undefined) {
     [lastBestWeights]
   );
 
-  // Smart weight suggestion based on wave periodization + RIR history
   const getSuggestedWeight = useCallback(
     (exerciseId: string, plannedReps: number | null): { weight: number | null; hint: string | null } => {
       const lastWeight = getLastBestWeight(exerciseId, plannedReps);
@@ -384,35 +379,29 @@ export function useWorkoutData(workoutId: string | undefined) {
       const smallIncrement = isKg ? 2.5 : 5;
       const bigIncrement = isKg ? 5 : 10;
 
-      // Base wave progression
       let waveWeight = lastWeight;
       if (weekInCycle <= 2) {
-        waveWeight = lastWeight; // same weight
+        waveWeight = lastWeight;
       } else if (weekInCycle <= 4) {
         waveWeight = lastWeight + smallIncrement;
       } else if (weekInCycle === 5) {
         waveWeight = lastWeight + bigIncrement;
       } else {
-        // Week 6 deload: same weight as peak (no reduction)
         waveWeight = lastWeight + bigIncrement;
       }
 
-      // RIR-based adjustment
       const avgRir = avgRirByExercise[exerciseId];
       let hint: string | null = null;
       if (avgRir != null) {
         if (avgRir > 3) {
-          // User had too much reserve → bump up
           waveWeight = Math.max(waveWeight, lastWeight + smallIncrement);
           hint = "RIR alto — sube peso";
         } else if (avgRir < 1) {
-          // User was grinding → keep or reduce
           waveWeight = lastWeight;
           hint = "RIR bajo — mantén peso";
         }
       }
 
-      // Round to nearest 0.5
       waveWeight = Math.round(waveWeight * 2) / 2;
 
       return { weight: waveWeight, hint };
