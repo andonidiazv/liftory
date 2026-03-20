@@ -684,7 +684,7 @@ export type Database = {
           program_id: string
           scheduled_date: string
           short_on_time_note: string | null
-          user_id: string
+          user_id: string | null
           week_number: number
           workout_type: string
         }
@@ -701,7 +701,7 @@ export type Database = {
           program_id: string
           scheduled_date: string
           short_on_time_note?: string | null
-          user_id: string
+          user_id?: string | null
           week_number?: number
           workout_type?: string
         }
@@ -718,7 +718,7 @@ export type Database = {
           program_id?: string
           scheduled_date?: string
           short_on_time_note?: string | null
-          user_id?: string
+          user_id?: string | null
           week_number?: number
           workout_type?: string
         }
