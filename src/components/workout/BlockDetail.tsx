@@ -4,6 +4,9 @@ import type { WorkoutBlock } from "./WorkoutOverview";
 import ExerciseVideoOverlay from "./ExerciseVideoOverlay";
 import type { WorkoutSetData, ExerciseGroup } from "@/hooks/useWorkoutData";
 
+/** Block labels that use instruction mode (no weight/reps inputs) */
+const INSTRUCTION_BLOCKS = ['CARDIO', 'COOLDOWN', 'MOVILIDAD', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION'];
+
 interface SetInputs {
   weight: string;
   reps: string;
@@ -119,7 +122,25 @@ export default function BlockDetail({
 
       {/* Content */}
       <div className="flex-1 px-5 pb-8">
-        {isSupersetBlock ? (
+        {isInstructionBlock ? (
+          <div className="flex flex-col gap-4">
+            {block.groups.map((group) => (
+              <InstructionCard
+                key={group.exercise.id}
+                group={group}
+                saving={saving}
+                onCompleteAll={async () => {
+                  for (const set of group.sets) {
+                    if (!set.is_completed) {
+                      await onCompleteSet(set, { actual_weight: 0, actual_reps: set.planned_reps || 1 });
+                    }
+                  }
+                }}
+                onOpenVideo={(v) => setVideoOverlay(v)}
+              />
+            ))}
+          </div>
+        ) : isSupersetBlock ? (
           <SupersetContent
             block={block}
             weightUnit={weightUnit}
