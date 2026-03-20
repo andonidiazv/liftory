@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { BarChart3, Users, Dumbbell, Sparkles, Brain, ScrollText, LogOut, Home } from "lucide-react";
+import { BarChart3, Users, Dumbbell, Sparkles, Brain, ScrollText, LogOut, Home, ClipboardList } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 const navItems = [
