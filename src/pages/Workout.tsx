@@ -213,27 +213,8 @@ export default function Workout() {
     );
   }
 
-  // Handler to complete all sets in a timer block
-  const handleCompleteTimerBlock = useCallback(async (block: WorkoutBlock, rounds: number) => {
-    for (const group of block.groups) {
-      for (const set of group.sets) {
-        if (!set.is_completed) {
-          await completeSet(set.id, { actual_weight: 0, actual_reps: rounds, actual_rpe: 0, actual_rir: 0 });
-        }
-      }
-    }
-    await refetch();
-  }, [completeSet, refetch]);
 
-  // Route block selection: EMOM/AMRAP → timer, else → detail
-  const handleBlockSelect = useCallback((block: WorkoutBlock) => {
-    const badge = block.formatBadge?.toUpperCase();
-    if (badge === "EMOM" || badge === "AMRAP") {
-      setTimerBlock(block);
-    } else {
-      setActiveBlock(block);
-    }
-  }, []);
+
 
   // ─── LEVEL 2: Timer block ───
   if (timerBlock) {
