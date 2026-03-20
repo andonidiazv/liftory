@@ -8,6 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import WorkoutOverview, { type WorkoutBlock } from "@/components/workout/WorkoutOverview";
 import BlockDetail from "@/components/workout/BlockDetail";
 import RestTimerSheet from "@/components/workout/RestTimerSheet";
+import TimerBlockDetail from "@/components/workout/TimerBlockDetail";
+import ExerciseVideoOverlay from "@/components/workout/ExerciseVideoOverlay";
 
 export default function Workout() {
   const { id } = useParams<{ id: string }>();
