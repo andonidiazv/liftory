@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { ChevronLeft, Check, Dumbbell, Loader2, Quote, Trophy } from "lucide-react";
 import type { WorkoutBlock } from "./WorkoutOverview";
+import ExerciseVideoOverlay from "./ExerciseVideoOverlay";
 import type { WorkoutSetData, ExerciseGroup } from "@/hooks/useWorkoutData";
 
 interface SetInputs {
