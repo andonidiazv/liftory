@@ -36,6 +36,8 @@ export default function Workout() {
   } = useApp();
 
   const [activeBlock, setActiveBlock] = useState<WorkoutBlock | null>(null);
+  const [timerBlock, setTimerBlock] = useState<WorkoutBlock | null>(null);
+  const [videoOverlay, setVideoOverlay] = useState<{ name: string; videoUrl: string | null; coachingCue: string | null } | null>(null);
   const [restTimerVisible, setRestTimerVisible] = useState(false);
   const [restTimerDuration, setRestTimerDuration] = useState(90);
   const [showFinishModal, setShowFinishModal] = useState(false);
