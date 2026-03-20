@@ -1,10 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import { Flame, Trophy, Dumbbell, Leaf, ChevronRight } from "lucide-react";
+import { Leaf, ChevronRight, ChevronLeft } from "lucide-react";
 import Layout from "@/components/Layout";
 import { useAuth } from "@/context/AuthContext";
-import { useHomeData } from "@/hooks/useHomeData";
+import { useNavigableHome } from "@/hooks/useNavigableHome";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
+import MonthCalendarSheet from "@/components/home/MonthCalendarSheet";
 
 const BLOCK_LABELS: Record<string, string> = {
   accumulation: "PROGRESSIVE OVERLOAD",
@@ -32,14 +33,39 @@ function HomeSkeleton() {
 export default function Home() {
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const { todayWorkout, weekDays, quickStats, programInfo, loading } = useHomeData();
+  const {
+    programInfo,
+    selectedDate,
+    selectedWorkout,
+    weekDays,
+    viewingWeekNumber,
+    quickStats,
+    allWorkouts,
+    minDate,
+    maxDate,
+    loading,
+    todayStr,
+    selectDay,
+    goToPrevWeek,
+    goToNextWeek,
+    canGoPrev,
+    canGoNext,
+  } = useNavigableHome();
 
   const displayName = profile?.full_name || "Atleta";
-  const completedDays = weekDays.filter((d) => d.isCompleted).length;
 
   if (loading) {
     return <Layout><HomeSkeleton /></Layout>;
   }
+
+  const workout = selectedWorkout;
+  const isSelectedToday = selectedDate === todayStr;
+
+  // Format selected date for display
+  const selectedDateObj = new Date(selectedDate + "T12:00:00");
+  const dateDisplay = isSelectedToday
+    ? new Date().toLocaleDateString("es-MX", { weekday: "long" })
+    : selectedDateObj.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "short" });
 
   return (
     <Layout>
@@ -56,21 +82,21 @@ export default function Home() {
           )}
         </div>
 
-        {/* 2. Today's Workout Card */}
+        {/* 2. Workout Card */}
         {programInfo ? (
-          todayWorkout ? (
+          workout ? (
             <div
-              className="rounded-2xl p-5 border-l-4"
+              className="rounded-2xl p-5 border-l-4 cursor-pointer"
               style={{
                 background: "hsl(var(--card))",
                 border: "1px solid hsl(var(--border))",
-                borderLeftColor: todayWorkout.is_rest_day ? "#7A8B5C" : "hsl(var(--primary))",
+                borderLeftColor: workout.is_rest_day ? "#7A8B5C" : "hsl(var(--primary))",
                 borderLeftWidth: 4,
-                opacity: todayWorkout.is_completed ? 0.8 : 1,
+                opacity: workout.is_completed ? 0.8 : 1,
               }}
-              onClick={() => !todayWorkout.is_completed && navigate(`/workout/${todayWorkout.id}`)}
+              onClick={() => !workout.is_completed && navigate(`/workout/${workout.id}`)}
             >
-              {todayWorkout.is_rest_day ? (
+              {workout.is_rest_day ? (
                 <>
                   <div className="flex items-center gap-2">
                     <Leaf className="h-4 w-4" style={{ color: "#7A8B5C" }} />
@@ -82,46 +108,45 @@ export default function Home() {
                     Movilidad + Recovery
                   </p>
                 </>
-              ) : todayWorkout.is_completed ? (
+              ) : workout.is_completed ? (
                 <div className="flex items-center gap-3">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full" style={{ background: "rgba(122,139,92,0.2)" }}>
                     <span style={{ color: "#7A8B5C" }}>✓</span>
                   </div>
                   <div>
-                    <p className="font-display text-[20px] font-semibold text-foreground">{todayWorkout.day_label}</p>
+                    <p className="font-display text-[20px] font-semibold text-foreground">{workout.day_label}</p>
                     <p className="text-[13px] text-muted-foreground font-body">Sesión completada ✓</p>
                   </div>
                 </div>
               ) : (
                 <>
                   <h2 className="font-display text-[20px] font-semibold text-foreground">
-                    {todayWorkout.day_label}
+                    {workout.day_label}
                   </h2>
                   <p className="mt-1 text-[13px] text-muted-foreground font-body">
-                    {new Date().toLocaleDateString("es-MX", { weekday: "long" })} · ~{todayWorkout.estimated_duration ?? "—"} min · {todayWorkout.setCount} sets
+                    {dateDisplay} · ~{workout.estimated_duration ?? "—"} min · {workout.setCount} sets
                   </p>
-                  {todayWorkout.coach_note && (
+                  {workout.coach_note && (
                     <p className="mt-2 text-[12px] text-muted-foreground font-body italic truncate">
-                      {todayWorkout.coach_note}
+                      {workout.coach_note}
                     </p>
                   )}
                   <button
-                    onClick={(e) => { e.stopPropagation(); navigate(`/workout/${todayWorkout.id}`); }}
+                    onClick={(e) => { e.stopPropagation(); navigate(`/workout/${workout.id}`); }}
                     className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 font-display text-[14px] font-semibold text-primary-foreground"
                   >
-                    EMPEZAR SESIÓN <ChevronRight className="h-4 w-4" />
+                    {isSelectedToday ? "EMPEZAR SESIÓN" : "VER SESIÓN"} <ChevronRight className="h-4 w-4" />
                   </button>
                 </>
               )}
             </div>
           ) : (
             <div className="rounded-2xl p-5" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-              <p className="font-display text-[16px] font-semibold text-foreground">Sin workout hoy</p>
+              <p className="font-display text-[16px] font-semibold text-foreground">Sin workout {isSelectedToday ? "hoy" : "este día"}</p>
               <p className="mt-1 text-[13px] text-muted-foreground font-body">Descansa o consulta tu programa.</p>
             </div>
           )
         ) : (
-          /* No program */
           <div className="rounded-2xl p-6 text-center" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
             <p className="font-display text-[18px] font-semibold text-foreground">Comienza tu programa</p>
             <p className="mt-2 text-[13px] text-muted-foreground font-body">
@@ -136,39 +161,94 @@ export default function Home() {
           </div>
         )}
 
-        {/* 3. Week Bar */}
-        <div className="flex items-center justify-between">
-          {(weekDays.length > 0 ? weekDays : ["L", "M", "M", "J", "V", "S", "D"].map((d, i) => ({
-            date: "", dayLabel: d, isCompleted: false, isRestDay: false, isToday: false, hasWorkout: false, workoutLabel: null,
-          }))).map((day, i) => (
-            <div key={i} className="flex flex-col items-center gap-1.5">
-              <div
-                className="flex h-10 w-10 items-center justify-center rounded-full transition-all"
-                style={{
-                  background: day.isCompleted ? "hsl(var(--primary))" : "transparent",
-                  border: day.isToday
-                    ? "2px solid hsl(var(--primary))"
-                    : day.isCompleted
-                    ? "none"
-                    : "2px solid hsl(var(--border))",
-                  boxShadow: day.isToday ? "0 0 0 3px hsl(var(--primary) / 0.2)" : "none",
-                }}
-              >
-                {day.isCompleted ? (
-                  <span className="text-sm font-bold text-primary-foreground">✓</span>
-                ) : day.isRestDay ? (
-                  <Leaf className="h-3.5 w-3.5 text-muted-foreground" />
-                ) : (
-                  <span className={`text-xs font-body ${day.isToday ? "text-primary font-semibold" : "text-muted-foreground"}`}>
-                    {day.dayLabel}
-                  </span>
-                )}
-              </div>
-              <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
-                {day.dayLabel}
-              </span>
+        {/* 3. Week Navigation */}
+        <div className="space-y-2">
+          {/* Week label + arrows */}
+          <div className="flex items-center justify-between">
+            <button
+              onClick={goToPrevWeek}
+              disabled={!canGoPrev}
+              className="p-1.5 rounded-full text-muted-foreground hover:text-foreground disabled:opacity-20 transition-opacity"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <span className="font-mono text-[11px] uppercase tracking-[2px] text-muted-foreground">
+              {viewingWeekNumber != null && programInfo
+                ? `Semana ${viewingWeekNumber} de ${programInfo.total_weeks}`
+                : "Semana"}
+            </span>
+            <button
+              onClick={goToNextWeek}
+              disabled={!canGoNext}
+              className="p-1.5 rounded-full text-muted-foreground hover:text-foreground disabled:opacity-20 transition-opacity"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Day circles + calendar button */}
+          <div className="flex items-center gap-1">
+            <div className="flex flex-1 items-center justify-between">
+              {weekDays.map((day, i) => {
+                const isSelected = day.date === selectedDate;
+                return (
+                  <button
+                    key={i}
+                    disabled={!day.isEnabled}
+                    onClick={() => day.isEnabled && selectDay(day.date)}
+                    className="flex flex-col items-center gap-1.5 transition-all"
+                    style={{ opacity: day.isEnabled ? 1 : 0.3 }}
+                  >
+                    <div
+                      className="flex h-10 w-10 items-center justify-center rounded-full transition-all"
+                      style={{
+                        background: day.isCompleted
+                          ? "hsl(var(--primary))"
+                          : "transparent",
+                        border: day.isCompleted
+                          ? "none"
+                          : isSelected && !day.isToday
+                          ? "2px solid hsl(var(--accent))"
+                          : day.isToday
+                          ? "2px solid hsl(var(--primary))"
+                          : "2px solid hsl(var(--border))",
+                        boxShadow: day.isToday
+                          ? "0 0 0 3px hsl(var(--primary) / 0.2)"
+                          : isSelected && !day.isToday
+                          ? "0 0 0 3px hsl(var(--accent) / 0.2)"
+                          : "none",
+                      }}
+                    >
+                      {day.isCompleted ? (
+                        <span className="text-sm font-bold text-primary-foreground">✓</span>
+                      ) : day.isRestDay ? (
+                        <Leaf className="h-3.5 w-3.5 text-muted-foreground" />
+                      ) : (
+                        <span className={`text-xs font-body ${
+                          day.isToday ? "text-primary font-semibold" : isSelected ? "text-accent font-semibold" : "text-muted-foreground"
+                        }`}>
+                          {day.dayLabel}
+                        </span>
+                      )}
+                    </div>
+                    <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+                      {day.dayLabel}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
-          ))}
+
+            {/* Calendar button */}
+            <MonthCalendarSheet
+              allWorkouts={allWorkouts}
+              selectedDate={selectedDate}
+              todayStr={todayStr}
+              minDate={minDate}
+              maxDate={maxDate}
+              onSelectDay={selectDay}
+            />
+          </div>
         </div>
 
         {/* 4. Quick Stats */}
