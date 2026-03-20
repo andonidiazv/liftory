@@ -37,6 +37,7 @@ export interface WorkoutSetData {
   is_completed: boolean;
   is_pr: boolean;
   logged_at: string | null;
+  coaching_cue_override: string | null;
   exercise: WorkoutExercise | null;
 }
 
@@ -51,6 +52,9 @@ export interface WorkoutData {
   completed_at: string | null;
   scheduled_date: string;
   week_number: number;
+  coach_note: string | null;
+  short_on_time_note: string | null;
+  program_id: string;
 }
 
 export interface ExerciseGroup {
@@ -126,6 +130,9 @@ export function useWorkoutData(workoutId: string | undefined) {
         completed_at: data.completed_at,
         scheduled_date: data.scheduled_date,
         week_number: data.week_number,
+        coach_note: (data as any).coach_note ?? null,
+        short_on_time_note: (data as any).short_on_time_note ?? null,
+        program_id: data.program_id,
       };
       setWorkout(w);
 
