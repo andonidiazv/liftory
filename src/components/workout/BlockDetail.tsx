@@ -259,21 +259,20 @@ function ExerciseCard({
     >
       {/* Exercise header */}
       <div className="flex items-start gap-3">
-        {/* Thumbnail */}
-        {ex.thumbnail_url ? (
-          <div
-            className="shrink-0 overflow-hidden rounded-lg"
-            style={{ width: 64, height: 48 }}
-          >
+        {/* Thumbnail - tappable for video */}
+        <button
+          onClick={() => onOpenVideo({ name: ex.name, videoUrl: ex.video_url, coachingCue })}
+          className="shrink-0 overflow-hidden rounded-lg"
+          style={{ width: 64, height: 48 }}
+        >
+          {ex.thumbnail_url ? (
             <img src={ex.thumbnail_url} alt={ex.name} className="h-full w-full object-cover" />
-          </div>
-        ) : (
-          <div
-            className="shrink-0 flex items-center justify-center rounded-lg bg-secondary"
-            style={{ width: 64, height: 48 }}
-          >
-            <Dumbbell className="h-5 w-5 text-muted-foreground" />
-          </div>
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-secondary">
+              <Dumbbell className="h-5 w-5 text-muted-foreground" />
+            </div>
+          )}
+        </button>
         )}
 
         <div className="flex-1 min-w-0">
