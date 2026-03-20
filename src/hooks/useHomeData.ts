@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
-import { checkMesocycleComplete, generateNextMesocycle } from "@/lib/liftoryEngine";
 
 export interface TodayWorkout {
   id: string;
@@ -11,12 +10,13 @@ export interface TodayWorkout {
   is_rest_day: boolean;
   is_completed: boolean;
   exerciseCount: number;
-  tags: string[];
+  setCount: number;
+  coach_note: string | null;
 }
 
 export interface WeekDay {
   date: string;
-  dayLabel: string; // L, M, M, J, V, S, D
+  dayLabel: string;
   workoutLabel: string | null;
   isCompleted: boolean;
   isRestDay: boolean;
@@ -24,18 +24,18 @@ export interface WeekDay {
   hasWorkout: boolean;
 }
 
-export interface WearableInfo {
-  connected: boolean;
-  recovery_score: number | null;
-  hrv_ms: number | null;
-  sleep_score: number | null;
-  sleep_duration_minutes: number | null;
-}
-
 export interface QuickStats {
   totalCompleted: number;
   monthPRs: number;
   streak: number;
+}
+
+export interface ProgramInfo {
+  id: string;
+  name: string;
+  total_weeks: number;
+  current_week: number;
+  current_block: string;
 }
 
 function getMonday(d: Date): Date {
@@ -57,44 +57,36 @@ export function useHomeData() {
   const { user } = useAuth();
   const [todayWorkout, setTodayWorkout] = useState<TodayWorkout | null>(null);
   const [weekDays, setWeekDays] = useState<WeekDay[]>([]);
-  const [wearable, setWearable] = useState<WearableInfo>({ connected: false, recovery_score: null, hrv_ms: null, sleep_score: null, sleep_duration_minutes: null });
   const [quickStats, setQuickStats] = useState<QuickStats>({ totalCompleted: 0, monthPRs: 0, streak: 0 });
+  const [programInfo, setProgramInfo] = useState<ProgramInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  const [mesocycleTransition, setMesocycleTransition] = useState<{ active: boolean; promise?: Promise<any> }>({ active: false });
 
   const fetchAll = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-
-    // Check if mesocycle is complete before fetching home data
-    const mcCheck = await checkMesocycleComplete(user.id);
-    if (mcCheck.isComplete && mcCheck.programId) {
-      const genPromise = generateNextMesocycle(user.id, mcCheck.programId);
-      setMesocycleTransition({ active: true, promise: genPromise });
-      setLoading(false);
-      return;
-    }
 
     const today = new Date();
     const todayStr = formatDate(today);
     const monday = getMonday(today);
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
+    const firstOfMonth = formatDate(new Date(today.getFullYear(), today.getMonth(), 1));
 
-    const now = new Date();
-    const firstOfMonth = formatDate(new Date(now.getFullYear(), now.getMonth(), 1));
+    const [programRes, todayRes, weekRes, statsRes, prsRes] = await Promise.all([
+      supabase
+        .from("programs")
+        .select("id, name, total_weeks, current_week, current_block")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .maybeSingle(),
 
-    // Run all queries in parallel
-    const [todayRes, weekRes, wearableConnRes, statsRes, prsRes] = await Promise.all([
-      // Today's workout with sets
       supabase
         .from("workouts")
-        .select("id, day_label, workout_type, estimated_duration, is_rest_day, is_completed, workout_sets(exercise_id)")
+        .select("id, day_label, workout_type, estimated_duration, is_rest_day, is_completed, coach_note, workout_sets(id, exercise_id)")
         .eq("user_id", user.id)
         .eq("scheduled_date", todayStr)
         .maybeSingle(),
 
-      // Week workouts
       supabase
         .from("workouts")
         .select("scheduled_date, is_completed, is_rest_day, day_label, workout_type")
@@ -103,21 +95,12 @@ export function useHomeData() {
         .lte("scheduled_date", formatDate(sunday))
         .order("scheduled_date", { ascending: true }),
 
-      // Wearable connection check
-      supabase
-        .from("onboarding_answers")
-        .select("connected_wearable")
-        .eq("user_id", user.id)
-        .maybeSingle(),
-
-      // Total completed workouts
       supabase
         .from("workouts")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
         .eq("is_completed", true),
 
-      // PRs this month
       supabase
         .from("workout_sets")
         .select("*", { count: "exact", head: true })
@@ -126,11 +109,18 @@ export function useHomeData() {
         .gte("logged_at", firstOfMonth),
     ]);
 
-    // Process today's workout
+    // Program
+    if (programRes.data) {
+      setProgramInfo(programRes.data as ProgramInfo);
+    } else {
+      setProgramInfo(null);
+    }
+
+    // Today's workout
     if (todayRes.data) {
       const w = todayRes.data;
-      const uniqueExercises = new Set((w.workout_sets as any[])?.map((s: any) => s.exercise_id) ?? []);
-      const typeTag = w.workout_type.charAt(0).toUpperCase() + w.workout_type.slice(1);
+      const sets = (w.workout_sets as any[]) ?? [];
+      const uniqueExercises = new Set(sets.map((s: any) => s.exercise_id));
       setTodayWorkout({
         id: w.id,
         day_label: w.day_label,
@@ -139,16 +129,16 @@ export function useHomeData() {
         is_rest_day: w.is_rest_day,
         is_completed: w.is_completed,
         exerciseCount: uniqueExercises.size,
-        tags: [typeTag],
+        setCount: sets.length,
+        coach_note: w.coach_note,
       });
     } else {
       setTodayWorkout(null);
     }
 
-    // Process week
+    // Week
     const weekMap = new Map<string, any>();
     (weekRes.data ?? []).forEach((w) => weekMap.set(w.scheduled_date, w));
-
     const days: WeekDay[] = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(monday);
@@ -167,29 +157,7 @@ export function useHomeData() {
     }
     setWeekDays(days);
 
-    // Process wearable
-    const hasWearable = !!wearableConnRes.data?.connected_wearable;
-    if (hasWearable) {
-      const { data: wd } = await supabase
-        .from("wearable_data")
-        .select("recovery_score, hrv_ms, sleep_score, sleep_duration_minutes")
-        .eq("user_id", user.id)
-        .order("date", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      setWearable({
-        connected: true,
-        recovery_score: wd?.recovery_score ? Number(wd.recovery_score) : null,
-        hrv_ms: wd?.hrv_ms ? Number(wd.hrv_ms) : null,
-        sleep_score: wd?.sleep_score ? Number(wd.sleep_score) : null,
-        sleep_duration_minutes: wd?.sleep_duration_minutes ?? null,
-      });
-    } else {
-      setWearable({ connected: false, recovery_score: null, hrv_ms: null, sleep_score: null, sleep_duration_minutes: null });
-    }
-
-    // Compute streak (consecutive completed days ending today or yesterday)
+    // Streak
     const { data: recentWorkouts } = await supabase
       .from("workouts")
       .select("scheduled_date, is_completed")
@@ -200,9 +168,8 @@ export function useHomeData() {
       .limit(30);
 
     let streak = 0;
-    if (recentWorkouts && recentWorkouts.length > 0) {
+    if (recentWorkouts?.length) {
       const check = new Date(today);
-      // If today's workout isn't completed, start from yesterday
       if (!recentWorkouts.find((w) => w.scheduled_date === todayStr)) {
         check.setDate(check.getDate() - 1);
       }
@@ -212,9 +179,7 @@ export function useHomeData() {
         if (completedDates.has(ds)) {
           streak++;
           check.setDate(check.getDate() - 1);
-        } else {
-          break;
-        }
+        } else break;
       }
     }
 
@@ -227,9 +192,7 @@ export function useHomeData() {
     setLoading(false);
   }, [user]);
 
-  useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
+  useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  return { todayWorkout, weekDays, wearable, quickStats, loading, refetch: fetchAll, mesocycleTransition };
+  return { todayWorkout, weekDays, quickStats, programInfo, loading, refetch: fetchAll };
 }
