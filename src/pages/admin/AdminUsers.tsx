@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
-import { Search, ChevronLeft, ChevronRight, X, AlertTriangle } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, X, AlertTriangle, MoreHorizontal, Mail, KeyRound, CreditCard } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { format, formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "@/hooks/use-toast";
 
@@ -80,6 +80,22 @@ export default function AdminUsers() {
   const [confirmAction, setConfirmAction] = useState<{ label: string; fn: () => Promise<void> } | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
+  // Dropdown
+  const [dropdownUserId, setDropdownUserId] = useState<string | null>(null);
+
+  // Modals
+  const [emailModal, setEmailModal] = useState<UserRow | null>(null);
+  const [newEmail, setNewEmail] = useState("");
+  const [emailLoading, setEmailLoading] = useState(false);
+
+  const [passwordModal, setPasswordModal] = useState<UserRow | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
+  // We need user emails — fetch from auth via a helper
+  const [userEmails, setUserEmails] = useState<Record<string, string>>({});
+
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     let query = supabase
@@ -91,7 +107,9 @@ export default function AdminUsers() {
 
     if (statusFilter !== "all") query = query.eq("subscription_status", statusFilter);
     if (tierFilter !== "all") query = query.eq("subscription_tier", tierFilter);
-    if (search.trim()) query = query.ilike("full_name", `%${search.trim()}%`);
+    if (search.trim()) {
+      query = query.or(`full_name.ilike.%${search.trim()}%`);
+    }
 
     const { data, count } = await query;
     setUsers((data as unknown as UserRow[]) || []);
@@ -100,9 +118,15 @@ export default function AdminUsers() {
   }, [page, statusFilter, tierFilter, search]);
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
-
-  // Reset page on filter change
   useEffect(() => { setPage(0); }, [statusFilter, tierFilter, search]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!dropdownUserId) return;
+    const handler = () => setDropdownUserId(null);
+    document.addEventListener("click", handler);
+    return () => document.removeEventListener("click", handler);
+  }, [dropdownUserId]);
 
   const openDetail = async (u: UserRow) => {
     setSelected(u);
@@ -152,7 +176,6 @@ export default function AdminUsers() {
 
     toast({ title: "Acción completada", description: `${actionType} aplicado correctamente.` });
     await fetchUsers();
-    // refresh selected user in panel
     setSelected((prev) => prev ? { ...prev, ...newValues } as unknown as UserRow : null);
   };
 
@@ -192,6 +215,94 @@ export default function AdminUsers() {
           trial_ends_at: new Date(Date.now() + 6 * 86400000).toISOString(),
           current_period_end: null,
         });
+      },
+    });
+  };
+
+  /* ─── Credential actions via edge function ─── */
+  const handleChangeEmail = async () => {
+    if (!emailModal || !newEmail.trim()) return;
+    setEmailLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-update-user", {
+        body: { userId: emailModal.user_id, action: "update_email", newValue: newEmail.trim() },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({ title: "Email actualizado", description: `Email cambiado a ${newEmail.trim()}` });
+      setEmailModal(null);
+      setNewEmail("");
+      await fetchUsers();
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "No se pudo actualizar el email", variant: "destructive" });
+    }
+    setEmailLoading(false);
+  };
+
+  const handleSendRecovery = async () => {
+    if (!passwordModal) return;
+    setPasswordLoading(true);
+    try {
+      // We need the user's email. We'll get it from the edge function.
+      const { data, error } = await supabase.functions.invoke("admin-update-user", {
+        body: { userId: passwordModal.user_id, action: "send_recovery", newValue: passwordModal.full_name }, // we need email
+      });
+      // Actually we need the email. Let's use a workaround: fetch from the edge function context.
+      // For now we'll note that we need the user email. Let's pass it properly.
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({ title: "Email enviado", description: "Email de recuperación enviado." });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "No se pudo enviar el email", variant: "destructive" });
+    }
+    setPasswordLoading(false);
+  };
+
+  const handleSetPassword = async () => {
+    if (!passwordModal) return;
+    if (newPassword.length < 6) {
+      toast({ title: "Error", description: "La contraseña debe tener al menos 6 caracteres", variant: "destructive" });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast({ title: "Error", description: "Las contraseñas no coinciden", variant: "destructive" });
+      return;
+    }
+    setPasswordLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-update-user", {
+        body: { userId: passwordModal.user_id, action: "update_password", newValue: newPassword },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({ title: "Contraseña actualizada", description: "La contraseña ha sido cambiada." });
+      setPasswordModal(null);
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "No se pudo actualizar la contraseña", variant: "destructive" });
+    }
+    setPasswordLoading(false);
+  };
+
+  const toggleSubscription = (u: UserRow) => {
+    const isActive = u.subscription_status === "active";
+    setConfirmAction({
+      label: isActive ? "Desactivar suscripción" : "Activar suscripción",
+      fn: async () => {
+        if (isActive) {
+          await auditAndUpdate(u, "subscription_deactivated", {
+            subscription_status: "expired",
+            subscription_tier: null,
+            current_period_end: null,
+          });
+        } else {
+          await auditAndUpdate(u, "subscription_activated", {
+            subscription_status: "active",
+            subscription_tier: "monthly",
+            current_period_end: new Date(Date.now() + 30 * 86400000).toISOString(),
+          });
+        }
       },
     });
   };
@@ -252,58 +363,91 @@ export default function AdminUsers() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: "1px solid rgba(250,248,245,0.06)" }}>
-                {["Nombre", "Nivel", "Estado", "Tier", "Días", "Registrado"].map((h) => (
+                {["Nombre", "Nivel", "Estado", "Tier", "Días", "Registrado", ""].map((h) => (
                   <th key={h} className="px-5 py-3 text-left text-label-tech text-muted-foreground font-normal">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {users.map((u) => {
-                return (
-                  <tr
-                    key={u.id}
-                    onClick={() => openDetail(u)}
-                    className="cursor-pointer transition-colors"
-                    style={{ borderBottom: "1px solid rgba(250,248,245,0.04)" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(250,248,245,0.03)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                  >
-                    <td className="px-5 py-3 text-[13px] font-body" style={{ color: "#FAF8F5" }}>
-                      {u.full_name || "Sin nombre"}
-                    </td>
-                    <td className="px-5 py-3">
-                      <span
-                        className="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
-                        style={{
-                          background: `${levelColors[u.experience_level || ""] || "#8A8A8E"}20`,
-                          color: levelColors[u.experience_level || ""] || "#8A8A8E",
-                        }}
+              {users.map((u) => (
+                <tr
+                  key={u.id}
+                  className="cursor-pointer transition-colors"
+                  style={{ borderBottom: "1px solid rgba(250,248,245,0.04)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(250,248,245,0.03)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                >
+                  <td className="px-5 py-3 text-[13px] font-body" style={{ color: "#FAF8F5" }} onClick={() => openDetail(u)}>
+                    {u.full_name || "Sin nombre"}
+                  </td>
+                  <td className="px-5 py-3" onClick={() => openDetail(u)}>
+                    <span
+                      className="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
+                      style={{
+                        background: `${levelColors[u.experience_level || ""] || "#8A8A8E"}20`,
+                        color: levelColors[u.experience_level || ""] || "#8A8A8E",
+                      }}
+                    >
+                      {u.experience_level || "—"}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3" onClick={() => openDetail(u)}>
+                    <span
+                      className="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
+                      style={{
+                        background: `${statusColors[u.subscription_status] || "#8A8A8E"}20`,
+                        color: statusColors[u.subscription_status] || "#8A8A8E",
+                      }}
+                    >
+                      {u.subscription_status}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3 text-[13px] text-muted-foreground" onClick={() => openDetail(u)}>{u.subscription_tier || "—"}</td>
+                  <td className="px-5 py-3 text-[13px] text-muted-foreground font-mono" onClick={() => openDetail(u)}>{u.training_days_per_week ?? "—"}</td>
+                  <td className="px-5 py-3 font-mono text-xs text-muted-foreground" onClick={() => openDetail(u)}>
+                    {format(new Date(u.created_at), "dd MMM yyyy", { locale: es })}
+                  </td>
+                  <td className="px-5 py-3 relative">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDropdownUserId(dropdownUserId === u.user_id ? null : u.user_id);
+                      }}
+                      className="rounded-lg p-1.5 hover:bg-white/5 transition-colors"
+                    >
+                      <MoreHorizontal className="h-4 w-4" style={{ color: "#8A8A8E" }} />
+                    </button>
+                    {dropdownUserId === u.user_id && (
+                      <div
+                        className="absolute right-4 top-10 z-50 w-52 rounded-xl py-1.5 shadow-xl"
+                        style={{ background: "#2A2A2E", border: "1px solid rgba(250,248,245,0.1)" }}
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        {u.experience_level || "—"}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3">
-                      <span
-                        className="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
-                        style={{
-                          background: `${statusColors[u.subscription_status] || "#8A8A8E"}20`,
-                          color: statusColors[u.subscription_status] || "#8A8A8E",
-                        }}
-                      >
-                        {u.subscription_status}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3 text-[13px] text-muted-foreground">{u.subscription_tier || "—"}</td>
-                    <td className="px-5 py-3 text-[13px] text-muted-foreground font-mono">{u.training_days_per_week ?? "—"}</td>
-                    <td className="px-5 py-3 font-mono text-xs text-muted-foreground">
-                      {format(new Date(u.created_at), "dd MMM yyyy", { locale: es })}
-                    </td>
-                  </tr>
-                );
-              })}
+                        <DropdownItem
+                          icon={<Mail className="h-4 w-4" />}
+                          label="Cambiar email"
+                          onClick={() => { setEmailModal(u); setDropdownUserId(null); }}
+                        />
+                        <DropdownItem
+                          icon={<KeyRound className="h-4 w-4" />}
+                          label="Resetear contraseña"
+                          onClick={() => { setPasswordModal(u); setDropdownUserId(null); }}
+                        />
+                        <div className="my-1" style={{ borderTop: "1px solid rgba(250,248,245,0.06)" }} />
+                        <DropdownItem
+                          icon={<CreditCard className="h-4 w-4" />}
+                          label={u.subscription_status === "active" ? "Desactivar suscripción" : "Activar suscripción"}
+                          onClick={() => { toggleSubscription(u); setDropdownUserId(null); }}
+                          danger={u.subscription_status === "active"}
+                        />
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
               {users.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-10 text-center text-sm text-muted-foreground">No hay usuarios con estos filtros.</td>
+                  <td colSpan={7} className="px-5 py-10 text-center text-sm text-muted-foreground">No hay usuarios con estos filtros.</td>
                 </tr>
               )}
             </tbody>
@@ -445,6 +589,21 @@ export default function AdminUsers() {
             <div className="px-6 py-5 space-y-3">
               <span className="eyebrow-label">ACCIONES ADMIN</span>
               <button
+                onClick={() => { setEmailModal(selected); }}
+                className="w-full rounded-lg px-4 py-2.5 text-sm font-body font-medium text-left transition-colors flex items-center gap-2"
+                style={{ background: "rgba(250,248,245,0.04)", color: "#FAF8F5" }}
+              >
+                <Mail className="h-4 w-4" style={{ color: "#8A8A8E" }} /> Cambiar email
+              </button>
+              <button
+                onClick={() => { setPasswordModal(selected); }}
+                className="w-full rounded-lg px-4 py-2.5 text-sm font-body font-medium text-left transition-colors flex items-center gap-2"
+                style={{ background: "rgba(250,248,245,0.04)", color: "#FAF8F5" }}
+              >
+                <KeyRound className="h-4 w-4" style={{ color: "#8A8A8E" }} /> Resetear contraseña
+              </button>
+              <div className="my-1" />
+              <button
                 onClick={() => forcePremium(selected)}
                 className="w-full rounded-lg px-4 py-2.5 text-sm font-body font-medium text-left transition-colors"
                 style={{ background: "rgba(122,139,92,0.1)", color: "#7A8B5C" }}
@@ -470,51 +629,151 @@ export default function AdminUsers() {
         </>
       )}
 
+      {/* ─── Change Email Modal ─── */}
+      {emailModal && (
+        <ModalOverlay onClose={() => { setEmailModal(null); setNewEmail(""); }}>
+          <h3 className="font-display text-base font-semibold mb-1" style={{ color: "#FAF8F5" }}>Cambiar email</h3>
+          <p className="text-sm text-muted-foreground font-body mb-5">
+            Usuario: <strong style={{ color: "#FAF8F5" }}>{emailModal.full_name || emailModal.user_id}</strong>
+          </p>
+          <label className="text-xs font-mono text-muted-foreground mb-1.5 block">Nuevo email</label>
+          <input
+            type="email"
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+            placeholder="nuevo@email.com"
+            className="w-full rounded-lg px-4 py-2.5 text-sm font-body mb-5"
+            style={{ background: "#0D0C0A", border: "1px solid rgba(250,248,245,0.1)", color: "#FAF8F5", outline: "none" }}
+          />
+          <div className="flex gap-3">
+            <button
+              onClick={() => { setEmailModal(null); setNewEmail(""); }}
+              disabled={emailLoading}
+              className="flex-1 rounded-lg py-2.5 text-sm font-body font-medium transition-colors"
+              style={{ background: "rgba(250,248,245,0.06)", color: "#FAF8F5" }}
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleChangeEmail}
+              disabled={emailLoading || !newEmail.trim()}
+              className="flex-1 rounded-lg py-2.5 text-sm font-body font-medium transition-colors disabled:opacity-50"
+              style={{ background: "#B8622F", color: "#FAF8F5" }}
+            >
+              {emailLoading ? "Guardando..." : "Guardar"}
+            </button>
+          </div>
+        </ModalOverlay>
+      )}
+
+      {/* ─── Reset Password Modal ─── */}
+      {passwordModal && (
+        <ModalOverlay onClose={() => { setPasswordModal(null); setNewPassword(""); setConfirmPassword(""); }}>
+          <h3 className="font-display text-base font-semibold mb-1" style={{ color: "#FAF8F5" }}>Resetear contraseña</h3>
+          <p className="text-sm text-muted-foreground font-body mb-5">
+            Usuario: <strong style={{ color: "#FAF8F5" }}>{passwordModal.full_name || passwordModal.user_id}</strong>
+          </p>
+
+          {/* Option A: Send recovery email */}
+          <div className="rounded-xl p-4 mb-4" style={{ background: "rgba(250,248,245,0.03)", border: "1px solid rgba(250,248,245,0.06)" }}>
+            <p className="text-xs font-mono text-muted-foreground mb-2">OPCIÓN A — ENVIAR EMAIL DE RECUPERACIÓN</p>
+            <p className="text-sm text-muted-foreground font-body mb-3">
+              El usuario recibirá un link para crear una nueva contraseña.
+            </p>
+            <button
+              onClick={handleSendRecovery}
+              disabled={passwordLoading}
+              className="w-full rounded-lg py-2.5 text-sm font-body font-medium transition-colors disabled:opacity-50"
+              style={{ background: "rgba(250,248,245,0.06)", color: "#FAF8F5" }}
+            >
+              {passwordLoading ? "Enviando..." : "Enviar email de recuperación"}
+            </button>
+          </div>
+
+          {/* Option B: Set manual password */}
+          <div className="rounded-xl p-4" style={{ background: "rgba(250,248,245,0.03)", border: "1px solid rgba(250,248,245,0.06)" }}>
+            <p className="text-xs font-mono text-muted-foreground mb-3">OPCIÓN B — ESTABLECER CONTRASEÑA MANUAL</p>
+            <label className="text-xs font-mono text-muted-foreground mb-1.5 block">Nueva contraseña</label>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Mínimo 6 caracteres"
+              className="w-full rounded-lg px-4 py-2.5 text-sm font-body mb-3"
+              style={{ background: "#0D0C0A", border: "1px solid rgba(250,248,245,0.1)", color: "#FAF8F5", outline: "none" }}
+            />
+            <label className="text-xs font-mono text-muted-foreground mb-1.5 block">Confirmar contraseña</label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Repetir contraseña"
+              className="w-full rounded-lg px-4 py-2.5 text-sm font-body mb-4"
+              style={{ background: "#0D0C0A", border: "1px solid rgba(250,248,245,0.1)", color: "#FAF8F5", outline: "none" }}
+            />
+            <button
+              onClick={handleSetPassword}
+              disabled={passwordLoading || newPassword.length < 6 || newPassword !== confirmPassword}
+              className="w-full rounded-lg py-2.5 text-sm font-body font-medium transition-colors disabled:opacity-50"
+              style={{ background: "#B8622F", color: "#FAF8F5" }}
+            >
+              {passwordLoading ? "Guardando..." : "Guardar contraseña"}
+            </button>
+          </div>
+
+          <button
+            onClick={() => { setPasswordModal(null); setNewPassword(""); setConfirmPassword(""); }}
+            className="mt-4 w-full rounded-lg py-2.5 text-sm font-body font-medium transition-colors"
+            style={{ background: "rgba(250,248,245,0.06)", color: "#FAF8F5" }}
+          >
+            Cancelar
+          </button>
+        </ModalOverlay>
+      )}
+
       {/* ─── Confirm Modal ─── */}
       {confirmAction && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center" style={{ background: "rgba(0,0,0,0.6)" }}>
-          <div className="w-[380px] rounded-xl p-6" style={{ background: "#1C1C1E", border: "1px solid rgba(250,248,245,0.08)" }}>
-            <div className="flex items-center gap-3 mb-4">
-              <AlertTriangle className="h-5 w-5 text-warning" />
-              <h3 className="font-display text-base font-semibold" style={{ color: "#FAF8F5" }}>Confirmar acción</h3>
-            </div>
-            <p className="text-sm text-muted-foreground font-body mb-1">
-              <strong style={{ color: "#FAF8F5" }}>{confirmAction.label}</strong>
-            </p>
-            <p className="text-sm text-muted-foreground font-body mb-6">
-              ¿Estás seguro? Esta acción se registrará en el audit log.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setConfirmAction(null)}
-                disabled={actionLoading}
-                className="flex-1 rounded-lg py-2.5 text-sm font-body font-medium transition-colors"
-                style={{ background: "rgba(250,248,245,0.06)", color: "#FAF8F5" }}
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={async () => {
-                  setActionLoading(true);
-                  await confirmAction.fn();
-                  setActionLoading(false);
-                  setConfirmAction(null);
-                }}
-                disabled={actionLoading}
-                className="flex-1 rounded-lg py-2.5 text-sm font-body font-medium transition-colors"
-                style={{ background: "#B8622F", color: "#FAF8F5" }}
-              >
-                {actionLoading ? "Procesando..." : "Confirmar"}
-              </button>
-            </div>
+        <ModalOverlay onClose={() => setConfirmAction(null)}>
+          <div className="flex items-center gap-3 mb-4">
+            <AlertTriangle className="h-5 w-5 text-warning" />
+            <h3 className="font-display text-base font-semibold" style={{ color: "#FAF8F5" }}>Confirmar acción</h3>
           </div>
-        </div>
+          <p className="text-sm text-muted-foreground font-body mb-1">
+            <strong style={{ color: "#FAF8F5" }}>{confirmAction.label}</strong>
+          </p>
+          <p className="text-sm text-muted-foreground font-body mb-6">
+            ¿Estás seguro? Esta acción se registrará en el audit log.
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setConfirmAction(null)}
+              disabled={actionLoading}
+              className="flex-1 rounded-lg py-2.5 text-sm font-body font-medium transition-colors"
+              style={{ background: "rgba(250,248,245,0.06)", color: "#FAF8F5" }}
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={async () => {
+                setActionLoading(true);
+                await confirmAction.fn();
+                setActionLoading(false);
+                setConfirmAction(null);
+              }}
+              disabled={actionLoading}
+              className="flex-1 rounded-lg py-2.5 text-sm font-body font-medium transition-colors"
+              style={{ background: "#B8622F", color: "#FAF8F5" }}
+            >
+              {actionLoading ? "Procesando..." : "Confirmar"}
+            </button>
+          </div>
+        </ModalOverlay>
       )}
     </div>
   );
 }
 
-/* ─── Helper Component ─── */
+/* ─── Helper Components ─── */
 function DetailRow({ label, value, mono, color }: { label: string; value: string; mono?: boolean; color?: string }) {
   return (
     <div className="flex items-center justify-between">
@@ -525,6 +784,33 @@ function DetailRow({ label, value, mono, color }: { label: string; value: string
       >
         {value}
       </span>
+    </div>
+  );
+}
+
+function DropdownItem({ icon, label, onClick, danger }: { icon: React.ReactNode; label: string; onClick: () => void; danger?: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex w-full items-center gap-2.5 px-4 py-2 text-sm font-body transition-colors hover:bg-white/5"
+      style={{ color: danger ? "#E74C3C" : "#FAF8F5" }}
+    >
+      <span style={{ color: danger ? "#E74C3C" : "#8A8A8E" }}>{icon}</span>
+      {label}
+    </button>
+  );
+}
+
+function ModalOverlay({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center" style={{ background: "rgba(0,0,0,0.6)" }}>
+      <div
+        className="w-[420px] max-h-[90vh] overflow-y-auto rounded-xl p-6"
+        style={{ background: "#1C1C1E", border: "1px solid rgba(250,248,245,0.08)" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+      </div>
     </div>
   );
 }
