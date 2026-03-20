@@ -60,7 +60,7 @@ export default function Exercises() {
   const [loading, setLoading] = useState(true);
   const [selectedExercise, setSelectedExercise] = useState<ExerciseRow | null>(null);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
-  const [showUpgrade, setShowUpgrade] = useState(false);
+  
   const { isPremium } = useAuth();
 
   const fetchExercises = useCallback(async () => {
