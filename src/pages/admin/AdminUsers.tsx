@@ -267,25 +267,11 @@ export default function AdminUsers() {
   };
 
   const toggleSubscription = (u: UserRow) => {
-    const isActive = u.subscription_status === "active";
-    setConfirmAction({
-      label: isActive ? "Desactivar suscripción" : "Activar suscripción",
-      fn: async () => {
-        if (isActive) {
-          await auditAndUpdate(u, "subscription_deactivated", {
-            subscription_status: "expired",
-            subscription_tier: null,
-            current_period_end: null,
-          });
-        } else {
-          await auditAndUpdate(u, "subscription_activated", {
-            subscription_status: "active",
-            subscription_tier: "monthly",
-            current_period_end: new Date(Date.now() + 30 * 86400000).toISOString(),
-          });
-        }
-      },
-    });
+    if (u.subscription_status === "active") {
+      deactivateSubscription(u);
+    } else {
+      activateSubscription(u);
+    }
   };
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
