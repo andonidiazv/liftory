@@ -92,7 +92,7 @@ export default function Progress() {
         {/* Weekly Volume Chart */}
         <div className="mt-8">
           <span className="eyebrow-label">VOLUMEN SEMANAL</span>
-          <PremiumGate label="Desbloquea tendencias históricas">
+          <div>
             <div className="mt-4 card-fbb">
               {weeklyVolume.some((d) => d.volume > 0) ? (
                 <ResponsiveContainer width="100%" height={180}>
