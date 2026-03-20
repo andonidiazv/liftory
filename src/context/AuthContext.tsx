@@ -13,12 +13,9 @@ type AuthContextType = {
   signIn: (email: string, password: string) => Promise<{ data: any; error: any }>;
   signOut: () => Promise<void>;
   signInWithGoogle: () => Promise<{ error: any }>;
-  isFreeTrial: () => boolean;
   isPremium: () => boolean;
-  isExpired: () => boolean;
   isAdmin: () => boolean;
   hasOnboarded: () => boolean;
-  daysLeftInTrial: () => number;
   refreshProfile: () => Promise<void>;
   fetchProfile: (userId: string) => Promise<void>;
 };
@@ -101,41 +98,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const isFreeTrial = () => {
-    if (!profile) return false;
-    if (profile.subscription_status !== "trial") return false;
-    if (!profile.trial_ends_at) return false;
-    return new Date(profile.trial_ends_at) > new Date();
-  };
-
   const isPremium = () => profile?.subscription_status === "active";
-
-  const isExpired = () => {
-    if (!profile) return false;
-    if (profile.subscription_status === "expired") return true;
-    if (profile.subscription_status === "trial") {
-      if (!profile.trial_ends_at) return true;
-      return new Date(profile.trial_ends_at) <= new Date();
-    }
-    return false;
-  };
 
   const isAdmin = () => profile?.role === "admin";
 
   const hasOnboarded = () => profile?.onboarding_completed === true;
-
-  const daysLeftInTrial = () => {
-    if (!profile?.trial_ends_at) return 0;
-    const diff = new Date(profile.trial_ends_at).getTime() - Date.now();
-    return Math.max(0, Math.ceil(diff / 86400000));
-  };
 
   return (
     <AuthContext.Provider
       value={{
         user, session, profile, loading,
         signUp, signIn, signOut, signInWithGoogle,
-        isFreeTrial, isPremium, isExpired, isAdmin, hasOnboarded, daysLeftInTrial,
+        isPremium, isAdmin, hasOnboarded,
         refreshProfile, fetchProfile,
       }}
     >

@@ -2,7 +2,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, profile, loading, isExpired, hasOnboarded, isAdmin } = useAuth();
+  const { user, profile, loading, isAdmin, hasOnboarded } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -19,7 +19,6 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     return <Navigate to="/login" replace />;
   }
 
-  // Wait for profile to load before redirect decisions
   if (!profile) {
     return (
       <div className="flex min-h-screen items-center justify-center" style={{ background: "#0F0F0F" }}>
@@ -30,19 +29,20 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     );
   }
 
-  // Onboarding check (except if already on onboarding-adjacent routes)
-  if (!hasOnboarded() && location.pathname !== "/onboarding") {
-    return <Navigate to="/onboarding" replace />;
+  // Admin bypass — admins can go anywhere
+  if (isAdmin()) {
+    return <>{children}</>;
   }
 
-  // Admin route protection
-  if (location.pathname.startsWith("/admin") && !isAdmin()) {
-    return <Navigate to="/home" replace />;
-  }
-
-  // Expired users can only access /paywall and /profile
-  if (isExpired() && !["/paywall", "/profile"].includes(location.pathname)) {
+  // Subscription check: if not active → paywall (except paywall itself)
+  const isActive = profile.subscription_status === "active";
+  if (!isActive && location.pathname !== "/paywall") {
     return <Navigate to="/paywall" replace />;
+  }
+
+  // Onboarding check (except if already on onboarding or paywall)
+  if (isActive && !hasOnboarded() && !["/onboarding", "/paywall"].includes(location.pathname)) {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return <>{children}</>;
