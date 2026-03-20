@@ -217,7 +217,9 @@ export default function Workout() {
 
   const handleBlockSelect = useCallback((block: WorkoutBlock) => {
     const badge = block.formatBadge?.toUpperCase();
-    if (badge === "EMOM" || badge === "AMRAP") {
+    // EMOMs are now rendered as instruction blocks inside BlockDetail
+    // Only AMRAPs get the timer screen
+    if (badge === "AMRAP") {
       setTimerBlock(block);
     } else {
       setActiveBlock(block);
