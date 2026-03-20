@@ -96,10 +96,6 @@ export default function Exercises() {
 
   const handleFavorite = (e: React.MouseEvent, exId: string) => {
     e.stopPropagation();
-    if (!isPremium()) {
-      setShowUpgrade(true);
-      return;
-    }
     setFavorites((prev) => {
       const next = new Set(prev);
       if (next.has(exId)) next.delete(exId);
