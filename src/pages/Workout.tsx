@@ -165,7 +165,7 @@ export default function Workout() {
     for (const group of block.groups) {
       for (const set of group.sets) {
         if (!set.is_completed) {
-          await completeSet(set.id, { actual_weight: 0, actual_reps: rounds, actual_rpe: 0, actual_rir: 0 });
+          await completeSet(set.id, { actual_weight: 0, actual_reps: rounds, actual_rpe: null, actual_rir: null });
         }
       }
     }

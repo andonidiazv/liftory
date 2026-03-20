@@ -16,14 +16,11 @@ import Progress from "./pages/Progress";
 import Exercises from "./pages/Exercises";
 import Profile from "./pages/Profile";
 import SessionSummary from "./pages/SessionSummary";
-import Briefing from "./pages/Briefing";
 import Paywall from "./pages/Paywall";
-import Insights from "./pages/Insights";
 import Program from "./pages/Program";
 import NotFound from "./pages/NotFound";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminPlaceholder from "./pages/admin/AdminPlaceholder";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminExercises from "./pages/admin/AdminExercises";
 import AdminInsights from "./pages/admin/AdminInsights";
@@ -50,7 +47,6 @@ const App = () => (
 
               {/* Protected routes */}
               <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-              <Route path="/briefing" element={<ProtectedRoute><Briefing /></ProtectedRoute>} />
               <Route path="/workout/:id" element={<ProtectedRoute><Workout /></ProtectedRoute>} />
               <Route path="/session" element={<ProtectedRoute><SessionSummary /></ProtectedRoute>} />
               <Route path="/workout-complete/:id" element={<ProtectedRoute><WorkoutComplete /></ProtectedRoute>} />
@@ -58,7 +54,6 @@ const App = () => (
               <Route path="/exercises" element={<ProtectedRoute><Exercises /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/paywall" element={<ProtectedRoute><Paywall /></ProtectedRoute>} />
-              <Route path="/insights" element={<ProtectedRoute><Insights /></ProtectedRoute>} />
               <Route path="/program" element={<ProtectedRoute><Program /></ProtectedRoute>} />
 
               {/* Admin routes */}
