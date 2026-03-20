@@ -214,6 +214,7 @@ function SupersetContent({
             getSuggestedWeight={getSuggestedWeight}
             prFlash={prFlash}
             justCompleted={justCompleted}
+            onOpenVideo={onOpenVideo}
           />
         ))}
       </div>
