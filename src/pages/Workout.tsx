@@ -272,7 +272,7 @@ export default function Workout() {
         completedSets={completedSets}
         programTotalWeeks={programTotalWeeks}
         onBack={() => navigate("/home")}
-        onBlockSelect={(block) => setActiveBlock(block)}
+        onBlockSelect={handleBlockSelect}
         onFinish={() => {
           if (completedSets < totalSets) {
             setShowFinishModal(true);
