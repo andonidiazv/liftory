@@ -737,7 +737,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      ex: { Args: { p_name: string }; Returns: string }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      wk: {
+        Args: { p_day_offset: number; p_prog_id: string; p_week: number }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
