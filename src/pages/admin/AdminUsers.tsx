@@ -243,15 +243,12 @@ export default function AdminUsers() {
     if (!passwordModal) return;
     setPasswordLoading(true);
     try {
-      // We need the user's email. We'll get it from the edge function.
       const { data, error } = await supabase.functions.invoke("admin-update-user", {
-        body: { userId: passwordModal.user_id, action: "send_recovery", newValue: passwordModal.full_name }, // we need email
+        body: { userId: passwordModal.user_id, action: "send_recovery" },
       });
-      // Actually we need the email. Let's use a workaround: fetch from the edge function context.
-      // For now we'll note that we need the user email. Let's pass it properly.
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      toast({ title: "Email enviado", description: "Email de recuperación enviado." });
+      toast({ title: "Email enviado", description: data?.message || "Email de recuperación enviado." });
     } catch (e: any) {
       toast({ title: "Error", description: e.message || "No se pudo enviar el email", variant: "destructive" });
     }
