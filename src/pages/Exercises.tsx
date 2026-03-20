@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import Layout from "@/components/Layout";
 import { Search, Play, X, Heart } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import PremiumBottomSheet from "@/components/PremiumBottomSheet";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 
