@@ -18,19 +18,19 @@ export interface WorkoutBlock {
 
 /** Color mapping by block label name */
 const BLOCK_LABEL_COLORS: Record<string, string> = {
-  'MOVILIDAD': '#7A8B5C',
+  'PRIME BLOCK': '#7A8B5C',
   'RESET & BREATHE': '#7A8B5C',
   'SPINE & HIPS': '#7A8B5C',
   'DYNAMIC FLOW': '#7A8B5C',
   'ATHLETIC INTEGRATION': '#7A8B5C',
-  'FUERZA A': '#C75B39',
-  'FUERZA B': '#C75B39',
-  'SCULPT A': '#C9A96E',
-  'SCULPT B': '#C9A96E',
-  'ATHLETIC HINGE': '#D4836B',
-  'CONDITIONING': '#D45555',
-  'CARDIO': '#D45555',
-  'COOLDOWN': '#7A8B5C',
+  'POWER BLOCK': '#D45555',
+  'HEAVY BLOCK — A': '#C75B39',
+  'HEAVY BLOCK — B': '#C75B39',
+  'BUILD BLOCK — A': '#C9A96E',
+  'BUILD BLOCK — B': '#C9A96E',
+  'ATHLETIC HINGE': '#D4896B',
+  'ENGINE BLOCK': '#D45555',
+  'RECOVERY BLOCK': '#7A8B5C',
 };
 
 /** Fallback colors by block type */
@@ -46,19 +46,32 @@ function getBlockColor(block: WorkoutBlock): string {
   return BLOCK_LABEL_COLORS[block.name] || BLOCK_TYPE_COLORS[block.type] || "#C75B39";
 }
 
-const INSTRUCTION_BLOCK_LABELS = ['CARDIO', 'COOLDOWN', 'MOVILIDAD', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION'];
+const INSTRUCTION_BLOCK_LABELS = ['ENGINE BLOCK', 'RECOVERY BLOCK', 'PRIME BLOCK', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION'];
 
 function isInstructionBlock(block: WorkoutBlock): boolean {
   return INSTRUCTION_BLOCK_LABELS.includes(block.name);
 }
 
 function getInstructionSummary(block: WorkoutBlock): string {
-  // Collect coaching cues from all groups
   const cues = block.groups
-    .map(g => (g.sets[0] as any)?.coaching_cue_override || g.exercise.coaching_cue)
+    .map(g => (g.sets[0] as any)?.coaching_cue_override)
     .filter(Boolean);
   if (cues.length > 0) return cues.join(" · ");
   return block.exerciseNames.join(" · ");
+}
+
+/** Render block name with bold main part and normal suffix */
+function BlockNameDisplay({ name }: { name: string }) {
+  const dashIdx = name.indexOf(' — ');
+  if (dashIdx === -1) {
+    return <span className="font-display text-[15px] font-bold text-foreground" style={{ letterSpacing: "-0.01em" }}>{name}</span>;
+  }
+  return (
+    <span className="font-display text-[15px] text-foreground" style={{ letterSpacing: "-0.01em" }}>
+      <span className="font-bold">{name.slice(0, dashIdx)}</span>
+      <span className="font-normal">{name.slice(dashIdx)}</span>
+    </span>
+  );
 }
 
 function getDayName(date: string): string {
@@ -127,6 +140,7 @@ export default function WorkoutOverview({
           {blocks.map((block) => {
             const done = block.completedSets >= block.totalSets && block.totalSets > 0;
             const color = getBlockColor(block);
+            const isRecovery = block.name === 'RECOVERY BLOCK';
             return (
               <button
                 key={block.id}
@@ -146,9 +160,7 @@ export default function WorkoutOverview({
                 <div className="flex flex-1 items-center gap-3 p-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-display text-[15px] font-bold text-foreground" style={{ letterSpacing: "-0.01em" }}>
-                        {block.name}
-                      </p>
+                      <BlockNameDisplay name={block.name} />
                       {block.formatBadge && (
                         <span
                           className="font-mono rounded-full px-2 py-0.5"
@@ -158,6 +170,9 @@ export default function WorkoutOverview({
                         </span>
                       )}
                     </div>
+                    {isRecovery && (
+                      <p className="mt-0.5 font-mono text-muted-foreground" style={{ fontSize: 10 }}>2 rondas</p>
+                    )}
                     {isInstructionBlock(block) ? (
                       <p className="mt-0.5 font-body text-muted-foreground" style={{ fontSize: 12, display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                         {getInstructionSummary(block)}

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { ChevronLeft, Check, Dumbbell, Loader2, Quote, Trophy } from "lucide-react";
 import type { WorkoutBlock } from "./WorkoutOverview";
 import ExerciseVideoOverlay from "./ExerciseVideoOverlay";
@@ -7,9 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 /** Block types by render mode */
-const CARDIO_BLOCKS = ['CARDIO'];
-const MOBILITY_BLOCKS = ['MOVILIDAD', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION'];
-const COOLDOWN_BLOCKS = ['COOLDOWN'];
+const CARDIO_BLOCKS = ['ENGINE BLOCK'];
+const MOBILITY_BLOCKS = ['PRIME BLOCK', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION'];
+const COOLDOWN_BLOCKS = ['RECOVERY BLOCK'];
 
 type BlockMode = 'strength' | 'mobility' | 'cooldown' | 'cardio';
 
@@ -18,6 +18,20 @@ function getBlockMode(label: string): BlockMode {
   if (COOLDOWN_BLOCKS.includes(label)) return 'cooldown';
   if (MOBILITY_BLOCKS.includes(label)) return 'mobility';
   return 'strength';
+}
+
+/** Render block name with bold main part and normal suffix */
+function BlockNameDisplay({ name, className: cls }: { name: string; className?: string }) {
+  const dashIdx = name.indexOf(' — ');
+  if (dashIdx === -1) {
+    return <span className={cls}>{name}</span>;
+  }
+  return (
+    <span className={cls}>
+      <span className="font-bold">{name.slice(0, dashIdx)}</span>
+      <span className="font-normal">{name.slice(dashIdx)}</span>
+    </span>
+  );
 }
 
 interface SetInputs {
@@ -31,6 +45,7 @@ interface Props {
   saving: boolean;
   onBack: () => void;
   onCompleteSet: (set: WorkoutSetData, data: { actual_weight: number; actual_reps: number }) => Promise<any>;
+  onUncompleteSet: (setId: string) => Promise<boolean>;
   getSuggestedWeight: (exerciseId: string, plannedReps: number | null) => { weight: number | null; hint: string | null };
   onRestStart: (seconds: number) => void;
 }
@@ -54,14 +69,25 @@ export default function BlockDetail({
   saving,
   onBack,
   onCompleteSet,
+  onUncompleteSet,
   getSuggestedWeight,
   onRestStart,
 }: Props) {
   const [setInputs, setSetInputs] = useState<Record<string, SetInputs>>({});
   const [prFlash, setPrFlash] = useState<string | null>(null);
   const [justCompleted, setJustCompleted] = useState<string | null>(null);
-  const [optimisticCompleted, setOptimisticCompleted] = useState<Set<string>>(new Set());
   const [videoOverlay, setVideoOverlay] = useState<{ name: string; videoUrl: string | null; coachingCue: string | null } | null>(null);
+
+  // Optimistic completed state — initialized from DB data
+  const [optimisticCompleted, setOptimisticCompleted] = useState<Set<string>>(() => {
+    const initial = new Set<string>();
+    for (const g of block.groups) {
+      for (const s of g.sets) {
+        if (s.is_completed) initial.add(s.id);
+      }
+    }
+    return initial;
+  });
 
   const blockMode = getBlockMode(block.name);
 
@@ -125,7 +151,31 @@ export default function BlockDetail({
     }
   };
 
-  const isCompleted = (set: WorkoutSetData) => set.is_completed || optimisticCompleted.has(set.id);
+  const handleUncomplete = async (set: WorkoutSetData) => {
+    // Optimistic: remove from completed
+    setOptimisticCompleted((prev) => {
+      const next = new Set(prev);
+      next.delete(set.id);
+      return next;
+    });
+
+    const ok = await onUncompleteSet(set.id);
+    if (!ok) {
+      // Revert
+      setOptimisticCompleted((prev) => new Set(prev).add(set.id));
+      toast({ title: "Error al desmarcar", variant: "destructive" });
+    }
+  };
+
+  const handleToggleSet = (set: WorkoutSetData, groupIndex: number, isLastInSuperset: boolean) => {
+    if (optimisticCompleted.has(set.id)) {
+      handleUncomplete(set);
+    } else {
+      handleComplete(set, groupIndex, isLastInSuperset);
+    }
+  };
+
+  const isCompleted = (set: WorkoutSetData) => optimisticCompleted.has(set.id);
 
   const isSupersetBlock = block.supersetGroup && block.supersetGroup.type !== "single";
   const restInfo = block.groups[0]?.sets[0]?.planned_rest_seconds;
@@ -134,6 +184,8 @@ export default function BlockDetail({
       ? `Descanso ${Math.floor(restInfo / 60)}:${(restInfo % 60).toString().padStart(2, "0")}`
       : `Descanso ${restInfo}s`
     : null;
+
+  const isRecovery = block.name === 'RECOVERY BLOCK';
 
   return (
     <div className="flex min-h-screen flex-col bg-background animate-slide-in-right">
@@ -144,15 +196,16 @@ export default function BlockDetail({
             <ChevronLeft className="h-4 w-4 text-foreground" />
           </button>
           <div className="flex-1">
-            <h1 className="font-display text-xl font-bold text-foreground" style={{ letterSpacing: "-0.02em" }}>
-              {block.name}
-            </h1>
+            <BlockNameDisplay
+              name={block.name}
+              className="font-display text-xl font-bold text-foreground"
+            />
             <p className="font-mono text-muted-foreground" style={{ fontSize: 11 }}>
               {blockMode === 'strength' && (
                 <>{block.totalSets} sets{restDisplay ? ` · ${restDisplay}` : ""}{block.formatBadge ? ` · ${block.formatBadge}` : ""}</>
               )}
               {blockMode === 'mobility' && <>{block.groups.length} ejercicios · 2-3 rondas</>}
-              {blockMode === 'cooldown' && <>{block.groups.length} estiramientos</>}
+              {blockMode === 'cooldown' && <>{block.groups.length} estiramientos · 2 rondas</>}
               {blockMode === 'cardio' && <>Cardio</>}
             </p>
           </div>
@@ -189,14 +242,19 @@ export default function BlockDetail({
                 group={group}
                 saving={saving}
                 isCompleted={isCompleted}
-                onComplete={async (set) => {
-                  setOptimisticCompleted((prev) => new Set(prev).add(set.id));
-                  setJustCompleted(set.id);
-                  setTimeout(() => setJustCompleted(null), 1500);
-                  const result = await onCompleteSet(set, { actual_weight: 0, actual_reps: set.planned_reps || 1 });
-                  if (!result) {
-                    setOptimisticCompleted((prev) => { const n = new Set(prev); n.delete(set.id); return n; });
-                    toast({ title: "Error", variant: "destructive" });
+                onToggle={(set) => {
+                  if (optimisticCompleted.has(set.id)) {
+                    handleUncomplete(set);
+                  } else {
+                    setOptimisticCompleted((prev) => new Set(prev).add(set.id));
+                    setJustCompleted(set.id);
+                    setTimeout(() => setJustCompleted(null), 1500);
+                    onCompleteSet(set, { actual_weight: 0, actual_reps: set.planned_reps || 1 }).then((result) => {
+                      if (!result) {
+                        setOptimisticCompleted((prev) => { const n = new Set(prev); n.delete(set.id); return n; });
+                        toast({ title: "Error", variant: "destructive" });
+                      }
+                    });
                   }
                 }}
                 onOpenVideo={(v) => setVideoOverlay(v)}
@@ -211,12 +269,17 @@ export default function BlockDetail({
                 group={group}
                 saving={saving}
                 isCompleted={isCompleted}
-                onComplete={async (set) => {
-                  setOptimisticCompleted((prev) => new Set(prev).add(set.id));
-                  const result = await onCompleteSet(set, { actual_weight: 0, actual_reps: 1 });
-                  if (!result) {
-                    setOptimisticCompleted((prev) => { const n = new Set(prev); n.delete(set.id); return n; });
-                    toast({ title: "Error", variant: "destructive" });
+                onToggle={(set) => {
+                  if (optimisticCompleted.has(set.id)) {
+                    handleUncomplete(set);
+                  } else {
+                    setOptimisticCompleted((prev) => new Set(prev).add(set.id));
+                    onCompleteSet(set, { actual_weight: 0, actual_reps: 1 }).then((result) => {
+                      if (!result) {
+                        setOptimisticCompleted((prev) => { const n = new Set(prev); n.delete(set.id); return n; });
+                        toast({ title: "Error", variant: "destructive" });
+                      }
+                    });
                   }
                 }}
                 onOpenVideo={(v) => setVideoOverlay(v)}
@@ -230,7 +293,7 @@ export default function BlockDetail({
             saving={saving}
             getInputs={getInputs}
             updateInput={updateInput}
-            handleComplete={handleComplete}
+            handleToggle={handleToggleSet}
             updateCompletedWeight={updateCompletedWeight}
             getSuggestedWeight={getSuggestedWeight}
             prFlash={prFlash}
@@ -248,7 +311,7 @@ export default function BlockDetail({
                 saving={saving}
                 getInputs={getInputs}
                 updateInput={updateInput}
-                onComplete={(set) => handleComplete(set, gi, true)}
+                onToggle={(set) => handleToggleSet(set, gi, true)}
                 updateCompletedWeight={updateCompletedWeight}
                 getSuggestedWeight={getSuggestedWeight}
                 prFlash={prFlash}
@@ -274,13 +337,13 @@ export default function BlockDetail({
 
 /* ═══════ SUPERSET ═══════ */
 function SupersetContent({
-  block, weightUnit, saving, getInputs, updateInput, handleComplete,
+  block, weightUnit, saving, getInputs, updateInput, handleToggle,
   updateCompletedWeight, getSuggestedWeight, prFlash, justCompleted, isCompleted, onOpenVideo,
 }: {
   block: WorkoutBlock; weightUnit: string; saving: boolean;
   getInputs: (s: WorkoutSetData) => SetInputs;
   updateInput: (id: string, f: keyof SetInputs, v: string) => void;
-  handleComplete: (s: WorkoutSetData, gi: number, last: boolean) => void;
+  handleToggle: (s: WorkoutSetData, gi: number, last: boolean) => void;
   updateCompletedWeight: (id: string, w: string) => void;
   getSuggestedWeight: (eid: string, reps: number | null) => { weight: number | null; hint: string | null };
   prFlash: string | null; justCompleted: string | null;
@@ -305,7 +368,7 @@ function SupersetContent({
             saving={saving}
             getInputs={getInputs}
             updateInput={updateInput}
-            onComplete={(set) => handleComplete(set, gi, gi === block.groups.length - 1)}
+            onToggle={(set) => handleToggle(set, gi, gi === block.groups.length - 1)}
             updateCompletedWeight={updateCompletedWeight}
             getSuggestedWeight={getSuggestedWeight}
             prFlash={prFlash}
@@ -321,13 +384,13 @@ function SupersetContent({
 
 /* ═══════ STRENGTH EXERCISE CARD ═══════ */
 function ExerciseCard({
-  group, weightUnit, saving, getInputs, updateInput, onComplete,
+  group, weightUnit, saving, getInputs, updateInput, onToggle,
   updateCompletedWeight, getSuggestedWeight, prFlash, justCompleted, isCompleted, onOpenVideo,
 }: {
   group: ExerciseGroup; weightUnit: string; saving: boolean;
   getInputs: (s: WorkoutSetData) => SetInputs;
   updateInput: (id: string, f: keyof SetInputs, v: string) => void;
-  onComplete: (s: WorkoutSetData) => void;
+  onToggle: (s: WorkoutSetData) => void;
   updateCompletedWeight: (id: string, w: string) => void;
   getSuggestedWeight: (eid: string, reps: number | null) => { weight: number | null; hint: string | null };
   prFlash: string | null; justCompleted: string | null;
@@ -449,10 +512,10 @@ function ExerciseCard({
                 />
               )}
 
-              {/* Check button — optimistic */}
+              {/* Check button — toggle */}
               <button
-                onClick={() => { if (!completed) onComplete(set); }}
-                disabled={completed || saving}
+                onClick={() => onToggle(set)}
+                disabled={saving}
                 className="flex h-7 w-7 items-center justify-center rounded-full border-2 transition-all mx-auto"
                 style={{
                   borderColor: completed ? "hsl(var(--primary))" : "hsl(var(--border))",
@@ -473,11 +536,11 @@ function ExerciseCard({
 
 /* ═══════ MOBILITY CARD ═══════ */
 function MobilityCard({
-  group, saving, isCompleted, onComplete, onOpenVideo,
+  group, saving, isCompleted, onToggle, onOpenVideo,
 }: {
   group: ExerciseGroup; saving: boolean;
   isCompleted: (s: WorkoutSetData) => boolean;
-  onComplete: (s: WorkoutSetData) => void;
+  onToggle: (s: WorkoutSetData) => void;
   onOpenVideo: (v: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
 }) {
   const ex = group.exercise;
@@ -516,15 +579,15 @@ function MobilityCard({
           </div>
         </div>
 
-        {/* Per-set checkmarks */}
+        {/* Per-set checkmarks — toggleable */}
         <div className="flex gap-1 shrink-0">
           {sets.map((set) => {
             const done = isCompleted(set);
             return (
               <button
                 key={set.id}
-                onClick={() => { if (!done) onComplete(set); }}
-                disabled={done || saving}
+                onClick={() => onToggle(set)}
+                disabled={saving}
                 className="flex h-7 w-7 items-center justify-center rounded-full border-2 transition-all"
                 style={{
                   borderColor: done ? "hsl(var(--primary))" : "hsl(var(--border))",
@@ -543,11 +606,11 @@ function MobilityCard({
 
 /* ═══════ COOLDOWN CARD ═══════ */
 function CooldownCard({
-  group, saving, isCompleted, onComplete, onOpenVideo,
+  group, saving, isCompleted, onToggle, onOpenVideo,
 }: {
   group: ExerciseGroup; saving: boolean;
   isCompleted: (s: WorkoutSetData) => boolean;
-  onComplete: (s: WorkoutSetData) => void;
+  onToggle: (s: WorkoutSetData) => void;
   onOpenVideo: (v: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
 }) {
   const ex = group.exercise;
@@ -579,8 +642,8 @@ function CooldownCard({
         return (
           <button
             key={set.id}
-            onClick={() => { if (!done) onComplete(set); }}
-            disabled={done || saving}
+            onClick={() => onToggle(set)}
+            disabled={saving}
             className="flex h-6 w-6 items-center justify-center rounded-full border-2 transition-all shrink-0"
             style={{
               borderColor: done ? "hsl(var(--primary))" : "hsl(var(--border))",
