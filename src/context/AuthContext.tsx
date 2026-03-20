@@ -109,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user, session, profile, loading,
         signUp, signIn, signOut, signInWithGoogle,
-        isFreeTrial, isPremium, isExpired, isAdmin, hasOnboarded, daysLeftInTrial,
+        isPremium, isAdmin, hasOnboarded,
         refreshProfile, fetchProfile,
       }}
     >
