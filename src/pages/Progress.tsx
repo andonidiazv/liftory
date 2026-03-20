@@ -155,7 +155,7 @@ export default function Progress() {
         <div className="mt-8">
           <span className="eyebrow-label">BALANCE MUSCULAR</span>
           <p className="text-xs font-body" style={{ color: "#6B6360", marginTop: 2 }}>Volumen relativo por grupo muscular</p>
-          <PremiumGate label="Desbloquea tu balance muscular">
+          <div>
             <div className="mt-4 card-fbb">
               {muscleData.length > 0 ? (
                 <>
