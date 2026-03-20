@@ -99,6 +99,7 @@ export default function BlockDetail({
       ? `Descanso ${Math.floor(restInfo / 60)}:${(restInfo % 60).toString().padStart(2, "0")}`
       : `Descanso ${restInfo}s`
     : null;
+  const isInstructionBlock = INSTRUCTION_BLOCKS.includes(block.name);
 
   return (
     <div className="flex min-h-screen flex-col bg-background animate-slide-in-right">
