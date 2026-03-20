@@ -232,6 +232,7 @@ function ExerciseCard({
   getSuggestedWeight,
   prFlash,
   justCompleted,
+  onOpenVideo,
 }: {
   group: ExerciseGroup;
   weightUnit: string;
@@ -242,6 +243,7 @@ function ExerciseCard({
   getSuggestedWeight: (exerciseId: string, plannedReps: number | null) => { weight: number | null; hint: string | null };
   prFlash: string | null;
   justCompleted: string | null;
+  onOpenVideo: (v: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
 }) {
   const ex = group.exercise;
   const sets = group.sets;
