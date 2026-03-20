@@ -30,7 +30,7 @@ interface SessionBlock {
   setType: string;
   accentColor: string;
   icon: React.ElementType;
-  exercises: { name: string; setsCount: number; reps: number | null; weight: number | null; tempo: string | null; rir: number | null }[];
+  exercises: { name: string; setsCount: number; reps: number | null; weight: number | null; tempo: string | null }[];
   totalSets: number;
   estimatedTime: string;
   format?: string;
