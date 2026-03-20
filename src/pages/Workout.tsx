@@ -13,33 +13,33 @@ import ExerciseVideoOverlay from "@/components/workout/ExerciseVideoOverlay";
 
 /** Fixed block display order */
 const BLOCK_ORDER = [
-  'MOVILIDAD', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION',
-  'FUERZA A', 'FUERZA B', 'SCULPT A', 'SCULPT B',
-  'ATHLETIC HINGE', 'CONDITIONING', 'CARDIO', 'COOLDOWN',
+  'PRIME BLOCK', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION',
+  'POWER BLOCK', 'HEAVY BLOCK — A', 'HEAVY BLOCK — B', 'BUILD BLOCK — A', 'BUILD BLOCK — B',
+  'ATHLETIC HINGE', 'ENGINE BLOCK', 'RECOVERY BLOCK',
 ];
 
 /** Color mapping by block label */
 const BLOCK_LABEL_COLORS: Record<string, string> = {
-  'MOVILIDAD': '#7A8B5C',
+  'PRIME BLOCK': '#7A8B5C',
   'RESET & BREATHE': '#7A8B5C',
   'SPINE & HIPS': '#7A8B5C',
   'DYNAMIC FLOW': '#7A8B5C',
   'ATHLETIC INTEGRATION': '#7A8B5C',
-  'FUERZA A': '#C75B39',
-  'FUERZA B': '#C75B39',
-  'SCULPT A': '#C9A96E',
-  'SCULPT B': '#C9A96E',
-  'ATHLETIC HINGE': '#D4836B',
-  'CONDITIONING': '#D45555',
-  'CARDIO': '#D45555',
-  'COOLDOWN': '#7A8B5C',
+  'POWER BLOCK': '#D45555',
+  'HEAVY BLOCK — A': '#C75B39',
+  'HEAVY BLOCK — B': '#C75B39',
+  'BUILD BLOCK — A': '#C9A96E',
+  'BUILD BLOCK — B': '#C9A96E',
+  'ATHLETIC HINGE': '#D4896B',
+  'ENGINE BLOCK': '#D45555',
+  'RECOVERY BLOCK': '#7A8B5C',
 };
 
 function getBlockType(label: string): WorkoutBlock["type"] {
-  if (['MOVILIDAD', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION'].includes(label)) return 'mobility';
-  if (label === 'COOLDOWN') return 'cooldown';
-  if (label.startsWith('SCULPT')) return 'sculpt';
-  if (['CONDITIONING', 'CARDIO'].includes(label)) return 'conditioning';
+  if (['PRIME BLOCK', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION'].includes(label)) return 'mobility';
+  if (label === 'RECOVERY BLOCK') return 'cooldown';
+  if (label.startsWith('BUILD BLOCK')) return 'sculpt';
+  if (['ENGINE BLOCK'].includes(label)) return 'conditioning';
   return 'strength';
 }
 
@@ -101,7 +101,6 @@ export default function Workout() {
   const blocks: WorkoutBlock[] = useMemo(() => {
     if (!sets.length) return [];
 
-    // Use ALL sets (including cooldown) for block_label grouping
     const allSets = sets;
 
     // Group sets by block_label
@@ -183,12 +182,21 @@ export default function Workout() {
         actual_rpe: null,
         actual_rir: null,
       });
-      if (result) {
-        await refetch();
-      }
+      // Don't refetch - let optimistic UI handle it
       return result;
     },
-    [completeSet, refetch]
+    [completeSet]
+  );
+
+  const handleUncompleteSet = useCallback(
+    async (setId: string) => {
+      const { error } = await supabase
+        .from("workout_sets")
+        .update({ is_completed: false, actual_weight: null, actual_reps: null, actual_rpe: null, actual_rir: null, logged_at: null })
+        .eq("id", setId);
+      return !error;
+    },
+    []
   );
 
   const handleRestStart = useCallback((seconds: number) => {
@@ -281,6 +289,7 @@ export default function Workout() {
             refetch();
           }}
           onCompleteSet={handleCompleteSet}
+          onUncompleteSet={handleUncompleteSet}
           getSuggestedWeight={getSuggestedWeight}
           onRestStart={handleRestStart}
         />
