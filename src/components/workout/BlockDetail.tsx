@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { ChevronLeft, Check, Dumbbell, Loader2, Quote, Trophy } from "lucide-react";
 import type { WorkoutBlock } from "./WorkoutOverview";
+import ExerciseVideoOverlay from "./ExerciseVideoOverlay";
 import type { WorkoutSetData, ExerciseGroup } from "@/hooks/useWorkoutData";
 
 interface SetInputs {
@@ -43,6 +44,7 @@ export default function BlockDetail({
   const [setInputs, setSetInputs] = useState<Record<string, SetInputs>>({});
   const [prFlash, setPrFlash] = useState<string | null>(null);
   const [justCompleted, setJustCompleted] = useState<string | null>(null);
+  const [videoOverlay, setVideoOverlay] = useState<{ name: string; videoUrl: string | null; coachingCue: string | null } | null>(null);
 
   const getInputs = useCallback(
     (set: WorkoutSetData): SetInputs => {
@@ -128,6 +130,7 @@ export default function BlockDetail({
             getSuggestedWeight={getSuggestedWeight}
             prFlash={prFlash}
             justCompleted={justCompleted}
+            onOpenVideo={(v) => setVideoOverlay(v)}
           />
         ) : (
           <div className="flex flex-col gap-6">
@@ -143,11 +146,21 @@ export default function BlockDetail({
                 getSuggestedWeight={getSuggestedWeight}
                 prFlash={prFlash}
                 justCompleted={justCompleted}
+                onOpenVideo={(v) => setVideoOverlay(v)}
               />
             ))}
           </div>
         )}
       </div>
+
+      {/* Video overlay */}
+      <ExerciseVideoOverlay
+        videoUrl={videoOverlay?.videoUrl ?? null}
+        exerciseName={videoOverlay?.name ?? ""}
+        coachingCue={videoOverlay?.coachingCue ?? null}
+        visible={!!videoOverlay}
+        onClose={() => setVideoOverlay(null)}
+      />
     </div>
   );
 }
@@ -162,6 +175,7 @@ function SupersetContent({
   getSuggestedWeight,
   prFlash,
   justCompleted,
+  onOpenVideo,
 }: {
   block: WorkoutBlock;
   weightUnit: string;
@@ -172,6 +186,7 @@ function SupersetContent({
   getSuggestedWeight: (exerciseId: string, plannedReps: number | null) => { weight: number | null; hint: string | null };
   prFlash: string | null;
   justCompleted: string | null;
+  onOpenVideo: (v: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
 }) {
   const label = block.supersetGroup?.label || "SUPERSET";
   return (
@@ -199,6 +214,7 @@ function SupersetContent({
             getSuggestedWeight={getSuggestedWeight}
             prFlash={prFlash}
             justCompleted={justCompleted}
+            onOpenVideo={onOpenVideo}
           />
         ))}
       </div>
@@ -216,6 +232,7 @@ function ExerciseCard({
   getSuggestedWeight,
   prFlash,
   justCompleted,
+  onOpenVideo,
 }: {
   group: ExerciseGroup;
   weightUnit: string;
@@ -226,6 +243,7 @@ function ExerciseCard({
   getSuggestedWeight: (exerciseId: string, plannedReps: number | null) => { weight: number | null; hint: string | null };
   prFlash: string | null;
   justCompleted: string | null;
+  onOpenVideo: (v: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
 }) {
   const ex = group.exercise;
   const sets = group.sets;
@@ -241,22 +259,20 @@ function ExerciseCard({
     >
       {/* Exercise header */}
       <div className="flex items-start gap-3">
-        {/* Thumbnail */}
-        {ex.thumbnail_url ? (
-          <div
-            className="shrink-0 overflow-hidden rounded-lg"
-            style={{ width: 64, height: 48 }}
-          >
+        {/* Thumbnail - tappable for video */}
+        <button
+          onClick={() => onOpenVideo({ name: ex.name, videoUrl: ex.video_url, coachingCue })}
+          className="shrink-0 overflow-hidden rounded-lg"
+          style={{ width: 64, height: 48 }}
+        >
+          {ex.thumbnail_url ? (
             <img src={ex.thumbnail_url} alt={ex.name} className="h-full w-full object-cover" />
-          </div>
-        ) : (
-          <div
-            className="shrink-0 flex items-center justify-center rounded-lg bg-secondary"
-            style={{ width: 64, height: 48 }}
-          >
-            <Dumbbell className="h-5 w-5 text-muted-foreground" />
-          </div>
-        )}
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-secondary">
+              <Dumbbell className="h-5 w-5 text-muted-foreground" />
+            </div>
+          )}
+        </button>
 
         <div className="flex-1 min-w-0">
           <p className="font-body text-[15px] font-semibold text-foreground">{ex.name}</p>

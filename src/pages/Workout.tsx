@@ -8,6 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import WorkoutOverview, { type WorkoutBlock } from "@/components/workout/WorkoutOverview";
 import BlockDetail from "@/components/workout/BlockDetail";
 import RestTimerSheet from "@/components/workout/RestTimerSheet";
+import TimerBlockDetail from "@/components/workout/TimerBlockDetail";
+import ExerciseVideoOverlay from "@/components/workout/ExerciseVideoOverlay";
 
 export default function Workout() {
   const { id } = useParams<{ id: string }>();
@@ -34,6 +36,8 @@ export default function Workout() {
   } = useApp();
 
   const [activeBlock, setActiveBlock] = useState<WorkoutBlock | null>(null);
+  const [timerBlock, setTimerBlock] = useState<WorkoutBlock | null>(null);
+  const [videoOverlay, setVideoOverlay] = useState<{ name: string; videoUrl: string | null; coachingCue: string | null } | null>(null);
   const [restTimerVisible, setRestTimerVisible] = useState(false);
   const [restTimerDuration, setRestTimerDuration] = useState(90);
   const [showFinishModal, setShowFinishModal] = useState(false);
@@ -156,6 +160,28 @@ export default function Workout() {
     setRestTimerVisible(true);
   }, []);
 
+  // Handler to complete all sets in a timer block
+  const handleCompleteTimerBlock = useCallback(async (block: WorkoutBlock, rounds: number) => {
+    for (const group of block.groups) {
+      for (const set of group.sets) {
+        if (!set.is_completed) {
+          await completeSet(set.id, { actual_weight: 0, actual_reps: rounds, actual_rpe: 0, actual_rir: 0 });
+        }
+      }
+    }
+    await refetch();
+  }, [completeSet, refetch]);
+
+  // Route block selection: EMOM/AMRAP → timer, else → detail
+  const handleBlockSelect = useCallback((block: WorkoutBlock) => {
+    const badge = block.formatBadge?.toUpperCase();
+    if (badge === "EMOM" || badge === "AMRAP") {
+      setTimerBlock(block);
+    } else {
+      setActiveBlock(block);
+    }
+  }, []);
+
   const handleFinish = async () => {
     const ok = await finishWorkout(finishNotes);
     if (ok) {
@@ -187,6 +213,30 @@ export default function Workout() {
     );
   }
 
+
+
+
+  // ─── LEVEL 2: Timer block ───
+  if (timerBlock) {
+    return (
+      <>
+        <TimerBlockDetail
+          block={timerBlock}
+          onBack={() => { setTimerBlock(null); refetch(); }}
+          onCompleteBlock={(rounds) => handleCompleteTimerBlock(timerBlock, rounds)}
+          onOpenVideo={(v) => setVideoOverlay(v)}
+        />
+        <ExerciseVideoOverlay
+          videoUrl={videoOverlay?.videoUrl ?? null}
+          exerciseName={videoOverlay?.name ?? ""}
+          coachingCue={videoOverlay?.coachingCue ?? null}
+          visible={!!videoOverlay}
+          onClose={() => setVideoOverlay(null)}
+        />
+      </>
+    );
+  }
+
   // ─── LEVEL 2: Block detail ───
   if (activeBlock) {
     return (
@@ -197,7 +247,7 @@ export default function Workout() {
           saving={saving}
           onBack={() => {
             setActiveBlock(null);
-            refetch(); // Refresh data when going back
+            refetch();
           }}
           onCompleteSet={handleCompleteSet}
           getSuggestedWeight={getSuggestedWeight}
@@ -222,7 +272,7 @@ export default function Workout() {
         completedSets={completedSets}
         programTotalWeeks={programTotalWeeks}
         onBack={() => navigate("/home")}
-        onBlockSelect={(block) => setActiveBlock(block)}
+        onBlockSelect={handleBlockSelect}
         onFinish={() => {
           if (completedSets < totalSets) {
             setShowFinishModal(true);
