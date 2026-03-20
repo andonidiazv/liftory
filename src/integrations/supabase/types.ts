@@ -606,7 +606,7 @@ export type Database = {
           planned_weight: number | null
           set_order: number
           set_type: string
-          user_id: string
+          user_id: string | null
           workout_id: string
         }
         Insert: {
@@ -628,7 +628,7 @@ export type Database = {
           planned_weight?: number | null
           set_order?: number
           set_type?: string
-          user_id: string
+          user_id?: string | null
           workout_id: string
         }
         Update: {
@@ -650,7 +650,7 @@ export type Database = {
           planned_weight?: number | null
           set_order?: number
           set_type?: string
-          user_id?: string
+          user_id?: string | null
           workout_id?: string
         }
         Relationships: [
