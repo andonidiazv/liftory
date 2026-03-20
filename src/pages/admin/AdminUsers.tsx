@@ -179,41 +179,25 @@ export default function AdminUsers() {
     setSelected((prev) => prev ? { ...prev, ...newValues } as unknown as UserRow : null);
   };
 
-  const forcePremium = (u: UserRow) => {
+  const activateSubscription = (u: UserRow) => {
     setConfirmAction({
-      label: "Forzar upgrade a Premium",
+      label: `Activar suscripción para ${u.full_name || u.user_id}`,
       fn: async () => {
-        await auditAndUpdate(u, "subscription_forced", {
+        await auditAndUpdate(u, "subscription_activated", {
           subscription_status: "active",
           subscription_tier: "monthly",
-          current_period_end: new Date(Date.now() + 30 * 86400000).toISOString(),
         });
       },
     });
   };
 
-  const forceExpired = (u: UserRow) => {
+  const deactivateSubscription = (u: UserRow) => {
     setConfirmAction({
-      label: "Forzar downgrade a Expired",
+      label: "¿Seguro? El usuario perderá acceso a la app",
       fn: async () => {
-        await auditAndUpdate(u, "subscription_expired_forced", {
+        await auditAndUpdate(u, "subscription_deactivated", {
           subscription_status: "expired",
           subscription_tier: null,
-          current_period_end: null,
-        });
-      },
-    });
-  };
-
-  const forceTrial = (u: UserRow) => {
-    setConfirmAction({
-      label: "Forzar downgrade a Trial",
-      fn: async () => {
-        await auditAndUpdate(u, "subscription_trial_reset", {
-          subscription_status: "trial",
-          subscription_tier: null,
-          trial_ends_at: new Date(Date.now() + 6 * 86400000).toISOString(),
-          current_period_end: null,
         });
       },
     });
