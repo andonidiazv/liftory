@@ -260,8 +260,8 @@ export function useWorkoutData(workoutId: string | undefined) {
         .update({
           actual_weight: data.actual_weight,
           actual_reps: data.actual_reps,
-          actual_rpe: data.actual_rpe,
-          actual_rir: data.actual_rir,
+          actual_rpe: null,
+          actual_rir: null,
           is_completed: true,
           logged_at: new Date().toISOString(),
         })
