@@ -52,6 +52,9 @@ export interface WorkoutData {
   completed_at: string | null;
   scheduled_date: string;
   week_number: number;
+  coach_note: string | null;
+  short_on_time_note: string | null;
+  program_id: string;
 }
 
 export interface ExerciseGroup {
