@@ -37,6 +37,7 @@ export interface WorkoutSetData {
   is_completed: boolean;
   is_pr: boolean;
   logged_at: string | null;
+  coaching_cue_override: string | null;
   exercise: WorkoutExercise | null;
 }
 
