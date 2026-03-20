@@ -13,12 +13,9 @@ type AuthContextType = {
   signIn: (email: string, password: string) => Promise<{ data: any; error: any }>;
   signOut: () => Promise<void>;
   signInWithGoogle: () => Promise<{ error: any }>;
-  isFreeTrial: () => boolean;
   isPremium: () => boolean;
-  isExpired: () => boolean;
   isAdmin: () => boolean;
   hasOnboarded: () => boolean;
-  daysLeftInTrial: () => number;
   refreshProfile: () => Promise<void>;
   fetchProfile: (userId: string) => Promise<void>;
 };
