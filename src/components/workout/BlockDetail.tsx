@@ -44,6 +44,7 @@ export default function BlockDetail({
   const [setInputs, setSetInputs] = useState<Record<string, SetInputs>>({});
   const [prFlash, setPrFlash] = useState<string | null>(null);
   const [justCompleted, setJustCompleted] = useState<string | null>(null);
+  const [videoOverlay, setVideoOverlay] = useState<{ name: string; videoUrl: string | null; coachingCue: string | null } | null>(null);
 
   const getInputs = useCallback(
     (set: WorkoutSetData): SetInputs => {
