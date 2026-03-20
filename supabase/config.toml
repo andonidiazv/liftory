@@ -1,1 +1,7 @@
 project_id = "byngdkqmxzqcgrqybjhr"
+
+[functions.create-checkout]
+verify_jwt = false
+
+[functions.check-subscription]
+verify_jwt = false
