@@ -46,6 +46,21 @@ function getBlockColor(block: WorkoutBlock): string {
   return BLOCK_LABEL_COLORS[block.name] || BLOCK_TYPE_COLORS[block.type] || "#C75B39";
 }
 
+const INSTRUCTION_BLOCK_LABELS = ['CARDIO', 'COOLDOWN', 'MOVILIDAD', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION'];
+
+function isInstructionBlock(block: WorkoutBlock): boolean {
+  return INSTRUCTION_BLOCK_LABELS.includes(block.name);
+}
+
+function getInstructionSummary(block: WorkoutBlock): string {
+  // Collect coaching cues from all groups
+  const cues = block.groups
+    .map(g => (g.sets[0] as any)?.coaching_cue_override || g.exercise.coaching_cue)
+    .filter(Boolean);
+  if (cues.length > 0) return cues.join(" · ");
+  return block.exerciseNames.join(" · ");
+}
+
 function getDayName(date: string): string {
   const d = new Date(date + "T12:00:00");
   const days = ["DOMINGO", "LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES", "SÁBADO"];
