@@ -34,6 +34,14 @@ export default function AdminPrograms() {
 
   const fetchPrograms = async () => {
     setLoading(true);
+
+    // DEBUG: query directa sin filtros
+    const { data: debugData, error: debugError, count } = await supabase
+      .from("programs")
+      .select("id, name, user_id", { count: 'exact' });
+    console.log("DEBUG - Total programs in DB:", count, "Data:", debugData, "Error:", debugError);
+    alert("Programs in DB: " + (debugData?.length || 0) + " - Error: " + (debugError?.message || "none"));
+
     const toggleState = templatesOnly;
     console.log("Fetching programs with template filter:", toggleState);
 
