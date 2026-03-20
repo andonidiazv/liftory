@@ -130,6 +130,7 @@ export default function BlockDetail({
             getSuggestedWeight={getSuggestedWeight}
             prFlash={prFlash}
             justCompleted={justCompleted}
+            onOpenVideo={(v) => setVideoOverlay(v)}
           />
         ) : (
           <div className="flex flex-col gap-6">
@@ -145,11 +146,21 @@ export default function BlockDetail({
                 getSuggestedWeight={getSuggestedWeight}
                 prFlash={prFlash}
                 justCompleted={justCompleted}
+                onOpenVideo={(v) => setVideoOverlay(v)}
               />
             ))}
           </div>
         )}
       </div>
+
+      {/* Video overlay */}
+      <ExerciseVideoOverlay
+        videoUrl={videoOverlay?.videoUrl ?? null}
+        exerciseName={videoOverlay?.name ?? ""}
+        coachingCue={videoOverlay?.coachingCue ?? null}
+        visible={!!videoOverlay}
+        onClose={() => setVideoOverlay(null)}
+      />
     </div>
   );
 }
