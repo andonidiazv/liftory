@@ -4,6 +4,9 @@ import type { WorkoutBlock } from "./WorkoutOverview";
 import ExerciseVideoOverlay from "./ExerciseVideoOverlay";
 import type { WorkoutSetData, ExerciseGroup } from "@/hooks/useWorkoutData";
 
+/** Block labels that use instruction mode (no weight/reps inputs) */
+const INSTRUCTION_BLOCKS = ['CARDIO', 'COOLDOWN', 'MOVILIDAD', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION'];
+
 interface SetInputs {
   weight: string;
   reps: string;
@@ -96,6 +99,7 @@ export default function BlockDetail({
       ? `Descanso ${Math.floor(restInfo / 60)}:${(restInfo % 60).toString().padStart(2, "0")}`
       : `Descanso ${restInfo}s`
     : null;
+  const isInstructionBlock = INSTRUCTION_BLOCKS.includes(block.name);
 
   return (
     <div className="flex min-h-screen flex-col bg-background animate-slide-in-right">
@@ -119,7 +123,25 @@ export default function BlockDetail({
 
       {/* Content */}
       <div className="flex-1 px-5 pb-8">
-        {isSupersetBlock ? (
+        {isInstructionBlock ? (
+          <div className="flex flex-col gap-4">
+            {block.groups.map((group) => (
+              <InstructionCard
+                key={group.exercise.id}
+                group={group}
+                saving={saving}
+                onCompleteAll={async () => {
+                  for (const set of group.sets) {
+                    if (!set.is_completed) {
+                      await onCompleteSet(set, { actual_weight: 0, actual_reps: set.planned_reps || 1 });
+                    }
+                  }
+                }}
+                onOpenVideo={(v) => setVideoOverlay(v)}
+              />
+            ))}
+          </div>
+        ) : isSupersetBlock ? (
           <SupersetContent
             block={block}
             weightUnit={weightUnit}
@@ -421,6 +443,90 @@ function ExerciseCard({
           );
         })}
       </div>
+    </div>
+  );
+}
+
+/** Instruction-mode card for CARDIO, COOLDOWN, MOVILIDAD blocks */
+function InstructionCard({
+  group,
+  saving,
+  onCompleteAll,
+  onOpenVideo,
+}: {
+  group: ExerciseGroup;
+  saving: boolean;
+  onCompleteAll: () => Promise<void>;
+  onOpenVideo: (v: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
+}) {
+  const [notes, setNotes] = useState("");
+  const [completing, setCompleting] = useState(false);
+  const ex = group.exercise;
+  const sets = group.sets;
+  const allDone = sets.every((s) => s.is_completed);
+  const cueOverride = (sets[0] as any)?.coaching_cue_override;
+  const coachingCue = cueOverride || ex.coaching_cue;
+
+  const handleDone = async () => {
+    setCompleting(true);
+    await onCompleteAll();
+    setCompleting(false);
+  };
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4">
+      {/* Exercise header */}
+      <div className="flex items-start gap-3">
+        <button
+          onClick={() => onOpenVideo({ name: ex.name, videoUrl: ex.video_url, coachingCue })}
+          className="shrink-0 overflow-hidden rounded-lg"
+          style={{ width: 64, height: 48 }}
+        >
+          {ex.thumbnail_url ? (
+            <img src={ex.thumbnail_url} alt={ex.name} className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-secondary">
+              <Dumbbell className="h-5 w-5 text-muted-foreground" />
+            </div>
+          )}
+        </button>
+        <div className="flex-1 min-w-0">
+          <p className="font-body text-[15px] font-semibold text-foreground">{ex.name}</p>
+        </div>
+        {allDone && (
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary shrink-0">
+            <Check className="h-4 w-4 text-primary-foreground" />
+          </div>
+        )}
+      </div>
+
+      {/* Coaching cue as main instructions */}
+      {coachingCue && (
+        <p className="mt-3 font-body text-[14px] text-foreground leading-relaxed">
+          {coachingCue}
+        </p>
+      )}
+
+      {/* Notes textarea */}
+      {!allDone && (
+        <>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Velocidad, inclinación, observaciones..."
+            className="mt-3 w-full rounded-xl bg-secondary p-3 text-sm text-foreground font-body placeholder:text-muted-foreground outline-none resize-none"
+            rows={2}
+          />
+          <button
+            onClick={handleDone}
+            disabled={saving || completing}
+            className="press-scale mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 font-body text-sm font-medium text-primary-foreground disabled:opacity-50"
+          >
+            {completing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+            Completado
+          </button>
+        </>
+      )}
     </div>
   );
 }
