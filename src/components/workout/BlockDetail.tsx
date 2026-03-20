@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { ChevronLeft, Check, Dumbbell, Loader2, Quote, Trophy } from "lucide-react";
 import type { WorkoutBlock } from "./WorkoutOverview";
 import ExerciseVideoOverlay from "./ExerciseVideoOverlay";
@@ -11,13 +11,28 @@ const CARDIO_BLOCKS = ['ENGINE BLOCK'];
 const MOBILITY_BLOCKS = ['PRIME BLOCK', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION'];
 const COOLDOWN_BLOCKS = ['RECOVERY BLOCK'];
 
-type BlockMode = 'strength' | 'mobility' | 'cooldown' | 'cardio';
+type BlockMode = 'strength' | 'mobility' | 'cooldown' | 'cardio' | 'emom';
 
-function getBlockMode(label: string): BlockMode {
-  if (CARDIO_BLOCKS.includes(label)) return 'cardio';
-  if (COOLDOWN_BLOCKS.includes(label)) return 'cooldown';
-  if (MOBILITY_BLOCKS.includes(label)) return 'mobility';
+function getBlockMode(block: WorkoutBlock): BlockMode {
+  // Check if EMOM — render as instruction block
+  if (block.groups.some(g => g.sets.some(s => s.set_type === 'emom'))) return 'emom';
+  if (CARDIO_BLOCKS.includes(block.name)) return 'cardio';
+  if (COOLDOWN_BLOCKS.includes(block.name)) return 'cooldown';
+  if (MOBILITY_BLOCKS.includes(block.name)) return 'mobility';
   return 'strength';
+}
+
+/** Check if coaching cue indicates "per side" */
+function isPerSide(cue: string | null | undefined): boolean {
+  if (!cue) return false;
+  const lower = cue.toLowerCase();
+  return lower.includes('por lado') || lower.includes('per side') || lower.includes('ea side') || lower.includes(' ea');
+}
+
+/** Format reps display with /lado if applicable */
+function formatReps(reps: number | null, cue: string | null | undefined): string {
+  if (reps == null) return "—";
+  return isPerSide(cue) ? `${reps}/lado` : `${reps}`;
 }
 
 /** Render block name with bold main part and normal suffix */
@@ -54,13 +69,24 @@ function formatPrescription(sets: WorkoutSetData[]): string {
   const first = sets[0];
   if (!first) return "";
   const parts: string[] = [];
-  parts.push(`${sets.length} × ${first.planned_reps ?? "?"} reps`);
+  const repsStr = formatReps(first.planned_reps, (first as any)?.coaching_cue_override);
+  parts.push(`${sets.length} × ${repsStr}`);
   if (first.planned_tempo) parts.push(`Tempo ${first.planned_tempo}`);
   if (first.planned_rest_seconds) {
     const s = first.planned_rest_seconds;
     parts.push(`Descanso ${s >= 60 ? `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}` : `${s}s`}`);
   }
   return parts.join(" · ");
+}
+
+/** Parse sub-group header from coaching cue (e.g. "2-3 rondas | cue text") */
+function parseSubGroupHeader(cue: string | null | undefined): { header: string | null; cleanCue: string | null } {
+  if (!cue) return { header: null, cleanCue: null };
+  const match = cue.match(/^(\d+(?:-\d+)?\s*rondas?)\s*\|\s*(.*)/i);
+  if (match) {
+    return { header: match[1].toUpperCase(), cleanCue: match[2] || null };
+  }
+  return { header: null, cleanCue: cue };
 }
 
 export default function BlockDetail({
@@ -78,7 +104,7 @@ export default function BlockDetail({
   const [justCompleted, setJustCompleted] = useState<string | null>(null);
   const [videoOverlay, setVideoOverlay] = useState<{ name: string; videoUrl: string | null; coachingCue: string | null } | null>(null);
 
-  // Optimistic completed state — initialized from DB data
+  // Optimistic completed state
   const [optimisticCompleted, setOptimisticCompleted] = useState<Set<string>>(() => {
     const initial = new Set<string>();
     for (const g of block.groups) {
@@ -89,7 +115,7 @@ export default function BlockDetail({
     return initial;
   });
 
-  const blockMode = getBlockMode(block.name);
+  const blockMode = getBlockMode(block);
 
   const getInputs = useCallback(
     (set: WorkoutSetData): SetInputs => {
@@ -108,7 +134,6 @@ export default function BlockDetail({
     setSetInputs((prev) => ({ ...prev, [setId]: { ...existing, [field]: value } }));
   };
 
-  // Update weight in DB for already-completed set
   const updateCompletedWeight = useCallback(async (setId: string, newWeight: string) => {
     const w = parseFloat(newWeight);
     if (isNaN(w)) return;
@@ -117,13 +142,10 @@ export default function BlockDetail({
 
   const handleComplete = async (set: WorkoutSetData, groupIndex: number, isLastInSuperset: boolean) => {
     const inputs = getInputs(set);
-
-    // Optimistic: mark as completed immediately
     setOptimisticCompleted((prev) => new Set(prev).add(set.id));
     setJustCompleted(set.id);
     setTimeout(() => setJustCompleted(null), 1500);
 
-    // Start rest timer optimistically
     const shouldRest = block.supersetGroup ? isLastInSuperset : true;
     if (shouldRest && set.planned_rest_seconds) {
       onRestStart(set.planned_rest_seconds);
@@ -135,16 +157,10 @@ export default function BlockDetail({
     });
 
     if (!result) {
-      // Revert optimistic update
-      setOptimisticCompleted((prev) => {
-        const next = new Set(prev);
-        next.delete(set.id);
-        return next;
-      });
+      setOptimisticCompleted((prev) => { const n = new Set(prev); n.delete(set.id); return n; });
       toast({ title: "Error al guardar", description: "Intenta de nuevo", variant: "destructive" });
       return;
     }
-
     if (result.is_pr) {
       setPrFlash(set.id);
       setTimeout(() => setPrFlash(null), 2000);
@@ -152,16 +168,9 @@ export default function BlockDetail({
   };
 
   const handleUncomplete = async (set: WorkoutSetData) => {
-    // Optimistic: remove from completed
-    setOptimisticCompleted((prev) => {
-      const next = new Set(prev);
-      next.delete(set.id);
-      return next;
-    });
-
+    setOptimisticCompleted((prev) => { const n = new Set(prev); n.delete(set.id); return n; });
     const ok = await onUncompleteSet(set.id);
     if (!ok) {
-      // Revert
       setOptimisticCompleted((prev) => new Set(prev).add(set.id));
       toast({ title: "Error al desmarcar", variant: "destructive" });
     }
@@ -185,8 +194,6 @@ export default function BlockDetail({
       : `Descanso ${restInfo}s`
     : null;
 
-  const isRecovery = block.name === 'RECOVERY BLOCK';
-
   return (
     <div className="flex min-h-screen flex-col bg-background animate-slide-in-right">
       {/* Header */}
@@ -207,6 +214,7 @@ export default function BlockDetail({
               {blockMode === 'mobility' && <>{block.groups.length} ejercicios · 2-3 rondas</>}
               {blockMode === 'cooldown' && <>{block.groups.length} estiramientos · 2 rondas</>}
               {blockMode === 'cardio' && <>Cardio</>}
+              {blockMode === 'emom' && <>EMOM</>}
             </p>
           </div>
         </div>
@@ -214,7 +222,24 @@ export default function BlockDetail({
 
       {/* Content */}
       <div className="flex-1 px-5 pb-8">
-        {blockMode === 'cardio' ? (
+        {blockMode === 'emom' ? (
+          <EmomCard
+            block={block}
+            saving={saving}
+            isCompleted={isCompleted}
+            onCompleteAll={async () => {
+              for (const g of block.groups) {
+                for (const set of g.sets) {
+                  if (!isCompleted(set)) {
+                    setOptimisticCompleted((prev) => new Set(prev).add(set.id));
+                    await onCompleteSet(set, { actual_weight: 0, actual_reps: set.planned_reps || 1 });
+                  }
+                }
+              }
+            }}
+            onOpenVideo={(v) => setVideoOverlay(v)}
+          />
+        ) : blockMode === 'cardio' ? (
           <div className="flex flex-col gap-4">
             {block.groups.map((group) => (
               <CardioCard
@@ -235,32 +260,27 @@ export default function BlockDetail({
             ))}
           </div>
         ) : blockMode === 'mobility' ? (
-          <div className="flex flex-col gap-3">
-            {block.groups.map((group) => (
-              <MobilityCard
-                key={group.exercise.id}
-                group={group}
-                saving={saving}
-                isCompleted={isCompleted}
-                onToggle={(set) => {
-                  if (optimisticCompleted.has(set.id)) {
-                    handleUncomplete(set);
-                  } else {
-                    setOptimisticCompleted((prev) => new Set(prev).add(set.id));
-                    setJustCompleted(set.id);
-                    setTimeout(() => setJustCompleted(null), 1500);
-                    onCompleteSet(set, { actual_weight: 0, actual_reps: set.planned_reps || 1 }).then((result) => {
-                      if (!result) {
-                        setOptimisticCompleted((prev) => { const n = new Set(prev); n.delete(set.id); return n; });
-                        toast({ title: "Error", variant: "destructive" });
-                      }
-                    });
+          <MobilityContent
+            block={block}
+            saving={saving}
+            isCompleted={isCompleted}
+            onToggle={(set) => {
+              if (optimisticCompleted.has(set.id)) {
+                handleUncomplete(set);
+              } else {
+                setOptimisticCompleted((prev) => new Set(prev).add(set.id));
+                setJustCompleted(set.id);
+                setTimeout(() => setJustCompleted(null), 1500);
+                onCompleteSet(set, { actual_weight: 0, actual_reps: set.planned_reps || 1 }).then((result) => {
+                  if (!result) {
+                    setOptimisticCompleted((prev) => { const n = new Set(prev); n.delete(set.id); return n; });
+                    toast({ title: "Error", variant: "destructive" });
                   }
-                }}
-                onOpenVideo={(v) => setVideoOverlay(v)}
-              />
-            ))}
-          </div>
+                });
+              }
+            }}
+            onOpenVideo={(v) => setVideoOverlay(v)}
+          />
         ) : blockMode === 'cooldown' ? (
           <div className="flex flex-col gap-2">
             {block.groups.map((group) => (
@@ -335,6 +355,103 @@ export default function BlockDetail({
   );
 }
 
+/* ═══════ EMOM CARD (instruction mode) ═══════ */
+function EmomCard({
+  block, saving, isCompleted, onCompleteAll, onOpenVideo,
+}: {
+  block: WorkoutBlock; saving: boolean;
+  isCompleted: (s: WorkoutSetData) => boolean;
+  onCompleteAll: () => Promise<void>;
+  onOpenVideo: (v: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
+}) {
+  const [notes, setNotes] = useState("");
+  const [completing, setCompleting] = useState(false);
+  const allSets = block.groups.flatMap(g => g.sets);
+  const allDone = allSets.every(s => isCompleted(s));
+  const firstCue = (allSets[0] as any)?.coaching_cue_override;
+
+  const handleDone = async () => {
+    setCompleting(true);
+    await onCompleteAll();
+    setCompleting(false);
+  };
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4">
+      {/* Instructions */}
+      {firstCue && (
+        <p className="font-body text-[14px] text-foreground leading-relaxed mb-4">
+          {firstCue}
+        </p>
+      )}
+
+      {/* Exercise list */}
+      <p className="font-mono uppercase text-muted-foreground mb-2" style={{ fontSize: 9, letterSpacing: "2px" }}>
+        EJERCICIOS
+      </p>
+      <div className="flex flex-col gap-2 mb-4">
+        {block.groups.map((group) => {
+          const ex = group.exercise;
+          const reps = group.sets[0]?.planned_reps;
+          const cue = (group.sets[0] as any)?.coaching_cue_override;
+          return (
+            <div key={ex.id} className="flex items-center gap-3 rounded-xl bg-secondary/50 p-3">
+              <button
+                onClick={() => onOpenVideo({ name: ex.name, videoUrl: ex.video_url, coachingCue: cue })}
+                className="shrink-0 overflow-hidden rounded-lg"
+                style={{ width: 48, height: 36 }}
+              >
+                {ex.thumbnail_url ? (
+                  <img src={ex.thumbnail_url} alt={ex.name} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-secondary">
+                    <Dumbbell className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                )}
+              </button>
+              <div className="flex-1 min-w-0">
+                <p className="font-body text-sm font-semibold text-foreground truncate">{ex.name}</p>
+              </div>
+              {reps && (
+                <span className="font-mono text-muted-foreground shrink-0" style={{ fontSize: 12 }}>
+                  {formatReps(reps, cue)}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {allDone ? (
+        <div className="flex items-center justify-center gap-2 py-3">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary">
+            <Check className="h-4 w-4 text-primary-foreground" />
+          </div>
+          <span className="font-body text-sm font-medium text-foreground">Completado</span>
+        </div>
+      ) : (
+        <>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Pesos usados, notas..."
+            className="w-full rounded-xl bg-secondary p-3 text-sm text-foreground font-body placeholder:text-muted-foreground outline-none resize-none"
+            rows={2}
+          />
+          <button
+            onClick={handleDone}
+            disabled={saving || completing}
+            className="press-scale mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 font-body text-sm font-medium text-primary-foreground disabled:opacity-50"
+          >
+            {completing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+            Completado
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
 /* ═══════ SUPERSET ═══════ */
 function SupersetContent({
   block, weightUnit, saving, getInputs, updateInput, handleToggle,
@@ -400,8 +517,6 @@ function ExerciseCard({
   const ex = group.exercise;
   const sets = group.sets;
   const completedCount = sets.filter((s) => isCompleted(s)).length;
-
-  // Only show coaching_cue_override, never exercise.coaching_cue
   const cueOverride = (sets[0] as any)?.coaching_cue_override;
 
   return (
@@ -458,6 +573,7 @@ function ExerciseCard({
           const isPrFlash = prFlash === set.id;
           const isJustDone = justCompleted === set.id;
           const rpeHigh = (set.planned_rpe ?? 0) >= 9;
+          const setCue = (set as any)?.coaching_cue_override;
 
           return (
             <div
@@ -480,7 +596,6 @@ function ExerciseCard({
                 {set.planned_rpe ? `RPE ${set.planned_rpe}` : "—"}
               </span>
 
-              {/* Weight input — always editable */}
               <input
                 type="number"
                 step={0.5}
@@ -494,25 +609,29 @@ function ExerciseCard({
                 style={{ background: "hsl(var(--border))", border: "none", fontSize: 14 }}
               />
 
-              {/* Reps */}
+              {/* Reps with /lado */}
               {completed ? (
                 <span className="font-mono text-sm text-foreground" style={{ letterSpacing: "0.03em" }}>
-                  {set.actual_reps ?? inputs.reps}
+                  {set.actual_reps ?? inputs.reps}{isPerSide(setCue) ? <span className="text-muted-foreground" style={{ fontSize: 9 }}>/l</span> : null}
                   {isPrFlash && <span className="ml-1 font-mono" style={{ fontSize: 9, color: "#C9A96E" }}>PR</span>}
                 </span>
               ) : (
-                <input
-                  type="number"
-                  step={1}
-                  value={inputs.reps}
-                  onChange={(e) => updateInput(set.id, "reps", e.target.value)}
-                  placeholder={String(set.planned_reps ?? "")}
-                  className="font-mono text-sm text-foreground rounded-lg px-2 py-1.5 w-full outline-none focus:ring-1 focus:ring-primary/50"
-                  style={{ background: "hsl(var(--border))", border: "none", fontSize: 14 }}
-                />
+                <div className="relative">
+                  <input
+                    type="number"
+                    step={1}
+                    value={inputs.reps}
+                    onChange={(e) => updateInput(set.id, "reps", e.target.value)}
+                    placeholder={String(set.planned_reps ?? "")}
+                    className="font-mono text-sm text-foreground rounded-lg px-2 py-1.5 w-full outline-none focus:ring-1 focus:ring-primary/50"
+                    style={{ background: "hsl(var(--border))", border: "none", fontSize: 14 }}
+                  />
+                  {isPerSide(setCue) && (
+                    <span className="absolute right-1 top-1/2 -translate-y-1/2 font-mono text-muted-foreground pointer-events-none" style={{ fontSize: 8 }}>/l</span>
+                  )}
+                </div>
               )}
 
-              {/* Check button — toggle */}
               <button
                 onClick={() => onToggle(set)}
                 disabled={saving}
@@ -522,9 +641,7 @@ function ExerciseCard({
                   backgroundColor: completed ? "hsl(var(--primary))" : "transparent",
                 }}
               >
-                {completed ? (
-                  <Check className="h-3.5 w-3.5 text-primary-foreground" />
-                ) : null}
+                {completed ? <Check className="h-3.5 w-3.5 text-primary-foreground" /> : null}
               </button>
             </div>
           );
@@ -534,72 +651,97 @@ function ExerciseCard({
   );
 }
 
-/* ═══════ MOBILITY CARD ═══════ */
-function MobilityCard({
-  group, saving, isCompleted, onToggle, onOpenVideo,
+/* ═══════ MOBILITY CONTENT with sub-groups ═══════ */
+function MobilityContent({
+  block, saving, isCompleted, onToggle, onOpenVideo,
 }: {
-  group: ExerciseGroup; saving: boolean;
+  block: WorkoutBlock; saving: boolean;
   isCompleted: (s: WorkoutSetData) => boolean;
   onToggle: (s: WorkoutSetData) => void;
   onOpenVideo: (v: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
 }) {
-  const ex = group.exercise;
-  const sets = group.sets;
-  const cueOverride = (sets[0] as any)?.coaching_cue_override;
+  // Build items with sub-group headers
+  const items: Array<{ type: 'header'; text: string } | { type: 'exercise'; group: ExerciseGroup; cleanCue: string | null }> = [];
+
+  for (const group of block.groups) {
+    const cueOverride = (group.sets[0] as any)?.coaching_cue_override as string | null;
+    const { header, cleanCue } = parseSubGroupHeader(cueOverride);
+    if (header) {
+      items.push({ type: 'header', text: header });
+    }
+    items.push({ type: 'exercise', group, cleanCue });
+  }
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4">
-      <div className="flex items-start gap-3">
-        <button
-          onClick={() => onOpenVideo({ name: ex.name, videoUrl: ex.video_url, coachingCue: cueOverride })}
-          className="shrink-0 overflow-hidden rounded-lg"
-          style={{ width: 48, height: 36 }}
-        >
-          {ex.thumbnail_url ? (
-            <img src={ex.thumbnail_url} alt={ex.name} className="h-full w-full object-cover" />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-secondary">
-              <Dumbbell className="h-4 w-4 text-muted-foreground" />
+    <div className="flex flex-col gap-1">
+      {items.map((item, i) => {
+        if (item.type === 'header') {
+          return (
+            <div key={`h-${i}`} className="pt-3 pb-1 first:pt-0">
+              <span className="font-mono uppercase text-muted-foreground" style={{ fontSize: 10, letterSpacing: "1.5px" }}>
+                {item.text}
+              </span>
             </div>
-          )}
-        </button>
-        <div className="flex-1 min-w-0">
-          <p className="font-body text-[14px] font-medium text-foreground">{ex.name}</p>
-          <div className="flex items-center gap-2 mt-0.5">
-            {sets[0]?.planned_reps && (
-              <span className="font-mono text-muted-foreground" style={{ fontSize: 11 }}>
-                {sets[0].planned_reps} reps
-              </span>
-            )}
-            {cueOverride && (
-              <span className="font-body text-muted-foreground" style={{ fontSize: 11 }}>
-                · {cueOverride}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Per-set checkmarks — toggleable */}
-        <div className="flex gap-1 shrink-0">
-          {sets.map((set) => {
-            const done = isCompleted(set);
-            return (
+          );
+        }
+        const { group, cleanCue } = item;
+        const ex = group.exercise;
+        const sets = group.sets;
+        return (
+          <div key={ex.id} className="rounded-2xl border border-border bg-card p-4">
+            <div className="flex items-start gap-3">
               <button
-                key={set.id}
-                onClick={() => onToggle(set)}
-                disabled={saving}
-                className="flex h-7 w-7 items-center justify-center rounded-full border-2 transition-all"
-                style={{
-                  borderColor: done ? "hsl(var(--primary))" : "hsl(var(--border))",
-                  backgroundColor: done ? "hsl(var(--primary))" : "transparent",
-                }}
+                onClick={() => onOpenVideo({ name: ex.name, videoUrl: ex.video_url, coachingCue: cleanCue })}
+                className="shrink-0 overflow-hidden rounded-lg"
+                style={{ width: 48, height: 36 }}
               >
-                {done && <Check className="h-3.5 w-3.5 text-primary-foreground" />}
+                {ex.thumbnail_url ? (
+                  <img src={ex.thumbnail_url} alt={ex.name} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-secondary">
+                    <Dumbbell className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                )}
               </button>
-            );
-          })}
-        </div>
-      </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-body text-[14px] font-medium text-foreground">{ex.name}</p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  {sets[0]?.planned_reps && (
+                    <span className="font-mono text-muted-foreground" style={{ fontSize: 11 }}>
+                      {formatReps(sets[0].planned_reps, cleanCue)}
+                    </span>
+                  )}
+                  {cleanCue && (
+                    <span className="font-body text-muted-foreground" style={{ fontSize: 11 }}>
+                      · {cleanCue}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-1 shrink-0">
+                {sets.map((set) => {
+                  const done = isCompleted(set);
+                  return (
+                    <button
+                      key={set.id}
+                      onClick={() => onToggle(set)}
+                      disabled={saving}
+                      className="flex h-7 w-7 items-center justify-center rounded-full border-2 transition-all"
+                      style={{
+                        borderColor: done ? "hsl(var(--primary))" : "hsl(var(--border))",
+                        backgroundColor: done ? "hsl(var(--primary))" : "transparent",
+                      }}
+                    >
+                      {done && <Check className="h-3.5 w-3.5 text-primary-foreground" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
