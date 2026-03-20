@@ -143,12 +143,20 @@ export default function WorkoutOverview({
                         </span>
                       )}
                     </div>
-                    <p className="mt-0.5 font-body text-muted-foreground truncate" style={{ fontSize: 12 }}>
-                      {block.exerciseNames.join(" · ")}
-                    </p>
-                    <p className="mt-1 font-mono text-muted-foreground" style={{ fontSize: 11 }}>
-                      {block.totalSets} sets · ~{block.estimatedMinutes} min
-                    </p>
+                    {isInstructionBlock(block) ? (
+                      <p className="mt-0.5 font-body text-muted-foreground" style={{ fontSize: 12, display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                        {getInstructionSummary(block)}
+                      </p>
+                    ) : (
+                      <>
+                        <p className="mt-0.5 font-body text-muted-foreground truncate" style={{ fontSize: 12 }}>
+                          {block.exerciseNames.join(" · ")}
+                        </p>
+                        <p className="mt-1 font-mono text-muted-foreground" style={{ fontSize: 11 }}>
+                          {block.totalSets} sets · ~{block.estimatedMinutes} min
+                        </p>
+                      </>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {done ? (
