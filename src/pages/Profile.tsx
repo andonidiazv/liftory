@@ -221,27 +221,22 @@ export default function Profile() {
               <statusInfo.icon className="h-5 w-5" style={{ color: statusInfo.color }} />
               <div className="flex-1">
                 <p className="text-sm font-body font-medium text-foreground">{statusInfo.label}</p>
-                {isFreeTrial() && profile?.trial_ends_at && (
-                  <p className="text-xs text-muted-foreground">
-                    Día {6 - daysLeftInTrial() + 1} de 6 · Expira el {format(new Date(profile.trial_ends_at), "d MMM yyyy", { locale: es })}
-                  </p>
-                )}
                 {isPremium() && profile?.current_period_end && (
                   <p className="text-xs text-muted-foreground">
                     Plan {profile.subscription_tier || "—"} · Renueva el {format(new Date(profile.current_period_end), "d MMM yyyy", { locale: es })}
                   </p>
                 )}
-                {isExpired() && (
-                  <p className="text-xs text-destructive">Tu suscripción expiró</p>
+                {!isPremium() && (
+                  <p className="text-xs text-destructive">Tu suscripción no está activa</p>
                 )}
               </div>
             </div>
-            {isExpired() && (
+            {!isPremium() && (
               <button
                 onClick={() => navigate("/paywall")}
                 className="mt-3 w-full rounded-xl bg-primary py-3 text-sm font-body font-semibold text-primary-foreground press-scale"
               >
-                Reactivar suscripción
+                Suscribirse
               </button>
             )}
           </div>
