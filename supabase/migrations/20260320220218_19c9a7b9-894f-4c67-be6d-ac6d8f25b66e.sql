@@ -1,0 +1,1 @@
+ALTER TABLE workout_sets ADD COLUMN IF NOT EXISTS block_label text;

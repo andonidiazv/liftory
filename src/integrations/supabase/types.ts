@@ -592,6 +592,7 @@ export type Database = {
           actual_rir: number | null
           actual_rpe: number | null
           actual_weight: number | null
+          block_label: string | null
           coaching_cue_override: string | null
           exercise_id: string
           id: string
@@ -614,6 +615,7 @@ export type Database = {
           actual_rir?: number | null
           actual_rpe?: number | null
           actual_weight?: number | null
+          block_label?: string | null
           coaching_cue_override?: string | null
           exercise_id: string
           id?: string
@@ -636,6 +638,7 @@ export type Database = {
           actual_rir?: number | null
           actual_rpe?: number | null
           actual_weight?: number | null
+          block_label?: string | null
           coaching_cue_override?: string | null
           exercise_id?: string
           id?: string
