@@ -179,41 +179,25 @@ export default function AdminUsers() {
     setSelected((prev) => prev ? { ...prev, ...newValues } as unknown as UserRow : null);
   };
 
-  const forcePremium = (u: UserRow) => {
+  const activateSubscription = (u: UserRow) => {
     setConfirmAction({
-      label: "Forzar upgrade a Premium",
+      label: `Activar suscripción para ${u.full_name || u.user_id}`,
       fn: async () => {
-        await auditAndUpdate(u, "subscription_forced", {
+        await auditAndUpdate(u, "subscription_activated", {
           subscription_status: "active",
           subscription_tier: "monthly",
-          current_period_end: new Date(Date.now() + 30 * 86400000).toISOString(),
         });
       },
     });
   };
 
-  const forceExpired = (u: UserRow) => {
+  const deactivateSubscription = (u: UserRow) => {
     setConfirmAction({
-      label: "Forzar downgrade a Expired",
+      label: "¿Seguro? El usuario perderá acceso a la app",
       fn: async () => {
-        await auditAndUpdate(u, "subscription_expired_forced", {
+        await auditAndUpdate(u, "subscription_deactivated", {
           subscription_status: "expired",
           subscription_tier: null,
-          current_period_end: null,
-        });
-      },
-    });
-  };
-
-  const forceTrial = (u: UserRow) => {
-    setConfirmAction({
-      label: "Forzar downgrade a Trial",
-      fn: async () => {
-        await auditAndUpdate(u, "subscription_trial_reset", {
-          subscription_status: "trial",
-          subscription_tier: null,
-          trial_ends_at: new Date(Date.now() + 6 * 86400000).toISOString(),
-          current_period_end: null,
         });
       },
     });
@@ -283,25 +267,11 @@ export default function AdminUsers() {
   };
 
   const toggleSubscription = (u: UserRow) => {
-    const isActive = u.subscription_status === "active";
-    setConfirmAction({
-      label: isActive ? "Desactivar suscripción" : "Activar suscripción",
-      fn: async () => {
-        if (isActive) {
-          await auditAndUpdate(u, "subscription_deactivated", {
-            subscription_status: "expired",
-            subscription_tier: null,
-            current_period_end: null,
-          });
-        } else {
-          await auditAndUpdate(u, "subscription_activated", {
-            subscription_status: "active",
-            subscription_tier: "monthly",
-            current_period_end: new Date(Date.now() + 30 * 86400000).toISOString(),
-          });
-        }
-      },
-    });
+    if (u.subscription_status === "active") {
+      deactivateSubscription(u);
+    } else {
+      activateSubscription(u);
+    }
   };
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
@@ -510,7 +480,7 @@ export default function AdminUsers() {
               <DetailRow label="Unidad peso" value={selected.weight_unit} />
               <DetailRow label="Estado" value={selected.subscription_status} color={statusColors[selected.subscription_status]} />
               <DetailRow label="Tier" value={selected.subscription_tier || "—"} />
-              <DetailRow label="Trial ends" value={selected.trial_ends_at ? format(new Date(selected.trial_ends_at), "dd MMM yyyy", { locale: es }) : "—"} />
+              
               <DetailRow label="Period end" value={selected.current_period_end ? format(new Date(selected.current_period_end), "dd MMM yyyy", { locale: es }) : "—"} />
               <DetailRow label="Registrado" value={format(new Date(selected.created_at), "dd MMM yyyy HH:mm", { locale: es })} />
             </div>
@@ -600,27 +570,24 @@ export default function AdminUsers() {
                 <KeyRound className="h-4 w-4" style={{ color: "#8A8A8E" }} /> Resetear contraseña
               </button>
               <div className="my-1" />
-              <button
-                onClick={() => forcePremium(selected)}
-                className="w-full rounded-lg px-4 py-2.5 text-sm font-body font-medium text-left transition-colors"
-                style={{ background: "rgba(122,139,92,0.1)", color: "#7A8B5C" }}
-              >
-                ↑ Forzar upgrade a Premium
-              </button>
-              <button
-                onClick={() => forceExpired(selected)}
-                className="w-full rounded-lg px-4 py-2.5 text-sm font-body font-medium text-left transition-colors"
-                style={{ background: "rgba(184,98,47,0.1)", color: "#B8622F" }}
-              >
-                ↓ Forzar downgrade a Expired
-              </button>
-              <button
-                onClick={() => forceTrial(selected)}
-                className="w-full rounded-lg px-4 py-2.5 text-sm font-body font-medium text-left transition-colors"
-                style={{ background: "rgba(138,138,142,0.1)", color: "#8A8A8E" }}
-              >
-                ↻ Resetear Trial (+6 días)
-              </button>
+              {selected.subscription_status !== "active" && (
+                <button
+                  onClick={() => activateSubscription(selected)}
+                  className="w-full rounded-lg px-4 py-2.5 text-sm font-body font-medium text-left transition-colors"
+                  style={{ background: "rgba(122,139,92,0.1)", color: "#7A8B5C" }}
+                >
+                  Activar suscripción
+                </button>
+              )}
+              {selected.subscription_status === "active" && (
+                <button
+                  onClick={() => deactivateSubscription(selected)}
+                  className="w-full rounded-lg px-4 py-2.5 text-sm font-body font-medium text-left transition-colors"
+                  style={{ background: "rgba(212,85,85,0.1)", color: "#D45555" }}
+                >
+                  Desactivar suscripción
+                </button>
+              )}
             </div>
           </div>
         </>
