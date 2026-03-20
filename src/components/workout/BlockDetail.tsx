@@ -175,6 +175,7 @@ function SupersetContent({
   getSuggestedWeight,
   prFlash,
   justCompleted,
+  onOpenVideo,
 }: {
   block: WorkoutBlock;
   weightUnit: string;
@@ -185,6 +186,7 @@ function SupersetContent({
   getSuggestedWeight: (exerciseId: string, plannedReps: number | null) => { weight: number | null; hint: string | null };
   prFlash: string | null;
   justCompleted: string | null;
+  onOpenVideo: (v: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
 }) {
   const label = block.supersetGroup?.label || "SUPERSET";
   return (
