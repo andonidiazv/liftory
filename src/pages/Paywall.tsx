@@ -5,14 +5,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Target, Play, TrendingUp, Check } from "lucide-react";
 import { toast } from "sonner";
 
-const MONTHLY_PRICE = "price_1TCuLg0XOkcK4IZP06AbZY9E";
-const ANNUAL_PRICE = "price_1TCuM70XOkcK4IZPtnkc7xBm";
+const MONTHLY_PRICE = "price_1TD5ll0XOkcK4IZPIGWDFpUX";
+const SEMIANNUAL_PRICE = "price_1TD5kI0XOkcK4IZPiI7dsbJO";
+const ANNUAL_PRICE = "price_1TD5lM0XOkcK4IZPqQudTkwk";
+
+type Plan = "monthly" | "semiannual" | "annual";
 
 export default function Paywall() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, profile, refreshProfile, isAdmin, hasOnboarded } = useAuth();
-  const [selectedPlan, setSelectedPlan] = useState<"monthly" | "annual">("annual");
+  const [selectedPlan, setSelectedPlan] = useState<Plan>("annual");
   const [loading, setLoading] = useState(false);
   const [checkingPayment, setCheckingPayment] = useState(false);
 
@@ -48,9 +51,13 @@ export default function Paywall() {
     if (!user) { navigate("/login"); return; }
     setLoading(true);
     try {
-      const priceId = selectedPlan === "annual" ? ANNUAL_PRICE : MONTHLY_PRICE;
+      const priceMap: Record<Plan, string> = {
+        monthly: MONTHLY_PRICE,
+        semiannual: SEMIANNUAL_PRICE,
+        annual: ANNUAL_PRICE,
+      };
       const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { priceId },
+        body: { priceId: priceMap[selectedPlan] },
       });
       if (error) throw error;
       if (data?.url) {
@@ -88,9 +95,35 @@ export default function Paywall() {
     { icon: TrendingUp, text: "Progresión inteligente semana a semana" },
   ];
 
+  const plans: { key: Plan; label: string; price: string; detail: string; savings?: string; badge?: string; badgeColor?: string }[] = [
+    {
+      key: "monthly",
+      label: "Mensual",
+      price: "$399 MXN/mes",
+      detail: "Sin compromiso",
+    },
+    {
+      key: "semiannual",
+      label: "Semestral",
+      price: "$2,094 MXN",
+      detail: "cada 6 meses · $349 MXN/mes",
+      savings: "Ahorras $300",
+      badge: "POPULAR",
+      badgeColor: "#C9A96E",
+    },
+    {
+      key: "annual",
+      label: "Anual",
+      price: "$3,588 MXN",
+      detail: "cada 12 meses · $299 MXN/mes",
+      savings: "Ahorras $1,200",
+      badge: "MEJOR PRECIO",
+      badgeColor: "#C75B39",
+    },
+  ];
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-6 py-12" style={{ background: "#0F0F0F" }}>
-      {/* Logo */}
       <span
         className="font-display text-[28px] font-extrabold tracking-tight mb-10"
         style={{ color: "#C75B39", letterSpacing: "-0.04em" }}
@@ -98,7 +131,6 @@ export default function Paywall() {
         LIFTORY
       </span>
 
-      {/* Title */}
       <h1 className="font-display text-[28px] font-bold text-white text-center leading-tight">
         Entrenamiento de élite.
       </h1>
@@ -106,7 +138,6 @@ export default function Paywall() {
         Diseñado por expertos en kinesiología.
       </p>
 
-      {/* Benefits */}
       <div className="mt-8 w-full max-w-sm space-y-4">
         {benefits.map((b) => (
           <div key={b.text} className="flex items-center gap-3">
@@ -123,52 +154,43 @@ export default function Paywall() {
 
       {/* Price cards */}
       <div className="mt-8 w-full max-w-sm space-y-3">
-        {/* Monthly */}
-        <button
-          onClick={() => setSelectedPlan("monthly")}
-          className="relative w-full text-left transition-all"
-          style={{
-            background: "#1A1A1A",
-            border: selectedPlan === "monthly" ? "2px solid #C75B39" : "2px solid #2A2A2A",
-            borderRadius: 16,
-            padding: 20,
-          }}
-        >
-          <p className="font-display text-[22px] font-bold text-white">
-            $14.99 <span className="text-[14px] font-normal" style={{ color: "#888" }}>USD/mes</span>
-          </p>
-          <p className="mt-1 text-[12px] font-body" style={{ color: "#888" }}>
-            Cancela cuando quieras
-          </p>
-        </button>
-
-        {/* Annual */}
-        <button
-          onClick={() => setSelectedPlan("annual")}
-          className="relative w-full text-left transition-all"
-          style={{
-            background: "#1A1A1A",
-            border: selectedPlan === "annual" ? "2px solid #C75B39" : "2px solid #2A2A2A",
-            borderRadius: 16,
-            padding: 20,
-          }}
-        >
-          <span
-            className="absolute -top-2.5 right-4 rounded-full px-3 py-0.5 font-mono text-[9px] uppercase tracking-wider text-white"
-            style={{ background: "#C75B39" }}
+        {plans.map((plan) => (
+          <button
+            key={plan.key}
+            onClick={() => setSelectedPlan(plan.key)}
+            className="relative w-full text-left transition-all active:scale-[0.98]"
+            style={{
+              background: "#1A1A1A",
+              border: selectedPlan === plan.key
+                ? `2px solid ${plan.badgeColor || "#C75B39"}`
+                : "2px solid #2A2A2A",
+              borderRadius: 16,
+              padding: 16,
+            }}
           >
-            AHORRA 45%
-          </span>
-          <p className="font-display text-[22px] font-bold text-white">
-            $99 <span className="text-[14px] font-normal" style={{ color: "#888" }}>USD/año</span>
-          </p>
-          <p className="mt-1 font-mono text-[13px]" style={{ color: "#C75B39" }}>
-            = $8.25/mes
-          </p>
-        </button>
+            {plan.badge && (
+              <span
+                className="absolute -top-2.5 right-4 rounded-full px-3 py-0.5 font-mono text-[9px] uppercase tracking-wider text-white"
+                style={{ background: plan.badgeColor }}
+              >
+                {plan.badge}
+              </span>
+            )}
+            <p className="font-display text-[20px] font-bold text-white">
+              {plan.price}
+            </p>
+            <p className="mt-1 font-mono text-[12px]" style={{ color: "#888" }}>
+              {plan.detail}
+            </p>
+            {plan.savings && (
+              <p className="mt-1 font-body text-[12px]" style={{ color: "#C75B39" }}>
+                {plan.savings}
+              </p>
+            )}
+          </button>
+        ))}
       </div>
 
-      {/* Subscribe button */}
       <button
         onClick={handleSubscribe}
         disabled={loading}
@@ -182,7 +204,6 @@ export default function Paywall() {
         {loading ? "Cargando…" : "Suscribirse"}
       </button>
 
-      {/* Legal */}
       <p className="mt-4 text-[11px] font-body text-center" style={{ color: "#666" }}>
         Cancela cuando quieras. Sin contratos.
       </p>
