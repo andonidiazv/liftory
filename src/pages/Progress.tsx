@@ -14,7 +14,7 @@ import {
   BarChart,
   Bar,
 } from "recharts";
-import PremiumGate from "@/components/PremiumGate";
+
 import { Skeleton } from "@/components/ui/skeleton";
 
 function timeAgo(dateStr: string): string {
