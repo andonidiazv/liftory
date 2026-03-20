@@ -71,7 +71,7 @@ function buildBlocks(sets: WorkoutSetData[]): SessionBlock[] {
       reps: ex.sets[0]?.planned_reps ?? null,
       weight: ex.sets[0]?.planned_weight ?? null,
       tempo: ex.sets[0]?.planned_tempo ?? null,
-      rir: ex.sets[0]?.planned_rir ?? null,
+      
     }));
 
     const avgRest = g.sets[0]?.planned_rest_seconds ?? 60;
