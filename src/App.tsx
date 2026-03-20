@@ -29,6 +29,8 @@ import AdminExercises from "./pages/admin/AdminExercises";
 import AdminInsights from "./pages/admin/AdminInsights";
 import AdminAIRules from "./pages/admin/AdminAIRules";
 import AdminAuditLog from "./pages/admin/AdminAuditLog";
+import AdminPrograms from "./pages/admin/AdminPrograms";
+import AdminProgramDetail from "./pages/admin/AdminProgramDetail";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +64,8 @@ const App = () => (
               {/* Admin routes */}
               <Route path="/admin" element={<ProtectedRoute><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/users" element={<ProtectedRoute><AdminLayout><AdminUsers /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/programs" element={<ProtectedRoute><AdminLayout><AdminPrograms /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/programs/:id" element={<ProtectedRoute><AdminLayout><AdminProgramDetail /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/exercises" element={<ProtectedRoute><AdminLayout><AdminExercises /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/insights" element={<ProtectedRoute><AdminLayout><AdminInsights /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/ai-rules" element={<ProtectedRoute><AdminLayout><AdminAIRules /></AdminLayout></ProtectedRoute>} />

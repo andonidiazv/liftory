@@ -1,10 +1,11 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { BarChart3, Users, Dumbbell, Sparkles, Brain, ScrollText, LogOut, Home } from "lucide-react";
+import { BarChart3, Users, Dumbbell, Sparkles, Brain, ScrollText, LogOut, Home, ClipboardList } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 const navItems = [
   { label: "Dashboard", icon: BarChart3, to: "/admin" },
   { label: "Usuarios", icon: Users, to: "/admin/users" },
+  { label: "Programas", icon: ClipboardList, to: "/admin/programs" },
   { label: "Ejercicios", icon: Dumbbell, to: "/admin/exercises" },
   { label: "Insights", icon: Sparkles, to: "/admin/insights" },
   { label: "Reglas de IA", icon: Brain, to: "/admin/ai-rules" },
