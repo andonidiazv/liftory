@@ -351,13 +351,8 @@ export default function Exercises() {
         </div>
       )}
 
-      {/* Premium upgrade sheet */}
-      <PremiumBottomSheet
-        open={showUpgrade}
-        onClose={() => setShowUpgrade(false)}
-        title="Guarda tus ejercicios favoritos"
-        description="Con Premium puedes crear tu biblioteca personal de ejercicios favoritos."
-      />
+
+
     </Layout>
   );
 }

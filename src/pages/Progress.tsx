@@ -181,7 +181,7 @@ export default function Progress() {
                 </div>
               )}
             </div>
-          </PremiumGate>
+          </div>
         </div>
 
         {/* Quick Stats */}

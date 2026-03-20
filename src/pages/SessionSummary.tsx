@@ -290,11 +290,8 @@ export default function SessionSummary() {
                                       {ex.tempo}
                                     </span>
                                   )}
-                                  {ex.rir != null && (
-                                    <span className="px-1.5 py-0.5 font-mono" style={{ backgroundColor: `${block.accentColor}15`, color: block.accentColor, borderRadius: 4, fontSize: 10, fontWeight: 600 }}>
-                                      RIR {ex.rir}
-                                    </span>
-                                  )}
+
+
                                 </div>
                               </div>
                             );

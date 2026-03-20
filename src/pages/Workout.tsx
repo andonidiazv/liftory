@@ -143,8 +143,8 @@ export default function Workout() {
       const result = await completeSet(set.id, {
         actual_weight: data.actual_weight,
         actual_reps: data.actual_reps,
-        actual_rpe: 0,
-        actual_rir: 0,
+        actual_rpe: null,
+        actual_rir: null,
       });
       // Refresh blocks after completion
       if (result) {
