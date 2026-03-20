@@ -250,8 +250,8 @@ export function useWorkoutData(workoutId: string | undefined) {
       data: {
         actual_weight: number;
         actual_reps: number;
-        actual_rpe: number;
-        actual_rir: number;
+        actual_rpe: number | null;
+        actual_rir: number | null;
       }
     ) => {
       setSaving(true);
