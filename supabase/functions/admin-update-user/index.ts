@@ -64,10 +64,13 @@ serve(async (req) => {
         break;
       }
       case "send_recovery": {
-        if (!newValue || typeof newValue !== "string") throw new Error("newValue (email) is required");
-        const { error } = await supabaseAdmin.auth.resetPasswordForEmail(newValue);
+        // Get user email from auth
+        const { data: targetUser, error: getUserErr } = await supabaseAdmin.auth.admin.getUserById(userId);
+        if (getUserErr || !targetUser?.user?.email) throw new Error("Could not find user email");
+        const targetEmail = targetUser.user.email;
+        const { error } = await supabaseAdmin.auth.resetPasswordForEmail(targetEmail);
         if (error) throw error;
-        result = { success: true, message: "Recovery email sent" };
+        result = { success: true, message: `Recovery email sent to ${targetEmail}` };
         break;
       }
       default:
