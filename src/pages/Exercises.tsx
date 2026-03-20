@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import Layout from "@/components/Layout";
 import { Search, Play, X, Heart } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import PremiumBottomSheet from "@/components/PremiumBottomSheet";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -60,7 +60,7 @@ export default function Exercises() {
   const [loading, setLoading] = useState(true);
   const [selectedExercise, setSelectedExercise] = useState<ExerciseRow | null>(null);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
-  const [showUpgrade, setShowUpgrade] = useState(false);
+  
   const { isPremium } = useAuth();
 
   const fetchExercises = useCallback(async () => {
@@ -96,10 +96,6 @@ export default function Exercises() {
 
   const handleFavorite = (e: React.MouseEvent, exId: string) => {
     e.stopPropagation();
-    if (!isPremium()) {
-      setShowUpgrade(true);
-      return;
-    }
     setFavorites((prev) => {
       const next = new Set(prev);
       if (next.has(exId)) next.delete(exId);
@@ -351,13 +347,8 @@ export default function Exercises() {
         </div>
       )}
 
-      {/* Premium upgrade sheet */}
-      <PremiumBottomSheet
-        open={showUpgrade}
-        onClose={() => setShowUpgrade(false)}
-        title="Guarda tus ejercicios favoritos"
-        description="Con Premium puedes crear tu biblioteca personal de ejercicios favoritos."
-      />
+
+
     </Layout>
   );
 }

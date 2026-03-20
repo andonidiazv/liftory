@@ -14,7 +14,7 @@ import {
   BarChart,
   Bar,
 } from "recharts";
-import PremiumGate from "@/components/PremiumGate";
+
 import { Skeleton } from "@/components/ui/skeleton";
 
 function timeAgo(dateStr: string): string {
@@ -92,7 +92,7 @@ export default function Progress() {
         {/* Weekly Volume Chart */}
         <div className="mt-8">
           <span className="eyebrow-label">VOLUMEN SEMANAL</span>
-          <PremiumGate label="Desbloquea tendencias históricas">
+          <div>
             <div className="mt-4 card-fbb">
               {weeklyVolume.some((d) => d.volume > 0) ? (
                 <ResponsiveContainer width="100%" height={180}>
@@ -112,7 +112,7 @@ export default function Progress() {
                 </div>
               )}
             </div>
-          </PremiumGate>
+          </div>
         </div>
 
         {/* Personal Records */}
@@ -155,7 +155,7 @@ export default function Progress() {
         <div className="mt-8">
           <span className="eyebrow-label">BALANCE MUSCULAR</span>
           <p className="text-xs font-body" style={{ color: "#6B6360", marginTop: 2 }}>Volumen relativo por grupo muscular</p>
-          <PremiumGate label="Desbloquea tu balance muscular">
+          <div>
             <div className="mt-4 card-fbb">
               {muscleData.length > 0 ? (
                 <>
@@ -181,7 +181,7 @@ export default function Progress() {
                 </div>
               )}
             </div>
-          </PremiumGate>
+          </div>
         </div>
 
         {/* Quick Stats */}

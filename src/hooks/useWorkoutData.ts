@@ -250,8 +250,8 @@ export function useWorkoutData(workoutId: string | undefined) {
       data: {
         actual_weight: number;
         actual_reps: number;
-        actual_rpe: number;
-        actual_rir: number;
+        actual_rpe: number | null;
+        actual_rir: number | null;
       }
     ) => {
       setSaving(true);
@@ -260,8 +260,8 @@ export function useWorkoutData(workoutId: string | undefined) {
         .update({
           actual_weight: data.actual_weight,
           actual_reps: data.actual_reps,
-          actual_rpe: data.actual_rpe,
-          actual_rir: data.actual_rir,
+          actual_rpe: null,
+          actual_rir: null,
           is_completed: true,
           logged_at: new Date().toISOString(),
         })
@@ -288,8 +288,8 @@ export function useWorkoutData(workoutId: string | undefined) {
                 ...s,
                 actual_weight: data.actual_weight,
                 actual_reps: data.actual_reps,
-                actual_rpe: data.actual_rpe,
-                actual_rir: data.actual_rir,
+                actual_rpe: null,
+                actual_rir: null,
                 is_completed: true,
                 is_pr: updated?.is_pr ?? false,
                 logged_at: new Date().toISOString(),
@@ -308,8 +308,8 @@ export function useWorkoutData(workoutId: string | undefined) {
                   ...s,
                   actual_weight: data.actual_weight,
                   actual_reps: data.actual_reps,
-                  actual_rpe: data.actual_rpe,
-                  actual_rir: data.actual_rir,
+                  actual_rpe: null,
+                  actual_rir: null,
                   is_completed: true,
                   is_pr: updated?.is_pr ?? false,
                   logged_at: new Date().toISOString(),

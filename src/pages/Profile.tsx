@@ -6,9 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
-  Camera, LogOut, Trash2, ChevronRight, Watch, Crown,
+  Camera, LogOut, Trash2, Crown,
   AlertTriangle, Clock, Edit2, Check, X, Dumbbell, Target,
-  Calendar, MapPin, Shield, RefreshCw,
+  Calendar, MapPin, Shield,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -19,16 +19,6 @@ interface OnboardingData {
   equipment: string;
   injuries: string[];
   emotional_barriers: string[];
-  connected_wearable: string | null;
-  specific_event: string | null;
-  event_date: string | null;
-}
-
-interface WearableLatest {
-  recovery_score: number | null;
-  hrv_ms: number | null;
-  sleep_score: number | null;
-  date: string;
 }
 
 export default function Profile() {
@@ -39,32 +29,18 @@ export default function Profile() {
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState(profile?.full_name || "");
   const [onboarding, setOnboarding] = useState<OnboardingData | null>(null);
-  const [wearableData, setWearableData] = useState<WearableLatest | null>(null);
   const [uploading, setUploading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     if (!user) return;
-    // Fetch onboarding answers
     supabase
       .from("onboarding_answers")
-      .select("experience_level, primary_goal, training_days, equipment, injuries, emotional_barriers, connected_wearable, specific_event, event_date")
+      .select("experience_level, primary_goal, training_days, equipment, injuries, emotional_barriers")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         if (data) setOnboarding(data as OnboardingData);
-      });
-
-    // Fetch latest wearable data
-    supabase
-      .from("wearable_data")
-      .select("recovery_score, hrv_ms, sleep_score, date")
-      .eq("user_id", user.id)
-      .order("date", { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data) setWearableData(data as WearableLatest);
       });
   }, [user]);
 
@@ -124,16 +100,16 @@ export default function Profile() {
   };
 
   const displayName = profile?.full_name || "Usuario";
-  const subscriptionStatus = profile?.subscription_status || "trial";
+  const subscriptionStatus = profile?.subscription_status || "inactive";
 
   const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-    trial: { label: "Trial", color: "hsl(var(--accent))", icon: Clock },
     active: { label: "Premium", color: "hsl(var(--success))", icon: Crown },
     expired: { label: "Expirado", color: "hsl(var(--destructive))", icon: AlertTriangle },
     cancelled: { label: "Cancelado", color: "hsl(var(--muted-foreground))", icon: X },
+    inactive: { label: "Inactivo", color: "hsl(var(--muted-foreground))", icon: Clock },
   };
 
-  const statusInfo = statusConfig[subscriptionStatus] || statusConfig.trial;
+  const statusInfo = statusConfig[subscriptionStatus] || statusConfig.inactive;
 
   const goalLabels: Record<string, string> = {
     hypertrophy: "Hipertrofia", strength: "Fuerza", fat_loss: "Pérdida de grasa",
@@ -184,6 +160,7 @@ export default function Profile() {
                 <button onClick={() => setEditingName(true)} className="text-muted-foreground hover:text-foreground"><Edit2 className="h-4 w-4" /></button>
               </div>
             )}
+            <p className="text-xs text-muted-foreground font-body mt-0.5">{user?.email}</p>
             <div className="mt-1 flex items-center gap-2">
               <span
                 className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium"
@@ -220,10 +197,12 @@ export default function Profile() {
             <div className="flex items-center gap-3">
               <statusInfo.icon className="h-5 w-5" style={{ color: statusInfo.color }} />
               <div className="flex-1">
-                <p className="text-sm font-body font-medium text-foreground">{statusInfo.label}</p>
+                <p className="text-sm font-body font-medium text-foreground">
+                  {isPremium() ? `Plan ${profile?.subscription_tier || "Premium"}` : statusInfo.label}
+                </p>
                 {isPremium() && profile?.current_period_end && (
                   <p className="text-xs text-muted-foreground">
-                    Plan {profile.subscription_tier || "—"} · Renueva el {format(new Date(profile.current_period_end), "d MMM yyyy", { locale: es })}
+                    Renueva el {format(new Date(profile.current_period_end), "d MMM yyyy", { locale: es })}
                   </p>
                 )}
                 {!isPremium() && (
@@ -231,6 +210,11 @@ export default function Profile() {
                 )}
               </div>
             </div>
+            {isPremium() && (
+              <p className="mt-3 text-xs text-muted-foreground font-body">
+                Para gestionar tu suscripción, contacta a soporte o accede desde el email de confirmación de Stripe.
+              </p>
+            )}
             {!isPremium() && (
               <button
                 onClick={() => navigate("/paywall")}
@@ -260,38 +244,6 @@ export default function Profile() {
                 </div>
               </div>
             )}
-            {onboarding?.emotional_barriers && onboarding.emotional_barriers.length > 0 && (
-              <div className="card-fbb">
-                <p className="text-label-tech text-muted-foreground mb-2">BARRERAS EMOCIONALES</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {onboarding.emotional_barriers.map((b) => (
-                    <span key={b} className="pill text-xs">{b.replace(/_/g, " ")}</span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ═══ WEARABLE ═══ */}
-        <div className="mt-8">
-          <span className="eyebrow-label">WEARABLE</span>
-          <div className="mt-3 card-fbb">
-            <div className="flex items-center gap-3">
-              <Watch className="h-5 w-5 text-muted-foreground" />
-              <div className="flex-1">
-                <p className="text-sm font-body font-medium text-foreground">
-                  {onboarding?.connected_wearable || profile?.wearable || "No conectado"}
-                </p>
-                {wearableData && (
-                  <div className="mt-2 grid grid-cols-3 gap-2">
-                    <MiniStat label="Recovery" value={wearableData.recovery_score != null ? `${wearableData.recovery_score}%` : "—"} />
-                    <MiniStat label="HRV" value={wearableData.hrv_ms != null ? `${wearableData.hrv_ms}ms` : "—"} />
-                    <MiniStat label="Sueño" value={wearableData.sleep_score != null ? `${wearableData.sleep_score}` : "—"} />
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
         </div>
 
@@ -359,15 +311,6 @@ function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label:
       <Icon className="h-4 w-4 text-muted-foreground" />
       <span className="text-xs text-muted-foreground font-body w-24">{label}</span>
       <span className="text-sm font-body font-medium text-foreground capitalize">{value}</span>
-    </div>
-  );
-}
-
-function MiniStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="text-center">
-      <p className="font-mono-num text-sm font-medium text-foreground">{value}</p>
-      <p className="text-[9px] text-muted-foreground uppercase tracking-wider">{label}</p>
     </div>
   );
 }

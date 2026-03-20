@@ -30,7 +30,7 @@ interface SessionBlock {
   setType: string;
   accentColor: string;
   icon: React.ElementType;
-  exercises: { name: string; setsCount: number; reps: number | null; weight: number | null; tempo: string | null; rir: number | null }[];
+  exercises: { name: string; setsCount: number; reps: number | null; weight: number | null; tempo: string | null }[];
   totalSets: number;
   estimatedTime: string;
   format?: string;
@@ -71,7 +71,7 @@ function buildBlocks(sets: WorkoutSetData[]): SessionBlock[] {
       reps: ex.sets[0]?.planned_reps ?? null,
       weight: ex.sets[0]?.planned_weight ?? null,
       tempo: ex.sets[0]?.planned_tempo ?? null,
-      rir: ex.sets[0]?.planned_rir ?? null,
+      
     }));
 
     const avgRest = g.sets[0]?.planned_rest_seconds ?? 60;
@@ -290,11 +290,8 @@ export default function SessionSummary() {
                                       {ex.tempo}
                                     </span>
                                   )}
-                                  {ex.rir != null && (
-                                    <span className="px-1.5 py-0.5 font-mono" style={{ backgroundColor: `${block.accentColor}15`, color: block.accentColor, borderRadius: 4, fontSize: 10, fontWeight: 600 }}>
-                                      RIR {ex.rir}
-                                    </span>
-                                  )}
+
+
                                 </div>
                               </div>
                             );
