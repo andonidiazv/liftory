@@ -29,6 +29,8 @@ import AdminExercises from "./pages/admin/AdminExercises";
 import AdminInsights from "./pages/admin/AdminInsights";
 import AdminAIRules from "./pages/admin/AdminAIRules";
 import AdminAuditLog from "./pages/admin/AdminAuditLog";
+import AdminPrograms from "./pages/admin/AdminPrograms";
+import AdminProgramDetail from "./pages/admin/AdminProgramDetail";
 
 const queryClient = new QueryClient();
 
