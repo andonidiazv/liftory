@@ -273,7 +273,6 @@ function ExerciseCard({
             </div>
           )}
         </button>
-        )}
 
         <div className="flex-1 min-w-0">
           <p className="font-body text-[15px] font-semibold text-foreground">{ex.name}</p>
