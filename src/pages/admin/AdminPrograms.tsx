@@ -34,9 +34,13 @@ export default function AdminPrograms() {
 
   const fetchPrograms = async () => {
     setLoading(true);
+    const toggleState = templatesOnly;
+    console.log("Fetching programs with template filter:", toggleState);
+
     let q = supabase.from("programs").select("id, name, total_weeks, user_id, created_at");
-    if (templatesOnly) q = q.is("user_id", null);
+    if (toggleState) q = q.is("user_id", null);
     const { data, error } = await q.order("created_at", { ascending: false });
+    console.log("Programs result:", data, error);
 
     if (error) {
       console.error("Error fetching programs:", error);
