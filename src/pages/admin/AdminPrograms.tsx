@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Copy, Eye } from "lucide-react";
+import { Plus, Copy, Eye, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface ProgramRow {
@@ -28,16 +29,22 @@ export default function AdminPrograms() {
   const [newName, setNewName] = useState("");
   const [newWeeks, setNewWeeks] = useState(6);
   const [creating, setCreating] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<ProgramRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchPrograms = async () => {
     setLoading(true);
     let q = supabase.from("programs").select("id, name, total_weeks, user_id, created_at");
     if (templatesOnly) q = q.is("user_id", null);
-    const { data } = await q.order("created_at", { ascending: false });
+    const { data, error } = await q.order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching programs:", error);
+      toast.error("Error al cargar programas");
+    }
 
     if (!data) { setPrograms([]); setLoading(false); return; }
 
-    // get workout counts
     const ids = data.map((p) => p.id);
     const { data: wCounts } = await supabase
       .from("workouts")
@@ -85,7 +92,6 @@ export default function AdminPrograms() {
       .single();
     if (error || !newProg) { toast.error("Error al duplicar"); return; }
 
-    // copy workouts
     const { data: ws } = await supabase.from("workouts").select("*").eq("program_id", prog.id);
     if (ws?.length) {
       for (const w of ws) {
@@ -104,6 +110,26 @@ export default function AdminPrograms() {
       }
     }
     toast.success("Programa duplicado");
+    fetchPrograms();
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+
+    const { data: ws } = await supabase.from("workouts").select("id").eq("program_id", deleteTarget.id);
+    if (ws?.length) {
+      const wIds = ws.map((w) => w.id);
+      await supabase.from("workout_sets").delete().in("workout_id", wIds);
+      await supabase.from("workouts").delete().eq("program_id", deleteTarget.id);
+    }
+    const { error } = await supabase.from("programs").delete().eq("id", deleteTarget.id);
+
+    setDeleting(false);
+    setDeleteTarget(null);
+
+    if (error) { toast.error("Error al eliminar programa"); return; }
+    toast.success("Programa eliminado");
     fetchPrograms();
   };
 
@@ -156,6 +182,9 @@ export default function AdminPrograms() {
                       <Button size="sm" variant="ghost" onClick={() => handleDuplicate(p)}>
                         <Copy className="h-4 w-4" />
                       </Button>
+                      <Button size="sm" variant="ghost" onClick={() => setDeleteTarget(p)} className="text-red-400 hover:text-red-300">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -191,6 +220,23 @@ export default function AdminPrograms() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent style={{ background: "#1C1C1E", borderColor: "#2A2A2A" }}>
+          <AlertDialogHeader>
+            <AlertDialogTitle style={{ color: "#FAF8F5" }}>¿Eliminar programa?</AlertDialogTitle>
+            <AlertDialogDescription style={{ color: "#8A8A8E" }}>
+              Se eliminará "{deleteTarget?.name}" y todos sus workouts y sets asociados. Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel style={{ color: "#8A8A8E", borderColor: "#2A2A2A" }}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={deleting} style={{ background: "#D45555" }}>
+              {deleting ? "Eliminando…" : "Eliminar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
