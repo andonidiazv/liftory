@@ -1,21 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 
 const MESSAGES = [
-  "Analizando tu perfil y objetivos...",
-  "Seleccionando ejercicios para tu nivel...",
-  "Calibrando pesos e intensidades...",
-  "Diseñando tu periodización...",
-  "Tu programa está casi listo...",
+  "Construyendo tu programa...",
+  "6 semanas de periodización inteligente...",
+  "Cada sesión diseñada por expertos...",
+  "Tu mesociclo está listo.",
 ];
 
-const MIN_DURATION = 8000;
-const MSG_INTERVAL = 2000;
+const MIN_DURATION = 6000;
+const MSG_INTERVAL = 1500;
 
 interface LoadingScreenProps {
   onComplete: () => void;
-  /** Optional message to display when generation couldn't fully complete */
   warningMessage?: string | null;
-  /** Promise that resolves when the actual generation is done */
   generationPromise?: Promise<any>;
 }
 
@@ -27,20 +24,17 @@ export default function LoadingScreen({ onComplete, warningMessage, generationPr
   const [minTimePassed, setMinTimePassed] = useState(false);
   const startTime = useRef(Date.now());
 
-  // Wait for generation promise
   useEffect(() => {
     if (generationPromise) {
       generationPromise.then(() => setGenerationDone(true)).catch(() => setGenerationDone(true));
     }
   }, [generationPromise]);
 
-  // Min duration timer
   useEffect(() => {
     const t = setTimeout(() => setMinTimePassed(true), MIN_DURATION);
     return () => clearTimeout(t);
   }, []);
 
-  // Complete when both are done
   useEffect(() => {
     if (generationDone && minTimePassed && !fadingOut) {
       setFadingOut(true);
@@ -55,7 +49,6 @@ export default function LoadingScreen({ onComplete, warningMessage, generationPr
 
     const progressTimer = setInterval(() => {
       const elapsed = Date.now() - startTime.current;
-      // Cap at 90% until generation is done
       const maxPct = generationDone ? 100 : 90;
       setProgress(Math.min((elapsed / MIN_DURATION) * 100, maxPct));
     }, 50);
@@ -71,41 +64,45 @@ export default function LoadingScreen({ onComplete, warningMessage, generationPr
       className={`fixed inset-0 z-50 flex flex-col items-center justify-center transition-opacity duration-500 ${
         fadingOut ? "opacity-0" : "opacity-100"
       }`}
-      style={{ backgroundColor: "#0F0F0F" }}
+      style={{ backgroundColor: "hsl(var(--background))" }}
     >
+      {/* Wordmark */}
+      <h1
+        className="font-display font-bold tracking-tight"
+        style={{ fontSize: 28, color: "hsl(var(--primary))", letterSpacing: "-0.03em" }}
+      >
+        LIFTORY
+      </h1>
+
+      {/* Spinner */}
       <div
-        className="h-12 w-12 rounded-full border-[3px] border-transparent animate-spin"
-        style={{ borderTopColor: "#C75B39", borderRightColor: "#C75B39" }}
+        className="mt-8 h-10 w-10 rounded-full border-[3px] border-transparent animate-spin"
+        style={{ borderTopColor: "hsl(var(--primary))", borderRightColor: "hsl(var(--primary))" }}
       />
 
-      <h2
-        className="mt-8 text-center font-display"
-        style={{ color: "#FFFFFF", fontSize: 22, fontWeight: 700 }}
-      >
-        Construyendo tu programa
-      </h2>
-
-      <div className="mt-4 h-6 relative w-72">
+      {/* Rotating messages */}
+      <div className="mt-6 h-6 relative w-72">
         {MESSAGES.map((msg, i) => (
           <p
             key={i}
-            className="absolute inset-0 text-center text-sm font-body transition-opacity duration-500"
-            style={{ color: "rgba(255,255,255,0.55)", opacity: i === msgIndex ? 1 : 0 }}
+            className="absolute inset-0 text-center font-body transition-opacity duration-500"
+            style={{ fontSize: 14, color: "hsl(var(--muted-foreground))", opacity: i === msgIndex ? 1 : 0 }}
           >
             {msg}
           </p>
         ))}
       </div>
 
-      <div className="mt-10 h-1.5 w-64 overflow-hidden rounded-full" style={{ backgroundColor: "#2A2A2A" }}>
+      {/* Progress bar */}
+      <div className="mt-10 h-1.5 w-64 overflow-hidden rounded-full bg-secondary">
         <div
-          className="h-full rounded-full transition-all duration-100 ease-linear"
-          style={{ width: `${progress}%`, backgroundColor: "#C75B39" }}
+          className="h-full rounded-full bg-primary transition-all duration-100 ease-linear"
+          style={{ width: `${progress}%` }}
         />
       </div>
 
       {warningMessage && (
-        <p className="mt-6 max-w-xs text-center text-xs font-body" style={{ color: "rgba(255,255,255,0.4)" }}>
+        <p className="mt-6 max-w-xs text-center text-xs font-body text-muted-foreground" style={{ opacity: 0.6 }}>
           {warningMessage}
         </p>
       )}
