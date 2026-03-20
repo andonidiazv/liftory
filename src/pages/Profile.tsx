@@ -33,7 +33,7 @@ interface WearableLatest {
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user, profile, signOut, refreshProfile, isFreeTrial, isPremium, isExpired, daysLeftInTrial } = useAuth();
+  const { user, profile, signOut, refreshProfile, isPremium } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [editingName, setEditingName] = useState(false);
