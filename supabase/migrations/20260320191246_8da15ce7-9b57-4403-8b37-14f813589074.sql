@@ -1,0 +1,1 @@
+ALTER TABLE workouts ALTER COLUMN user_id DROP NOT NULL;
