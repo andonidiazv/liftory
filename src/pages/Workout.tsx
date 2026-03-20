@@ -11,11 +11,44 @@ import RestTimerSheet from "@/components/workout/RestTimerSheet";
 import TimerBlockDetail from "@/components/workout/TimerBlockDetail";
 import ExerciseVideoOverlay from "@/components/workout/ExerciseVideoOverlay";
 
+/** Fixed block display order */
+const BLOCK_ORDER = [
+  'MOVILIDAD', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION',
+  'FUERZA A', 'FUERZA B', 'SCULPT A', 'SCULPT B',
+  'ATHLETIC HINGE', 'CONDITIONING', 'CARDIO', 'COOLDOWN',
+];
+
+/** Color mapping by block label */
+const BLOCK_LABEL_COLORS: Record<string, string> = {
+  'MOVILIDAD': '#7A8B5C',
+  'RESET & BREATHE': '#7A8B5C',
+  'SPINE & HIPS': '#7A8B5C',
+  'DYNAMIC FLOW': '#7A8B5C',
+  'ATHLETIC INTEGRATION': '#7A8B5C',
+  'FUERZA A': '#C75B39',
+  'FUERZA B': '#C75B39',
+  'SCULPT A': '#C9A96E',
+  'SCULPT B': '#C9A96E',
+  'ATHLETIC HINGE': '#D4836B',
+  'CONDITIONING': '#D45555',
+  'CARDIO': '#D45555',
+  'COOLDOWN': '#7A8B5C',
+};
+
+function getBlockType(label: string): WorkoutBlock["type"] {
+  if (['MOVILIDAD', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION'].includes(label)) return 'mobility';
+  if (label === 'COOLDOWN') return 'cooldown';
+  if (label.startsWith('SCULPT')) return 'sculpt';
+  if (['CONDITIONING', 'CARDIO'].includes(label)) return 'conditioning';
+  return 'strength';
+}
+
 export default function Workout() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const {
     workout,
+    sets,
     exerciseGroups,
     supersetGroups,
     cooldownGroups,
@@ -64,76 +97,80 @@ export default function Workout() {
     }
   }, [workout, workoutActive, startWorkout]);
 
-  // Build blocks from supersetGroups + cooldownGroups
+  // Build blocks from block_label grouping
   const blocks: WorkoutBlock[] = useMemo(() => {
-    if (!exerciseGroups.length) return [];
+    if (!sets.length) return [];
 
-    const result: WorkoutBlock[] = [];
-    let blockIndex = 0;
+    // Use ALL sets (including cooldown) for block_label grouping
+    const allSets = sets;
 
-    for (const sg of supersetGroups) {
-      blockIndex++;
-      const allSets = sg.groups.flatMap((g) => g.sets);
-      const firstSetType = sg.groups[0]?.sets[0]?.set_type || "working";
+    // Group sets by block_label
+    const blockMap = new Map<string, WorkoutSetData[]>();
+    for (const s of allSets) {
+      const label = s.block_label || 'GENERAL';
+      if (!blockMap.has(label)) blockMap.set(label, []);
+      blockMap.get(label)!.push(s);
+    }
 
-      // Determine block type
-      let type: WorkoutBlock["type"] = "strength";
-      if (firstSetType === "cooldown") type = "cooldown";
-      else if (firstSetType === "warmup" || firstSetType === "cardio") type = "mobility";
-      else if (sg.type === "superset" || sg.type === "triset") type = "sculpt";
-      else if (firstSetType === "emom" || firstSetType === "amrap") type = "conditioning";
+    // Sort block labels by BLOCK_ORDER
+    const sortedLabels = [...blockMap.keys()].sort((a, b) => {
+      const ia = BLOCK_ORDER.indexOf(a);
+      const ib = BLOCK_ORDER.indexOf(b);
+      return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+    });
 
-      // Determine format badge
+    return sortedLabels.map((label) => {
+      const blockSets = blockMap.get(label)!;
+
+      // Group by exercise within block, preserving set_order
+      const groups: ExerciseGroup[] = [];
+      const seen = new Map<string, ExerciseGroup>();
+      for (const s of blockSets) {
+        if (!s.exercise) continue;
+        if (!seen.has(s.exercise_id)) {
+          const group: ExerciseGroup = {
+            exercise: s.exercise,
+            sets: blockSets.filter((x) => x.exercise_id === s.exercise_id),
+          };
+          seen.set(s.exercise_id, group);
+          groups.push(group);
+        }
+      }
+
+      // Detect superset within this block
+      const hasSuperset = groups.length >= 2 && blockSets.some((s) => s.set_type === 'superset');
       let formatBadge: string | null = null;
-      if (sg.type === "superset") formatBadge = "SUPERSET";
-      else if (sg.type === "triset") formatBadge = "TRISERIE";
-      if (firstSetType === "emom") formatBadge = "EMOM";
-      if (firstSetType === "amrap") formatBadge = "AMRAP";
+      let supersetGroup: SupersetGroup | undefined;
 
-      // Determine block name from day_label structure or exercise type
-      const blockLetter = String.fromCharCode(64 + blockIndex);
-      let blockName = "";
-      if (type === "mobility") blockName = "MOVILIDAD";
-      else if (type === "conditioning") blockName = `CONDITIONING`;
-      else if (type === "sculpt") blockName = `SCULPT BLOQUE ${blockLetter}`;
-      else blockName = `FUERZA BLOQUE ${blockLetter}`;
+      if (hasSuperset) {
+        formatBadge = groups.length >= 3 ? 'TRISERIE' : 'SUPERSET';
+        supersetGroup = {
+          type: groups.length >= 3 ? 'triset' : 'superset',
+          label: formatBadge,
+          groups,
+        };
+      }
+      if (blockSets[0]?.set_type === 'emom') formatBadge = 'EMOM';
+      if (blockSets[0]?.set_type === 'amrap') formatBadge = 'AMRAP';
 
-      const totalSets = allSets.length;
-      const completedSets = allSets.filter((s) => s.is_completed).length;
-      const estMin = Math.max(1, Math.round((totalSets * 2.5) / 1)); // rough estimate
+      const type = getBlockType(label);
+      const totalSets = blockSets.length;
+      const completedSets = blockSets.filter((s) => s.is_completed).length;
 
-      result.push({
-        id: `block-${blockIndex}`,
-        name: blockName,
+      return {
+        id: `block-${label}`,
+        name: label,
         type,
         formatBadge,
-        exerciseNames: sg.groups.map((g) => g.exercise.name),
+        exerciseNames: groups.map((g) => g.exercise.name),
         totalSets,
         completedSets,
-        estimatedMinutes: estMin,
-        groups: sg.groups,
-        supersetGroup: sg.type !== "single" ? sg : undefined,
-      });
-    }
-
-    // Add cooldown as a block
-    if (cooldownGroups.length > 0) {
-      const allSets = cooldownGroups.flatMap((g) => g.sets);
-      result.push({
-        id: "block-cooldown",
-        name: "COOL-DOWN",
-        type: "cooldown",
-        formatBadge: null,
-        exerciseNames: cooldownGroups.map((g) => g.exercise.name),
-        totalSets: allSets.length,
-        completedSets: allSets.filter((s) => s.is_completed).length,
-        estimatedMinutes: Math.round(cooldownGroups.length * 1.5),
-        groups: cooldownGroups,
-      });
-    }
-
-    return result;
-  }, [exerciseGroups, supersetGroups, cooldownGroups]);
+        estimatedMinutes: Math.max(1, Math.round(totalSets * 2.5)),
+        groups,
+        supersetGroup,
+      };
+    });
+  }, [sets]);
 
   const totalSets = blocks.reduce((a, b) => a + b.totalSets, 0);
   const completedSets = blocks.reduce((a, b) => a + b.completedSets, 0);
@@ -146,7 +183,6 @@ export default function Workout() {
         actual_rpe: null,
         actual_rir: null,
       });
-      // Refresh blocks after completion
       if (result) {
         await refetch();
       }
@@ -160,7 +196,6 @@ export default function Workout() {
     setRestTimerVisible(true);
   }, []);
 
-  // Handler to complete all sets in a timer block
   const handleCompleteTimerBlock = useCallback(async (block: WorkoutBlock, rounds: number) => {
     for (const group of block.groups) {
       for (const set of group.sets) {
@@ -172,7 +207,6 @@ export default function Workout() {
     await refetch();
   }, [completeSet, refetch]);
 
-  // Route block selection: EMOM/AMRAP → timer, else → detail
   const handleBlockSelect = useCallback((block: WorkoutBlock) => {
     const badge = block.formatBadge?.toUpperCase();
     if (badge === "EMOM" || badge === "AMRAP") {
@@ -202,7 +236,7 @@ export default function Workout() {
     );
   }
 
-  if (!workout || exerciseGroups.length === 0) {
+  if (!workout || sets.length === 0) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background px-5">
         <p className="text-muted-foreground font-body">No se encontró este workout.</p>
@@ -212,9 +246,6 @@ export default function Workout() {
       </div>
     );
   }
-
-
-
 
   // ─── LEVEL 2: Timer block ───
   if (timerBlock) {
