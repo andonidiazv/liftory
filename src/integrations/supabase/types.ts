@@ -349,7 +349,7 @@ export type Database = {
           is_active: boolean
           name: string
           total_weeks: number
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           ai_params?: Json | null
@@ -361,7 +361,7 @@ export type Database = {
           is_active?: boolean
           name: string
           total_weeks?: number
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           ai_params?: Json | null
@@ -373,7 +373,7 @@ export type Database = {
           is_active?: boolean
           name?: string
           total_weeks?: number
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -592,6 +592,7 @@ export type Database = {
           actual_rir: number | null
           actual_rpe: number | null
           actual_weight: number | null
+          coaching_cue_override: string | null
           exercise_id: string
           id: string
           is_completed: boolean
@@ -613,6 +614,7 @@ export type Database = {
           actual_rir?: number | null
           actual_rpe?: number | null
           actual_weight?: number | null
+          coaching_cue_override?: string | null
           exercise_id: string
           id?: string
           is_completed?: boolean
@@ -634,6 +636,7 @@ export type Database = {
           actual_rir?: number | null
           actual_rpe?: number | null
           actual_weight?: number | null
+          coaching_cue_override?: string | null
           exercise_id?: string
           id?: string
           is_completed?: boolean
@@ -670,6 +673,7 @@ export type Database = {
       workouts: {
         Row: {
           ai_adjustments: Json | null
+          coach_note: string | null
           completed_at: string | null
           day_label: string
           estimated_duration: number | null
@@ -679,12 +683,14 @@ export type Database = {
           notes: string | null
           program_id: string
           scheduled_date: string
+          short_on_time_note: string | null
           user_id: string
           week_number: number
           workout_type: string
         }
         Insert: {
           ai_adjustments?: Json | null
+          coach_note?: string | null
           completed_at?: string | null
           day_label: string
           estimated_duration?: number | null
@@ -694,12 +700,14 @@ export type Database = {
           notes?: string | null
           program_id: string
           scheduled_date: string
+          short_on_time_note?: string | null
           user_id: string
           week_number?: number
           workout_type?: string
         }
         Update: {
           ai_adjustments?: Json | null
+          coach_note?: string | null
           completed_at?: string | null
           day_label?: string
           estimated_duration?: number | null
@@ -709,6 +717,7 @@ export type Database = {
           notes?: string | null
           program_id?: string
           scheduled_date?: string
+          short_on_time_note?: string | null
           user_id?: string
           week_number?: number
           workout_type?: string
