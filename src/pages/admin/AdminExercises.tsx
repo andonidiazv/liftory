@@ -11,7 +11,7 @@ import { toast } from "@/hooks/use-toast";
 /* ─── Constants ─── */
 const CATEGORIES = ["strength", "olympic", "conditioning", "mobility", "accessory"];
 const PATTERNS = ["squat", "hinge", "push", "pull", "carry", "rotation", "core"];
-const DIFFICULTIES = ["beginner", "intermediate", "advanced"];
+const DIFFICULTIES = ["beginner", "intermediate", "advanced", "all_levels"];
 const EQUIPMENT_OPTIONS = [
   "barbell", "dumbbell", "kettlebell", "cable", "machine", "band",
   "bodyweight", "rack", "bench", "box", "none"
@@ -28,6 +28,7 @@ const difficultyColors: Record<string, string> = {
   beginner: "#7A8B5C",
   intermediate: "#B8622F",
   advanced: "#C9A96E",
+  all_levels: "#8A8A8E",
 };
 
 const PAGE_SIZE = 20;

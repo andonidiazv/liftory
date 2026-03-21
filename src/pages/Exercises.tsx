@@ -36,8 +36,8 @@ const muscleGroups: Record<string, string[]> = {
   "Glutes": ["gluteus_maximus", "gluteus_medius", "gluteus_minimus"],
 };
 const muscleFilterKeys = Object.keys(muscleGroups);
-const difficultyFilters = ["All", "beginner", "intermediate", "advanced"];
-const difficultyLabels: Record<string, string> = { beginner: "Principiante", intermediate: "Intermedio", advanced: "Avanzado" };
+const difficultyFilters = ["All", "beginner", "intermediate", "advanced", "all_levels"];
+const difficultyLabels: Record<string, string> = { beginner: "Principiante", intermediate: "Intermedio", advanced: "Avanzado", all_levels: "Todos los niveles" };
 const difficultyColors: Record<string, string> = {
   beginner: "bg-success/20 text-success",
   intermediate: "bg-primary/20 text-primary",
