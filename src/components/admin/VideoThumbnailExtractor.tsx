@@ -33,17 +33,31 @@ export default function VideoThumbnailExtractor({
   const [uploading, setUploading] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
 
-  const videoSrcUrl =
-    videoSrc instanceof File ? URL.createObjectURL(videoSrc) : videoSrc;
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
 
-  // Cleanup object URL
+  // Fetch remote videos as blob to avoid CORS/tainted canvas issues
   useEffect(() => {
+    let revoke: string | null = null;
+    if (videoSrc instanceof File) {
+      const url = URL.createObjectURL(videoSrc);
+      revoke = url;
+      setBlobUrl(url);
+    } else if (videoSrc && typeof videoSrc === "string") {
+      fetch(videoSrc)
+        .then((r) => r.blob())
+        .then((blob) => {
+          const url = URL.createObjectURL(blob);
+          revoke = url;
+          setBlobUrl(url);
+        })
+        .catch(() => setBlobUrl(videoSrc)); // fallback to direct URL
+    } else {
+      setBlobUrl(null);
+    }
     return () => {
-      if (videoSrc instanceof File && videoSrcUrl) {
-        URL.revokeObjectURL(videoSrcUrl);
-      }
+      if (revoke) URL.revokeObjectURL(revoke);
     };
-  }, [videoSrc, videoSrcUrl]);
+  }, [videoSrc]);
 
   const captureFrame = useCallback(() => {
     const video = videoRef.current;
