@@ -177,7 +177,7 @@ export default function VideoThumbnailExtractor({
     }
   }, [exerciseId, onThumbnailChange, onThumbnailBlobChange, previewDataUrl]);
 
-  if (!videoSrcUrl) return null;
+  if (!blobUrl) return null;
 
   return (
     <div className="space-y-3">
@@ -189,9 +189,8 @@ export default function VideoThumbnailExtractor({
       {/* Hidden video for frame extraction */}
       <video
         ref={videoRef}
-        src={videoSrcUrl}
+        src={blobUrl}
         className="hidden"
-        crossOrigin="anonymous"
         preload="auto"
         muted
         playsInline
