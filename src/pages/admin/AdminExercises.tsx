@@ -80,6 +80,7 @@ export default function AdminExercises() {
   const [diffFilter, setDiffFilter] = useState("all");
   const [patternFilter, setPatternFilter] = useState("all");
   const [noVideoOnly, setNoVideoOnly] = useState(false);
+  const [withVideoOnly, setWithVideoOnly] = useState(false);
 
   // Counts
   const [activeCount, setActiveCount] = useState(0);
@@ -114,13 +115,14 @@ export default function AdminExercises() {
     if (diffFilter !== "all") query = query.eq("difficulty", diffFilter);
     if (patternFilter !== "all") query = query.eq("movement_pattern", patternFilter);
     if (noVideoOnly) query = query.is("video_url", null);
+    if (withVideoOnly) query = query.not("video_url", "is", null).neq("video_url", "");
     if (search.trim()) query = query.or(`name.ilike.%${search.trim()}%,name_es.ilike.%${search.trim()}%`);
 
     const { data, count } = await query;
     setExercises((data as ExerciseRow[]) || []);
     setTotal(count ?? 0);
     setLoading(false);
-  }, [page, catFilter, diffFilter, patternFilter, noVideoOnly, search]);
+  }, [page, catFilter, diffFilter, patternFilter, noVideoOnly, withVideoOnly, search]);
 
   const fetchCounts = useCallback(async () => {
     const [activeRes, videoRes, noVideoRes] = await Promise.all([
@@ -135,7 +137,7 @@ export default function AdminExercises() {
 
   useEffect(() => { fetchExercises(); }, [fetchExercises]);
   useEffect(() => { fetchCounts(); }, [fetchCounts]);
-  useEffect(() => { setPage(0); }, [catFilter, diffFilter, patternFilter, noVideoOnly, search]);
+  useEffect(() => { setPage(0); }, [catFilter, diffFilter, patternFilter, noVideoOnly, withVideoOnly, search]);
 
   /* ─── Modal helpers ─── */
   const openCreate = () => {
@@ -317,10 +319,19 @@ export default function AdminExercises() {
           <input
             type="checkbox"
             checked={noVideoOnly}
-            onChange={(e) => setNoVideoOnly(e.target.checked)}
+            onChange={(e) => { setNoVideoOnly(e.target.checked); if (e.target.checked) setWithVideoOnly(false); }}
             className="rounded accent-primary"
           />
           Solo sin video
+        </label>
+        <label className="flex items-center gap-2 cursor-pointer text-sm font-body text-muted-foreground">
+          <input
+            type="checkbox"
+            checked={withVideoOnly}
+            onChange={(e) => { setWithVideoOnly(e.target.checked); if (e.target.checked) setNoVideoOnly(false); }}
+            className="rounded accent-primary"
+          />
+          Solo con video
         </label>
       </div>
 
