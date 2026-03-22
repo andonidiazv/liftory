@@ -5,6 +5,7 @@ import {
   Search, Plus, Pencil, X, Check, Video, VideoOff,
   ChevronLeft, ChevronRight, AlertTriangle, Upload, Loader2
 } from "lucide-react";
+import VideoThumbnailExtractor from "@/components/admin/VideoThumbnailExtractor";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 
