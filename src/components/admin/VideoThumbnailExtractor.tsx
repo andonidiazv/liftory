@@ -141,6 +141,15 @@ export default function VideoThumbnailExtractor({
 
       // Append cache-buster
       const url = `${data.publicUrl}?t=${Date.now()}`;
+
+      // Also persist to exercises table directly
+      const { error: dbError } = await supabase
+        .from("exercises")
+        .update({ thumbnail_url: url })
+        .eq("id", exerciseId);
+
+      if (dbError) throw dbError;
+
       onThumbnailChange(url);
       toast({ title: "Thumbnail guardado" });
     } catch (err: any) {
