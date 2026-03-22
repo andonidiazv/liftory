@@ -5,6 +5,7 @@ import {
   Search, Plus, Pencil, X, Check, Video, VideoOff,
   ChevronLeft, ChevronRight, AlertTriangle, Upload, Loader2
 } from "lucide-react";
+import VideoThumbnailExtractor from "@/components/admin/VideoThumbnailExtractor";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 
@@ -549,10 +550,28 @@ export default function AdminExercises() {
                     </label>
                   </div>
 
-                  {/* Thumbnail upload */}
+                  {/* Thumbnail extractor from video */}
+                  {(videoFile || form.video_url) && (
+                    <VideoThumbnailExtractor
+                      videoSrc={videoFile || form.video_url}
+                      currentThumbnailUrl={form.thumbnail_url}
+                      exerciseId={form.id}
+                      onThumbnailChange={(url) => {
+                        setForm((p) => ({ ...p, thumbnail_url: url }));
+                        setThumbFile(null);
+                      }}
+                      onThumbnailBlobChange={(blob) => {
+                        if (blob) {
+                          setThumbFile(new File([blob], "thumb.jpg", { type: "image/jpeg" }));
+                        }
+                      }}
+                    />
+                  )}
+
+                  {/* Manual thumbnail upload */}
                   <div>
-                    <label className="text-label-tech text-muted-foreground">Thumbnail (JPG/PNG, máx 2MB)</label>
-                    {(form.thumbnail_url || thumbFile) && (
+                    <label className="text-label-tech text-muted-foreground">Thumbnail manual (JPG/PNG, máx 2MB)</label>
+                    {(form.thumbnail_url || thumbFile) && !(videoFile || form.video_url) && (
                       <div className="mt-2">
                         <img
                           src={thumbFile ? URL.createObjectURL(thumbFile) : form.thumbnail_url!}
@@ -566,7 +585,7 @@ export default function AdminExercises() {
                       style={{ background: "rgba(250,248,245,0.04)", color: "#8A8A8E" }}
                     >
                       <Upload className="h-4 w-4" />
-                      {thumbFile ? "Cambiar thumbnail" : "Seleccionar thumbnail"}
+                      {thumbFile ? "Cambiar thumbnail" : "Seleccionar thumbnail manual"}
                       <input
                         type="file"
                         accept="image/jpeg,image/png"
