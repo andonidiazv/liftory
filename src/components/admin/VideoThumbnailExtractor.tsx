@@ -33,17 +33,31 @@ export default function VideoThumbnailExtractor({
   const [uploading, setUploading] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
 
-  const videoSrcUrl =
-    videoSrc instanceof File ? URL.createObjectURL(videoSrc) : videoSrc;
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
 
-  // Cleanup object URL
+  // Fetch remote videos as blob to avoid CORS/tainted canvas issues
   useEffect(() => {
+    let revoke: string | null = null;
+    if (videoSrc instanceof File) {
+      const url = URL.createObjectURL(videoSrc);
+      revoke = url;
+      setBlobUrl(url);
+    } else if (videoSrc && typeof videoSrc === "string") {
+      fetch(videoSrc)
+        .then((r) => r.blob())
+        .then((blob) => {
+          const url = URL.createObjectURL(blob);
+          revoke = url;
+          setBlobUrl(url);
+        })
+        .catch(() => setBlobUrl(videoSrc)); // fallback to direct URL
+    } else {
+      setBlobUrl(null);
+    }
     return () => {
-      if (videoSrc instanceof File && videoSrcUrl) {
-        URL.revokeObjectURL(videoSrcUrl);
-      }
+      if (revoke) URL.revokeObjectURL(revoke);
     };
-  }, [videoSrc, videoSrcUrl]);
+  }, [videoSrc]);
 
   const captureFrame = useCallback(() => {
     const video = videoRef.current;
@@ -141,6 +155,15 @@ export default function VideoThumbnailExtractor({
 
       // Append cache-buster
       const url = `${data.publicUrl}?t=${Date.now()}`;
+
+      // Also persist to exercises table directly
+      const { error: dbError } = await supabase
+        .from("exercises")
+        .update({ thumbnail_url: url })
+        .eq("id", exerciseId);
+
+      if (dbError) throw dbError;
+
       onThumbnailChange(url);
       toast({ title: "Thumbnail guardado" });
     } catch (err: any) {
@@ -154,7 +177,7 @@ export default function VideoThumbnailExtractor({
     }
   }, [exerciseId, onThumbnailChange, onThumbnailBlobChange, previewDataUrl]);
 
-  if (!videoSrcUrl) return null;
+  if (!blobUrl) return null;
 
   return (
     <div className="space-y-3">
@@ -166,9 +189,8 @@ export default function VideoThumbnailExtractor({
       {/* Hidden video for frame extraction */}
       <video
         ref={videoRef}
-        src={videoSrcUrl}
+        src={blobUrl}
         className="hidden"
-        crossOrigin="anonymous"
         preload="auto"
         muted
         playsInline
