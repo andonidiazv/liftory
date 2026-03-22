@@ -71,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchProfile]);
 
   const signUp = async (email: string, password: string, fullName?: string) => {
-    return supabase.auth.signUp({
+    const result = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -79,6 +79,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         emailRedirectTo: window.location.origin,
       },
     });
+
+    // Auto-create user_profiles row for the new user
+    if (result.data?.user && !result.error) {
+      await supabase.from("user_profiles").upsert(
+        {
+          user_id: result.data.user.id,
+          full_name: fullName || "",
+          role: "athlete",
+          subscription_status: "active",
+          onboarding_completed: false,
+        },
+        { onConflict: "user_id" }
+      );
+    }
+
+    return result;
   };
 
   const signIn = async (email: string, password: string) => {
