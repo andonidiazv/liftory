@@ -12,7 +12,7 @@ interface Props {
 /** Parse duration from coaching cue like "AMRAP 16 min" or "16 min" */
 function parseDurationFromCue(block: WorkoutBlock): number {
   for (const g of block.groups) {
-    const cue = (g.sets[0] as any)?.coaching_cue_override as string | null;
+    const cue = g.sets[0]?.coaching_cue_override as string | null;
     if (cue) {
       const match = cue.match(/(\d+)\s*min/i);
       if (match) return parseInt(match[1]) * 60;
@@ -23,7 +23,7 @@ function parseDurationFromCue(block: WorkoutBlock): number {
 
 const playBeep = (freq = 800, duration = 100) => {
   try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
     const osc = ctx.createOscillator();
     osc.frequency.value = freq;
     osc.connect(ctx.destination);
@@ -191,7 +191,7 @@ export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpe
         <div className="flex flex-col gap-2">
           {block.groups.map((group) => {
             const ex = group.exercise;
-            const cue = (group.sets[0] as any)?.coaching_cue_override || ex.coaching_cue;
+            const cue = group.sets[0]?.coaching_cue_override || ex.coaching_cue;
             return (
               <div
                 key={ex.id}

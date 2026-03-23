@@ -35,20 +35,11 @@ export default function AdminPrograms() {
   const fetchPrograms = async () => {
     setLoading(true);
 
-    // DEBUG: query directa sin filtros
-    const { data: debugData, error: debugError, count } = await supabase
-      .from("programs")
-      .select("id, name, user_id", { count: 'exact' });
-    console.log("DEBUG - Total programs in DB:", count, "Data:", debugData, "Error:", debugError);
-    alert("Programs in DB: " + (debugData?.length || 0) + " - Error: " + (debugError?.message || "none"));
-
     const toggleState = templatesOnly;
-    console.log("Fetching programs with template filter:", toggleState);
 
     let q = supabase.from("programs").select("id, name, total_weeks, user_id, created_at");
     if (toggleState) q = q.is("user_id", null);
     const { data, error } = await q.order("created_at", { ascending: false });
-    console.log("Programs result:", data, error);
 
     if (error) {
       console.error("Error fetching programs:", error);
@@ -64,7 +55,7 @@ export default function AdminPrograms() {
       .in("program_id", ids);
 
     const countMap: Record<string, number> = {};
-    (wCounts ?? []).forEach((w: any) => {
+    (wCounts ?? []).forEach((w: { program_id: string }) => {
       countMap[w.program_id] = (countMap[w.program_id] || 0) + 1;
     });
 
@@ -84,7 +75,7 @@ export default function AdminPrograms() {
     setCreating(true);
     const { data, error } = await supabase
       .from("programs")
-      .insert({ name: newName.trim(), total_weeks: newWeeks, user_id: null, is_active: true, current_week: 1, current_block: "accumulation" } as any)
+      .insert({ name: newName.trim(), total_weeks: newWeeks, user_id: null, is_active: true, current_week: 1, current_block: "accumulation" })
       .select()
       .single();
     setCreating(false);
@@ -99,7 +90,7 @@ export default function AdminPrograms() {
   const handleDuplicate = async (prog: ProgramRow) => {
     const { data: newProg, error } = await supabase
       .from("programs")
-      .insert({ name: `${prog.name} (copia)`, total_weeks: prog.total_weeks, user_id: null, is_active: true, current_week: 1, current_block: "accumulation" } as any)
+      .insert({ name: `${prog.name} (copia)`, total_weeks: prog.total_weeks, user_id: null, is_active: true, current_week: 1, current_block: "accumulation" })
       .select()
       .single();
     if (error || !newProg) { toast.error("Error al duplicar"); return; }

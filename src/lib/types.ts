@@ -39,7 +39,7 @@ export interface OnboardingAnswers {
   connected_wearable: 'whoop' | 'apple_watch' | 'garmin' | 'oura' | null;
   specific_event: string | null;
   event_date: string | null;
-  inbody_data: any | null;
+  inbody_data: Record<string, unknown> | null;
   updated_at: string;
 }
 
@@ -72,7 +72,7 @@ export interface Program {
   current_week: number;
   current_block: 'accumulation' | 'intensification' | 'peaking' | 'deload';
   is_active: boolean;
-  ai_params: any;
+  ai_params: Record<string, unknown> | null;
   generated_at: string;
 }
 
@@ -87,7 +87,7 @@ export interface Workout {
   estimated_duration: number | null;
   is_completed: boolean;
   is_rest_day: boolean;
-  ai_adjustments: any | null;
+  ai_adjustments: Record<string, unknown> | null;
   notes: string | null;
   completed_at: string | null;
 }

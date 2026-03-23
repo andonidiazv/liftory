@@ -231,13 +231,13 @@ export default function AdminExercises() {
           action_type: "content_updated",
           target_table: "exercises",
           target_id: form.id,
-          old_values: originalForm as any,
-          new_values: payload as any,
-        } as any);
+          old_values: originalForm as Record<string, unknown>,
+          new_values: payload as Record<string, unknown>,
+        });
         toast({ title: "Ejercicio actualizado" });
       } else {
         // Insert
-        const { error } = await supabase.from("exercises").insert(payload as any);
+        const { error } = await supabase.from("exercises").insert(payload);
         if (error) throw error;
         toast({ title: "Ejercicio creado" });
       }
@@ -245,8 +245,8 @@ export default function AdminExercises() {
       setModalOpen(false);
       fetchExercises();
       fetchCounts();
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      toast({ title: "Error", description: err instanceof Error ? err.message : String(err), variant: "destructive" });
     } finally {
       setSaving(false);
       setUploadProgress(null);
@@ -264,7 +264,7 @@ export default function AdminExercises() {
       target_id: ex.id,
       old_values: { is_active: ex.is_active },
       new_values: { is_active: newActive },
-    } as any);
+    });
     toast({ title: newActive ? "Ejercicio activado" : "Ejercicio desactivado" });
     setConfirmDeactivate(null);
     fetchExercises();

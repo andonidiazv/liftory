@@ -57,7 +57,7 @@ export default function AdminInsights() {
       if (form.id) {
         const { error } = await supabase.from("insights").update(payload).eq("id", form.id);
         if (error) throw error;
-        await supabase.from("audit_log").insert({ admin_user_id: adminUser!.id, action_type: "content_updated", target_table: "insights", target_id: form.id, new_values: payload } as any);
+        await supabase.from("audit_log").insert({ admin_user_id: adminUser!.id, action_type: "content_updated", target_table: "insights", target_id: form.id, new_values: payload as Record<string, unknown> });
         toast({ title: "Insight actualizado" });
       } else {
         const { error } = await supabase.from("insights").insert(payload);
@@ -65,14 +65,14 @@ export default function AdminInsights() {
         toast({ title: "Insight creado" });
       }
       setModalOpen(false); fetch();
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      toast({ title: "Error", description: err instanceof Error ? err.message : String(err), variant: "destructive" });
     } finally { setSaving(false); }
   };
 
   const handleDelete = async (i: InsightRow) => {
     await supabase.from("insights").delete().eq("id", i.id);
-    await supabase.from("audit_log").insert({ admin_user_id: adminUser!.id, action_type: "content_deleted", target_table: "insights", target_id: i.id, old_values: i } as any);
+    await supabase.from("audit_log").insert({ admin_user_id: adminUser!.id, action_type: "content_deleted", target_table: "insights", target_id: i.id, old_values: i as unknown as Record<string, unknown> });
     toast({ title: "Insight eliminado" });
     setConfirmDelete(null); fetch();
   };

@@ -111,7 +111,7 @@ export function useProgressData() {
     ]);
 
     // PRs
-    const prList: PRRecord[] = ((prsRes.data as any[]) ?? []).map((r) => ({
+    const prList: PRRecord[] = ((prsRes.data as Array<{ actual_weight: number | null; actual_reps: number | null; logged_at: string | null; exercise: { name_es: string } | null }>) ?? []).map((r) => ({
       actual_weight: r.actual_weight,
       actual_reps: r.actual_reps,
       logged_at: r.logged_at,
@@ -125,15 +125,15 @@ export function useProgressData() {
     const consistency = programmed > 0 ? Math.round((completed / programmed) * 100) : 0;
 
     // Lifetime volume
-    const lifetimeVol = ((lifetimeRes.data as any[]) ?? []).reduce(
-      (acc: number, s: any) => acc + (s.actual_weight ?? 0) * (s.actual_reps ?? 0),
+    const lifetimeVol = ((lifetimeRes.data as Array<{ actual_weight: number | null; actual_reps: number | null }>) ?? []).reduce(
+      (acc: number, s: { actual_weight: number | null; actual_reps: number | null }) => acc + (s.actual_weight ?? 0) * (s.actual_reps ?? 0),
       0
     );
 
     // Streak
     let streak = 0;
     if (streakRes.data && streakRes.data.length > 0) {
-      const completedDates = new Set(streakRes.data.map((w: any) => w.scheduled_date));
+      const completedDates = new Set(streakRes.data.map((w: { scheduled_date: string }) => w.scheduled_date));
       const check = new Date(today);
       if (!completedDates.has(todayStr)) check.setDate(check.getDate() - 1);
       for (let i = 0; i < 30; i++) {
@@ -161,7 +161,7 @@ export function useProgressData() {
       .lt("logged_at", weekEnd);
 
     const volByDay: Record<string, number> = {};
-    ((weekSets as any[]) ?? []).forEach((s) => {
+    ((weekSets as Array<{ actual_weight: number | null; actual_reps: number | null; logged_at: string | null }>) ?? []).forEach((s) => {
       const d = s.logged_at?.split("T")[0];
       if (d) volByDay[d] = (volByDay[d] ?? 0) + (s.actual_weight ?? 0) * (s.actual_reps ?? 0);
     });
@@ -182,7 +182,7 @@ export function useProgressData() {
       .eq("is_completed", true);
 
     const muscleMap: Record<string, number> = {};
-    ((muscleSets as any[]) ?? []).forEach((s) => {
+    ((muscleSets as Array<{ actual_weight: number | null; actual_reps: number | null; exercise: { primary_muscles: string[] | null } | null }>) ?? []).forEach((s) => {
       const vol = (s.actual_weight ?? 0) * (s.actual_reps ?? 0);
       const muscles: string[] = s.exercise?.primary_muscles ?? [];
       muscles.forEach((m: string) => {

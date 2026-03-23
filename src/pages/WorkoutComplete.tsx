@@ -114,7 +114,7 @@ export default function WorkoutComplete() {
     if (!user || !id) return;
     setSubmitting(true);
     try {
-      const responses: Record<string, any> = { ...answers };
+      const responses: Record<string, unknown> = { ...answers };
       if (likedExercises.length > 0) responses.liked_exercises = likedExercises;
       if (dislikedExercises.length > 0) responses.disliked_exercises = dislikedExercises;
 
@@ -123,7 +123,7 @@ export default function WorkoutComplete() {
         workout_id: id,
         question_ids: questions.map((q) => q.id),
         responses,
-      } as any);
+      });
     } catch {
       // Silent fail — V1.1 will handle retry
     }

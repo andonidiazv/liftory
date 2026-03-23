@@ -20,7 +20,7 @@ interface AppState {
 }
 
 interface AppContextType extends AppState {
-  completeOnboarding: (data?: Record<string, any>) => void;
+  completeOnboarding: (data?: Record<string, unknown>) => void;
   startWorkout: () => void;
   endWorkout: () => void;
   setCurrentExercise: (index: number) => void;
@@ -86,7 +86,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => clearInterval(interval);
   }, [state.restTimerActive, state.restTimeRemaining]);
 
-  const completeOnboarding = useCallback(async (onboardingData?: Record<string, any>) => {
+  const completeOnboarding = useCallback(async (onboardingData?: Record<string, unknown>) => {
     localStorage.setItem("fbb_onboarding", "true");
     setState((s) => ({ ...s, onboardingComplete: true }));
     const { data: { user } } = await supabase.auth.getUser();

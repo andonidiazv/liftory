@@ -26,7 +26,7 @@ type ExRow = {
   contraindications: string[] | null;
   default_tempo: string | null;
   difficulty: string;
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 // ─── Constants ───
@@ -901,7 +901,7 @@ function filterExercises(exercises: ExRow[], answers: OnboardingAnswers): ExRow[
 
 // ─── Finisher Format Metadata ───
 
-function generateFinisherMeta(): Record<string, any> {
+function generateFinisherMeta(): Record<string, unknown> {
   const format = Math.random() > 0.5 ? "AMRAP" : "EMOM";
   const duration = format === "AMRAP" ? 12 : 12;
   return {
@@ -991,8 +991,8 @@ export async function generateProgram(
   const daysToMonday = dayOfWeekToday === 0 ? 1 : dayOfWeekToday === 1 ? 0 : 8 - dayOfWeekToday;
   startDate.setDate(startDate.getDate() + daysToMonday);
 
-  const workoutInserts: any[] = [];
-  const setInserts: { tempId: string; data: any }[] = [];
+  const workoutInserts: Array<{ tempId: string; isRest: boolean; data: Record<string, unknown> }> = [];
+  const setInserts: { tempId: string; data: Record<string, unknown> }[] = [];
 
   for (let d = 0; d < totalDays; d++) {
     const date = new Date(startDate);
@@ -1093,6 +1093,7 @@ export async function generateProgram(
     // Insert in batches of 500 to avoid payload limits
     for (let i = 0; i < finalSets.length; i += 500) {
       const batch = finalSets.slice(i, i + 500);
+      // TODO: type this properly — batch comes from filter(Boolean) which doesn't narrow nulls
       await supabase.from("workout_sets").insert(batch as any[]);
     }
   }
@@ -1127,7 +1128,7 @@ export async function generateNextMesocycle(
 
   if (!oldProgram) return { success: false };
 
-  const aiParams = (oldProgram.ai_params as any) || {};
+  const aiParams = (oldProgram.ai_params as Record<string, unknown>) || {};
   const currentMC = aiParams.mesocycle_number || 1;
   const nextMC = currentMC >= 8 ? 1 : currentMC + 1;
   const isTransition = currentMC >= 8; // MC8→MC1 annual transition
@@ -1242,8 +1243,8 @@ export async function generateNextMesocycle(
       const daysToMonday = dayOfWeekToday === 0 ? 1 : dayOfWeekToday === 1 ? 0 : 8 - dayOfWeekToday;
       startDate.setDate(startDate.getDate() + daysToMonday);
 
-      const workoutInserts: any[] = [];
-      const setInserts: { tempId: string; data: any }[] = [];
+      const workoutInserts: Array<{ tempId: string; isRest: boolean; data: Record<string, unknown> }> = [];
+      const setInserts: { tempId: string; data: Record<string, unknown> }[] = [];
 
       for (let d = 0; d < 28; d++) {
         const date = new Date(startDate);
@@ -1304,6 +1305,7 @@ export async function generateNextMesocycle(
           .filter(Boolean);
 
         for (let i = 0; i < finalSets.length; i += 500) {
+          // TODO: type this properly — finalSets comes from filter(Boolean) which doesn't narrow nulls
           await supabase.from("workout_sets").insert(finalSets.slice(i, i + 500) as any[]);
         }
       }
@@ -1366,8 +1368,8 @@ export async function generateNextMesocycle(
   const daysToMonday = dayOfWeekToday === 0 ? 1 : dayOfWeekToday === 1 ? 0 : 8 - dayOfWeekToday;
   startDate.setDate(startDate.getDate() + daysToMonday);
 
-  const workoutInserts: any[] = [];
-  const setInserts: { tempId: string; data: any }[] = [];
+  const workoutInserts: Array<{ tempId: string; isRest: boolean; data: Record<string, unknown> }> = [];
+  const setInserts: { tempId: string; data: Record<string, unknown> }[] = [];
 
   for (let d = 0; d < 42; d++) {
     const date = new Date(startDate);
@@ -1427,6 +1429,7 @@ export async function generateNextMesocycle(
     .filter(Boolean);
 
   for (let i = 0; i < finalSets.length; i += 500) {
+    // TODO: type this properly — finalSets comes from filter(Boolean) which doesn't narrow nulls
     await supabase.from("workout_sets").insert(finalSets.slice(i, i + 500) as any[]);
   }
 

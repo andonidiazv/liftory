@@ -75,7 +75,7 @@ export function useProgramData() {
       .order("scheduled_date", { ascending: true });
 
     setWorkouts(
-      ((wks as any[]) ?? []).map((w) => ({
+      ((wks as Array<{ id: string; scheduled_date: string; week_number: number; day_label: string; workout_type: string; estimated_duration: number | null; is_completed: boolean; is_rest_day: boolean; completed_at: string | null; notes: string | null }>) ?? []).map((w) => ({
         id: w.id,
         scheduled_date: w.scheduled_date,
         week_number: w.week_number,

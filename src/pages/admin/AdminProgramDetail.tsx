@@ -54,7 +54,7 @@ interface ExerciseOption {
 export default function AdminProgramDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [program, setProgram] = useState<any>(null);
+  const [program, setProgram] = useState<{ id: string; name: string; total_weeks: number; user_id: string | null; is_active: boolean } | null>(null);
   const [workouts, setWorkouts] = useState<WorkoutRow[]>([]);
   const [sets, setSets] = useState<SetRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -97,7 +97,7 @@ export default function AdminProgramDetail() {
         .order("set_order");
 
       setSets(
-        (allSets ?? []).map((s: any) => ({
+        (allSets ?? []).map((s: Record<string, unknown> & { exercises?: { name_es?: string; name?: string } }) => ({
           ...s,
           exercise_name: s.exercises?.name_es || s.exercises?.name || "?",
         }))
@@ -129,7 +129,7 @@ export default function AdminProgramDetail() {
   };
 
   // Update workout field
-  const updateWorkout = async (workoutId: string, field: string, value: any) => {
+  const updateWorkout = async (workoutId: string, field: string, value: string | number | boolean | null) => {
     await supabase.from("workouts").update({ [field]: value }).eq("id", workoutId);
     setWorkouts((prev) => prev.map((w) => (w.id === workoutId ? { ...w, [field]: value } : w)));
   };
@@ -201,7 +201,7 @@ export default function AdminProgramDetail() {
 
     setSets((prev) => [
       ...prev,
-      ...(data ?? []).map((s: any) => ({ ...s, exercise_name: s.exercises?.name_es || s.exercises?.name || "?" })),
+      ...(data ?? []).map((s: Record<string, unknown> & { exercises?: { name_es?: string; name?: string } }) => ({ ...s, exercise_name: s.exercises?.name_es || s.exercises?.name || "?" })),
     ]);
     toast.success(`${newSetCount} sets agregados`);
     setAddModalOpen(false);

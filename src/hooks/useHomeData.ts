@@ -119,8 +119,8 @@ export function useHomeData() {
     // Today's workout
     if (todayRes.data) {
       const w = todayRes.data;
-      const sets = (w.workout_sets as any[]) ?? [];
-      const uniqueExercises = new Set(sets.map((s: any) => s.exercise_id));
+      const sets = (w.workout_sets as Array<{ id: string; exercise_id: string }>) ?? [];
+      const uniqueExercises = new Set(sets.map((s) => s.exercise_id));
       setTodayWorkout({
         id: w.id,
         day_label: w.day_label,
@@ -137,7 +137,7 @@ export function useHomeData() {
     }
 
     // Week
-    const weekMap = new Map<string, any>();
+    const weekMap = new Map<string, { scheduled_date: string; day_label: string; is_completed: boolean; is_rest_day: boolean; workout_type: string }>();
     (weekRes.data ?? []).forEach((w) => weekMap.set(w.scheduled_date, w));
     const days: WeekDay[] = [];
     for (let i = 0; i < 7; i++) {

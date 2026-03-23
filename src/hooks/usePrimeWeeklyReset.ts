@@ -69,7 +69,7 @@ export function usePrimeWeeklyReset(selectedDate: string) {
     const completedIds = completedNonRest.map((w) => w.id);
 
     // 2. Get this week's completed workout sets
-    let sets: any[] = [];
+    let sets: Array<{ exercise_id: string; reps_actual: number | null; weight_actual: number | null; is_pr: boolean }> = [];
     if (completedIds.length > 0) {
       const { data: setsData } = await supabase
         .from("workout_sets")

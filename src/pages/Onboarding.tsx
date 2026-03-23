@@ -15,7 +15,7 @@ export default function Onboarding() {
   const [saving, setSaving] = useState(false);
   const [gender, setGender] = useState<string | null>(null);
   const [experienceLevel, setExperienceLevel] = useState<string | null>(null);
-  const [generationPromise, setGenerationPromise] = useState<Promise<any> | undefined>();
+  const [generationPromise, setGenerationPromise] = useState<Promise<unknown> | undefined>();
   const [generationWarning, setGenerationWarning] = useState<string | null>(null);
   const navigate = useNavigate();
   const { user, loading, refreshProfile } = useAuth();
@@ -27,7 +27,7 @@ export default function Onboarding() {
     }
   }, [loading, user, navigate]);
 
-  const saveToSupabase = async (fn: () => PromiseLike<{ error: any }>) => {
+  const saveToSupabase = async (fn: () => PromiseLike<{ error: { message: string } | null }>) => {
     if (!user) {
       console.error("saveToSupabase: no user session");
       toast({ title: "Sesión expirada", description: "Inicia sesión de nuevo.", variant: "destructive" });

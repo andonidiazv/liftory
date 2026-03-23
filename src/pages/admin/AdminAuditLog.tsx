@@ -11,8 +11,8 @@ interface AuditRow {
   action_type: string;
   target_table: string;
   target_id: string;
-  old_values: any;
-  new_values: any;
+  old_values: Record<string, unknown> | null;
+  new_values: Record<string, unknown> | null;
   created_at: string;
 }
 

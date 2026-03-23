@@ -155,7 +155,7 @@ export default function AdminUsers() {
   ) => {
     const oldValues: Record<string, unknown> = {};
     for (const key of Object.keys(newValues)) {
-      oldValues[key] = (targetUser as any)[key];
+      oldValues[key] = (targetUser as Record<string, unknown>)[key];
     }
 
     const { error } = await supabase
@@ -172,7 +172,7 @@ export default function AdminUsers() {
       target_id: targetUser.user_id,
       old_values: oldValues,
       new_values: newValues,
-    } as any);
+    });
 
     toast({ title: "Acción completada", description: `${actionType} aplicado correctamente.` });
     await fetchUsers();
@@ -217,8 +217,8 @@ export default function AdminUsers() {
       setEmailModal(null);
       setNewEmail("");
       await fetchUsers();
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message || "No se pudo actualizar el email", variant: "destructive" });
+    } catch (e: unknown) {
+      toast({ title: "Error", description: e instanceof Error ? e.message : "No se pudo actualizar el email", variant: "destructive" });
     }
     setEmailLoading(false);
   };
@@ -233,8 +233,8 @@ export default function AdminUsers() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       toast({ title: "Email enviado", description: data?.message || "Email de recuperación enviado." });
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message || "No se pudo enviar el email", variant: "destructive" });
+    } catch (e: unknown) {
+      toast({ title: "Error", description: e instanceof Error ? e.message : "No se pudo enviar el email", variant: "destructive" });
     }
     setPasswordLoading(false);
   };
@@ -260,8 +260,8 @@ export default function AdminUsers() {
       setPasswordModal(null);
       setNewPassword("");
       setConfirmPassword("");
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message || "No se pudo actualizar la contraseña", variant: "destructive" });
+    } catch (e: unknown) {
+      toast({ title: "Error", description: e instanceof Error ? e.message : "No se pudo actualizar la contraseña", variant: "destructive" });
     }
     setPasswordLoading(false);
   };

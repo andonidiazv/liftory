@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { User, Session } from "@supabase/supabase-js";
+import type { User, Session, AuthError, AuthResponse, AuthTokenResponsePassword } from "@supabase/supabase-js";
 import type { UserProfile } from "@/lib/types";
 
 type AuthContextType = {
@@ -8,10 +8,10 @@ type AuthContextType = {
   session: Session | null;
   profile: UserProfile | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName?: string) => Promise<{ data: any; error: any }>;
-  signIn: (email: string, password: string) => Promise<{ data: any; error: any }>;
+  signUp: (email: string, password: string, fullName?: string) => Promise<AuthResponse>;
+  signIn: (email: string, password: string) => Promise<AuthTokenResponsePassword>;
   signOut: () => Promise<void>;
-  signInWithGoogle: () => Promise<{ error: any }>;
+  signInWithGoogle: () => Promise<{ error: AuthError | null }>;
   isPremium: () => boolean;
   isAdmin: () => boolean;
   hasOnboarded: () => boolean;

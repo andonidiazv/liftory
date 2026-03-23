@@ -130,15 +130,15 @@ export function useWorkoutData(workoutId: string | undefined) {
         completed_at: data.completed_at,
         scheduled_date: data.scheduled_date,
         week_number: data.week_number,
-        coach_note: (data as any).coach_note ?? null,
-        short_on_time_note: (data as any).short_on_time_note ?? null,
+        coach_note: (data as Record<string, unknown>).coach_note as string | null ?? null,
+        short_on_time_note: (data as Record<string, unknown>).short_on_time_note as string | null ?? null,
         program_id: data.program_id,
       };
       setWorkout(w);
 
-      const rawSets = ((data.workout_sets as any[]) ?? []).sort(
-        (a: any, b: any) => a.set_order - b.set_order
-      ).map((s: any) => ({
+      const rawSets = ((data.workout_sets as WorkoutSetData[]) ?? []).sort(
+        (a: WorkoutSetData, b: WorkoutSetData) => a.set_order - b.set_order
+      ).map((s: WorkoutSetData) => ({
         ...s,
         block_label: s.block_label ?? null,
       })) as WorkoutSetData[];

@@ -59,7 +59,7 @@ interface Props {
   weightUnit: string;
   saving: boolean;
   onBack: () => void;
-  onCompleteSet: (set: WorkoutSetData, data: { actual_weight: number; actual_reps: number }) => Promise<any>;
+  onCompleteSet: (set: WorkoutSetData, data: { actual_weight: number; actual_reps: number }) => Promise<unknown>;
   onUncompleteSet: (setId: string) => Promise<boolean>;
   getSuggestedWeight: (exerciseId: string, plannedReps: number | null) => { weight: number | null; hint: string | null };
   onRestStart: (seconds: number) => void;
@@ -69,7 +69,7 @@ function formatPrescription(sets: WorkoutSetData[]): string {
   const first = sets[0];
   if (!first) return "";
   const parts: string[] = [];
-  const repsStr = formatReps(first.planned_reps, (first as any)?.coaching_cue_override);
+  const repsStr = formatReps(first.planned_reps, first.coaching_cue_override);
   parts.push(`${sets.length} × ${repsStr}`);
   if (first.planned_tempo) parts.push(`Tempo ${first.planned_tempo}`);
   if (first.planned_rest_seconds) {
@@ -368,7 +368,7 @@ function EmomCard({
   const [completing, setCompleting] = useState(false);
   const allSets = block.groups.flatMap(g => g.sets);
   const allDone = allSets.every(s => isCompleted(s));
-  const firstCue = (allSets[0] as any)?.coaching_cue_override;
+  const firstCue = allSets[0]?.coaching_cue_override;
 
   const handleDone = async () => {
     setCompleting(true);
@@ -393,7 +393,7 @@ function EmomCard({
         {block.groups.map((group) => {
           const ex = group.exercise;
           const reps = group.sets[0]?.planned_reps;
-          const cue = (group.sets[0] as any)?.coaching_cue_override;
+          const cue = group.sets[0]?.coaching_cue_override;
           return (
             <div key={ex.id} className="flex items-center gap-3 rounded-xl bg-secondary/50 p-3">
               <button
@@ -517,7 +517,7 @@ function ExerciseCard({
   const ex = group.exercise;
   const sets = group.sets;
   const completedCount = sets.filter((s) => isCompleted(s)).length;
-  const cueOverride = (sets[0] as any)?.coaching_cue_override;
+  const cueOverride = sets[0]?.coaching_cue_override;
 
   return (
     <div className="rounded-2xl border border-border bg-card p-4 mb-3">
@@ -573,7 +573,7 @@ function ExerciseCard({
           const isPrFlash = prFlash === set.id;
           const isJustDone = justCompleted === set.id;
           const rpeHigh = (set.planned_rpe ?? 0) >= 9;
-          const setCue = (set as any)?.coaching_cue_override;
+          const setCue = set.coaching_cue_override;
 
           return (
             <div
@@ -664,7 +664,7 @@ function MobilityContent({
   const items: Array<{ type: 'header'; text: string } | { type: 'exercise'; group: ExerciseGroup; cleanCue: string | null }> = [];
 
   for (const group of block.groups) {
-    const cueOverride = (group.sets[0] as any)?.coaching_cue_override as string | null;
+    const cueOverride = group.sets[0]?.coaching_cue_override as string | null;
     const { header, cleanCue } = parseSubGroupHeader(cueOverride);
     if (header) {
       items.push({ type: 'header', text: header });
@@ -757,7 +757,7 @@ function CooldownCard({
 }) {
   const ex = group.exercise;
   const sets = group.sets;
-  const cueOverride = (sets[0] as any)?.coaching_cue_override;
+  const cueOverride = sets[0]?.coaching_cue_override;
   const allDone = sets.every((s) => isCompleted(s));
 
   return (
@@ -814,7 +814,7 @@ function CardioCard({
   const ex = group.exercise;
   const sets = group.sets;
   const allDone = sets.every((s) => isCompleted(s));
-  const cueOverride = (sets[0] as any)?.coaching_cue_override;
+  const cueOverride = sets[0]?.coaching_cue_override;
 
   const handleDone = async () => {
     setCompleting(true);

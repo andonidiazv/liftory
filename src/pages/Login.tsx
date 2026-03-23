@@ -68,9 +68,7 @@ export default function Login() {
         setTimeout(() => reject(new Error("Profile fetch timeout")), 8000)
       );
 
-      const { data, error } = await Promise.race([profilePromise, timeoutPromise]) as any;
-
-      console.log("redirectByProfile result:", { data, error });
+      const { data, error } = await Promise.race([profilePromise, timeoutPromise]) as { data: { onboarding_completed: boolean; subscription_status: string; role: string } | null; error: unknown };
 
       // Also trigger AuthContext profile fetch (fire-and-forget)
       fetchProfile(userId).catch(console.error);
@@ -156,7 +154,7 @@ export default function Login() {
       if (data.user) {
         await redirectByProfile(data.user.id);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Login redirect error:", err);
       setGeneralError("Error al iniciar sesión. Intenta de nuevo.");
     } finally {

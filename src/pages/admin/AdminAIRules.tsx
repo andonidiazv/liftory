@@ -10,7 +10,7 @@ interface AIRule {
   rule_key: string;
   rule_category: string;
   description: string | null;
-  value: any;
+  value: unknown;
   is_active: boolean;
 }
 
@@ -66,7 +66,7 @@ export default function AdminAIRules() {
 
   const validateJson = (s: string) => {
     try { JSON.parse(s); setJsonError(null); return true; }
-    catch (e: any) { setJsonError(e.message); return false; }
+    catch (e: unknown) { setJsonError(e instanceof Error ? e.message : String(e)); return false; }
   };
 
   const handleSave = async () => {
@@ -80,7 +80,7 @@ export default function AdminAIRules() {
         const { error } = await supabase.from("ai_rules").insert({
           rule_key: form.rule_key, rule_category: form.rule_category,
           description: form.description || null, value: parsedValue, is_active: form.is_active,
-        } as any);
+        });
         if (error) throw error;
         toast({ title: "Regla creada" });
       } else {
@@ -90,14 +90,14 @@ export default function AdminAIRules() {
         if (error) throw error;
         await supabase.from("audit_log").insert({
           admin_user_id: adminUser!.id, action_type: "ai_rule_changed", target_table: "ai_rules", target_id: form.id!,
-          old_values: { description: originalRule?.description, value: originalRule?.value, is_active: originalRule?.is_active },
+          old_values: { description: originalRule?.description, value: originalRule?.value as Record<string, unknown> | undefined, is_active: originalRule?.is_active },
           new_values: { description: form.description, value: parsedValue, is_active: form.is_active },
-        } as any);
+        });
         toast({ title: "Regla actualizada" });
       }
       setModalOpen(false); fetchRules();
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      toast({ title: "Error", description: err instanceof Error ? err.message : String(err), variant: "destructive" });
     } finally { setSaving(false); }
   };
 

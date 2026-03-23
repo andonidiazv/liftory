@@ -129,7 +129,7 @@ export function useNavigableHome() {
       setProgramInfo(null);
     }
 
-    const wks = (allWorkoutsRes.data as any[]) ?? [];
+    const wks = (allWorkoutsRes.data as Array<{ id: string; scheduled_date: string; is_completed: boolean; is_rest_day: boolean; workout_type: string; day_label: string; week_number: number }>) ?? [];
     const mapped: AllWorkoutDay[] = wks.map((w) => ({
       date: w.scheduled_date,
       workoutId: w.id,
@@ -143,7 +143,7 @@ export function useNavigableHome() {
 
     // Determine current week from workouts near today
     if (wks.length > 0) {
-      const todayWk = wks.find((w: any) => w.scheduled_date === formatDate(today));
+      const todayWk = wks.find((w) => w.scheduled_date === formatDate(today));
       if (todayWk) {
         setCurrentWeekNumber(todayWk.week_number);
       } else {
@@ -265,8 +265,8 @@ export function useNavigableHome() {
         .maybeSingle();
 
       if (data) {
-        const sets = (data.workout_sets as any[]) ?? [];
-        const uniqueExercises = new Set(sets.map((s: any) => s.exercise_id));
+        const sets = (data.workout_sets as Array<{ id: string; exercise_id: string }>) ?? [];
+        const uniqueExercises = new Set(sets.map((s) => s.exercise_id));
         setSelectedWorkout({
           id: data.id,
           day_label: data.day_label,

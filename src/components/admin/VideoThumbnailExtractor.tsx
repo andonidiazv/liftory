@@ -166,10 +166,10 @@ export default function VideoThumbnailExtractor({
 
       onThumbnailChange(url);
       toast({ title: "Thumbnail guardado" });
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         title: "Error al subir thumbnail",
-        description: err.message,
+        description: err instanceof Error ? err.message : String(err),
         variant: "destructive",
       });
     } finally {

@@ -54,7 +54,7 @@ function isInstructionBlock(block: WorkoutBlock): boolean {
 
 function getInstructionSummary(block: WorkoutBlock): string {
   const cues = block.groups
-    .map(g => (g.sets[0] as any)?.coaching_cue_override)
+    .map(g => g.sets[0]?.coaching_cue_override)
     .filter(Boolean);
   if (cues.length > 0) return cues.join(" · ");
   return block.exerciseNames.join(" · ");

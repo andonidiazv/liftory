@@ -13,7 +13,7 @@ const MSG_INTERVAL = 1500;
 interface LoadingScreenProps {
   onComplete: () => void;
   warningMessage?: string | null;
-  generationPromise?: Promise<any>;
+  generationPromise?: Promise<unknown>;
 }
 
 export default function LoadingScreen({ onComplete, warningMessage, generationPromise }: LoadingScreenProps) {

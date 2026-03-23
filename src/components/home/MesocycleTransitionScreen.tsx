@@ -10,7 +10,7 @@ const MESSAGES = [
 ];
 
 interface MesocycleTransitionScreenProps {
-  generationPromise?: Promise<any>;
+  generationPromise?: Promise<unknown>;
 }
 
 export default function MesocycleTransitionScreen({ generationPromise }: MesocycleTransitionScreenProps) {
