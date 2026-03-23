@@ -28,6 +28,11 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState("");
+  const [showForgot, setShowForgot] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSent, setForgotSent] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotError, setForgotError] = useState("");
 
   const inputStyle: React.CSSProperties = {
     background: "#1A1A1A",
@@ -114,8 +119,12 @@ export default function Login() {
       return;
     }
 
-    if (data.user) {
+    if (data.session && data.user) {
+      // Session exists — user is authenticated, redirect
       await redirectByProfile(data.user.id);
+    } else if (data.user && !data.session) {
+      // No session — email confirmation is required
+      setGeneralError("Revisa tu correo para confirmar tu cuenta antes de iniciar sesión.");
     }
     setLoading(false);
   };
@@ -152,6 +161,25 @@ export default function Login() {
       setGeneralError("Error al iniciar sesión. Intenta de nuevo.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    setForgotError("");
+    const trimmed = forgotEmail.trim();
+    if (!trimmed || !z.string().email().safeParse(trimmed).success) {
+      setForgotError("Ingresa un email válido.");
+      return;
+    }
+    setForgotLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(trimmed, {
+      redirectTo: `${window.location.origin}/login`,
+    });
+    setForgotLoading(false);
+    if (error) {
+      setForgotError(error.message);
+    } else {
+      setForgotSent(true);
     }
   };
 
@@ -247,6 +275,7 @@ export default function Login() {
 
           {tab === "login" && (
             <button
+              onClick={() => { setShowForgot(true); setForgotEmail(email); setForgotSent(false); setForgotError(""); }}
               className="self-end text-xs font-body font-medium"
               style={{ color: "#C75B39", background: "none", border: "none" }}
             >
@@ -319,6 +348,74 @@ export default function Login() {
           ← Volver
         </button>
       </div>
+
+      {/* Forgot Password Overlay */}
+      {showForgot && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-6"
+          style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }}
+          onClick={() => setShowForgot(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl p-6 flex flex-col gap-4"
+            style={{ background: "#1A1A1A", border: "1px solid #2A2A2A" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="font-display text-lg font-bold" style={{ color: "#FFFFFF" }}>
+              Recuperar contraseña
+            </h2>
+
+            {forgotSent ? (
+              <>
+                <p className="font-body text-sm" style={{ color: "#A0A0A0" }}>
+                  Te enviamos un enlace de recuperación a <strong style={{ color: "#FFFFFF" }}>{forgotEmail.trim()}</strong>. Revisa tu bandeja de entrada.
+                </p>
+                <button
+                  onClick={() => setShowForgot(false)}
+                  className="press-scale w-full font-body font-semibold"
+                  style={{ background: "#C75B39", color: "#FFFFFF", borderRadius: 12, padding: "14px 0", fontSize: 15 }}
+                >
+                  Entendido
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="font-body text-sm" style={{ color: "#A0A0A0" }}>
+                  Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.
+                </p>
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  onFocus={handleFocus}
+                  onBlur={handleBlur}
+                  style={inputStyle}
+                  onKeyDown={(e) => e.key === "Enter" && handleForgotPassword()}
+                />
+                {forgotError && (
+                  <p className="text-xs" style={{ color: "#C0392B" }}>{forgotError}</p>
+                )}
+                <button
+                  onClick={handleForgotPassword}
+                  disabled={forgotLoading}
+                  className="press-scale w-full font-body font-semibold transition-opacity disabled:opacity-60"
+                  style={{ background: "#C75B39", color: "#FFFFFF", borderRadius: 12, padding: "14px 0", fontSize: 15 }}
+                >
+                  {forgotLoading ? "Enviando..." : "Enviar enlace"}
+                </button>
+                <button
+                  onClick={() => setShowForgot(false)}
+                  className="w-full py-2 text-center font-body text-sm"
+                  style={{ color: "#6B6360", background: "none", border: "none" }}
+                >
+                  Cancelar
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

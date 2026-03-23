@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check } from "lucide-react";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { CalendarDays } from "lucide-react";
 import type { AllWorkoutDay } from "@/hooks/useNavigableHome";
@@ -140,7 +140,7 @@ export default function MonthCalendarSheet({
                   }}
                 >
                   {isCompleted ? (
-                    <span className="text-[12px] font-bold text-primary-foreground">✓</span>
+                    <Check className="h-3 w-3 text-primary-foreground" strokeWidth={3} />
                   ) : (
                     <span
                       className={`text-[12px] font-body ${

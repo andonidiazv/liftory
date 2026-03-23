@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppProvider } from "./context/AppContext";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 import Index from "./pages/Index";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -44,7 +45,7 @@ const App = () => (
               {/* Public routes */}
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
 
               {/* Protected routes */}
               <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
@@ -57,15 +58,15 @@ const App = () => (
               <Route path="/paywall" element={<ProtectedRoute><Paywall /></ProtectedRoute>} />
               <Route path="/program" element={<ProtectedRoute><Program /></ProtectedRoute>} />
 
-              {/* Admin routes */}
-              <Route path="/admin" element={<ProtectedRoute><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/users" element={<ProtectedRoute><AdminLayout><AdminUsers /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/programs" element={<ProtectedRoute><AdminLayout><AdminPrograms /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/programs/:id" element={<ProtectedRoute><AdminLayout><AdminProgramDetail /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/exercises" element={<ProtectedRoute><AdminLayout><AdminExercises /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/insights" element={<ProtectedRoute><AdminLayout><AdminInsights /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/ai-rules" element={<ProtectedRoute><AdminLayout><AdminAIRules /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/audit" element={<ProtectedRoute><AdminLayout><AdminAuditLog /></AdminLayout></ProtectedRoute>} />
+              {/* Admin routes — role-validated */}
+              <Route path="/admin" element={<AdminRoute><AdminLayout><AdminDashboard /></AdminLayout></AdminRoute>} />
+              <Route path="/admin/users" element={<AdminRoute><AdminLayout><AdminUsers /></AdminLayout></AdminRoute>} />
+              <Route path="/admin/programs" element={<AdminRoute><AdminLayout><AdminPrograms /></AdminLayout></AdminRoute>} />
+              <Route path="/admin/programs/:id" element={<AdminRoute><AdminLayout><AdminProgramDetail /></AdminLayout></AdminRoute>} />
+              <Route path="/admin/exercises" element={<AdminRoute><AdminLayout><AdminExercises /></AdminLayout></AdminRoute>} />
+              <Route path="/admin/insights" element={<AdminRoute><AdminLayout><AdminInsights /></AdminLayout></AdminRoute>} />
+              <Route path="/admin/ai-rules" element={<AdminRoute><AdminLayout><AdminAIRules /></AdminLayout></AdminRoute>} />
+              <Route path="/admin/audit" element={<AdminRoute><AdminLayout><AdminAuditLog /></AdminLayout></AdminRoute>} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>

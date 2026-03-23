@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { ChevronRight, Shield, Sparkles, Zap, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Shield, Sparkles, Zap, Loader2 } from "lucide-react";
 import LoadingScreen from "@/components/onboarding/LoadingScreen";
 import { assignProgram } from "@/lib/assignProgram";
 
@@ -18,13 +18,27 @@ export default function Onboarding() {
   const [generationPromise, setGenerationPromise] = useState<Promise<any> | undefined>();
   const [generationWarning, setGenerationWarning] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { user, refreshProfile } = useAuth();
+  const { user, loading, refreshProfile } = useAuth();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/login", { replace: true });
+    }
+  }, [loading, user, navigate]);
 
   const saveToSupabase = async (fn: () => PromiseLike<{ error: any }>) => {
+    if (!user) {
+      console.error("saveToSupabase: no user session");
+      toast({ title: "Sesión expirada", description: "Inicia sesión de nuevo.", variant: "destructive" });
+      navigate("/login", { replace: true });
+      return false;
+    }
     setSaving(true);
     const { error } = await fn();
     setSaving(false);
     if (error) {
+      console.error("saveToSupabase error:", error);
       toast({ title: "Error al guardar", description: error.message, variant: "destructive" });
       return false;
     }
@@ -138,9 +152,22 @@ export default function Onboarding() {
     <div className="flex min-h-screen flex-col" style={{ backgroundColor: "hsl(var(--background))" }}>
       {savingOverlay}
 
-      {/* Progress bar */}
+      {/* Back button + Progress bar */}
       <div className="px-6 pt-14">
         <div className="flex items-center justify-between mb-2">
+          {step > 0 ? (
+            <button
+              onClick={() => setStep(step - 1)}
+              disabled={saving}
+              className="flex items-center gap-1 font-body text-muted-foreground transition-colors active:scale-95 disabled:opacity-40"
+              style={{ fontSize: 13 }}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Atrás
+            </button>
+          ) : (
+            <span />
+          )}
           <span className="font-mono text-muted-foreground" style={{ fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase" }}>
             Paso {step + 1} de {TOTAL_STEPS - 1}
           </span>

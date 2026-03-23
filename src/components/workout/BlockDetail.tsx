@@ -562,7 +562,7 @@ function ExerciseCard({
           <span className="font-mono uppercase text-muted-foreground" style={{ fontSize: 9 }}>RPE</span>
           <span className="font-mono uppercase text-muted-foreground" style={{ fontSize: 9 }}>PESO</span>
           <span className="font-mono uppercase text-muted-foreground" style={{ fontSize: 9 }}>REPS</span>
-          <span className="font-mono uppercase text-muted-foreground text-center" style={{ fontSize: 9 }}>✓</span>
+          <Check className="h-3 w-3 text-muted-foreground mx-auto" />
         </div>
 
         {sets.map((set, si) => {

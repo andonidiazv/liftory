@@ -55,7 +55,7 @@ serve(async (req) => {
       .update({ stripe_customer_id: customerId })
       .eq("user_id", user.id);
 
-    const origin = req.headers.get("origin") || "https://liftory.lovable.app";
+    const origin = req.headers.get("origin") || Deno.env.get("SITE_URL") || "https://liftory.com";
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,

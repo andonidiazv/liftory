@@ -2,7 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useWorkoutData } from "@/hooks/useWorkoutData";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Trophy, TrendingUp, Clock, Dumbbell, Star, Leaf, Send } from "lucide-react";
+import { Trophy, TrendingUp, Clock, Dumbbell, Star, Leaf, Send, Skull, Angry, Smile, Flame, ArrowRight, Check } from "lucide-react";
 import Layout from "@/components/Layout";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMemo, useState, useEffect, useCallback } from "react";
@@ -21,10 +21,10 @@ const QUESTION_POOL: FeedbackQuestion[] = [
     text: "¿Cómo se sintió la sesión?",
     type: "emoji",
     options: [
-      { label: "💀 Brutal", value: "1" },
-      { label: "😤 Dura", value: "2" },
-      { label: "😊 Bien", value: "3" },
-      { label: "🔥 Perfecta", value: "4" },
+      { label: "Brutal", value: "1" },
+      { label: "Dura", value: "2" },
+      { label: "Bien", value: "3" },
+      { label: "Perfecta", value: "4" },
     ],
   },
   {
@@ -283,7 +283,7 @@ export default function WorkoutComplete() {
                 onClick={() => setFeedbackSkipped(true)}
                 className="w-full py-2 text-center font-body text-sm text-muted-foreground"
               >
-                Saltar →
+                Saltar
               </button>
             </div>
           </div>
@@ -326,7 +326,7 @@ export default function WorkoutComplete() {
               <div className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl py-3" style={{ backgroundColor: "hsl(var(--success) / 0.1)", border: "1px solid hsl(var(--success) / 0.25)" }}>
                 <Leaf className="h-4 w-4" style={{ color: "hsl(var(--success))" }} />
                 <span className="font-body text-sm font-medium" style={{ color: "hsl(var(--success))" }}>
-                  Cool-down completado ✓
+                  Cool-down completado
                 </span>
               </div>
             )}
