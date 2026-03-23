@@ -27,6 +27,11 @@ export default function Onboarding() {
     }
   }, [loading, user, navigate]);
 
+  // Show nothing while auth is loading
+  if (loading) {
+    return <div className="min-h-screen" style={{ backgroundColor: "hsl(var(--background))" }} />;
+  }
+
   const saveToSupabase = async (fn: () => PromiseLike<{ error: { message: string } | null }>) => {
     if (!user) {
       console.error("saveToSupabase: no user session");
