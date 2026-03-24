@@ -84,9 +84,9 @@ export async function assignProgram(
 
   const today = new Date();
   const dayOfWeek = today.getDay(); // 0=Sun
-  const daysUntilMonday = dayOfWeek === 0 ? 1 : dayOfWeek === 1 ? 0 : 8 - dayOfWeek;
+  const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
   const startDate = new Date(today);
-  startDate.setDate(today.getDate() + daysUntilMonday);
+  startDate.setDate(today.getDate() - daysSinceMonday);
 
   const templateStart = new Date(templateWorkouts[0].scheduled_date);
 
