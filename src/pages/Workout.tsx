@@ -14,8 +14,9 @@ import ExerciseVideoOverlay from "@/components/workout/ExerciseVideoOverlay";
 /** Fixed block display order */
 const BLOCK_ORDER = [
   'PRIME BLOCK', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION',
-  'POWER BLOCK', 'HEAVY BLOCK — A', 'HEAVY BLOCK — B', 'BUILD BLOCK — A', 'BUILD BLOCK — B',
-  'ATHLETIC HINGE', 'ENGINE BLOCK', 'RECOVERY BLOCK',
+  'POWER BLOCK', 'HEAVY BLOCK — A', 'HEAVY BLOCK — B',
+  'BUILD BLOCK — A', 'BUILD BLOCK — B', 'BUILD BLOCK — C',
+  'ATHLETIC HINGE', 'CORE BLOCK', 'ENGINE BLOCK', 'RECOVERY BLOCK',
 ];
 
 /** Color mapping by block label */
@@ -30,7 +31,9 @@ const BLOCK_LABEL_COLORS: Record<string, string> = {
   'HEAVY BLOCK — B': '#C75B39',
   'BUILD BLOCK — A': '#C9A96E',
   'BUILD BLOCK — B': '#C9A96E',
+  'BUILD BLOCK — C': '#C9A96E',
   'ATHLETIC HINGE': '#D4896B',
+  'CORE BLOCK': '#D4896B',
   'ENGINE BLOCK': '#D45555',
   'RECOVERY BLOCK': '#7A8B5C',
 };

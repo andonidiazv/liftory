@@ -161,6 +161,7 @@ export async function assignProgram(
       planned_rir: null,
       planned_rest_seconds: ts.planned_rest_seconds,
       coaching_cue_override: ts.coaching_cue_override,
+      block_label: ts.block_label,
     }));
 
     await supabase.from("workout_sets").insert(setInserts);
