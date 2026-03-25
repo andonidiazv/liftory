@@ -43,7 +43,7 @@ export default function VideoThumbnailExtractor({
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
 
-  // Fetch remote videos as blob to avoid CORS/tainted canvas issues
+  // Set video source URL
   useEffect(() => {
     let revoke: string | null = null;
     if (videoSrc instanceof File) {
@@ -51,14 +51,7 @@ export default function VideoThumbnailExtractor({
       revoke = url;
       setBlobUrl(url);
     } else if (videoSrc && typeof videoSrc === "string") {
-      fetch(videoSrc)
-        .then((r) => r.blob())
-        .then((blob) => {
-          const url = URL.createObjectURL(blob);
-          revoke = url;
-          setBlobUrl(url);
-        })
-        .catch(() => setBlobUrl(videoSrc)); // fallback to direct URL
+      setBlobUrl(videoSrc);
     } else {
       setBlobUrl(null);
     }
@@ -325,6 +318,7 @@ export default function VideoThumbnailExtractor({
       <video
         ref={videoRef}
         src={blobUrl}
+        crossOrigin="anonymous"
         className="hidden"
         preload="auto"
         muted
