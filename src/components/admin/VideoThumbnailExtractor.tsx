@@ -82,9 +82,12 @@ export default function VideoThumbnailExtractor({
     const canvas = canvasRef.current;
     if (!video || !canvas || video.readyState < 2) return null;
 
-    // Output size — 16:9 aspect ratio for thumbnail
-    const outputW = 640;
-    const outputH = 360;
+    // Use the video's native resolution (capped at 800px wide for performance)
+    const videoW = video.videoWidth;
+    const videoH = video.videoHeight;
+    const scale = Math.min(1, 800 / videoW);
+    const outputW = Math.round(videoW * scale);
+    const outputH = Math.round(videoH * scale);
     canvas.width = outputW;
     canvas.height = outputH;
 
@@ -92,10 +95,6 @@ export default function VideoThumbnailExtractor({
     if (!ctx) return null;
 
     // Calculate source rectangle based on zoom and pan
-    const videoW = video.videoWidth;
-    const videoH = video.videoHeight;
-
-    // The visible portion of the video (smaller when zoomed in)
     const visibleW = videoW / zoom;
     const visibleH = videoH / zoom;
 
@@ -342,8 +341,8 @@ export default function VideoThumbnailExtractor({
           className={`rounded-lg overflow-hidden select-none ${previewCursor}`}
           style={{
             background: "#0D0C0A",
-            aspectRatio: "16/9",
             position: "relative",
+            maxHeight: "400px",
             touchAction: zoom > 1 ? "none" : "auto",
           }}
           onMouseDown={handleMouseDown}
@@ -357,7 +356,7 @@ export default function VideoThumbnailExtractor({
           <img
             src={previewDataUrl}
             alt="Thumbnail preview"
-            className="w-full h-full object-cover pointer-events-none"
+            className="w-full h-auto object-contain pointer-events-none"
             draggable={false}
           />
           {/* Zoom indicator badge */}
