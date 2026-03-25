@@ -51,7 +51,7 @@ serve(async (req) => {
 
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: profile.stripe_customer_id,
-      return_url: `${origin}/paywall`,
+      return_url: `${origin}/profile`,
     });
 
     return new Response(JSON.stringify({ url: portalSession.url }), {
