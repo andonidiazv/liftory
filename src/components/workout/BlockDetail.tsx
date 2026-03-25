@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { ChevronLeft, Check, Dumbbell, Loader2, Quote, Trophy } from "lucide-react";
+import ExerciseThumbnail from "./ExerciseThumbnail";
 import type { WorkoutBlock } from "./WorkoutOverview";
 import ExerciseVideoOverlay from "./ExerciseVideoOverlay";
 import type { WorkoutSetData, ExerciseGroup } from "@/hooks/useWorkoutData";
@@ -401,13 +402,7 @@ function EmomCard({
                 className="shrink-0 overflow-hidden rounded-lg"
                 style={{ width: 48, height: 36 }}
               >
-                {ex.thumbnail_url ? (
-                  <img src={ex.thumbnail_url} alt={ex.name} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-secondary">
-                    <Dumbbell className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                )}
+                <ExerciseThumbnail thumbnailUrl={ex.thumbnail_url} videoUrl={ex.video_url} name={ex.name} width={48} height={36} />
               </button>
               <div className="flex-1 min-w-0">
                 <p className="font-body text-sm font-semibold text-foreground truncate">{ex.name}</p>
@@ -527,13 +522,7 @@ function ExerciseCard({
           className="shrink-0 overflow-hidden rounded-lg"
           style={{ width: 64, height: 48 }}
         >
-          {ex.thumbnail_url ? (
-            <img src={ex.thumbnail_url} alt={ex.name} className="h-full w-full object-cover" />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-secondary">
-              <Dumbbell className="h-5 w-5 text-muted-foreground" />
-            </div>
-          )}
+          <ExerciseThumbnail thumbnailUrl={ex.thumbnail_url} videoUrl={ex.video_url} name={ex.name} width={64} height={48} />
         </button>
         <div className="flex-1 min-w-0">
           <p className="font-body text-[15px] font-semibold text-foreground">{ex.name}</p>
@@ -695,13 +684,7 @@ function MobilityContent({
                 className="shrink-0 overflow-hidden rounded-lg"
                 style={{ width: 48, height: 36 }}
               >
-                {ex.thumbnail_url ? (
-                  <img src={ex.thumbnail_url} alt={ex.name} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-secondary">
-                    <Dumbbell className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                )}
+                <ExerciseThumbnail thumbnailUrl={ex.thumbnail_url} videoUrl={ex.video_url} name={ex.name} width={48} height={36} />
               </button>
               <div className="flex-1 min-w-0">
                 <p className="font-body text-[14px] font-medium text-foreground">{ex.name}</p>
@@ -830,13 +813,7 @@ function CardioCard({
           className="shrink-0 overflow-hidden rounded-lg"
           style={{ width: 64, height: 48 }}
         >
-          {ex.thumbnail_url ? (
-            <img src={ex.thumbnail_url} alt={ex.name} className="h-full w-full object-cover" />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-secondary">
-              <Dumbbell className="h-5 w-5 text-muted-foreground" />
-            </div>
-          )}
+          <ExerciseThumbnail thumbnailUrl={ex.thumbnail_url} videoUrl={ex.video_url} name={ex.name} width={64} height={48} />
         </button>
         <div className="flex-1 min-w-0">
           <p className="font-body text-[15px] font-semibold text-foreground">{ex.name}</p>
