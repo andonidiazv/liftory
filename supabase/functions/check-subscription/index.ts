@@ -54,7 +54,16 @@ serve(async (req) => {
 
     const sub = subscriptions.data[0];
     const priceId = sub.items.data[0].price.id;
-    const subscriptionEnd = new Date(sub.current_period_end * 1000).toISOString();
+    // Handle both unix timestamp and ISO string formats from Stripe API
+    let subscriptionEnd: string;
+    const rawEnd = (sub as any).current_period_end;
+    if (typeof rawEnd === "number") {
+      subscriptionEnd = new Date(rawEnd * 1000).toISOString();
+    } else if (typeof rawEnd === "string") {
+      subscriptionEnd = new Date(rawEnd).toISOString();
+    } else {
+      subscriptionEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    }
 
     // Determine tier from Price ID
     const PRICE_TO_TIER: Record<string, string> = {

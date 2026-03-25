@@ -61,9 +61,12 @@ serve(async (req) => {
         );
         const priceId = subscription.items.data[0]?.price.id;
         const tier = PRICE_TO_TIER[priceId] || "monthly";
-        const currentPeriodEnd = new Date(
-          subscription.current_period_end * 1000
-        ).toISOString();
+        const rawEnd = (subscription as any).current_period_end;
+        const currentPeriodEnd = typeof rawEnd === "number"
+          ? new Date(rawEnd * 1000).toISOString()
+          : typeof rawEnd === "string"
+            ? new Date(rawEnd).toISOString()
+            : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
         await supabaseAdmin
           .from("user_profiles")
@@ -85,9 +88,12 @@ serve(async (req) => {
         const priceId = subscription.items.data[0]?.price.id;
         const tier = PRICE_TO_TIER[priceId] || "monthly";
         const status = subscription.status === "active" ? "active" : subscription.status;
-        const currentPeriodEnd = new Date(
-          subscription.current_period_end * 1000
-        ).toISOString();
+        const rawEnd2 = (subscription as any).current_period_end;
+        const currentPeriodEnd = typeof rawEnd2 === "number"
+          ? new Date(rawEnd2 * 1000).toISOString()
+          : typeof rawEnd2 === "string"
+            ? new Date(rawEnd2).toISOString()
+            : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
         const { data: profile } = await supabaseAdmin
           .from("user_profiles")
@@ -149,9 +155,12 @@ serve(async (req) => {
           const subscription = await stripe.subscriptions.retrieve(subscriptionId);
           const priceId = subscription.items.data[0]?.price.id;
           const tier = PRICE_TO_TIER[priceId] || "monthly";
-          const currentPeriodEnd = new Date(
-            subscription.current_period_end * 1000
-          ).toISOString();
+          const rawEnd3 = (subscription as any).current_period_end;
+          const currentPeriodEnd = typeof rawEnd3 === "number"
+            ? new Date(rawEnd3 * 1000).toISOString()
+            : typeof rawEnd3 === "string"
+              ? new Date(rawEnd3).toISOString()
+              : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
           await supabaseAdmin
             .from("user_profiles")
