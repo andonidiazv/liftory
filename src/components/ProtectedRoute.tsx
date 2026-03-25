@@ -34,14 +34,20 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     return <>{children}</>;
   }
 
-  // Subscription check: if not active → paywall (except paywall itself)
+  // Subscription check: active, or trial with time remaining → allowed
   const isActive = profile.subscription_status === "active";
-  if (!isActive && location.pathname !== "/paywall") {
+  const isTrialValid =
+    profile.subscription_status === "trial" &&
+    !!profile.trial_ends_at &&
+    new Date(profile.trial_ends_at) > new Date();
+  const hasAccess = isActive || isTrialValid;
+
+  if (!hasAccess && location.pathname !== "/paywall") {
     return <Navigate to="/paywall" replace />;
   }
 
   // Onboarding check (except if already on onboarding or paywall)
-  if (isActive && !hasOnboarded() && !["/onboarding", "/paywall"].includes(location.pathname)) {
+  if (hasAccess && !hasOnboarded() && !["/onboarding", "/paywall"].includes(location.pathname)) {
     return <Navigate to="/onboarding" replace />;
   }
 

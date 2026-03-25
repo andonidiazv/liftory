@@ -56,10 +56,13 @@ serve(async (req) => {
     const priceId = sub.items.data[0].price.id;
     const subscriptionEnd = new Date(sub.current_period_end * 1000).toISOString();
 
-    // Determine tier
-    const MONTHLY_PRICE = "price_1TCuLg0XOkcK4IZP06AbZY9E";
-    const ANNUAL_PRICE = "price_1TCuM70XOkcK4IZPtnkc7xBm";
-    const tier = priceId === ANNUAL_PRICE ? "annual" : "monthly";
+    // Determine tier from Price ID
+    const PRICE_TO_TIER: Record<string, string> = {
+      "price_1TD5ll0XOkcK4IZPIGWDFpUX": "monthly",
+      "price_1TD5kI0XOkcK4IZPiI7dsbJO": "semiannual",
+      "price_1TD5lM0XOkcK4IZPqQudTkwk": "annual",
+    };
+    const tier = PRICE_TO_TIER[priceId] || "monthly";
 
     // Update profile
     await supabaseClient

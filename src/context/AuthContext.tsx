@@ -86,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           user_id: result.data.user.id,
           full_name: fullName || "",
           role: "athlete",
-          subscription_status: "active",
+          subscription_status: "trial",
           onboarding_completed: false,
         },
         { onConflict: "user_id" }

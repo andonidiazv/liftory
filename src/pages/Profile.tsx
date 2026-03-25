@@ -102,8 +102,25 @@ export default function Profile() {
   const displayName = profile?.full_name || "Usuario";
   const subscriptionStatus = profile?.subscription_status || "inactive";
 
+  const [portalLoading, setPortalLoading] = useState(false);
+
+  const handleManageSubscription = async () => {
+    setPortalLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-portal-session");
+      if (error) throw error;
+      if (data?.url) window.location.href = data.url;
+    } catch {
+      toast({ title: "Error", description: "No se pudo abrir el portal de suscripción", variant: "destructive" });
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
   const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
     active: { label: "Premium", color: "hsl(var(--success))", icon: Crown },
+    trial: { label: "Prueba gratuita", color: "#B8622F", icon: Clock },
+    past_due: { label: "Pago pendiente", color: "hsl(var(--destructive))", icon: AlertTriangle },
     expired: { label: "Expirado", color: "hsl(var(--destructive))", icon: AlertTriangle },
     cancelled: { label: "Cancelado", color: "hsl(var(--muted-foreground))", icon: X },
     inactive: { label: "Inactivo", color: "hsl(var(--muted-foreground))", icon: Clock },
@@ -210,12 +227,30 @@ export default function Profile() {
                 )}
               </div>
             </div>
-            {isPremium() && (
-              <p className="mt-3 text-xs text-muted-foreground font-body">
-                Para gestionar tu suscripción, contacta a soporte o accede desde el email de confirmación de Stripe.
-              </p>
+            {isPremium() && profile?.stripe_customer_id && (
+              <button
+                onClick={handleManageSubscription}
+                disabled={portalLoading}
+                className="mt-3 w-full rounded-xl py-3 text-sm font-body font-semibold press-scale"
+                style={{ background: "rgba(184, 98, 47, 0.12)", color: "#B8622F" }}
+              >
+                {portalLoading ? "Cargando..." : "Gestionar suscripción"}
+              </button>
             )}
-            {!isPremium() && (
+            {subscriptionStatus === "trial" && (
+              <div className="mt-3">
+                <p className="text-xs text-muted-foreground font-body mb-2">
+                  Tu prueba {profile?.trial_ends_at ? `termina el ${format(new Date(profile.trial_ends_at), "d MMM yyyy", { locale: es })}` : "está activa"}
+                </p>
+                <button
+                  onClick={() => navigate("/paywall")}
+                  className="w-full rounded-xl bg-primary py-3 text-sm font-body font-semibold text-primary-foreground press-scale"
+                >
+                  Elegir plan
+                </button>
+              </div>
+            )}
+            {!isPremium() && subscriptionStatus !== "trial" && (
               <button
                 onClick={() => navigate("/paywall")}
                 className="mt-3 w-full rounded-xl bg-primary py-3 text-sm font-body font-semibold text-primary-foreground press-scale"
