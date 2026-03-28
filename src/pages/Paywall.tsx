@@ -304,6 +304,12 @@ export default function Paywall() {
       >
         LIFTORY
       </span>
+      {/* Personalized message if coming from onboarding */}
+      {profile?.full_name && profile?.onboarding_completed && (
+        <p className="mt-3 text-[14px] font-body text-center" style={{ color: "#888" }}>
+          {profile.full_name.split(" ")[0]}, tu programa está listo.
+        </p>
+      )}
       <h1 className="font-display text-[24px] font-bold text-white text-center leading-tight mt-3">
         Entrenamiento de élite.
       </h1>
