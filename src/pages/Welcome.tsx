@@ -347,7 +347,7 @@ function HowItWorksSteps() {
 }
 
 /* ─────────────── PRICING CARD (glow pulse + staggered benefits) ─────────────── */
-function PricingCard({ navigate }: { navigate: (path: string) => void }) {
+function PricingCard({ navigate, claimFounder }: { navigate: (path: string) => void; claimFounder: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
@@ -840,7 +840,7 @@ export default function Welcome() {
           </p>
         </div>
 
-        <PricingCard navigate={navigate} />
+        <PricingCard navigate={navigate} claimFounder={claimFounder} />
 
         {/* Social proof */}
         <p
