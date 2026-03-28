@@ -363,3 +363,24 @@
   from { stroke-dashoffset: 0; }
   to { stroke-dashoffset: 283; }
 }
+
+/* ═══ BADGE FLAME FLICKER ═══ */
+@keyframes flicker {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  25% { transform: scale(1.3) rotate(-8deg); opacity: 1; }
+  50% { transform: scale(1.15) rotate(5deg); opacity: 0.9; }
+  75% { transform: scale(1.25) rotate(-3deg); opacity: 1; }
+}
+
+/* ═══ PRICING GLOW SLIDE ═══ */
+@keyframes glow-slide {
+  0% { opacity: 0.4; background-size: 100% 100%; }
+  50% { opacity: 1; background-size: 200% 100%; }
+  100% { opacity: 0.8; background-size: 100% 100%; }
+}
+
+/* ═══ CTA PULSE GLOW ═══ */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 24px rgba(199,91,57,0.3); }
+  50% { box-shadow: 0 0 40px rgba(199,91,57,0.5), 0 0 60px rgba(199,91,57,0.2); }
+}

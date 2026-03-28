@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Target, Play, TrendingUp, Check } from "lucide-react";
+import { Target, Play, TrendingUp, Check, Flame, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 const MONTHLY_PRICE = "price_1TD5ll0XOkcK4IZPIGWDFpUX";
 const SEMIANNUAL_PRICE = "price_1TD5kI0XOkcK4IZPiI7dsbJO";
 const ANNUAL_PRICE = "price_1TD5lM0XOkcK4IZPqQudTkwk";
+const FOUNDER_PRICE = "price_1TFjro0XOkcK4IZPvsYWsviF";
 
 type Plan = "monthly" | "semiannual" | "annual";
 
@@ -53,7 +54,7 @@ const plans: {
 const benefits = [
   { icon: Target, text: "Programas periodizados de 6 semanas" },
   { icon: Play, text: "120+ videos demostrativos" },
-  { icon: TrendingUp, text: "Progresión inteligente semana a semana" },
+  { icon: TrendingUp, text: "Progresión estructurada semana a semana" },
 ];
 
 export default function Paywall() {
@@ -63,6 +64,15 @@ export default function Paywall() {
   const [selectedPlan, setSelectedPlan] = useState<Plan>("annual");
   const [loading, setLoading] = useState(false);
   const [checkingPayment, setCheckingPayment] = useState(false);
+  const [isFounder, setIsFounder] = useState(false);
+
+  // Detect founder flag from Welcome page
+  useEffect(() => {
+    const founderFlag = localStorage.getItem("liftory_founder");
+    if (founderFlag) {
+      setIsFounder(true);
+    }
+  }, []);
 
   const isSuccess = searchParams.get("success") === "true";
 
@@ -91,6 +101,27 @@ export default function Paywall() {
       }
     }
   }, [profile?.subscription_status, navigate, hasOnboarded]);
+
+  const handleFounderSubscribe = async () => {
+    if (!user) { navigate("/login"); return; }
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { priceId: FOUNDER_PRICE },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        localStorage.removeItem("liftory_founder");
+        window.location.href = data.url;
+      } else {
+        throw new Error("No checkout URL");
+      }
+    } catch (e) {
+      console.error("Founder checkout error:", e);
+      toast.error("Suscripción no disponible en este momento. Contacta soporte.");
+    }
+    setLoading(false);
+  };
 
   const handleSubscribe = async () => {
     if (!user) { navigate("/login"); return; }
@@ -141,6 +172,126 @@ export default function Paywall() {
 
   const activePlan = plans.find((p) => p.key === selectedPlan)!;
 
+  /* ──── FOUNDER'S ACCESS VIEW ──── */
+  if (isFounder) {
+    const founderBenefits = [
+      "Programas periodizados de 6 semanas",
+      "120+ ejercicios con video demostrativo",
+      "Progresión estructurada de cargas y volumen",
+      "Tracking de volumen, tonelaje y PRs",
+      "Coaching cues en cada ejercicio",
+      "Acceso a todas las actualizaciones futuras",
+      "Precio de fundador bloqueado de por vida",
+    ];
+
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center px-6 py-12 overflow-y-auto" style={{ background: "#0F0F0F" }}>
+        {/* Badge */}
+        <span
+          className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em]"
+          style={{ background: "rgba(199,91,57,0.12)", color: "#C75B39", border: "1px solid rgba(199,91,57,0.25)" }}
+        >
+          <Flame className="h-3.5 w-3.5" />
+          Founder's Access
+        </span>
+
+        {/* Logo */}
+        <span
+          className="font-display text-[28px] font-extrabold tracking-tight mt-5"
+          style={{ color: "#C75B39", letterSpacing: "-0.04em" }}
+        >
+          LIFTORY
+        </span>
+
+        <h1 className="font-display text-[24px] font-bold text-white text-center leading-tight mt-3">
+          Bienvenido, Founder.
+        </h1>
+        <p className="mt-2 text-[14px] font-body text-center" style={{ color: "#888" }}>
+          Acceso exclusivo para los primeros 100.
+        </p>
+
+        {/* Pricing Card */}
+        <div
+          className="mt-8 w-full max-w-sm rounded-2xl overflow-hidden"
+          style={{ background: "#1A1A1A", border: "1px solid rgba(199,91,57,0.3)" }}
+        >
+          <div className="h-[2px] w-full" style={{ background: "linear-gradient(90deg, transparent, #C75B39, transparent)" }} />
+
+          <div className="p-8 text-center">
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-mono text-[9px] uppercase tracking-[0.2em]"
+              style={{ background: "rgba(199,91,57,0.12)", color: "#C75B39" }}
+            >
+              <Zap className="h-3 w-3" />
+              50% de descuento — para siempre
+            </span>
+
+            <div className="mt-5">
+              <span className="font-body text-[16px] line-through" style={{ color: "#666" }}>
+                $399 MXN
+              </span>
+              <div className="mt-1 flex items-baseline justify-center gap-1">
+                <span className="font-display text-[48px] font-bold text-white" style={{ letterSpacing: "-0.03em" }}>
+                  $199
+                </span>
+                <span className="font-body text-[14px]" style={{ color: "#888" }}>
+                  MXN/mes
+                </span>
+              </div>
+            </div>
+
+            {/* Benefits */}
+            <div className="mt-8 space-y-3 text-left">
+              {founderBenefits.map((benefit) => (
+                <div key={benefit} className="flex items-start gap-3">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "#7A8B5C" }} />
+                  <span className="font-body text-[13px]" style={{ color: "#DEDAD4" }}>{benefit}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* CTA */}
+            <button
+              onClick={handleFounderSubscribe}
+              disabled={loading}
+              className="press-scale mt-8 w-full font-display text-[15px] font-semibold text-white disabled:opacity-50 active:scale-[0.97] transition-transform"
+              style={{
+                background: "#C75B39",
+                borderRadius: 12,
+                height: 52,
+                boxShadow: "0 0 24px rgba(199,91,57,0.3)",
+              }}
+            >
+              {loading ? "Cargando…" : "Activar Founder's Access · $199 MXN/mes"}
+            </button>
+
+            <p className="mt-3 font-body text-[11px]" style={{ color: "#666" }}>
+              Cancela cuando quieras. Sin contratos. Sin sorpresas.
+            </p>
+          </div>
+        </div>
+
+        {/* Switch to regular plans */}
+        <button
+          onClick={() => { setIsFounder(false); localStorage.removeItem("liftory_founder"); }}
+          className="mt-6 font-body text-[13px] underline transition-colors"
+          style={{ color: "#888" }}
+        >
+          Ver planes regulares
+        </button>
+
+        {/* Sign out */}
+        <button
+          onClick={handleSignOut}
+          className="mt-3 mb-4 font-body text-[13px] underline active:scale-[0.97] transition-transform"
+          style={{ color: "#666" }}
+        >
+          Cerrar sesión
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col items-center px-6 py-12 overflow-y-auto" style={{ background: "#0F0F0F" }}>
       {/* Section 1 — Context */}
@@ -157,7 +308,7 @@ export default function Paywall() {
         Entrenamiento de élite.
       </h1>
       <p className="mt-2 text-[14px] font-body text-center" style={{ color: "#888" }}>
-        Diseñado por expertos en kinesiología.
+        Crafted by movement scientists.
       </p>
 
       {/* Section 2 — Benefits */}

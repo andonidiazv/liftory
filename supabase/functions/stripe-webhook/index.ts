@@ -11,6 +11,7 @@ const PRICE_TO_TIER: Record<string, string> = {
   "price_1TD5ll0XOkcK4IZPIGWDFpUX": "monthly",
   "price_1TD5kI0XOkcK4IZPiI7dsbJO": "semiannual",
   "price_1TD5lM0XOkcK4IZPqQudTkwk": "annual",
+  "price_1TFjro0XOkcK4IZPvsYWsviF": "monthly", // Founder's Access $199/mo
 };
 
 serve(async (req) => {

@@ -20,6 +20,7 @@ import Profile from "./pages/Profile";
 import SessionSummary from "./pages/SessionSummary";
 import Paywall from "./pages/Paywall";
 import Program from "./pages/Program";
+import Welcome from "./pages/Welcome";
 import NotFound from "./pages/NotFound";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -44,6 +45,7 @@ const App = () => (
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<Index />} />
+              <Route path="/welcome" element={<Welcome />} />
               <Route path="/login" element={<Login />} />
               <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
 
