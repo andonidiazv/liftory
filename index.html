@@ -36,10 +36,16 @@ Hybrid perfomance for real humans.">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
+      // Nuke any existing service worker and caches
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          registrations.forEach(function(reg) { reg.unregister(); });
         });
+        if ('caches' in window) {
+          caches.keys().then(function(keys) {
+            keys.forEach(function(key) { caches.delete(key); });
+          });
+        }
       }
     </script>
   </body>
