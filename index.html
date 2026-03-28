@@ -36,47 +36,6 @@ Hybrid perfomance for real humans.">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // DevNav — Screen Navigator
-      (function(){
-        var screens=[
-          {l:"Splash",p:"/",g:"Public"},{l:"Welcome (Landing)",p:"/welcome",g:"Public"},{l:"Login / Signup",p:"/login",g:"Public"},
-          {l:"Onboarding",p:"/onboarding",g:"App"},{l:"Home",p:"/home",g:"App"},{l:"Exercises",p:"/exercises",g:"App"},
-          {l:"Program",p:"/program",g:"App"},{l:"Progress",p:"/progress",g:"App"},{l:"Profile",p:"/profile",g:"App"},
-          {l:"Paywall",p:"/paywall",g:"App"},
-          {l:"Admin",p:"/admin",g:"Admin"},{l:"Admin Users",p:"/admin/users",g:"Admin"},
-          {l:"Admin Exercises",p:"/admin/exercises",g:"Admin"},{l:"Admin Programs",p:"/admin/programs",g:"Admin"}
-        ];
-        var groups=["Public","App","Admin"];
-        var c=document.createElement("div");c.id="dev-nav-root";document.body.appendChild(c);
-        var b=document.createElement("button");b.textContent="☰";
-        Object.assign(b.style,{position:"fixed",bottom:"16px",right:"16px",zIndex:"99999",width:"44px",height:"44px",borderRadius:"50%",background:"#C75B39",border:"2px solid rgba(255,255,255,0.15)",color:"#fff",fontSize:"16px",cursor:"pointer",boxShadow:"0 4px 16px rgba(0,0,0,0.4)"});
-        c.appendChild(b);
-        var pan=document.createElement("div");
-        Object.assign(pan.style,{position:"fixed",bottom:"68px",right:"16px",zIndex:"99999",width:"220px",maxHeight:"70vh",overflowY:"auto",borderRadius:"12px",background:"#1A1A1A",border:"1px solid #2A2A2A",boxShadow:"0 8px 32px rgba(0,0,0,0.6)",fontFamily:"'DM Sans',sans-serif",display:"none"});
-        c.appendChild(pan);
-        var isOpen=false;
-        b.onclick=function(){isOpen=!isOpen;pan.style.display=isOpen?"block":"none";b.textContent=isOpen?"✕":"☰";b.style.background=isOpen?"#1C1C1E":"#C75B39";if(isOpen)render();};
-        function mkEl(tag,styles,text){var e=document.createElement(tag);Object.assign(e.style,styles);if(text)e.textContent=text;return e;}
-        function render(){
-          var cp=window.location.pathname;
-          while(pan.firstChild)pan.removeChild(pan.firstChild);
-          pan.appendChild(mkEl("div",{padding:"10px 16px",fontSize:"9px",textTransform:"uppercase",letterSpacing:"0.2em",color:"#C75B39",borderBottom:"1px solid #2A2A2A",fontFamily:"DM Mono,monospace"},"🧭 Screen Navigator"));
-          groups.forEach(function(g){
-            pan.appendChild(mkEl("div",{padding:"6px 16px",fontSize:"8px",textTransform:"uppercase",letterSpacing:"0.15em",color:"#666",background:"#151515",fontFamily:"DM Mono,monospace"},g));
-            screens.filter(function(s){return s.g===g}).forEach(function(s){
-              var a=cp===s.p;
-              var d=mkEl("button",{display:"block",width:"100%",padding:"8px 16px",textAlign:"left",fontSize:"12px",color:a?"#C75B39":"#DEDAD4",background:a?"rgba(199,91,57,0.08)":"transparent",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"},(a?"● ":"○ ")+s.l);
-              d.onmouseenter=function(){if(!a)d.style.background="rgba(255,255,255,0.05)";};
-              d.onmouseleave=function(){d.style.background=a?"rgba(199,91,57,0.08)":"transparent";};
-              d.onclick=function(){window.location.href=s.p;};
-              pan.appendChild(d);
-            });
-          });
-          pan.appendChild(mkEl("div",{padding:"8px 16px",fontSize:"9px",color:"#555",borderTop:"1px solid #2A2A2A",fontFamily:"DM Mono,monospace"},cp));
-        }
-      })();
-    </script>
-    <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js').catch(() => {});
