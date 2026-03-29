@@ -4,12 +4,6 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 
-const signupSchema = z.object({
-  fullName: z.string().trim().min(1, "El nombre es obligatorio").max(100),
-  email: z.string().trim().email("Email no válido").max(255),
-  password: z.string().min(8, "Mínimo 8 caracteres").max(128),
-});
-
 const loginSchema = z.object({
   email: z.string().trim().email("Email no válido").max(255),
   password: z.string().min(1, "La contraseña es obligatoria").max(128),
@@ -17,13 +11,10 @@ const loginSchema = z.object({
 
 export default function Login() {
   const navigate = useNavigate();
-  const { signUp, signIn, signInWithGoogle, fetchProfile } = useAuth();
-  const [tab, setTab] = useState<"signup" | "login">("signup");
+  const { signIn, signInWithGoogle, fetchProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  // Signup fields
-  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -35,10 +26,10 @@ export default function Login() {
   const [forgotError, setForgotError] = useState("");
 
   const inputStyle: React.CSSProperties = {
-    background: "#1A1A1A",
-    border: "1px solid #2A2A2A",
-    color: "#FFFFFF",
-    borderRadius: 10,
+    background: "#FFFFFF",
+    border: "1px solid #E0DCD7",
+    color: "#1C1C1E",
+    borderRadius: 14,
     padding: "14px 16px",
     fontSize: 14,
     width: "100%",
@@ -49,15 +40,14 @@ export default function Login() {
   };
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    e.target.style.borderColor = "#C75B39";
+    e.target.style.borderColor = "#1C1C1E";
   };
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    e.target.style.borderColor = "#2A2A2A";
+    e.target.style.borderColor = "#E0DCD7";
   };
 
   const redirectByProfile = async (userId: string) => {
     try {
-      // Race with a timeout to prevent infinite hang
       const profilePromise = supabase
         .from("user_profiles")
         .select("onboarding_completed, subscription_status, role")
@@ -70,7 +60,6 @@ export default function Login() {
 
       const { data, error } = await Promise.race([profilePromise, timeoutPromise]) as { data: { onboarding_completed: boolean; subscription_status: string; role: string } | null; error: unknown };
 
-      // Also trigger AuthContext profile fetch (fire-and-forget)
       fetchProfile(userId).catch(console.error);
 
       if (error) {
@@ -92,39 +81,6 @@ export default function Login() {
       console.error("redirectByProfile error:", err);
       navigate("/home", { replace: true });
     }
-  };
-
-  const handleSignup = async () => {
-    setErrors({});
-    setGeneralError("");
-
-    const result = signupSchema.safeParse({ fullName, email, password });
-    if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
-      result.error.errors.forEach((e) => {
-        fieldErrors[e.path[0] as string] = e.message;
-      });
-      setErrors(fieldErrors);
-      return;
-    }
-
-    setLoading(true);
-    const { data, error } = await signUp(result.data.email, result.data.password, result.data.fullName);
-
-    if (error) {
-      setGeneralError(error.message);
-      setLoading(false);
-      return;
-    }
-
-    if (data.session && data.user) {
-      // Session exists — user is authenticated, redirect
-      await redirectByProfile(data.user.id);
-    } else if (data.user && !data.session) {
-      // No session — email confirmation is required
-      setGeneralError("Revisa tu correo para confirmar tu cuenta antes de iniciar sesión.");
-    }
-    setLoading(false);
   };
 
   const handleLogin = async () => {
@@ -194,53 +150,23 @@ export default function Login() {
   return (
     <div
       className="grain-overlay flex min-h-screen flex-col items-center justify-center px-6"
-      style={{ background: "#0F0F0F" }}
+      style={{ background: "#FAF8F5" }}
     >
       <div className="relative z-10 flex w-full max-w-sm flex-col items-center">
         {/* Wordmark */}
         <h1
           className="font-display"
-          style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em", color: "#FFFFFF" }}
+          style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em", color: "#1C1C1E" }}
         >
           LIFTORY
         </h1>
 
-        {/* Tabs */}
-        <div className="mt-8 flex w-full rounded-xl overflow-hidden" style={{ background: "#1A1A1A" }}>
-          {(["signup", "login"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => { setTab(t); setErrors({}); setGeneralError(""); }}
-              className="flex-1 py-3 text-center font-body text-sm font-medium transition-colors"
-              style={{
-                color: tab === t ? "#FFFFFF" : "#6B6360",
-                background: tab === t ? "#C75B39" : "transparent",
-              }}
-            >
-              {t === "signup" ? "Crear cuenta" : "Iniciar sesión"}
-            </button>
-          ))}
-        </div>
+        <p className="mt-2 font-body" style={{ fontSize: 14, color: "#8A8580" }}>
+          Inicia sesión en tu cuenta
+        </p>
 
-        {/* Form */}
-        <div className="mt-6 flex w-full flex-col gap-4">
-          {tab === "signup" && (
-            <div>
-              <input
-                type="text"
-                placeholder="Nombre completo"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                onFocus={handleFocus}
-                onBlur={handleBlur}
-                style={{ ...inputStyle, placeholderColor: "#6B6360" } as React.CSSProperties}
-              />
-              {errors.fullName && (
-                <p className="mt-1 text-xs" style={{ color: "#C0392B" }}>{errors.fullName}</p>
-              )}
-            </div>
-          )}
-
+        {/* Form — login only */}
+        <div className="mt-8 flex w-full flex-col gap-4">
           <div>
             <input
               type="email"
@@ -265,21 +191,20 @@ export default function Login() {
               onFocus={handleFocus}
               onBlur={handleBlur}
               style={inputStyle}
+              onKeyDown={(e) => e.key === "Enter" && handleLogin()}
             />
             {errors.password && (
               <p className="mt-1 text-xs" style={{ color: "#C0392B" }}>{errors.password}</p>
             )}
           </div>
 
-          {tab === "login" && (
-            <button
-              onClick={() => { setShowForgot(true); setForgotEmail(email); setForgotSent(false); setForgotError(""); }}
-              className="self-end text-xs font-body font-medium"
-              style={{ color: "#C75B39", background: "none", border: "none" }}
-            >
-              ¿Olvidaste tu contraseña?
-            </button>
-          )}
+          <button
+            onClick={() => { setShowForgot(true); setForgotEmail(email); setForgotSent(false); setForgotError(""); }}
+            className="self-end text-xs font-body font-medium"
+            style={{ color: "#A09D98", background: "none", border: "none" }}
+          >
+            ¿Olvidaste tu contraseña?
+          </button>
 
           {generalError && (
             <p className="text-xs text-center" style={{ color: "#C0392B" }}>{generalError}</p>
@@ -287,29 +212,26 @@ export default function Login() {
 
           {/* Primary CTA */}
           <button
-            onClick={tab === "signup" ? handleSignup : handleLogin}
+            onClick={handleLogin}
             disabled={loading}
             className="press-scale w-full font-body font-semibold transition-opacity disabled:opacity-60"
             style={{
-              background: "#C75B39",
-              color: "#FFFFFF",
-              borderRadius: 12,
+              background: "#1C1C1E",
+              color: "#FAF8F5",
+              borderRadius: 50,
               padding: "14px 0",
-              fontSize: 15,
+              fontSize: 14,
+              letterSpacing: "0.08em",
             }}
           >
-            {loading
-              ? "Procesando..."
-              : tab === "signup"
-              ? "Crear cuenta"
-              : "Iniciar sesión"}
+            {loading ? "PROCESANDO..." : "INICIAR SESIÓN"}
           </button>
 
           {/* Separator */}
           <div className="flex items-center gap-3 my-1">
-            <div className="flex-1 h-px" style={{ background: "#2A2A2A" }} />
+            <div className="flex-1 h-px" style={{ background: "#E0DCD7" }} />
             <span className="font-body text-xs" style={{ color: "#6B6360" }}>o</span>
-            <div className="flex-1 h-px" style={{ background: "#2A2A2A" }} />
+            <div className="flex-1 h-px" style={{ background: "#E0DCD7" }} />
           </div>
 
           {/* Google */}
@@ -319,9 +241,9 @@ export default function Login() {
             className="press-scale flex w-full items-center justify-center gap-3 font-body text-sm font-medium transition-opacity disabled:opacity-60"
             style={{
               background: "transparent",
-              border: "1px solid #3A3A3A",
-              color: "#FFFFFF",
-              borderRadius: 12,
+              border: "1px solid #E0DCD7",
+              color: "#1C1C1E",
+              borderRadius: 50,
               padding: "14px 0",
             }}
           >
@@ -335,15 +257,15 @@ export default function Login() {
           </button>
         </div>
 
-        {/* Back link */}
+        {/* Create account link */}
         <button
-          onClick={() => navigate("/")}
-          className="mt-8 font-body text-sm transition-colors"
-          style={{ color: "#6B6360", background: "none", border: "none" }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#C75B39")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#6B6360")}
+          onClick={() => navigate("/onboarding")}
+          className="mt-8 font-body text-sm underline transition-colors"
+          style={{ color: "#8A8580", background: "none", border: "none" }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#1C1C1E")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#8A8580")}
         >
-          ← Volver
+          Crear cuenta nueva
         </button>
       </div>
 
@@ -356,24 +278,24 @@ export default function Login() {
         >
           <div
             className="w-full max-w-sm rounded-2xl p-6 flex flex-col gap-4"
-            style={{ background: "#1A1A1A", border: "1px solid #2A2A2A" }}
+            style={{ background: "#FFFFFF", border: "1px solid #E0DCD7" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="font-display text-lg font-bold" style={{ color: "#FFFFFF" }}>
+            <h2 className="font-display text-lg font-bold" style={{ color: "#1C1C1E" }}>
               Recuperar contraseña
             </h2>
 
             {forgotSent ? (
               <>
                 <p className="font-body text-sm" style={{ color: "#A0A0A0" }}>
-                  Te enviamos un enlace de recuperación a <strong style={{ color: "#FFFFFF" }}>{forgotEmail.trim()}</strong>. Revisa tu bandeja de entrada.
+                  Te enviamos un enlace de recuperación a <strong style={{ color: "#1C1C1E" }}>{forgotEmail.trim()}</strong>. Revisa tu bandeja de entrada.
                 </p>
                 <button
                   onClick={() => setShowForgot(false)}
                   className="press-scale w-full font-body font-semibold"
-                  style={{ background: "#C75B39", color: "#FFFFFF", borderRadius: 12, padding: "14px 0", fontSize: 15 }}
+                  style={{ background: "#1C1C1E", color: "#FAF8F5", borderRadius: 50, padding: "14px 0", fontSize: 14, letterSpacing: "0.08em" }}
                 >
-                  Entendido
+                  ENTENDIDO
                 </button>
               </>
             ) : (
@@ -398,9 +320,9 @@ export default function Login() {
                   onClick={handleForgotPassword}
                   disabled={forgotLoading}
                   className="press-scale w-full font-body font-semibold transition-opacity disabled:opacity-60"
-                  style={{ background: "#C75B39", color: "#FFFFFF", borderRadius: 12, padding: "14px 0", fontSize: 15 }}
+                  style={{ background: "#1C1C1E", color: "#FAF8F5", borderRadius: 50, padding: "14px 0", fontSize: 14, letterSpacing: "0.08em" }}
                 >
-                  {forgotLoading ? "Enviando..." : "Enviar enlace"}
+                  {forgotLoading ? "ENVIANDO..." : "ENVIAR ENLACE"}
                 </button>
                 <button
                   onClick={() => setShowForgot(false)}

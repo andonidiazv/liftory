@@ -128,7 +128,7 @@ export default function Program() {
                               ? "#C75B39"
                               : isRest
                               ? "rgba(122,139,92,0.2)"
-                              : "#2A2A2A",
+                              : "#E0DCD7",
                             boxShadow: isToday ? "0 0 0 2px #C75B39, 0 0 0 4px rgba(199,91,57,0.2)" : "none",
                           }}
                         >

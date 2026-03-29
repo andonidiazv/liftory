@@ -1,11 +1,13 @@
-import { useState, useCallback } from "react";
-import { ChevronLeft, Check, Dumbbell, Loader2, Quote, Trophy } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
+import { ChevronLeft, Check, Dumbbell, Loader2, Quote, Trophy, Shuffle, X } from "lucide-react";
 import ExerciseThumbnail from "./ExerciseThumbnail";
+import SwapBottomSheet from "./SwapBottomSheet";
 import type { WorkoutBlock } from "./WorkoutOverview";
 import ExerciseVideoOverlay from "./ExerciseVideoOverlay";
 import type { WorkoutSetData, ExerciseGroup } from "@/hooks/useWorkoutData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 /** Block types by render mode */
 const CARDIO_BLOCKS = ['ENGINE BLOCK'];
@@ -59,11 +61,13 @@ interface Props {
   block: WorkoutBlock;
   weightUnit: string;
   saving: boolean;
+  workoutId?: string;
   onBack: () => void;
   onCompleteSet: (set: WorkoutSetData, data: { actual_weight: number; actual_reps: number }) => Promise<unknown>;
   onUncompleteSet: (setId: string) => Promise<boolean>;
   getSuggestedWeight: (exerciseId: string, plannedReps: number | null) => { weight: number | null; hint: string | null };
   onRestStart: (seconds: number) => void;
+  onSwapExercise?: () => void;
 }
 
 function formatPrescription(sets: WorkoutSetData[]): string {
@@ -94,12 +98,15 @@ export default function BlockDetail({
   block,
   weightUnit,
   saving,
+  workoutId,
   onBack,
   onCompleteSet,
   onUncompleteSet,
   getSuggestedWeight,
   onRestStart,
+  onSwapExercise,
 }: Props) {
+  const { user } = useAuth();
   const [setInputs, setSetInputs] = useState<Record<string, SetInputs>>({});
   const [prFlash, setPrFlash] = useState<string | null>(null);
   const [justCompleted, setJustCompleted] = useState<string | null>(null);
@@ -239,6 +246,9 @@ export default function BlockDetail({
               }
             }}
             onOpenVideo={(v) => setVideoOverlay(v)}
+            workoutId={workoutId}
+            userId={user?.id}
+            onSwapExercise={onSwapExercise}
           />
         ) : blockMode === 'cardio' ? (
           <div className="flex flex-col gap-4">
@@ -321,6 +331,9 @@ export default function BlockDetail({
             justCompleted={justCompleted}
             isCompleted={isCompleted}
             onOpenVideo={(v) => setVideoOverlay(v)}
+            workoutId={workoutId}
+            userId={user?.id}
+            onSwapExercise={onSwapExercise}
           />
         ) : (
           <div className="flex flex-col gap-6">
@@ -339,6 +352,9 @@ export default function BlockDetail({
                 justCompleted={justCompleted}
                 isCompleted={isCompleted}
                 onOpenVideo={(v) => setVideoOverlay(v)}
+                workoutId={workoutId}
+                userId={user?.id}
+                onSwapExercise={onSwapExercise}
               />
             ))}
           </div>
@@ -359,17 +375,34 @@ export default function BlockDetail({
 /* ═══════ EMOM CARD (instruction mode) ═══════ */
 function EmomCard({
   block, saving, isCompleted, onCompleteAll, onOpenVideo,
+  workoutId, userId, onSwapExercise,
 }: {
   block: WorkoutBlock; saving: boolean;
   isCompleted: (s: WorkoutSetData) => boolean;
   onCompleteAll: () => Promise<void>;
   onOpenVideo: (v: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
+  workoutId?: string; userId?: string; onSwapExercise?: () => void;
 }) {
   const [notes, setNotes] = useState("");
   const [completing, setCompleting] = useState(false);
+  const [swapTarget, setSwapTarget] = useState<{ exerciseId: string; exerciseName: string; blockLabel: string } | null>(null);
+  const [exercisesWithSubs, setExercisesWithSubs] = useState<Set<string>>(new Set());
   const allSets = block.groups.flatMap(g => g.sets);
   const allDone = allSets.every(s => isCompleted(s));
   const firstCue = allSets[0]?.coaching_cue_override;
+
+  // Check which exercises in this EMOM have substitutions
+  useEffect(() => {
+    if (!workoutId || !userId) return;
+    const exerciseIds = block.groups.map(g => g.exercise.id);
+    supabase
+      .from("exercise_substitutions")
+      .select("exercise_id")
+      .in("exercise_id", exerciseIds)
+      .then(({ data }) => {
+        setExercisesWithSubs(new Set((data || []).map((d: any) => d.exercise_id)));
+      });
+  }, [block.groups, workoutId, userId]);
 
   const handleDone = async () => {
     setCompleting(true);
@@ -405,7 +438,18 @@ function EmomCard({
                 <ExerciseThumbnail thumbnailUrl={ex.thumbnail_url} videoUrl={ex.video_url} name={ex.name} width={48} height={36} />
               </button>
               <div className="flex-1 min-w-0">
-                <p className="font-body text-sm font-semibold text-foreground truncate">{ex.name}</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="font-body text-sm font-semibold text-foreground truncate">{ex.name}</p>
+                  {exercisesWithSubs.has(ex.id) && (
+                    <button
+                      onClick={() => setSwapTarget({ exerciseId: ex.id, exerciseName: ex.name, blockLabel: group.sets[0]?.block_label || "" })}
+                      className="shrink-0 flex items-center justify-center rounded-full"
+                      style={{ width: 24, height: 24, background: "hsl(var(--border))" }}
+                    >
+                      <Shuffle className="h-3 w-3 text-muted-foreground" />
+                    </button>
+                  )}
+                </div>
               </div>
               {reps && (
                 <span className="font-mono text-muted-foreground shrink-0" style={{ fontSize: 12 }}>
@@ -443,6 +487,23 @@ function EmomCard({
           </button>
         </>
       )}
+
+      {/* Swap bottom sheet for EMOM exercises */}
+      {swapTarget && workoutId && userId && (
+        <SwapBottomSheet
+          visible={!!swapTarget}
+          exerciseId={swapTarget.exerciseId}
+          exerciseName={swapTarget.exerciseName}
+          blockLabel={swapTarget.blockLabel}
+          workoutId={workoutId}
+          userId={userId}
+          onClose={() => setSwapTarget(null)}
+          onSwapComplete={() => {
+            setSwapTarget(null);
+            onSwapExercise?.();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -451,6 +512,7 @@ function EmomCard({
 function SupersetContent({
   block, weightUnit, saving, getInputs, updateInput, handleToggle,
   updateCompletedWeight, getSuggestedWeight, prFlash, justCompleted, isCompleted, onOpenVideo,
+  workoutId, userId, onSwapExercise,
 }: {
   block: WorkoutBlock; weightUnit: string; saving: boolean;
   getInputs: (s: WorkoutSetData) => SetInputs;
@@ -461,6 +523,7 @@ function SupersetContent({
   prFlash: string | null; justCompleted: string | null;
   isCompleted: (s: WorkoutSetData) => boolean;
   onOpenVideo: (v: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
+  workoutId?: string; userId?: string; onSwapExercise?: () => void;
 }) {
   const label = block.supersetGroup?.label || "SUPERSET";
   return (
@@ -487,6 +550,9 @@ function SupersetContent({
             justCompleted={justCompleted}
             isCompleted={isCompleted}
             onOpenVideo={onOpenVideo}
+            workoutId={workoutId}
+            userId={userId}
+            onSwapExercise={onSwapExercise}
           />
         ))}
       </div>
@@ -498,6 +564,7 @@ function SupersetContent({
 function ExerciseCard({
   group, weightUnit, saving, getInputs, updateInput, onToggle,
   updateCompletedWeight, getSuggestedWeight, prFlash, justCompleted, isCompleted, onOpenVideo,
+  workoutId, userId, onSwapExercise,
 }: {
   group: ExerciseGroup; weightUnit: string; saving: boolean;
   getInputs: (s: WorkoutSetData) => SetInputs;
@@ -508,11 +575,31 @@ function ExerciseCard({
   prFlash: string | null; justCompleted: string | null;
   isCompleted: (s: WorkoutSetData) => boolean;
   onOpenVideo: (v: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
+  workoutId?: string;
+  userId?: string;
+  onSwapExercise?: () => void;
 }) {
   const ex = group.exercise;
   const sets = group.sets;
   const completedCount = sets.filter((s) => isCompleted(s)).length;
   const cueOverride = sets[0]?.coaching_cue_override;
+  const blockLabel = sets[0]?.block_label || "";
+
+  // Substitution state
+  const [showSwapSheet, setShowSwapSheet] = useState(false);
+  const [hasSubs, setHasSubs] = useState(false);
+
+  // Check if this exercise has substitutions configured
+  useEffect(() => {
+    if (!workoutId || !userId) return;
+    supabase
+      .from("exercise_substitutions")
+      .select("id", { count: "exact", head: true })
+      .eq("exercise_id", ex.id)
+      .then(({ count }) => {
+        setHasSubs((count ?? 0) > 0);
+      });
+  }, [ex.id, workoutId, userId]);
 
   return (
     <div className="rounded-2xl border border-border bg-card p-4 mb-3">
@@ -525,7 +612,19 @@ function ExerciseCard({
           <ExerciseThumbnail thumbnailUrl={ex.thumbnail_url} videoUrl={ex.video_url} name={ex.name} width={64} height={48} />
         </button>
         <div className="flex-1 min-w-0">
-          <p className="font-body text-[15px] font-semibold text-foreground">{ex.name}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="font-body text-[15px] font-semibold text-foreground truncate">{ex.name}</p>
+            {hasSubs && (
+              <button
+                onClick={() => setShowSwapSheet(true)}
+                className="shrink-0 flex items-center justify-center rounded-full"
+                style={{ width: 26, height: 26, background: "hsl(var(--secondary))" }}
+                title="Sustituir ejercicio"
+              >
+                <Shuffle className="h-3.5 w-3.5 text-muted-foreground" />
+              </button>
+            )}
+          </div>
           <p className="font-mono text-muted-foreground mt-0.5" style={{ fontSize: 11 }}>
             {formatPrescription(sets)}
           </p>
@@ -534,6 +633,20 @@ function ExerciseCard({
           {completedCount}/{sets.length}
         </span>
       </div>
+
+      {/* Swap bottom sheet */}
+      {workoutId && userId && (
+        <SwapBottomSheet
+          visible={showSwapSheet}
+          exerciseId={ex.id}
+          exerciseName={ex.name}
+          blockLabel={blockLabel}
+          workoutId={workoutId}
+          userId={userId}
+          onClose={() => setShowSwapSheet(false)}
+          onSwapComplete={() => onSwapExercise?.()}
+        />
+      )}
 
       {cueOverride && (
         <div className="mt-2 flex items-start gap-1.5">

@@ -16,8 +16,8 @@ export default function TabBar() {
     <nav
       className="fixed bottom-0 left-0 right-0 z-50"
       style={{
-        background: "#1A1A1A",
-        borderTop: "1px solid #2A2A2A",
+        background: "#FAF8F5",
+        borderTop: "1px solid #E0DCD7",
         height: 60,
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
       }}
@@ -25,7 +25,7 @@ export default function TabBar() {
       <div className="flex items-center justify-around h-[60px] px-2">
         {tabs.map((tab) => {
           const isActive = location.pathname === tab.path;
-          const color = isActive ? "#C75B39" : "#6B6360";
+          const color = isActive ? "#1C1C1E" : "#B0ACA7";
 
           return (
             <button

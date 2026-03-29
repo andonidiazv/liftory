@@ -336,7 +336,8 @@ export default function VideoThumbnailExtractor({
           style={{
             background: "#0D0C0A",
             position: "relative",
-            maxHeight: "400px",
+            maxWidth: "320px",
+            maxHeight: "240px",
             touchAction: zoom > 1 ? "none" : "auto",
           }}
           onMouseDown={handleMouseDown}
@@ -350,7 +351,8 @@ export default function VideoThumbnailExtractor({
           <img
             src={previewDataUrl}
             alt="Thumbnail preview"
-            className="w-full h-auto object-contain pointer-events-none"
+            className="w-full h-full object-contain pointer-events-none"
+            style={{ maxWidth: "320px", maxHeight: "240px" }}
             draggable={false}
           />
           {/* Zoom indicator badge */}

@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { assignProgram } from "@/lib/assignProgram";
 import {
   ChevronLeft,
-  ChevronRight,
   Zap,
   Flame,
   Sprout,
@@ -23,6 +22,10 @@ import {
   Star,
   ArrowRight,
   Clock,
+  Eye,
+  EyeOff,
+  Crown,
+  Gem,
 } from "lucide-react";
 
 /* ───────── types ───────── */
@@ -31,23 +34,53 @@ type Experience = "beginner" | "intermediate" | "advanced";
 type Objective = "muscle_strength" | "athletic_performance" | "look_feel_better" | "move_better";
 
 /* ───────── constants ───────── */
-const TOTAL_STEPS = 9; // 0-8
-const PROGRESS_STEPS = 6; // progress bar on steps 1-6
-
+const TOTAL_STEPS = 10;
+const PROGRESS_STEPS = 7;
 const STORAGE_KEY = "liftory_onboarding";
 
-/* ───────── colors ───────── */
-const bg = "#0F0F0F";
-const cardBg = "#1A1A1A";
-const borderDefault = "#2A2A2A";
-const terracotta = "#C75B39";
+/* ───────── palette (strict: cream + charcoal only) ───────── */
 const cream = "#FAF8F5";
-const muted = "#888";
-const gold = "#C9A96E";
-const olive = "#7A8B5C";
-const red = "#D45555";
-const purple = "#9B7FCB";
-const cyan = "#4ECDC4";
+const charcoal = "#1C1C1E";
+
+/* ───────── theme system ───────── */
+type Theme = {
+  bg: string; text: string; textMuted: string; textSubtle: string;
+  cardBg: string; border: string; btnBg: string; btnText: string;
+  inputBg: string; inputBorder: string; inputText: string;
+  accent: string; accentMuted: string;
+};
+
+const darkTheme: Theme = {
+  bg: "#0F0F0F", text: cream, textMuted: "#A09D98", textSubtle: "#666",
+  cardBg: "#1A1A1A", border: "#2A2A2A", btnBg: cream, btnText: charcoal,
+  inputBg: "#1A1A1A", inputBorder: "#2A2A2A", inputText: cream,
+  accent: cream, accentMuted: "rgba(250,248,245,0.08)",
+};
+
+const lightTheme: Theme = {
+  bg: cream, text: charcoal, textMuted: "#8A8580", textSubtle: "#B0ACA7",
+  cardBg: "#FFFFFF", border: "#E0DCD7", btnBg: charcoal, btnText: cream,
+  inputBg: "#FFFFFF", inputBorder: "#E0DCD7", inputText: charcoal,
+  accent: charcoal, accentMuted: "rgba(28,28,30,0.06)",
+};
+
+/* ───────── global animations ───────── */
+const globalAnimations = `
+  @keyframes splashFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes splashRevealSmooth { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeSlideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+  .splash-fade-in { opacity: 0; animation: splashFadeIn 0.9s ease-out forwards; }
+  .splash-reveal { opacity: 0; animation: splashRevealSmooth 1.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards; }
+  .anim-in { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .anim-in-d1 { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both; }
+  .anim-in-d2 { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.16s both; }
+  .anim-in-d3 { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.24s both; }
+  .anim-in-d4 { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.32s both; }
+  .anim-in-d5 { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.40s both; }
+  .anim-in-d6 { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.48s both; }
+  .anim-in-d7 { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.56s both; }
+`;
 
 /* ───────── helpers ───────── */
 function determineProgramLevel(exp: Experience, obj: Objective): "advanced" | "intermediate" {
@@ -79,17 +112,23 @@ function loadAnswers(): { name: string; gender: Gender; experience: Experience; 
 function clearAnswers() { localStorage.removeItem(STORAGE_KEY); }
 
 /* ════════════════════════════════════════════ */
-/*                 ONBOARDING                  */
-/* ════════════════════════════════════════════ */
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { user, loading: authLoading, refreshProfile } = useAuth();
+  const { user, loading: authLoading, signUp, signInWithGoogle, refreshProfile } = useAuth();
 
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
   const [gender, setGender] = useState<Gender | null>(null);
   const [experience, setExperience] = useState<Experience | null>(null);
   const [objective, setObjective] = useState<Objective | null>(null);
+
+  const [lastName, setLastName] = useState("");
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+  const [signupLoading, setSignupLoading] = useState(false);
+  const [signupError, setSignupError] = useState("");
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
@@ -99,56 +138,73 @@ export default function Onboarding() {
   const loadingStart = useRef(0);
   const programStarted = useRef(false);
 
-  /* ── On mount: if user logged in + saved answers → jump to loading ── */
+  const t: Theme = lightTheme;
+
+  /* Icon box: charcoal bg + cream icon for contrast */
+  const iconBox = (size: number, rounded = "rounded-2xl") =>
+    `flex items-center justify-center ${rounded} shrink-0`;
+  const iconBoxStyle = (size: number): React.CSSProperties => ({
+    width: size, height: size, background: charcoal,
+  });
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) return;
     const saved = loadAnswers();
     if (saved && !programStarted.current) {
-      setName(saved.name);
-      setGender(saved.gender);
-      setExperience(saved.experience);
-      setObjective(saved.objective);
-      setStep(7); // loading step
+      setName(saved.name); setGender(saved.gender);
+      setExperience(saved.experience); setObjective(saved.objective);
+      setStep(9);
     }
   }, [authLoading, user]);
 
-  /* ── When step=7 and we have user + answers, start program ── */
   useEffect(() => {
-    if (step !== 7 || !user || programStarted.current) return;
+    if (step !== 9 || !user || programStarted.current) return;
     const saved = loadAnswers();
     if (!saved) return;
-    const g = gender || saved.gender;
-    const e = experience || saved.experience;
-    const o = objective || saved.objective;
-    const n = name || saved.name;
+    const g = gender || saved.gender; const e = experience || saved.experience;
+    const o = objective || saved.objective; const n = name || saved.name;
     if (!g || !e || !o) return;
     programStarted.current = true;
     runProgramAssignment(user.id, n, g, e, o);
   }, [step, user, gender, experience, objective, name]);
 
-  /* ── navigation ── */
   const next = () => setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1));
   const back = () => setStep((s) => Math.max(s - 1, 0));
 
-  /* ── step 6 → save to localStorage → go to login ── */
   const handleBuildProgram = () => {
     if (!gender || !experience || !objective) return;
-    saveAnswers({ name: name.trim(), gender, experience, objective });
-    if (user) { setStep(7); } else { navigate("/login"); }
+    saveAnswers({ name: `${name.trim()} ${lastName.trim()}`.trim(), gender, experience, objective });
+    if (user) { setStep(9); } else { setStep(8); }
   };
 
-  /* ── program assignment ── */
+  const handleOnboardingSignup = async () => {
+    setSignupError("");
+    const trimmedEmail = signupEmail.trim();
+    if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) { setSignupError("Ingresa un email válido."); return; }
+    if (signupPassword.length < 8) { setSignupError("La contraseña debe tener al menos 8 caracteres."); return; }
+    setSignupLoading(true);
+    try {
+      const fullName = `${name.trim()} ${lastName.trim()}`.trim();
+      const { data, error } = await signUp(trimmedEmail, signupPassword, fullName);
+      if (error) { setSignupError(error.message); setSignupLoading(false); return; }
+      if (data.session && data.user) { setStep(9); }
+      else if (data.user && !data.session) { setSignupError("Revisa tu correo para confirmar tu cuenta antes de continuar."); }
+    } catch { setSignupError("Error al crear la cuenta. Intenta de nuevo."); }
+    setSignupLoading(false);
+  };
+
+  const handleOnboardingGoogle = async () => {
+    setGoogleLoading(true); setSignupError("");
+    const { error } = await signInWithGoogle();
+    if (error) { setSignupError(error.message); setGoogleLoading(false); }
+  };
+
   const runProgramAssignment = async (userId: string, userName: string, g: Gender, e: Experience, o: Objective) => {
     const level = determineProgramLevel(e, o);
-    const pName = getProgramName(g, level);
-    setProgramName(pName);
+    setProgramName(getProgramName(g, level));
     loadingStart.current = Date.now();
-    setLoadingProgress(0);
-    setLoadingMsgIdx(0);
-    setAssignDone(false);
-    setAssignError(false);
-
+    setLoadingProgress(0); setLoadingMsgIdx(0); setAssignDone(false); setAssignError(false);
     try {
       await supabase.from("onboarding_answers").upsert({
         user_id: userId, experience_level: e, primary_goal: o,
@@ -156,25 +212,18 @@ export default function Onboarding() {
         emotional_barriers: [], connected_wearable: null,
         specific_event: null, event_date: null, inbody_data: null,
       }, { onConflict: "user_id" });
-
       await supabase.from("user_profiles").update({
         full_name: userName, gender: g, onboarding_completed: true,
         training_days_per_week: 5, training_location: "full_gym", experience_level: e,
       }).eq("user_id", userId);
-
       const result = await assignProgram(userId, g, level);
       if (!result.success) throw new Error("assign failed");
-      clearAnswers();
-      setAssignDone(true);
-    } catch (err) {
-      console.error("Onboarding error:", err);
-      setAssignError(true);
-    }
+      clearAnswers(); setAssignDone(true);
+    } catch (err) { console.error("Onboarding error:", err); setAssignError(true); }
   };
 
-  /* ── loading timers ── */
   useEffect(() => {
-    if (step !== 7 || !loadingStart.current) return;
+    if (step !== 9 || !loadingStart.current) return;
     const MIN_DURATION = 4000;
     const msgTimer = setInterval(() => { setLoadingMsgIdx((p) => (p < 3 ? p + 1 : p)); }, 1000);
     const progressTimer = setInterval(() => {
@@ -190,329 +239,344 @@ export default function Onboarding() {
     return () => { clearInterval(msgTimer); clearInterval(progressTimer); clearInterval(checkDone); };
   }, [step, assignDone, assignError, navigate, refreshProfile]);
 
-  /* ═══════════════ SHARED COMPONENTS ═══════════════ */
+  /* ═══════════ SHARED ═══════════ */
 
   const renderProgressBar = (currentStep: number) => (
-    <div className="px-6 pt-14">
+    <div className="px-6 pt-14 anim-in">
       <div className="flex items-center justify-between mb-2">
-        <button onClick={back} className="flex items-center gap-1 font-body transition-colors active:scale-95" style={{ fontSize: 13, color: muted }}>
+        <button onClick={back} className="flex items-center gap-1 font-body active:scale-95" style={{ fontSize: 13, color: t.textMuted }}>
           <ChevronLeft className="h-4 w-4" /> Atrás
         </button>
-        <span className="font-mono uppercase" style={{ fontSize: 10, letterSpacing: "0.15em", color: muted }}>
+        <span className="font-mono uppercase" style={{ fontSize: 10, letterSpacing: "0.15em", color: t.textMuted }}>
           Paso {currentStep} de {PROGRESS_STEPS}
         </span>
       </div>
-      <div className="h-1 w-full overflow-hidden rounded-full" style={{ background: borderDefault }}>
-        <div className="h-full rounded-full transition-all duration-500 ease-out" style={{ width: `${(currentStep / PROGRESS_STEPS) * 100}%`, background: terracotta }} />
+      <div className="h-[2px] w-full overflow-hidden rounded-full" style={{ background: t.border }}>
+        <div className="h-full rounded-full transition-all duration-500 ease-out" style={{ width: `${(currentStep / PROGRESS_STEPS) * 100}%`, background: t.accent }} />
       </div>
     </div>
   );
 
-  const PrimaryButton = ({ label, onClick, disabled, icon }: { label: string; onClick: () => void; disabled?: boolean; icon?: React.ReactNode }) => (
+  const PillButton = ({ label, onClick, disabled, className: cls }: { label: string; onClick: () => void; disabled?: boolean; className?: string }) => (
     <button onClick={onClick} disabled={disabled}
-      className="press-scale flex w-full items-center justify-center gap-2 font-display font-semibold text-white transition-opacity disabled:opacity-40 active:scale-[0.97]"
-      style={{ background: terracotta, borderRadius: 12, height: 52, fontSize: 16 }}>
+      className={`press-scale flex w-full items-center justify-center font-body font-medium disabled:opacity-40 active:scale-[0.98] transition-transform ${cls || ""}`}
+      style={{ background: t.btnBg, color: t.btnText, borderRadius: 50, height: 50, fontSize: 14, letterSpacing: "0.08em" }}>
       {label}
-      {icon === undefined ? <ChevronRight className="h-5 w-5" /> : icon}
     </button>
   );
 
-  const SelectionCard = ({ selected, onSelect, borderColor, children, height }: { selected: boolean; onSelect: () => void; borderColor: string; children: React.ReactNode; height?: number }) => (
-    <button onClick={onSelect} className="w-full text-left transition-all duration-200 active:scale-[0.98]"
-      style={{ background: cardBg, border: selected ? `2px solid ${borderColor}` : `1px solid ${borderDefault}`, borderRadius: 16, padding: 16, minHeight: height }}>
+  const SelectionCard = ({ selected, onSelect, children, className: cls }: { selected: boolean; onSelect: () => void; children: React.ReactNode; className?: string }) => (
+    <button onClick={onSelect} className={`w-full text-left transition-all duration-200 active:scale-[0.98] ${cls || ""}`}
+      style={{ background: t.cardBg, border: selected ? `2px solid ${t.accent}` : `1px solid ${t.border}`, borderRadius: 16, padding: 16 }}>
       {children}
     </button>
   );
 
+  const inputStyles: React.CSSProperties = {
+    background: t.inputBg, border: `1px solid ${t.inputBorder}`, color: t.inputText,
+    borderRadius: 12, height: 48, padding: "0 16px", fontSize: 16, width: "100%",
+    outline: "none", fontFamily: "'DM Sans', sans-serif", transition: "border-color 0.2s",
+  };
+
   /* ════════════ STEP 0: SPLASH ════════════ */
   if (step === 0) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-6" style={{ background: bg }}>
-        <h1 className="font-display" style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.04em", color: terracotta }}>LIFTORY</h1>
-        <p className="mt-3 font-body" style={{ fontSize: 16, color: cream }}>Entrenamiento diseñado por expertos.</p>
-        <p className="font-body" style={{ fontSize: 16, color: muted }}>Resultados reales.</p>
-        <div className="mt-12 w-full max-w-sm">
-          <PrimaryButton label="EMPEZAR" onClick={next} icon={null} />
+      <div className="flex min-h-screen flex-col items-center justify-center px-6" style={{ background: cream }}>
+        <h1 className="font-display splash-fade-in" style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-0.04em", color: charcoal, animationDelay: "0s" }}>LIFTORY</h1>
+        <p className="mt-3 font-body splash-reveal" style={{ fontSize: 14, color: "#8A8580", letterSpacing: "0.04em" }}>The Wellness Community</p>
+        <div className="mt-14 w-full max-w-sm splash-fade-in" style={{ animationDelay: "2s" }}>
+          <button onClick={next}
+            className="press-scale flex w-full items-center justify-center font-body font-medium active:scale-[0.98] transition-transform"
+            style={{ background: charcoal, color: cream, borderRadius: 50, height: 50, fontSize: 14, letterSpacing: "0.08em" }}>
+            LET'S GO
+          </button>
         </div>
-        <button onClick={() => navigate("/login")} className="mt-6 font-body underline" style={{ fontSize: 13, color: muted }}>
+        <button onClick={() => navigate("/login")} className="mt-6 font-body underline splash-fade-in" style={{ fontSize: 13, color: "#A09D98", animationDelay: "2.4s" }}>
           ¿Ya tienes cuenta? Inicia sesión
         </button>
+        <style>{globalAnimations}</style>
       </div>
     );
   }
 
-  /* ════════════ STEP 1: NOMBRE + PROGRAMA ════════════ */
+  /* ════════════ STEP 1: NOMBRE ════════════ */
   if (step === 1) {
-    const canContinue = name.trim().length > 0 && gender !== null;
     return (
-      <div className="flex min-h-screen flex-col" style={{ background: bg }}>
+      <div className="flex min-h-screen flex-col" style={{ background: t.bg }}>
         {renderProgressBar(1)}
-        <div className="flex flex-1 flex-col px-6 pt-8 pb-8">
-          <h1 className="font-display font-bold" style={{ fontSize: 24, color: cream }}>¿Cómo te llamas?</h1>
+        <div className="flex flex-1 flex-col items-center justify-center px-6 pb-8">
+          <h1 className="font-display font-bold text-center anim-in" style={{ fontSize: 24, color: t.text }}>¿Cómo te llamas?</h1>
           <input type="text" placeholder="Tu nombre" value={name} onChange={(e) => setName(e.target.value)}
-            className="mt-4 w-full font-body outline-none transition-colors focus:border-[#C75B39]"
-            style={{ background: cardBg, border: `1px solid ${borderDefault}`, borderRadius: 12, height: 48, padding: "0 16px", fontSize: 16, color: cream }} />
+            className="mt-6 w-full max-w-sm font-body outline-none text-center anim-in-d1" style={inputStyles}
+            onKeyDown={(e) => e.key === "Enter" && name.trim().length > 0 && next()} />
+          <div className="mt-10 w-full max-w-sm anim-in-d2"><PillButton label="SIGUIENTE" onClick={next} disabled={name.trim().length === 0} /></div>
+        </div>
+        <style>{globalAnimations}</style>
+      </div>
+    );
+  }
 
-          <h2 className="mt-8 font-display font-bold" style={{ fontSize: 20, color: cream }}>Elige tu programa</h2>
-
-          <div className="mt-4 flex flex-col gap-3">
-            <SelectionCard selected={gender === "male"} onSelect={() => setGender("male")} borderColor={terracotta}>
+  /* ════════════ STEP 2: PROGRAMA ════════════ */
+  if (step === 2) {
+    return (
+      <div className="flex min-h-screen flex-col" style={{ background: t.bg }}>
+        {renderProgressBar(2)}
+        <div className="flex flex-1 flex-col items-center px-6 pt-10 pb-8">
+          <h1 className="font-display font-bold text-center anim-in" style={{ fontSize: 24, color: t.text }}>Elige tu programa</h1>
+          <p className="mt-2 font-body text-center anim-in-d1" style={{ fontSize: 14, color: t.textMuted }}>Selecciona el que mejor te represente</p>
+          <div className="mt-8 w-full max-w-sm flex flex-col gap-3">
+            <SelectionCard selected={gender === "male"} onSelect={() => setGender("male")} className="anim-in-d2">
               <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center rounded-2xl shrink-0"
-                  style={{ width: 48, height: 48, background: gender === "male" ? "rgba(199,91,57,0.15)" : "rgba(255,255,255,0.05)" }}>
-                  <Zap className="h-6 w-6" style={{ color: terracotta }} />
+                <div className={iconBox(48)} style={iconBoxStyle(48)}>
+                  <Crown className="h-6 w-6" style={{ color: cream }} />
                 </div>
                 <div>
-                  <p className="font-display font-bold uppercase" style={{ fontSize: 16, color: cream, letterSpacing: "0.03em" }}>BUILD HIM</p>
-                  <p className="mt-1 font-body" style={{ fontSize: 12, color: muted }}>Más fuerte. Más sólido. Innegociable.</p>
+                  <p className="font-display font-bold uppercase" style={{ fontSize: 16, color: t.text, letterSpacing: "0.03em" }}>BUILD HIM</p>
+                  <p className="mt-1 font-body" style={{ fontSize: 12, color: t.textMuted }}>Más fuerte. Más sólido. Innegociable.</p>
                 </div>
               </div>
             </SelectionCard>
-            <SelectionCard selected={gender === "female"} onSelect={() => setGender("female")} borderColor={gold}>
+            <SelectionCard selected={gender === "female"} onSelect={() => setGender("female")} className="anim-in-d3">
               <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center rounded-2xl shrink-0"
-                  style={{ width: 48, height: 48, background: gender === "female" ? "rgba(201,169,110,0.15)" : "rgba(255,255,255,0.05)" }}>
-                  <Flame className="h-6 w-6" style={{ color: gold }} />
+                <div className={iconBox(48)} style={iconBoxStyle(48)}>
+                  <Gem className="h-6 w-6" style={{ color: cream }} />
                 </div>
                 <div>
-                  <p className="font-display font-bold uppercase" style={{ fontSize: 16, color: cream, letterSpacing: "0.03em" }}>SCULPT HER</p>
-                  <p className="mt-1 font-body" style={{ fontSize: 12, color: muted }}>Fuerte, definida, imparable.</p>
+                  <p className="font-display font-bold uppercase" style={{ fontSize: 16, color: t.text, letterSpacing: "0.03em" }}>SCULPT HER</p>
+                  <p className="mt-1 font-body" style={{ fontSize: 12, color: t.textMuted }}>Fuerte, definida, imparable.</p>
                 </div>
               </div>
             </SelectionCard>
           </div>
-          <div className="mt-auto pt-8"><PrimaryButton label="SIGUIENTE" onClick={next} disabled={!canContinue} /></div>
+          <div className="mt-auto pt-8 w-full max-w-sm anim-in-d4"><PillButton label="SIGUIENTE" onClick={next} disabled={!gender} /></div>
         </div>
+        <style>{globalAnimations}</style>
       </div>
     );
   }
 
-  /* ════════════ STEP 2: EXPERIENCIA ════════════ */
-  if (step === 2) {
+  /* ════════════ STEP 3: EXPERIENCIA ════════════ */
+  if (step === 3) {
     const opts = [
-      { id: "beginner" as Experience, label: "Menos de 1 año", subtitle: "Estoy construyendo las bases", Icon: Sprout, iconColor: olive, borderColor: olive },
-      { id: "intermediate" as Experience, label: "1-3 años", subtitle: "Busco estructura y progresión", Icon: Dumbbell, iconColor: terracotta, borderColor: terracotta },
-      { id: "advanced" as Experience, label: "3+ años", subtitle: "Quiero un método que me rete", Icon: Flame, iconColor: red, borderColor: red },
+      { id: "beginner" as Experience, label: "Menos de 1 año", subtitle: "Estoy construyendo las bases", Icon: Sprout },
+      { id: "intermediate" as Experience, label: "1-3 años", subtitle: "Busco estructura y progresión", Icon: Dumbbell },
+      { id: "advanced" as Experience, label: "3+ años", subtitle: "Quiero un método que me rete", Icon: Flame },
     ];
     return (
-      <div className="flex min-h-screen flex-col" style={{ background: bg }}>
-        {renderProgressBar(2)}
+      <div className="flex min-h-screen flex-col" style={{ background: t.bg }}>
+        {renderProgressBar(3)}
         <div className="flex flex-1 flex-col px-6 pt-8 pb-8">
-          <h1 className="font-display font-bold" style={{ fontSize: 22, color: cream }}>¿Cuánto tiempo llevas entrenando, {name.trim().split(" ")[0]}?</h1>
+          <h1 className="font-display font-bold anim-in" style={{ fontSize: 22, color: t.text }}>¿Cuánto tiempo llevas entrenando, {name.trim().split(" ")[0]}?</h1>
           <div className="mt-8 flex flex-col gap-3">
-            {opts.map((opt) => (
-              <SelectionCard key={opt.id} selected={experience === opt.id} onSelect={() => setExperience(opt.id)} borderColor={opt.borderColor}>
+            {opts.map((opt, i) => (
+              <SelectionCard key={opt.id} selected={experience === opt.id} onSelect={() => setExperience(opt.id)} className={`anim-in-d${i + 1}`}>
                 <div className="flex items-center gap-4">
-                  <opt.Icon className="h-5 w-5 shrink-0" style={{ color: opt.iconColor }} />
+                  <div className={iconBox(40, "rounded-xl")} style={iconBoxStyle(40)}>
+                    <opt.Icon className="h-5 w-5" style={{ color: cream }} />
+                  </div>
                   <div>
-                    <p className="font-display font-bold" style={{ fontSize: 15, color: cream }}>{opt.label}</p>
-                    <p className="mt-0.5 font-body" style={{ fontSize: 12, color: muted }}>{opt.subtitle}</p>
+                    <p className="font-display font-bold" style={{ fontSize: 15, color: t.text }}>{opt.label}</p>
+                    <p className="mt-0.5 font-body" style={{ fontSize: 12, color: t.textMuted }}>{opt.subtitle}</p>
                   </div>
                 </div>
               </SelectionCard>
             ))}
           </div>
-          <div className="mt-auto pt-8"><PrimaryButton label="SIGUIENTE" onClick={next} disabled={!experience} /></div>
+          <div className="mt-auto pt-8 anim-in-d4"><PillButton label="SIGUIENTE" onClick={next} disabled={!experience} /></div>
         </div>
+        <style>{globalAnimations}</style>
       </div>
     );
   }
 
-  /* ════════════ STEP 3: OBJETIVO ════════════ */
-  if (step === 3) {
+  /* ════════════ STEP 4: OBJETIVO ════════════ */
+  if (step === 4) {
     const opts = [
-      { id: "muscle_strength" as Objective, label: "Ganar músculo y fuerza", Icon: Target, iconColor: terracotta, borderColor: terracotta },
-      { id: "athletic_performance" as Objective, label: "Mejorar mi rendimiento atlético", Icon: Zap, iconColor: terracotta, borderColor: terracotta },
-      { id: "look_feel_better" as Objective, label: "Verme y sentirme mejor", Icon: Heart, iconColor: gold, borderColor: gold },
-      { id: "move_better" as Objective, label: "Moverme mejor, sin dolor", Icon: Activity, iconColor: olive, borderColor: olive },
+      { id: "muscle_strength" as Objective, label: "Ganar músculo y fuerza", Icon: Target },
+      { id: "athletic_performance" as Objective, label: "Mejorar mi rendimiento atlético", Icon: Zap },
+      { id: "look_feel_better" as Objective, label: "Verme y sentirme mejor", Icon: Heart },
+      { id: "move_better" as Objective, label: "Moverme mejor, sin dolor", Icon: Activity },
     ];
     return (
-      <div className="flex min-h-screen flex-col" style={{ background: bg }}>
-        {renderProgressBar(3)}
+      <div className="flex min-h-screen flex-col" style={{ background: t.bg }}>
+        {renderProgressBar(4)}
         <div className="flex flex-1 flex-col px-6 pt-8 pb-8">
-          <h1 className="font-display font-bold" style={{ fontSize: 22, color: cream }}>¿Qué quieres lograr, {name.trim().split(" ")[0]}?</h1>
-          <p className="mt-2 font-body" style={{ fontSize: 14, color: muted }}>Elige tu objetivo principal</p>
+          <h1 className="font-display font-bold anim-in" style={{ fontSize: 22, color: t.text }}>¿Qué quieres lograr, {name.trim().split(" ")[0]}?</h1>
+          <p className="mt-2 font-body anim-in-d1" style={{ fontSize: 14, color: t.textMuted }}>Elige tu objetivo principal</p>
           <div className="mt-8 flex flex-col gap-3">
-            {opts.map((opt) => (
-              <SelectionCard key={opt.id} selected={objective === opt.id} onSelect={() => setObjective(opt.id)} borderColor={opt.borderColor}>
+            {opts.map((opt, i) => (
+              <SelectionCard key={opt.id} selected={objective === opt.id} onSelect={() => setObjective(opt.id)} className={`anim-in-d${i + 1}`}>
                 <div className="flex items-center gap-4">
-                  <opt.Icon className="h-5 w-5 shrink-0" style={{ color: opt.iconColor }} />
-                  <p className="font-display font-bold" style={{ fontSize: 15, color: cream }}>{opt.label}</p>
+                  <div className={iconBox(40, "rounded-xl")} style={iconBoxStyle(40)}>
+                    <opt.Icon className="h-5 w-5" style={{ color: cream }} />
+                  </div>
+                  <p className="font-display font-bold" style={{ fontSize: 15, color: t.text }}>{opt.label}</p>
                 </div>
               </SelectionCard>
             ))}
           </div>
-          <div className="mt-auto pt-8"><PrimaryButton label="SIGUIENTE" onClick={next} disabled={!objective} /></div>
+          <div className="mt-auto pt-8 anim-in-d5"><PillButton label="SIGUIENTE" onClick={next} disabled={!objective} /></div>
         </div>
+        <style>{globalAnimations}</style>
       </div>
     );
   }
 
-  /* ════════════ STEP 4: EL MÉTODO LIFTORY (blocks) ════════════ */
-  if (step === 4) {
-    const blocks = [
-      { name: "PRIME BLOCK", desc: "Movilidad y activación neuromuscular. Tu cuerpo listo para rendir.", color: terracotta, Icon: Timer, num: "01" },
-      { name: "POWER BLOCK", desc: "Potencia y fuerza explosiva. Patrones atléticos de alto rendimiento.", color: terracotta, Icon: TrendingUp, num: "02" },
-      { name: "HEAVY BLOCK", desc: "Fuerza máxima y progresión de carga. El núcleo del método.", color: red, Icon: Dumbbell, num: "03" },
-      { name: "BUILD BLOCK", desc: "Hipertrofia y volumen muscular. Esculpe con intención.", color: purple, Icon: RotateCcw, num: "04" },
-      { name: "ENGINE BLOCK", desc: "Capacidad cardiovascular y conditioning. Resistencia real.", color: cyan, Icon: Activity, num: "05" },
-      { name: "RECOVERY BLOCK", desc: "Movilidad activa y longevidad. Entrena hoy, rinde mañana.", color: olive, Icon: RotateCcw, num: "06" },
+  /* ════════════ STEP 5: THE METHOD ════════════ */
+  if (step === 5) {
+    const pillars = [
+      { name: "Prime", desc: "Movilidad y activación neuromuscular.", Icon: Timer, num: "01" },
+      { name: "Power", desc: "Potencia y fuerza explosiva.", Icon: TrendingUp, num: "02" },
+      { name: "Heavy", desc: "Fuerza máxima y progresión de carga.", Icon: Dumbbell, num: "03" },
+      { name: "Build", desc: "Hipertrofia y volumen muscular.", Icon: RotateCcw, num: "04" },
+      { name: "Engine", desc: "Conditioning y capacidad cardiovascular.", Icon: Activity, num: "05" },
+      { name: "Recovery", desc: "Movilidad activa y longevidad.", Icon: RotateCcw, num: "06" },
     ];
 
     return (
-      <div className="flex min-h-screen flex-col" style={{ background: bg }}>
-        {renderProgressBar(4)}
+      <div className="flex min-h-screen flex-col" style={{ background: t.bg }}>
+        {renderProgressBar(5)}
         <div className="flex flex-1 flex-col px-6 pt-8 pb-8 overflow-y-auto">
-          {/* Header */}
-          <div className="text-center">
-            <p className="font-mono uppercase" style={{ fontSize: 12, letterSpacing: "0.2em", color: terracotta }}>EL MÉTODO</p>
-            <div className="mx-auto mt-2 h-[2px] w-8" style={{ background: terracotta }} />
-            <h1 className="mt-4 font-display" style={{ fontSize: 32, fontWeight: 800, color: cream, letterSpacing: "-0.03em" }}>LIFTORY</h1>
-            <p className="mt-2 font-body" style={{ fontSize: 14, color: muted }}>Seis bloques. Cada uno con un propósito.</p>
+          <div className="text-center anim-in">
+            <p className="font-display" style={{ fontSize: 14, fontWeight: 800, color: t.textMuted, letterSpacing: "-0.03em" }}>LIFTORY</p>
+            <div className="mx-auto mt-2 h-[2px] w-8" style={{ background: t.border }} />
+            <h1 className="mt-4 font-mono uppercase" style={{ fontSize: 28, fontWeight: 700, color: t.text, letterSpacing: "0.08em" }}>THE METHOD</h1>
+            <p className="mt-3 font-body" style={{ fontSize: 14, color: t.textMuted }}>
+              Seis pilares para construir un cuerpo <span style={{ color: t.text }}>fuerte, móvil y resiliente</span> — hoy y a largo plazo.
+            </p>
+            <p className="mt-2 font-mono uppercase" style={{ fontSize: 10, letterSpacing: "0.2em", color: t.textSubtle }}>SIX PILLARS</p>
           </div>
 
-          {/* Block cards */}
           <div className="mt-6 flex flex-col gap-2.5">
-            {blocks.map((block) => (
-              <div key={block.name} className="flex items-center gap-3"
-                style={{ background: cardBg, borderRadius: 14, padding: "14px 16px", borderLeft: `3px solid ${block.color}` }}>
-                <div className="flex items-center justify-center rounded-xl shrink-0"
-                  style={{ width: 40, height: 40, background: `${block.color}20` }}>
-                  <block.Icon className="h-[18px] w-[18px]" style={{ color: block.color }} />
+            {pillars.map((p, i) => (
+              <div key={p.name} className={`flex items-center gap-3 anim-in-d${i + 1}`}
+                style={{ background: t.cardBg, borderRadius: 14, padding: "14px 16px", border: `1px solid ${t.border}` }}>
+                <div className={iconBox(40, "rounded-xl")} style={iconBoxStyle(40)}>
+                  <p.Icon className="h-[18px] w-[18px]" style={{ color: cream }} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-display font-bold uppercase" style={{ fontSize: 13, letterSpacing: "0.04em", color: block.color }}>{block.name}</p>
-                  <p className="mt-0.5 font-body" style={{ fontSize: 11, color: muted, lineHeight: 1.4 }}>{block.desc}</p>
+                  <p className="font-display font-bold" style={{ fontSize: 15, color: t.text }}>{p.name}</p>
+                  <p className="mt-0.5 font-body" style={{ fontSize: 11, color: t.textMuted, lineHeight: 1.4 }}>{p.desc}</p>
                 </div>
-                <span className="font-mono shrink-0" style={{ fontSize: 14, color: `${block.color}40` }}>{block.num}</span>
+                <span className="font-mono shrink-0" style={{ fontSize: 14, color: t.textSubtle }}>{p.num}</span>
               </div>
             ))}
           </div>
 
-          <div className="mt-auto pt-6">
-            <PrimaryButton label="Comenzar mi programa" onClick={next} icon={null} />
-            <p className="mt-3 text-center font-body" style={{ fontSize: 11, color: muted }}>Diseñado para ti · Ajustado cada semana</p>
+          <div className="mt-auto pt-6 anim-in-d7">
+            <PillButton label="I'M READY" onClick={next} />
+            <p className="mt-3 text-center font-body" style={{ fontSize: 11, color: t.textMuted }}>Diseñado para ti · Ajustado cada semana</p>
           </div>
         </div>
+        <style>{globalAnimations}</style>
       </div>
     );
   }
 
-  /* ════════════ STEP 5: PERIODIZACIÓN ════════════ */
-  if (step === 5) {
+  /* ════════════ STEP 6: PERIODIZACIÓN ════════════ */
+  if (step === 6) {
     const phases = [
-      { name: "Asimilación", desc: "Aprende. Calibra. Establece la base.", weeks: "S1 — S2", dotColor: "#666" },
-      { name: "Escalar", desc: "Más peso. Más volumen. Más tú.", weeks: "S3 — S4", dotColor: red },
-      { name: "Peak", desc: "Todo apuntó a esta semana.", weeks: "S5", dotColor: "#E8723A" },
-      { name: "Recarga", desc: "Sigues. Tu cuerpo asimila el trabajo.", weeks: "S6", dotColor: olive },
+      { name: "Asimilación", desc: "Aprende. Calibra. Establece la base.", weeks: "S1 — S2", accent: false },
+      { name: "Escalar", desc: "Más peso. Más volumen. Más tú.", weeks: "S3 — S4", accent: true },
+      { name: "Peak", desc: "Todo apuntó a esta semana.", weeks: "S5", accent: true },
+      { name: "Recarga", desc: "Sigues. Tu cuerpo asimila el trabajo.", weeks: "S6", accent: false },
     ];
 
     return (
-      <div className="flex min-h-screen flex-col" style={{ background: bg }}>
-        {renderProgressBar(5)}
+      <div className="flex min-h-screen flex-col" style={{ background: t.bg }}>
+        {renderProgressBar(6)}
         <div className="flex flex-1 flex-col px-6 pt-8 pb-8 overflow-y-auto">
-          {/* Header */}
-          <div className="text-center">
-            <p className="font-mono uppercase" style={{ fontSize: 12, letterSpacing: "0.2em", color: terracotta }}>PERIODIZACIÓN</p>
-            <div className="mx-auto mt-2 h-[2px] w-8" style={{ background: terracotta }} />
-            <h1 className="mt-4 font-display font-bold" style={{ fontSize: 24, color: cream, lineHeight: 1.2 }}>
+          <div className="text-center anim-in">
+            <p className="font-mono uppercase" style={{ fontSize: 12, letterSpacing: "0.2em", color: t.accent }}>PERIODIZACIÓN</p>
+            <div className="mx-auto mt-2 h-[2px] w-8" style={{ background: t.accent }} />
+            <h1 className="mt-4 font-display font-bold" style={{ fontSize: 24, color: t.text, lineHeight: 1.2 }}>
               Cada semana tiene<br />un propósito exacto.
             </h1>
-            <p className="mt-2 font-body" style={{ fontSize: 14, color: muted }}>Así se construye un atleta de verdad.</p>
+            <p className="mt-2 font-body" style={{ fontSize: 14, color: t.textMuted }}>Así se construye un atleta de verdad.</p>
           </div>
 
-          {/* Intensity curve */}
-          <div className="mt-6 rounded-2xl p-4" style={{ background: cardBg, border: `1px solid ${borderDefault}` }}>
-            <p className="font-mono uppercase text-center" style={{ fontSize: 9, letterSpacing: "0.15em", color: muted }}>
+          <div className="mt-6 rounded-2xl p-4 anim-in-d1" style={{ background: t.cardBg, border: `1px solid ${t.border}` }}>
+            <p className="font-mono uppercase text-center" style={{ fontSize: 9, letterSpacing: "0.15em", color: t.textMuted }}>
               CURVA DE INTENSIDAD — MESOCICLO 6 SEMANAS
             </p>
             <svg viewBox="0 0 300 120" className="mt-3 w-full" style={{ height: 100 }}>
-              {/* Grid lines */}
-              <line x1="30" y1="90" x2="280" y2="90" stroke="#2A2A2A" strokeWidth="0.5" />
-              {/* Gradient fill */}
+              <line x1="30" y1="90" x2="280" y2="90" stroke={t.border} strokeWidth="0.5" />
               <defs>
                 <linearGradient id="curveGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={red} stopOpacity="0.3" />
-                  <stop offset="100%" stopColor={red} stopOpacity="0" />
+                  <stop offset="0%" stopColor={t.accent} stopOpacity="0.2" />
+                  <stop offset="100%" stopColor={t.accent} stopOpacity="0" />
                 </linearGradient>
               </defs>
               <path d="M50,75 C80,70 110,55 150,40 C180,28 200,18 220,15 C235,20 250,45 265,55 L265,90 L50,90 Z" fill="url(#curveGrad)" />
-              <path d="M50,75 C80,70 110,55 150,40 C180,28 200,18 220,15 C235,20 250,45 265,55" fill="none" stroke={red} strokeWidth="2" />
-              {/* Peak dot */}
-              <circle cx="220" cy="15" r="5" fill={red} />
-              {/* Recovery dot */}
-              <circle cx="265" cy="55" r="5" fill={olive} />
-              {/* Phase labels */}
-              <text x="80" y="108" fill={muted} fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">ASIMILACIÓN</text>
-              <text x="165" y="108" fill={muted} fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">ESCALAR</text>
-              <text x="220" y="108" fill={red} fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">PEAK</text>
-              <text x="265" y="108" fill={olive} fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">RECARGA</text>
-              {/* Week labels */}
-              <text x="50" y="100" fill="#555" fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">S1</text>
-              <text x="100" y="100" fill="#555" fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">S2</text>
-              <text x="140" y="100" fill="#555" fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">S3</text>
-              <text x="180" y="100" fill="#555" fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">S4</text>
-              <text x="220" y="100" fill={red} fontSize="7" fontFamily="'DM Mono', monospace" fontWeight="bold" textAnchor="middle">S5 ↑</text>
-              <text x="265" y="100" fill={olive} fontSize="7" fontFamily="'DM Mono', monospace" fontWeight="bold" textAnchor="middle">S6 ✦</text>
+              <path d="M50,75 C80,70 110,55 150,40 C180,28 200,18 220,15 C235,20 250,45 265,55" fill="none" stroke={t.accent} strokeWidth="2" />
+              <circle cx="220" cy="15" r="5" fill={t.accent} />
+              <circle cx="265" cy="55" r="4" fill={t.textMuted} />
+              <text x="80" y="108" fill={t.textSubtle} fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">ASIMILACIÓN</text>
+              <text x="165" y="108" fill={t.textSubtle} fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">ESCALAR</text>
+              <text x="220" y="108" fill={t.accent} fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">PEAK</text>
+              <text x="265" y="108" fill={t.textMuted} fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">RECARGA</text>
+              <text x="50" y="100" fill={t.textSubtle} fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">S1</text>
+              <text x="100" y="100" fill={t.textSubtle} fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">S2</text>
+              <text x="140" y="100" fill={t.textSubtle} fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">S3</text>
+              <text x="180" y="100" fill={t.textSubtle} fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">S4</text>
+              <text x="220" y="100" fill={t.accent} fontSize="7" fontFamily="'DM Mono', monospace" fontWeight="bold" textAnchor="middle">S5</text>
+              <text x="265" y="100" fill={t.textMuted} fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">S6</text>
             </svg>
           </div>
 
-          {/* Phase cards */}
-          <div className="mt-4 grid grid-cols-4 gap-2">
+          <div className="mt-4 grid grid-cols-4 gap-2 anim-in-d2">
             {phases.map((p) => (
-              <div key={p.name} className="rounded-xl p-2.5" style={{ background: cardBg, border: `1px solid ${borderDefault}` }}>
-                <div className="h-2 w-2 rounded-full" style={{ background: p.dotColor }} />
-                <p className="mt-2 font-display font-bold" style={{ fontSize: 11, color: p.dotColor === "#666" ? cream : p.dotColor }}>{p.name}</p>
-                <p className="mt-1 font-body" style={{ fontSize: 9, color: muted, lineHeight: 1.3 }}>{p.desc}</p>
-                <p className="mt-1.5 font-mono" style={{ fontSize: 8, color: p.dotColor === "#666" ? muted : p.dotColor }}>{p.weeks}</p>
+              <div key={p.name} className="rounded-xl p-2.5" style={{ background: t.cardBg, border: `1px solid ${t.border}` }}>
+                <div className="h-2 w-2 rounded-full" style={{ background: p.accent ? t.accent : t.textMuted }} />
+                <p className="mt-2 font-display font-bold" style={{ fontSize: 11, color: p.accent ? t.accent : t.text }}>{p.name}</p>
+                <p className="mt-1 font-body" style={{ fontSize: 9, color: t.textMuted, lineHeight: 1.3 }}>{p.desc}</p>
+                <p className="mt-1.5 font-mono" style={{ fontSize: 8, color: p.accent ? t.accent : t.textMuted }}>{p.weeks}</p>
               </div>
             ))}
           </div>
 
-          {/* Info cards */}
           <div className="mt-4 flex flex-col gap-2.5">
-            <div className="flex items-start gap-3 rounded-xl p-3.5" style={{ background: cardBg, border: `1px solid ${borderDefault}` }}>
-              <div className="flex items-center justify-center rounded-xl shrink-0" style={{ width: 36, height: 36, background: "rgba(199,91,57,0.12)" }}>
-                <Star className="h-4 w-4" style={{ color: terracotta }} />
+            <div className="flex items-start gap-3 rounded-xl p-3.5 anim-in-d3" style={{ background: t.cardBg, border: `1px solid ${t.border}` }}>
+              <div className={iconBox(36, "rounded-xl")} style={iconBoxStyle(36)}>
+                <Star className="h-4 w-4" style={{ color: cream }} />
               </div>
               <div>
-                <p className="font-display font-bold" style={{ fontSize: 13, color: cream }}>Un año completo. Cada semana con una meta.</p>
-                <p className="mt-1 font-body" style={{ fontSize: 11, color: muted, lineHeight: 1.4 }}>Mesociclos encadenados en macrociclos anuales. No hay semana perdida.</p>
+                <p className="font-display font-bold" style={{ fontSize: 13, color: t.text }}>Un año completo. Cada semana con una meta.</p>
+                <p className="mt-1 font-body" style={{ fontSize: 11, color: t.textMuted, lineHeight: 1.4 }}>Mesociclos encadenados en macrociclos anuales. No hay semana perdida.</p>
               </div>
             </div>
-
-            <div className="flex items-start gap-3 rounded-xl p-3.5" style={{ background: cardBg, border: `1px solid ${borderDefault}` }}>
-              <div className="flex items-center justify-center rounded-xl shrink-0" style={{ width: 36, height: 36, background: "rgba(199,91,57,0.12)" }}>
-                <ArrowRight className="h-4 w-4" style={{ color: terracotta }} />
+            <div className="flex items-start gap-3 rounded-xl p-3.5 anim-in-d4" style={{ background: t.cardBg, border: `1px solid ${t.border}` }}>
+              <div className={iconBox(36, "rounded-xl")} style={iconBoxStyle(36)}>
+                <ArrowRight className="h-4 w-4" style={{ color: cream }} />
               </div>
               <div>
-                <p className="font-display font-bold" style={{ fontSize: 13, color: cream }}>Progresión wave. Semana a semana.</p>
-                <p className="mt-1 font-body" style={{ fontSize: 11, color: muted, lineHeight: 1.4 }}>Pesos e intensidad se ajustan solos según cómo entrenas. El programa aprende contigo.</p>
+                <p className="font-display font-bold" style={{ fontSize: 13, color: t.text }}>Progresión wave. Semana a semana.</p>
+                <p className="mt-1 font-body" style={{ fontSize: 11, color: t.textMuted, lineHeight: 1.4 }}>Pesos e intensidad se ajustan solos según cómo entrenas. El programa aprende contigo.</p>
               </div>
             </div>
-
-            <div className="flex items-start gap-3 rounded-xl p-3.5" style={{ background: cardBg, border: `1px solid rgba(122,139,92,0.3)` }}>
-              <div className="flex items-center justify-center rounded-xl shrink-0" style={{ width: 36, height: 36, background: "rgba(122,139,92,0.12)" }}>
-                <Clock className="h-4 w-4" style={{ color: olive }} />
+            <div className="flex items-start gap-3 rounded-xl p-3.5 anim-in-d5" style={{ background: t.cardBg, border: `1px solid ${t.border}` }}>
+              <div className={iconBox(36, "rounded-xl")} style={iconBoxStyle(36)}>
+                <Clock className="h-4 w-4" style={{ color: cream }} />
               </div>
               <div>
-                <p className="font-display font-bold" style={{ fontSize: 13, color: olive }}>S6 no es parar. Es recargar.</p>
-                <p className="mt-1 font-body" style={{ fontSize: 11, color: muted, lineHeight: 1.4 }}>Bajar el volumen esta semana es lo que te lleva al 100% en el siguiente ciclo. Es parte del método.</p>
+                <p className="font-display font-bold" style={{ fontSize: 13, color: t.text }}>S6 no es parar. Es recargar.</p>
+                <p className="mt-1 font-body" style={{ fontSize: 11, color: t.textMuted, lineHeight: 1.4 }}>Bajar el volumen esta semana es lo que te lleva al 100% en el siguiente ciclo.</p>
               </div>
             </div>
           </div>
 
-          <div className="mt-6">
-            <PrimaryButton label="Quiero mi programa" onClick={next} icon={null} />
-            <p className="mt-3 text-center font-body" style={{ fontSize: 11, color: muted }}>Tu primer mesociclo comienza hoy</p>
+          <div className="mt-6 anim-in-d6">
+            <PillButton label="Quiero mi programa" onClick={next} />
+            <p className="mt-3 text-center font-body" style={{ fontSize: 11, color: t.textMuted }}>Tu primer mesociclo comienza hoy</p>
           </div>
         </div>
+        <style>{globalAnimations}</style>
       </div>
     );
   }
 
-  /* ════════════ STEP 6: PROPUESTA DE VALOR ════════════ */
-  if (step === 6) {
+  /* ════════════ STEP 7: PROPUESTA DE VALOR ════════════ */
+  if (step === 7) {
     const valueProps = [
       { Icon: Calendar, text: "Mesociclo periodizado de 6 semanas" },
       { Icon: Play, text: "Video demostrativo de cada ejercicio" },
@@ -520,64 +584,135 @@ export default function Onboarding() {
       { Icon: Layers, text: "Movilidad, fuerza, hipertrofia y conditioning integrados" },
     ];
     return (
-      <div className="flex min-h-screen flex-col" style={{ background: bg }}>
-        {renderProgressBar(6)}
+      <div className="flex min-h-screen flex-col" style={{ background: t.bg }}>
+        {renderProgressBar(7)}
         <div className="flex flex-1 flex-col px-6 pt-8 pb-8">
-          <h1 className="font-display font-bold" style={{ fontSize: 22, color: cream }}>
+          <h1 className="font-display font-bold anim-in" style={{ fontSize: 22, color: t.text }}>
             {name.trim().split(" ")[0]}, tu programa incluye:
           </h1>
           <div className="mt-10 flex flex-col gap-5">
             {valueProps.map((vp, i) => (
-              <div key={vp.text} className="flex items-start gap-4" style={{ animation: `fadeSlideIn 0.5s ease-out ${i * 0.3}s both` }}>
-                <vp.Icon className="mt-0.5 h-[18px] w-[18px] shrink-0" style={{ color: terracotta }} />
-                <p className="font-body" style={{ fontSize: 14, color: cream }}>{vp.text}</p>
+              <div key={vp.text} className={`flex items-start gap-4 anim-in-d${i + 1}`}>
+                <div className={iconBox(36, "rounded-xl")} style={iconBoxStyle(36)}>
+                  <vp.Icon className="h-[16px] w-[16px]" style={{ color: cream }} />
+                </div>
+                <p className="font-body pt-2" style={{ fontSize: 14, color: t.text }}>{vp.text}</p>
               </div>
             ))}
           </div>
-          <div className="mt-auto pt-8">
-            <PrimaryButton label="CONSTRUIR MI PROGRAMA" onClick={handleBuildProgram} icon={null} />
-          </div>
+          <div className="mt-auto pt-8 anim-in-d5"><PillButton label="CONSTRUIR MI PROGRAMA" onClick={handleBuildProgram} /></div>
         </div>
-        <style>{`
-          @keyframes fadeSlideIn {
-            from { opacity: 0; transform: translateX(20px); }
-            to   { opacity: 1; transform: translateX(0); }
-          }
-        `}</style>
+        <style>{globalAnimations}</style>
       </div>
     );
   }
 
-  /* ════════════ STEP 7: LOADING ════════════ */
-  if (step === 7) {
+  /* ════════════ STEP 8: CREAR CUENTA (dark theme) ════════════ */
+  if (step === 8) {
+    const s = lightTheme;
+    const signupInput: React.CSSProperties = {
+      background: s.inputBg, border: `1px solid ${s.inputBorder}`, color: s.inputText,
+      borderRadius: 12, height: 48, padding: "0 16px", fontSize: 16, width: "100%",
+      outline: "none", fontFamily: "'DM Sans', sans-serif", transition: "border-color 0.2s",
+    };
+    return (
+      <div className="flex min-h-screen flex-col items-center px-6 py-12 overflow-y-auto" style={{ background: s.bg }}>
+        <h1 className="font-display anim-in" style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.04em", color: s.text }}>LIFTORY</h1>
+        <p className="mt-2 font-body anim-in-d1" style={{ fontSize: 14, color: s.textMuted }}>Tu programa está listo.</p>
+        <h2 className="mt-8 font-display font-bold text-center anim-in-d2" style={{ fontSize: 22, color: s.text }}>Crea tu cuenta para comenzar</h2>
+
+        <div className="mt-8 w-full max-w-sm flex flex-col gap-4 anim-in-d3">
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="block font-mono uppercase mb-1.5" style={{ fontSize: 10, letterSpacing: "0.15em", color: s.textMuted }}>Nombre</label>
+              <input type="text" placeholder="Nombre" value={name} onChange={(e) => setName(e.target.value)} className="font-body outline-none" style={signupInput} />
+            </div>
+            <div className="flex-1">
+              <label className="block font-mono uppercase mb-1.5" style={{ fontSize: 10, letterSpacing: "0.15em", color: s.textMuted }}>Apellidos</label>
+              <input type="text" placeholder="Apellidos" value={lastName} onChange={(e) => setLastName(e.target.value)} className="font-body outline-none" style={signupInput} />
+            </div>
+          </div>
+          <div>
+            <label className="block font-mono uppercase mb-1.5" style={{ fontSize: 10, letterSpacing: "0.15em", color: s.textMuted }}>Email</label>
+            <input type="email" placeholder="tu@email.com" value={signupEmail} onChange={(e) => setSignupEmail(e.target.value)} className="font-body outline-none" style={signupInput} />
+          </div>
+          <div>
+            <label className="block font-mono uppercase mb-1.5" style={{ fontSize: 10, letterSpacing: "0.15em", color: s.textMuted }}>Contraseña</label>
+            <div className="relative">
+              <input type={showPassword ? "text" : "password"} placeholder="Mínimo 8 caracteres" value={signupPassword}
+                onChange={(e) => setSignupPassword(e.target.value)} className="font-body outline-none"
+                style={{ ...signupInput, paddingRight: 48 }} onKeyDown={(e) => e.key === "Enter" && handleOnboardingSignup()} />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: s.textMuted }}>
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
+            </div>
+          </div>
+
+          {signupError && <p className="text-center font-body text-xs" style={{ color: "#E74C3C" }}>{signupError}</p>}
+
+          <button onClick={handleOnboardingSignup} disabled={signupLoading}
+            className="press-scale w-full font-body font-medium disabled:opacity-50 active:scale-[0.98] transition-transform"
+            style={{ background: charcoal, color: cream, borderRadius: 50, height: 50, fontSize: 14, letterSpacing: "0.08em" }}>
+            {signupLoading ? "Creando cuenta..." : "Crear cuenta"}
+          </button>
+
+          <div className="flex items-center gap-3 my-1">
+            <div className="flex-1 h-px" style={{ background: s.border }} />
+            <span className="font-body text-xs" style={{ color: s.textSubtle }}>o</span>
+            <div className="flex-1 h-px" style={{ background: s.border }} />
+          </div>
+
+          <button onClick={handleOnboardingGoogle} disabled={googleLoading}
+            className="press-scale flex w-full items-center justify-center gap-3 font-body text-sm font-medium disabled:opacity-60 active:scale-[0.98]"
+            style={{ background: "transparent", border: `1px solid ${s.border}`, color: s.text, borderRadius: 50, height: 48 }}>
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+              <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/>
+              <path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.997 8.997 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+              <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 6.29C4.672 4.163 6.656 2.58 9 3.58z" fill="#EA4335"/>
+            </svg>
+            {googleLoading ? "Conectando..." : "Continuar con Google"}
+          </button>
+        </div>
+
+        <button onClick={() => setStep(7)} className="mt-8 font-body underline active:scale-[0.97] transition-transform" style={{ fontSize: 13, color: s.textMuted }}>
+          ← Atrás
+        </button>
+        <style>{globalAnimations}</style>
+      </div>
+    );
+  }
+
+  /* ════════════ STEP 9: LOADING (dark theme) ════════════ */
+  if (step === 9) {
+    const d = darkTheme;
     const msgs = ["Analizando tu perfil...", "Seleccionando ejercicios para tu nivel...", "Armando tu mesociclo de 6 semanas...", "¡Listo!"];
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-6" style={{ background: bg }}>
-        <p className="font-display" style={{ fontSize: 14, color: cream, opacity: 0.3 }}>LIFTORY</p>
-        <div className="mt-10 h-[3px] w-[60%] overflow-hidden rounded-full" style={{ background: borderDefault }}>
-          <div className="h-full rounded-full transition-all duration-100 ease-linear" style={{ width: `${loadingProgress}%`, background: terracotta }} />
+      <div className="flex min-h-screen flex-col items-center justify-center px-6" style={{ background: d.bg }}>
+        <p className="font-display anim-in" style={{ fontSize: 14, color: d.text, opacity: 0.3 }}>LIFTORY</p>
+        <div className="mt-10 h-[3px] w-[60%] overflow-hidden rounded-full anim-in-d1" style={{ background: d.border }}>
+          <div className="h-full rounded-full transition-all duration-100 ease-linear" style={{ width: `${loadingProgress}%`, background: "#C75B39" }} />
         </div>
-        <div className="mt-6 h-6 relative w-72">
+        <div className="mt-6 h-6 relative w-72 anim-in-d2">
           {msgs.map((msg, i) => (
             <p key={i} className="absolute inset-0 text-center font-body transition-opacity duration-500"
-              style={{ fontSize: 15, color: i === 3 && loadingMsgIdx === i ? cream : muted,
+              style={{ fontSize: 15, color: i === 3 && loadingMsgIdx === i ? d.text : d.textMuted,
                 fontFamily: i === 3 && loadingMsgIdx === i ? "'Syne', sans-serif" : undefined,
-                opacity: i === loadingMsgIdx ? 1 : 0 }}>
-              {msg}
-            </p>
+                opacity: i === loadingMsgIdx ? 1 : 0 }}>{msg}</p>
           ))}
         </div>
         {assignError && (
           <div className="mt-8 flex flex-col items-center gap-3">
-            <p className="font-body text-sm" style={{ color: red }}>Hubo un error al generar tu programa.</p>
+            <p className="font-body text-sm" style={{ color: "#E74C3C" }}>Hubo un error al generar tu programa.</p>
             <button onClick={() => { programStarted.current = false; setAssignError(false); }}
-              className="font-display font-semibold text-white px-6 py-3 rounded-xl active:scale-[0.97] transition-transform"
-              style={{ background: terracotta }}>Reintentar</button>
+              className="font-body font-medium px-6 py-3 active:scale-[0.97] transition-transform"
+              style={{ background: "#C75B39", color: "#FFFFFF", borderRadius: 50 }}>Reintentar</button>
           </div>
         )}
+        <style>{globalAnimations}</style>
       </div>
     );
   }
 
-  return <div className="min-h-screen" style={{ background: bg }} />;
+  return <div className="min-h-screen" style={{ background: t.bg }} />;
 }

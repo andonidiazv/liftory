@@ -7,8 +7,8 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center" style={{ background: "#0F0F0F" }}>
-        <span className="font-display text-sm" style={{ color: "rgba(250,248,245,0.3)", fontWeight: 800, letterSpacing: "-0.04em" }}>
+      <div className="flex min-h-screen items-center justify-center" style={{ background: "#FAF8F5" }}>
+        <span className="font-display text-sm" style={{ color: "rgba(28,28,30,0.2)", fontWeight: 800, letterSpacing: "-0.04em" }}>
           LIFTORY
         </span>
       </div>
@@ -21,8 +21,8 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
   if (!profile) {
     return (
-      <div className="flex min-h-screen items-center justify-center" style={{ background: "#0F0F0F" }}>
-        <span className="font-display text-sm" style={{ color: "rgba(250,248,245,0.3)", fontWeight: 800, letterSpacing: "-0.04em" }}>
+      <div className="flex min-h-screen items-center justify-center" style={{ background: "#FAF8F5" }}>
+        <span className="font-display text-sm" style={{ color: "rgba(28,28,30,0.2)", fontWeight: 800, letterSpacing: "-0.04em" }}>
           LIFTORY
         </span>
       </div>

@@ -10,33 +10,7 @@ import BlockDetail from "@/components/workout/BlockDetail";
 import RestTimerSheet from "@/components/workout/RestTimerSheet";
 import TimerBlockDetail from "@/components/workout/TimerBlockDetail";
 import ExerciseVideoOverlay from "@/components/workout/ExerciseVideoOverlay";
-
-/** Fixed block display order */
-const BLOCK_ORDER = [
-  'PRIME BLOCK', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION',
-  'POWER BLOCK', 'HEAVY BLOCK — A', 'HEAVY BLOCK — B',
-  'BUILD BLOCK — A', 'BUILD BLOCK — B', 'BUILD BLOCK — C',
-  'ATHLETIC HINGE', 'CORE BLOCK', 'ENGINE BLOCK', 'RECOVERY BLOCK',
-];
-
-/** Color mapping by block label */
-const BLOCK_LABEL_COLORS: Record<string, string> = {
-  'PRIME BLOCK': '#7A8B5C',
-  'RESET & BREATHE': '#7A8B5C',
-  'SPINE & HIPS': '#7A8B5C',
-  'DYNAMIC FLOW': '#7A8B5C',
-  'ATHLETIC INTEGRATION': '#7A8B5C',
-  'POWER BLOCK': '#D45555',
-  'HEAVY BLOCK — A': '#C75B39',
-  'HEAVY BLOCK — B': '#C75B39',
-  'BUILD BLOCK — A': '#C9A96E',
-  'BUILD BLOCK — B': '#C9A96E',
-  'BUILD BLOCK — C': '#C9A96E',
-  'ATHLETIC HINGE': '#D4896B',
-  'CORE BLOCK': '#D4896B',
-  'ENGINE BLOCK': '#D45555',
-  'RECOVERY BLOCK': '#7A8B5C',
-};
+import { BLOCK_ORDER, BLOCK_LABEL_COLORS } from "@/constants/blocks";
 
 function getBlockType(label: string): WorkoutBlock["type"] {
   if (['PRIME BLOCK', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION'].includes(label)) return 'mobility';
@@ -289,6 +263,7 @@ export default function Workout() {
           block={activeBlock}
           weightUnit={weightUnit}
           saving={saving}
+          workoutId={id}
           onBack={() => {
             setActiveBlock(null);
             refetch();
@@ -297,6 +272,10 @@ export default function Workout() {
           onUncompleteSet={handleUncompleteSet}
           getSuggestedWeight={getSuggestedWeight}
           onRestStart={handleRestStart}
+          onSwapExercise={() => {
+            setActiveBlock(null);
+            refetch();
+          }}
         />
         <RestTimerSheet
           durationSeconds={restTimerDuration}

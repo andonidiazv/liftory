@@ -164,7 +164,7 @@ export default function WorkoutOverview({
                       {block.formatBadge && (
                         <span
                           className="font-mono rounded-full px-2 py-0.5"
-                          style={{ fontSize: 9, letterSpacing: "0.05em", backgroundColor: "rgba(199,91,57,0.1)", color: "#C75B39" }}
+                          style={{ fontSize: 9, letterSpacing: "0.05em", backgroundColor: "#1C1C1E", color: "#FAF8F5" }}
                         >
                           {block.formatBadge}
                         </span>

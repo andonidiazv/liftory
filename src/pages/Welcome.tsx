@@ -554,7 +554,7 @@ function FinalCTA({ navigate, claimFounder }: { navigate: (path: string) => void
           }}
         >
           <button
-            onClick={() => navigate("/login")}
+            onClick={() => navigate("/onboarding")}
             className="font-body text-[13px] transition-colors hover:underline"
             style={{ color: "#A89F95" }}
           >
@@ -596,7 +596,7 @@ export default function Welcome() {
 
   const claimFounder = () => {
     localStorage.setItem("liftory_founder", FOUNDER_PRICE_ID);
-    navigate("/login");
+    navigate("/onboarding");
   };
 
   /* ─── STATS COUNTERS ─── */

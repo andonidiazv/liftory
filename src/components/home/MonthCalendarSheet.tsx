@@ -78,7 +78,7 @@ export default function MonthCalendarSheet({
           <CalendarDays className="h-4.5 w-4.5 text-muted-foreground" />
         </button>
       </DrawerTrigger>
-      <DrawerContent className="bg-[#1A1A1A] border-border rounded-t-2xl pb-8">
+      <DrawerContent className="bg-[#FFFFFF] border-border rounded-t-2xl pb-8">
         <div className="px-5 pt-2 pb-4">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
