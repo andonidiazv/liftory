@@ -3,12 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Copy, Eye, Trash2 } from "lucide-react";
+import { Plus, Copy, Eye, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 
 interface ProgramRow {
@@ -18,13 +17,13 @@ interface ProgramRow {
   user_id: string | null;
   created_at: string;
   workout_count: number;
+  active_users: number;
 }
 
 export default function AdminPrograms() {
   const navigate = useNavigate();
   const [programs, setPrograms] = useState<ProgramRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [templatesOnly, setTemplatesOnly] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [newWeeks, setNewWeeks] = useState(6);
@@ -35,11 +34,12 @@ export default function AdminPrograms() {
   const fetchPrograms = async () => {
     setLoading(true);
 
-    const toggleState = templatesOnly;
-
-    let q = supabase.from("programs").select("id, name, total_weeks, user_id, created_at");
-    if (toggleState) q = q.is("user_id", null);
-    const { data, error } = await q.order("created_at", { ascending: false });
+    // Only fetch templates
+    const { data, error } = await supabase
+      .from("programs")
+      .select("id, name, total_weeks, user_id, created_at")
+      .is("user_id", null)
+      .order("created_at", { ascending: false });
 
     if (error) {
       console.error("Error fetching programs:", error);
@@ -48,6 +48,7 @@ export default function AdminPrograms() {
 
     if (!data) { setPrograms([]); setLoading(false); return; }
 
+    // Get workout counts for templates
     const ids = data.map((p) => p.id);
     const { data: wCounts } = await supabase
       .from("workouts")
@@ -59,16 +60,30 @@ export default function AdminPrograms() {
       countMap[w.program_id] = (countMap[w.program_id] || 0) + 1;
     });
 
+    // Count active users per template (user copies with same name + is_active)
+    const { data: userCopies } = await supabase
+      .from("programs")
+      .select("name, user_id, is_active")
+      .not("user_id", "is", null);
+
+    const activeUsersMap: Record<string, number> = {};
+    (userCopies ?? []).forEach((uc) => {
+      if (uc.is_active) {
+        activeUsersMap[uc.name] = (activeUsersMap[uc.name] || 0) + 1;
+      }
+    });
+
     setPrograms(
       data.map((p) => ({
         ...p,
         workout_count: countMap[p.id] || 0,
+        active_users: activeUsersMap[p.name] || 0,
       }))
     );
     setLoading(false);
   };
 
-  useEffect(() => { fetchPrograms(); }, [templatesOnly]);
+  useEffect(() => { fetchPrograms(); }, []);
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
@@ -107,7 +122,7 @@ export default function AdminPrograms() {
         const { data: sets } = await supabase.from("workout_sets").select("*").eq("workout_id", w.id);
         if (sets?.length) {
           await supabase.from("workout_sets").insert(
-            sets.map((s) => ({ workout_id: nw.id, user_id: s.user_id, exercise_id: s.exercise_id, set_order: s.set_order, set_type: s.set_type, planned_reps: s.planned_reps, planned_weight: s.planned_weight, planned_rpe: s.planned_rpe, planned_rir: s.planned_rir, planned_rest_seconds: s.planned_rest_seconds, planned_tempo: s.planned_tempo, coaching_cue_override: s.coaching_cue_override }))
+            sets.map((s) => ({ workout_id: nw.id, user_id: s.user_id, exercise_id: s.exercise_id, set_order: s.set_order, set_type: s.set_type, planned_reps: s.planned_reps, planned_weight: s.planned_weight, planned_rpe: s.planned_rpe, planned_rir: s.planned_rir, planned_rest_seconds: s.planned_rest_seconds, planned_tempo: s.planned_tempo, coaching_cue_override: s.coaching_cue_override, block_label: s.block_label }))
           );
         }
       }
@@ -145,11 +160,6 @@ export default function AdminPrograms() {
         </Button>
       </div>
 
-      <div className="flex items-center gap-3 mb-4">
-        <Switch checked={templatesOnly} onCheckedChange={setTemplatesOnly} />
-        <Label className="text-sm" style={{ color: "#8A8A8E" }}>Solo templates (user_id = NULL)</Label>
-      </div>
-
       {loading ? (
         <p style={{ color: "#8A8A8E" }}>Cargando…</p>
       ) : (
@@ -159,26 +169,42 @@ export default function AdminPrograms() {
               <TableRow style={{ borderColor: "#2A2A2A" }}>
                 <TableHead style={{ color: "#8A8A8E" }}>Nombre</TableHead>
                 <TableHead style={{ color: "#8A8A8E" }}>Semanas</TableHead>
-                <TableHead style={{ color: "#8A8A8E" }}>Tipo</TableHead>
                 <TableHead style={{ color: "#8A8A8E" }}>Workouts</TableHead>
+                <TableHead style={{ color: "#8A8A8E" }}>
+                  <span className="flex items-center gap-1.5">
+                    <Users className="h-3.5 w-3.5" />
+                    Atletas activos
+                  </span>
+                </TableHead>
                 <TableHead style={{ color: "#8A8A8E" }}>Creado</TableHead>
                 <TableHead style={{ color: "#8A8A8E" }}>Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {programs.map((p) => (
-                <TableRow key={p.id} style={{ borderColor: "#2A2A2A" }}>
-                  <TableCell style={{ color: "#FAF8F5" }} className="font-medium">{p.name}</TableCell>
+                <TableRow
+                  key={p.id}
+                  style={{ borderColor: "#2A2A2A", cursor: "pointer" }}
+                  className="hover:bg-white/5"
+                  onClick={() => navigate(`/admin/programs/${p.id}`)}
+                >
+                  <TableCell style={{ color: "#FAF8F5" }} className="font-display font-medium">{p.name}</TableCell>
                   <TableCell style={{ color: "#FAF8F5" }}>{p.total_weeks}</TableCell>
+                  <TableCell style={{ color: "#FAF8F5" }}>{p.workout_count}</TableCell>
                   <TableCell>
-                    <span className="rounded-full px-2 py-0.5 text-xs font-mono" style={{ background: p.user_id ? "rgba(138,138,142,0.15)" : "rgba(199,91,57,0.15)", color: p.user_id ? "#8A8A8E" : "#C75B39" }}>
-                      {p.user_id ? "Usuario" : "TEMPLATE"}
+                    <span
+                      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 font-mono text-xs"
+                      style={{
+                        background: p.active_users > 0 ? "rgba(122,139,92,0.15)" : "rgba(58,58,58,0.3)",
+                        color: p.active_users > 0 ? "#7A8B5C" : "#3A3A3A",
+                      }}
+                    >
+                      {p.active_users}
                     </span>
                   </TableCell>
-                  <TableCell style={{ color: "#FAF8F5" }}>{p.workout_count}</TableCell>
                   <TableCell style={{ color: "#8A8A8E" }}>{new Date(p.created_at).toLocaleDateString()}</TableCell>
                   <TableCell>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                       <Button size="sm" variant="ghost" onClick={() => navigate(`/admin/programs/${p.id}`)}>
                         <Eye className="h-4 w-4" />
                       </Button>

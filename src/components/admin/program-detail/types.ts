@@ -1,4 +1,4 @@
-import { BLOCK_LABEL_COLORS } from "@/constants/blocks";
+import { BLOCK_LABEL_COLORS, BLOCK_ORDER } from "@/constants/blocks";
 
 /* ------------------------------------------------------------------ */
 /*  Draft interfaces — mutable working copies of DB rows              */
@@ -142,8 +142,16 @@ export function deriveBlocks(sets: DraftSet[], workoutId: string): DerivedBlock[
     });
   }
 
-  // Sort blocks by their first set's order
-  blocks.sort((a, b) => a.minOrder - b.minOrder);
+  // Sort blocks using BLOCK_ORDER (same as athlete view) — mirrors the athlete experience
+  blocks.sort((a, b) => {
+    const idxA = BLOCK_ORDER.indexOf(a.label);
+    const idxB = BLOCK_ORDER.indexOf(b.label);
+    // Known blocks go first in BLOCK_ORDER sequence; unknown blocks go to the end sorted by minOrder
+    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+    if (idxA !== -1) return -1;
+    if (idxB !== -1) return 1;
+    return a.minOrder - b.minOrder;
+  });
 
   return blocks;
 }
