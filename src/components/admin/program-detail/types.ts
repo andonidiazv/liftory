@@ -142,14 +142,10 @@ export function deriveBlocks(sets: DraftSet[], workoutId: string): DerivedBlock[
     });
   }
 
-  // Sort blocks using BLOCK_ORDER (same as athlete view) — mirrors the athlete experience
+  // Sort blocks by minOrder (set_order from DB).
+  // On load, set_order is normalized to BLOCK_ORDER so initial display is correct.
+  // After admin reorders blocks, set_order reflects the new positions.
   blocks.sort((a, b) => {
-    const idxA = BLOCK_ORDER.indexOf(a.label);
-    const idxB = BLOCK_ORDER.indexOf(b.label);
-    // Known blocks go first in BLOCK_ORDER sequence; unknown blocks go to the end sorted by minOrder
-    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-    if (idxA !== -1) return -1;
-    if (idxB !== -1) return 1;
     return a.minOrder - b.minOrder;
   });
 

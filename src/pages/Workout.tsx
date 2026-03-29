@@ -88,11 +88,12 @@ export default function Workout() {
       blockMap.get(label)!.push(s);
     }
 
-    // Sort block labels by BLOCK_ORDER
+    // Sort block labels by minimum set_order within each block
+    // This respects admin-defined ordering (editable from program editor)
     const sortedLabels = [...blockMap.keys()].sort((a, b) => {
-      const ia = BLOCK_ORDER.indexOf(a);
-      const ib = BLOCK_ORDER.indexOf(b);
-      return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+      const minA = Math.min(...blockMap.get(a)!.map((s) => s.set_order));
+      const minB = Math.min(...blockMap.get(b)!.map((s) => s.set_order));
+      return minA - minB;
     });
 
     return sortedLabels.map((label) => {

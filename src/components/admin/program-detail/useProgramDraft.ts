@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { BLOCK_ORDER } from "@/constants/blocks";
 import type {
   DraftProgram,
   DraftWorkout,
@@ -21,6 +22,56 @@ interface DraftState {
 
 function deepClone<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj));
+}
+
+/**
+ * Normalize set_order values so blocks appear in BLOCK_ORDER sequence.
+ * Within each block, exercises keep their relative order.
+ * This runs once on load so that the DB's possibly-wrong set_order
+ * (e.g. PRIME at 100) gets corrected to the canonical visual order.
+ */
+function normalizeSetOrder(sets: DraftSet[], workoutIds: string[]): DraftSet[] {
+  const result = [...sets];
+
+  for (const wId of workoutIds) {
+    const wSets = result.filter((s) => s.workout_id === wId);
+    if (wSets.length === 0) continue;
+
+    // Group by block_label
+    const blockMap = new Map<string, DraftSet[]>();
+    for (const s of wSets) {
+      const label = s.block_label || "UNASSIGNED";
+      if (!blockMap.has(label)) blockMap.set(label, []);
+      blockMap.get(label)!.push(s);
+    }
+
+    // Sort each block's internal sets by current set_order
+    for (const blockSets of blockMap.values()) {
+      blockSets.sort((a, b) => a.set_order - b.set_order);
+    }
+
+    // Sort block labels by BLOCK_ORDER; unknowns go to end by their current min set_order
+    const sortedLabels = [...blockMap.keys()].sort((a, b) => {
+      const idxA = BLOCK_ORDER.indexOf(a);
+      const idxB = BLOCK_ORDER.indexOf(b);
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      if (idxA !== -1) return -1;
+      if (idxB !== -1) return 1;
+      const minA = Math.min(...blockMap.get(a)!.map((s) => s.set_order));
+      const minB = Math.min(...blockMap.get(b)!.map((s) => s.set_order));
+      return minA - minB;
+    });
+
+    // Reassign sequential set_order
+    let order = 1;
+    for (const label of sortedLabels) {
+      for (const s of blockMap.get(label)!) {
+        s.set_order = order++;
+      }
+    }
+  }
+
+  return result;
 }
 
 /* ------------------------------------------------------------------ */
@@ -156,10 +207,15 @@ export function useProgramDraft(programId: string | undefined) {
         );
       }
 
+      // Normalize set_order so blocks follow BLOCK_ORDER on first load.
+      // This corrects DB values where e.g. PRIME BLOCK has set_order 100+.
+      const workoutIds = draftWorkouts.map((w) => w.id);
+      const normalizedSets = normalizeSetOrder(draftSets, workoutIds);
+
       const snapshot: DraftState = {
         program: draftProgram,
         workouts: draftWorkouts,
-        sets: draftSets,
+        sets: normalizedSets,
       };
 
       setOriginal(deepClone(snapshot));
@@ -572,6 +628,11 @@ export function useProgramDraft(programId: string | undefined) {
     async (scope: SaveScope) => {
       if (!draft.program) return;
       setSaving(true);
+      console.log("[SAVE] Starting save with scope:", scope);
+      console.log("[SAVE] Draft program:", draft.program.id, draft.program.name);
+      console.log("[SAVE] Draft workouts count:", draft.workouts.length);
+      console.log("[SAVE] Draft sets count:", draft.sets.length);
+      console.log("[SAVE] Original sets count:", original.sets.length);
 
       try {
         /* ----------------------------------------------------------
@@ -645,6 +706,8 @@ export function useProgramDraft(programId: string | undefined) {
         const sourceWorkouts = draft.workouts.filter(
           (w) => w.week_number === sourceWeek,
         );
+        console.log("[SAVE] sourceWeek:", sourceWeek, "targetWeeks:", targetWeeks);
+        console.log("[SAVE] sourceWorkouts:", sourceWorkouts.map(w => ({ id: w.id, day_label: w.day_label })));
 
         // Track newly created workout ID mappings (draft id -> real id)
         const workoutIdMap = new Map<string, string>();
@@ -734,6 +797,7 @@ export function useProgramDraft(programId: string | undefined) {
             };
 
             if (s._isNew) {
+              console.log("[SAVE] Inserting NEW set:", s.exercise_id, "block:", s.block_label);
               const { error } = await supabase
                 .from("workout_sets")
                 .insert({ ...dbPayload, user_id: draft.program?.user_id ?? null });
@@ -756,14 +820,20 @@ export function useProgramDraft(programId: string | undefined) {
                   planned_rest_seconds: orig.planned_rest_seconds,
                   coaching_cue_override: orig.coaching_cue_override,
                 };
-                if (JSON.stringify(origPayload) !== JSON.stringify(dbPayload)) {
-                  const { error } = await supabase
+                const changed = JSON.stringify(origPayload) !== JSON.stringify(dbPayload);
+                if (changed) {
+                  console.log("[SAVE] Updating set:", s.id, "exercise changed:", orig.exercise_id, "→", s.exercise_id);
+                  const { data, error, count } = await supabase
                     .from("workout_sets")
                     .update(dbPayload)
-                    .eq("id", s.id);
+                    .eq("id", s.id)
+                    .select();
+                  console.log("[SAVE] Update result:", { data, error, count });
                   if (error)
                     throw new Error(`Set update failed: ${error.message}`);
                 }
+              } else {
+                console.log("[SAVE] WARNING: Set", s.id, "not found in origSetsMap!");
               }
             }
           }
@@ -772,6 +842,7 @@ export function useProgramDraft(programId: string | undefined) {
         /* ----------------------------------------------------------
          *  PHASE 3: Propagate to target weeks
          * ---------------------------------------------------------- */
+        console.log("[SAVE] Phase 3: targetWeeks =", targetWeeks);
         if (targetWeeks.length > 0) {
           for (const targetWeek of targetWeeks) {
             // For each source workout, find the matching target workout by day_label
@@ -857,6 +928,114 @@ export function useProgramDraft(programId: string | undefined) {
           }
         }
 
+        /* ----------------------------------------------------------
+         *  PHASE 4: If this is a TEMPLATE (user_id = null),
+         *  propagate changes to ALL user copies of this program.
+         * ---------------------------------------------------------- */
+        if (!draft.program.user_id) {
+          console.log("[SAVE] Phase 4: Template detected — propagating to user copies");
+
+          // Find all user copies of this program (same name, user_id != null)
+          const { data: userCopies, error: ucErr } = await supabase
+            .from("programs")
+            .select("id, name, user_id")
+            .eq("name", draft.program.name)
+            .not("user_id", "is", null);
+
+          if (ucErr) {
+            console.error("[SAVE] Error fetching user copies:", ucErr);
+          }
+
+          if (userCopies && userCopies.length > 0) {
+            console.log(`[SAVE] Found ${userCopies.length} user copies to update`);
+
+            // Determine which weeks to propagate based on scope
+            const allWeeksToSync = [sourceWeek, ...targetWeeks];
+
+            for (const userProg of userCopies) {
+              // Get all workouts for this user's program
+              const { data: userWorkouts } = await supabase
+                .from("workouts")
+                .select("id, week_number, day_label, is_completed")
+                .eq("program_id", userProg.id);
+
+              if (!userWorkouts) continue;
+
+              for (const weekNum of allWeeksToSync) {
+                // Get the template workouts for this week (from our just-saved draft)
+                const templateWorkouts = draft.workouts.filter(
+                  (w) => w.week_number === weekNum,
+                );
+
+                for (const tmplWorkout of templateWorkouts) {
+                  // Find matching user workout by week_number + day_label
+                  const userWorkout = userWorkouts.find(
+                    (uw) =>
+                      uw.week_number === weekNum &&
+                      uw.day_label === tmplWorkout.day_label,
+                  );
+
+                  if (!userWorkout) continue;
+                  // Skip completed workouts — don't overwrite user's logged data
+                  if (userWorkout.is_completed) continue;
+
+                  // Update workout fields
+                  await supabase
+                    .from("workouts")
+                    .update({
+                      workout_type: tmplWorkout.workout_type,
+                      estimated_duration: tmplWorkout.estimated_duration,
+                      is_rest_day: tmplWorkout.is_rest_day,
+                      coach_note: tmplWorkout.coach_note,
+                      short_on_time_note: tmplWorkout.short_on_time_note,
+                    })
+                    .eq("id", userWorkout.id);
+
+                  // Delete existing sets for this user workout
+                  await supabase
+                    .from("workout_sets")
+                    .delete()
+                    .eq("workout_id", userWorkout.id);
+
+                  // Get template sets for this workout
+                  const templateSets = draft.sets.filter(
+                    (s) => s.workout_id === tmplWorkout.id,
+                  );
+
+                  if (templateSets.length > 0) {
+                    const userSets = templateSets.map((s) => ({
+                      workout_id: userWorkout.id,
+                      exercise_id: s.exercise_id,
+                      set_order: s.set_order,
+                      set_type: s.set_type,
+                      block_label: s.block_label || null,
+                      planned_reps: s.planned_reps,
+                      planned_weight: s.planned_weight,
+                      planned_rpe: s.planned_rpe,
+                      planned_rir: s.planned_rir,
+                      planned_tempo: s.planned_tempo,
+                      planned_rest_seconds: s.planned_rest_seconds,
+                      coaching_cue_override: s.coaching_cue_override,
+                      user_id: userProg.user_id,
+                    }));
+
+                    const { error: insErr } = await supabase
+                      .from("workout_sets")
+                      .insert(userSets);
+                    if (insErr) {
+                      console.error(`[SAVE] Error syncing sets for user ${userProg.user_id}, week ${weekNum}:`, insErr);
+                    }
+                  }
+                }
+              }
+              console.log(`[SAVE] ✅ Synced user copy ${userProg.id} (${userProg.user_id})`);
+            }
+          } else {
+            console.log("[SAVE] No user copies found to propagate");
+          }
+        }
+
+        console.log("[SAVE] ✅ All phases completed successfully");
         toast.success("Cambios guardados");
 
         // Refetch everything to sync with DB
