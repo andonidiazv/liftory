@@ -385,23 +385,58 @@ function EmomCard({
 }) {
   const [notes, setNotes] = useState("");
   const [completing, setCompleting] = useState(false);
-  const [swapTarget, setSwapTarget] = useState<{ exerciseId: string; exerciseName: string; blockLabel: string } | null>(null);
+  const [swapTarget, setSwapTarget] = useState<{ exerciseId: string; exerciseName: string; blockLabel: string; originalExerciseId?: string | null } | null>(null);
   const [exercisesWithSubs, setExercisesWithSubs] = useState<Set<string>>(new Set());
+  const [originalExerciseMap, setOriginalExerciseMap] = useState<Map<string, string>>(new Map());
   const allSets = block.groups.flatMap(g => g.sets);
   const allDone = allSets.every(s => isCompleted(s));
   const firstCue = allSets[0]?.coaching_cue_override;
 
-  // Check which exercises in this EMOM have substitutions
+  // Check which exercises in this EMOM have substitutions (directly or via swap)
   useEffect(() => {
     if (!workoutId || !userId) return;
     const exerciseIds = block.groups.map(g => g.exercise.id);
-    supabase
-      .from("exercise_substitutions")
-      .select("exercise_id")
-      .in("exercise_id", exerciseIds)
-      .then(({ data }) => {
-        setExercisesWithSubs(new Set((data || []).map((d: any) => d.exercise_id)));
-      });
+
+    const check = async () => {
+      const subsSet = new Set<string>();
+      const origMap = new Map<string, string>();
+
+      // 1. Direct subs
+      const { data: directSubs } = await supabase
+        .from("exercise_substitutions")
+        .select("exercise_id")
+        .in("exercise_id", exerciseIds);
+      (directSubs || []).forEach((d: any) => subsSet.add(d.exercise_id));
+
+      // 2. Check swap records — exercises that are replacements
+      const { data: swapRecords } = await supabase
+        .from("workout_exercise_swaps")
+        .select("original_exercise_id, replacement_exercise_id")
+        .eq("user_id", userId)
+        .eq("workout_id", workoutId)
+        .in("replacement_exercise_id", exerciseIds);
+
+      if (swapRecords?.length) {
+        const origIds = swapRecords.map((s: any) => s.original_exercise_id);
+        const { data: origSubs } = await supabase
+          .from("exercise_substitutions")
+          .select("exercise_id")
+          .in("exercise_id", origIds);
+        const origWithSubs = new Set((origSubs || []).map((d: any) => d.exercise_id));
+
+        for (const sr of swapRecords) {
+          if (origWithSubs.has(sr.original_exercise_id)) {
+            subsSet.add(sr.replacement_exercise_id);
+            origMap.set(sr.replacement_exercise_id, sr.original_exercise_id);
+          }
+        }
+      }
+
+      setExercisesWithSubs(subsSet);
+      setOriginalExerciseMap(origMap);
+    };
+
+    check();
   }, [block.groups, workoutId, userId]);
 
   const handleDone = async () => {
@@ -442,7 +477,12 @@ function EmomCard({
                   <p className="font-body text-sm font-semibold text-foreground truncate">{ex.name}</p>
                   {exercisesWithSubs.has(ex.id) && (
                     <button
-                      onClick={() => setSwapTarget({ exerciseId: ex.id, exerciseName: ex.name, blockLabel: group.sets[0]?.block_label || "" })}
+                      onClick={() => setSwapTarget({
+                        exerciseId: ex.id,
+                        exerciseName: ex.name,
+                        blockLabel: group.sets[0]?.block_label || "",
+                        originalExerciseId: originalExerciseMap.get(ex.id) || null,
+                      })}
                       className="shrink-0 flex items-center justify-center rounded-full"
                       style={{ width: 24, height: 24, background: "hsl(var(--border))" }}
                     >
@@ -497,6 +537,7 @@ function EmomCard({
           blockLabel={swapTarget.blockLabel}
           workoutId={workoutId}
           userId={userId}
+          originalExerciseId={swapTarget.originalExerciseId}
           onClose={() => setSwapTarget(null)}
           onSwapComplete={() => {
             setSwapTarget(null);
@@ -588,18 +629,55 @@ function ExerciseCard({
   // Substitution state
   const [showSwapSheet, setShowSwapSheet] = useState(false);
   const [hasSubs, setHasSubs] = useState(false);
+  const [originalExerciseId, setOriginalExerciseId] = useState<string | null>(null);
 
-  // Check if this exercise has substitutions configured
+  // Check if this exercise has substitutions — either directly or via a swap record
   useEffect(() => {
     if (!workoutId || !userId) return;
-    supabase
-      .from("exercise_substitutions")
-      .select("id", { count: "exact", head: true })
-      .eq("exercise_id", ex.id)
-      .then(({ count }) => {
-        setHasSubs((count ?? 0) > 0);
-      });
-  }, [ex.id, workoutId, userId]);
+
+    const check = async () => {
+      // 1. Check if the CURRENT exercise has subs directly
+      const { count: directCount } = await supabase
+        .from("exercise_substitutions")
+        .select("id", { count: "exact", head: true })
+        .eq("exercise_id", ex.id);
+
+      if ((directCount ?? 0) > 0) {
+        setHasSubs(true);
+        setOriginalExerciseId(null); // current IS the original
+        return;
+      }
+
+      // 2. Check if this exercise is a REPLACEMENT (user already swapped)
+      const { data: swapRecord } = await supabase
+        .from("workout_exercise_swaps")
+        .select("original_exercise_id")
+        .eq("user_id", userId)
+        .eq("workout_id", workoutId)
+        .eq("replacement_exercise_id", ex.id)
+        .eq("block_label", blockLabel)
+        .maybeSingle();
+
+      if (swapRecord) {
+        // The original has subs — verify
+        const { count: origCount } = await supabase
+          .from("exercise_substitutions")
+          .select("id", { count: "exact", head: true })
+          .eq("exercise_id", swapRecord.original_exercise_id);
+
+        if ((origCount ?? 0) > 0) {
+          setHasSubs(true);
+          setOriginalExerciseId(swapRecord.original_exercise_id);
+          return;
+        }
+      }
+
+      setHasSubs(false);
+      setOriginalExerciseId(null);
+    };
+
+    check();
+  }, [ex.id, workoutId, userId, blockLabel]);
 
   return (
     <div className="rounded-2xl border border-border bg-card p-4 mb-3">
@@ -643,6 +721,7 @@ function ExerciseCard({
           blockLabel={blockLabel}
           workoutId={workoutId}
           userId={userId}
+          originalExerciseId={originalExerciseId}
           onClose={() => setShowSwapSheet(false)}
           onSwapComplete={() => onSwapExercise?.()}
         />

@@ -16,7 +16,8 @@ const difficultyColors: Record<string, string> = {
   advanced: "bg-[#C75B39]/20 text-[#C75B39]",
   all_levels: "bg-secondary text-muted-foreground",
 };
-const priorityLabels: Record<number, { label: string; sublabel: string }> = {
+const priorityLabels: Record<number, { label: string; sublabel: string; color?: string }> = {
+  0: { label: "Original", sublabel: "Volver al ejercicio del programa", color: "#C9A96E" },
   1: { label: "Opción 1", sublabel: "Regresión más cercana" },
   2: { label: "Opción 2", sublabel: "Alternativa más accesible" },
 };
@@ -39,6 +40,8 @@ interface SwapBottomSheetProps {
   blockLabel: string;
   workoutId: string;
   userId: string;
+  /** The original template exercise ID (if user already swapped) */
+  originalExerciseId?: string | null;
   onClose: () => void;
   onSwapComplete: () => void;
 }
@@ -50,6 +53,7 @@ export default function SwapBottomSheet({
   blockLabel,
   workoutId,
   userId,
+  originalExerciseId,
   onClose,
   onSwapComplete,
 }: SwapBottomSheetProps) {
@@ -58,46 +62,79 @@ export default function SwapBottomSheet({
   const [selected, setSelected] = useState<SubOption | null>(null);
   const [swapping, setSwapping] = useState(false);
 
+  // The exercise whose substitutions we look up — always the original template exercise
+  const lookupId = originalExerciseId || exerciseId;
+  const isAlreadySwapped = !!originalExerciseId && originalExerciseId !== exerciseId;
+
   // Fetch substitution options when sheet opens
   useEffect(() => {
     if (!visible) {
-      // Reset state when closing
       setSelected(null);
       setOptions([]);
       return;
     }
     setLoading(true);
-    supabase
-      .from("exercise_substitutions")
-      .select(
-        "substitute_exercise_id, priority, exercises!exercise_substitutions_substitute_exercise_id_fkey(id, name, name_es, thumbnail_url, video_url, difficulty, primary_muscles)"
-      )
-      .eq("exercise_id", exerciseId)
-      .order("priority")
-      .limit(3)
-      .then(({ data }) => {
-        setOptions(
-          (data || [])
-            .map((d: any) => ({
-              id: d.exercises?.id,
-              name: d.exercises?.name || "",
-              name_es: d.exercises?.name_es || "",
-              thumbnail_url: d.exercises?.thumbnail_url,
-              video_url: d.exercises?.video_url,
-              difficulty: d.exercises?.difficulty || "intermediate",
-              primary_muscles: d.exercises?.primary_muscles || [],
-              priority: d.priority,
-            }))
-            .filter((o: SubOption) => o.id)
-        );
-        setLoading(false);
-      });
-  }, [visible, exerciseId]);
+
+    const fetchOptions = async () => {
+      // 1. Fetch subs from the ORIGINAL exercise (always)
+      const { data: subsData } = await supabase
+        .from("exercise_substitutions")
+        .select(
+          "substitute_exercise_id, priority, exercises!exercise_substitutions_substitute_exercise_id_fkey(id, name, name_es, thumbnail_url, video_url, difficulty, primary_muscles)"
+        )
+        .eq("exercise_id", lookupId)
+        .order("priority")
+        .limit(3);
+
+      const subs: SubOption[] = (subsData || [])
+        .map((d: any) => ({
+          id: d.exercises?.id,
+          name: d.exercises?.name || "",
+          name_es: d.exercises?.name_es || "",
+          thumbnail_url: d.exercises?.thumbnail_url,
+          video_url: d.exercises?.video_url,
+          difficulty: d.exercises?.difficulty || "intermediate",
+          primary_muscles: d.exercises?.primary_muscles || [],
+          priority: d.priority,
+        }))
+        .filter((o: SubOption) => o.id)
+        // Don't show the currently active exercise as an option
+        .filter((o: SubOption) => o.id !== exerciseId);
+
+      // 2. If user already swapped, add "Volver al original" as priority 0
+      if (isAlreadySwapped) {
+        const { data: origEx } = await supabase
+          .from("exercises")
+          .select("id, name, name_es, thumbnail_url, video_url, difficulty, primary_muscles")
+          .eq("id", originalExerciseId)
+          .single();
+
+        if (origEx) {
+          subs.unshift({
+            id: origEx.id,
+            name: origEx.name,
+            name_es: origEx.name_es || "",
+            thumbnail_url: origEx.thumbnail_url,
+            video_url: origEx.video_url,
+            difficulty: origEx.difficulty || "advanced",
+            primary_muscles: origEx.primary_muscles || [],
+            priority: 0,
+          });
+        }
+      }
+
+      setOptions(subs);
+      setLoading(false);
+    };
+
+    fetchOptions();
+  }, [visible, exerciseId, lookupId, isAlreadySwapped, originalExerciseId]);
 
   const handleSwap = useCallback(async () => {
     if (!selected) return;
     setSwapping(true);
     try {
+      // Update the actual workout sets
       const { error: setErr } = await supabase
         .from("workout_sets")
         .update({ exercise_id: selected.id })
@@ -107,18 +144,35 @@ export default function SwapBottomSheet({
 
       if (setErr) throw setErr;
 
-      await supabase.from("workout_exercise_swaps").upsert(
-        {
-          user_id: userId,
-          workout_id: workoutId,
-          original_exercise_id: exerciseId,
-          replacement_exercise_id: selected.id,
-          block_label: blockLabel,
-        },
-        { onConflict: "user_id,workout_id,original_exercise_id" }
-      );
+      const trueOriginalId = originalExerciseId || exerciseId;
+      const isRestoringOriginal = selected.id === trueOriginalId;
 
-      toast({ title: "Ejercicio sustituido" });
+      if (isRestoringOriginal) {
+        // User is going back to original — remove swap record
+        await supabase
+          .from("workout_exercise_swaps")
+          .delete()
+          .eq("user_id", userId)
+          .eq("workout_id", workoutId)
+          .eq("original_exercise_id", trueOriginalId);
+
+        toast({ title: "Ejercicio restaurado" });
+      } else {
+        // Save/update swap record (always track from original)
+        await supabase.from("workout_exercise_swaps").upsert(
+          {
+            user_id: userId,
+            workout_id: workoutId,
+            original_exercise_id: trueOriginalId,
+            replacement_exercise_id: selected.id,
+            block_label: blockLabel,
+          },
+          { onConflict: "user_id,workout_id,original_exercise_id" }
+        );
+
+        toast({ title: "Ejercicio sustituido" });
+      }
+
       onClose();
       onSwapComplete();
     } catch (err: any) {
@@ -130,7 +184,7 @@ export default function SwapBottomSheet({
     } finally {
       setSwapping(false);
     }
-  }, [selected, workoutId, exerciseId, blockLabel, userId, onClose, onSwapComplete]);
+  }, [selected, workoutId, exerciseId, blockLabel, userId, originalExerciseId, onClose, onSwapComplete]);
 
   if (!visible) return null;
 
@@ -303,7 +357,7 @@ export default function SwapBottomSheet({
                             style={{
                               fontSize: 9,
                               letterSpacing: "1.5px",
-                              color: opt.priority === 1 ? "#C9A96E" : "#7A8B5C",
+                              color: pLabel.color || (opt.priority === 1 ? "#C9A96E" : "#7A8B5C"),
                             }}
                           >
                             {pLabel.label} — {pLabel.sublabel}

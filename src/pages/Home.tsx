@@ -9,12 +9,19 @@ import MonthCalendarSheet from "@/components/home/MonthCalendarSheet";
 import PrimeWeeklyReset from "@/components/home/PrimeWeeklyReset";
 
 const BLOCK_LABELS: Record<string, string> = {
-  accumulation: "PROGRESSIVE OVERLOAD",
+  accumulation: "ACUMULACIÓN",
   intensification: "INTENSIFICACIÓN",
   peaking: "PEAK",
   deload: "DELOAD",
   base: "BASE",
 };
+
+function getPhaseForWeek(week: number): string {
+  if (week <= 2) return "ACUMULACIÓN";
+  if (week <= 4) return "INTENSIFICACIÓN";
+  if (week === 5) return "PEAK";
+  return "DELOAD";
+}
 
 function HomeSkeleton() {
   return (
@@ -40,6 +47,7 @@ export default function Home() {
     selectedWorkout,
     weekDays,
     viewingWeekNumber,
+    currentWeekNumber,
     quickStats,
     allWorkouts,
     minDate,
@@ -280,9 +288,9 @@ export default function Home() {
         {/* 5. Mesocycle Workout Tracker */}
         {programInfo && (() => {
           const trainingDays = allWorkouts.filter(w => !w.isRestDay);
-          const completedCount = trainingDays.filter(w => w.isCompleted).length;
           const totalCount = trainingDays.length;
-          const pct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+          const currentDayNumber = trainingDays.filter(w => w.date <= todayStr).length;
+          const pct = totalCount > 0 ? Math.round((currentDayNumber / totalCount) * 100) : 0;
 
           // Group training days by week
           const weekGroups: { weekNumber: number; days: typeof trainingDays }[] = [];
@@ -340,7 +348,7 @@ export default function Home() {
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <span className="font-mono text-[18px] font-bold tabular-nums text-foreground">
-                      {completedCount}
+                      {currentDayNumber}
                     </span>
                     <span className="font-mono text-[8px] uppercase tracking-wider text-muted-foreground">
                       /{totalCount}
@@ -357,10 +365,10 @@ export default function Home() {
                     className="inline-block mt-1 rounded-full px-2.5 py-0.5 font-mono text-[8px] uppercase tracking-[1.5px]"
                     style={{ background: "hsl(var(--primary) / 0.08)", color: "hsl(var(--primary))" }}
                   >
-                    {BLOCK_LABELS[programInfo.current_block] ?? programInfo.current_block.toUpperCase()}
+                    {getPhaseForWeek(currentWeekNumber)}
                   </span>
                   <p className="mt-1.5 font-mono text-[10px] text-muted-foreground">
-                    Semana {programInfo.current_week} de {programInfo.total_weeks}
+                    Semana {currentWeekNumber} de {programInfo.total_weeks}
                   </p>
                 </div>
               </div>
