@@ -77,6 +77,9 @@ export default function AdminProgramDetail() {
   const [activeWeek, setActiveWeek] = useState("1");
   const activeWeekNumber = parseInt(activeWeek, 10);
 
+  /* ---- Expanded day view ---- */
+  const [expandedWorkoutId, setExpandedWorkoutId] = useState<string | null>(null);
+
   /* ---- Modal state ---- */
   const [saveScopeOpen, setSaveScopeOpen] = useState(false);
   const [addExerciseTarget, setAddExerciseTarget] =
@@ -346,8 +349,42 @@ export default function AdminProgramDetail() {
 
           return (
             <TabsContent key={week} value={String(week)} className="mt-4">
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
-                {ww.map((workout) => {
+              {/* Day switcher bar when expanded */}
+              {expandedWorkoutId && ww.length > 1 && (
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  {ww.map((w) => (
+                    <button
+                      key={w.id}
+                      onClick={() => setExpandedWorkoutId(w.id)}
+                      className="px-3 py-1.5 rounded-lg font-mono text-xs transition-colors"
+                      style={{
+                        backgroundColor: w.id === expandedWorkoutId ? "#2A2A2A" : "transparent",
+                        color: w.id === expandedWorkoutId ? "#FAF8F5" : "#8A8A8E",
+                        border: `1px solid ${w.id === expandedWorkoutId ? "#3A3A3A" : "transparent"}`,
+                      }}
+                    >
+                      {w.day_label}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setExpandedWorkoutId(null)}
+                    className="ml-auto px-3 py-1.5 rounded-lg font-mono text-xs"
+                    style={{ color: "#C75B39" }}
+                  >
+                    Ver todos
+                  </button>
+                </div>
+              )}
+
+              <div className={
+                expandedWorkoutId
+                  ? "grid grid-cols-1 gap-4"
+                  : "grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4"
+              }>
+                {ww
+                  .filter((w) => !expandedWorkoutId || w.id === expandedWorkoutId)
+                  .map((workout) => {
+                  const isThisExpanded = expandedWorkoutId === workout.id;
                   const blocks =
                     week === activeWeekNumber
                       ? deriveBlocks(sets, workout.id)
@@ -359,6 +396,10 @@ export default function AdminProgramDetail() {
                       workout={workout}
                       dayLabel={workout.day_label}
                       blocks={blocks}
+                      isExpanded={isThisExpanded}
+                      onToggleExpand={() =>
+                        setExpandedWorkoutId(isThisExpanded ? null : workout.id)
+                      }
                       onCreateDay={() => {}}
                       onUpdateWorkout={(fields) =>
                         updateWorkout(workout.id, fields)

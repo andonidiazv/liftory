@@ -15,7 +15,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Plus, MessageSquare, Clock } from "lucide-react";
+import { Plus, MessageSquare, Clock, Maximize2, Minimize2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { WORKOUT_TYPES, WORKOUT_TYPE_COLORS } from "@/constants/blocks";
 import type { DraftWorkout, DraftSet, DerivedBlock } from "./types";
@@ -26,6 +26,8 @@ interface DayCardProps {
   workout: DraftWorkout | null;
   dayLabel: string;
   blocks: DerivedBlock[];
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
   onCreateDay: () => void;
   onUpdateWorkout: (fields: Partial<DraftWorkout>) => void;
   onMoveBlock: (blockLabel: string, direction: "up" | "down") => void;
@@ -42,6 +44,8 @@ export function DayCard({
   workout,
   dayLabel,
   blocks,
+  isExpanded = false,
+  onToggleExpand,
   onCreateDay,
   onUpdateWorkout,
   onMoveBlock,
@@ -98,7 +102,7 @@ export function DayCard({
         <Input
           value={workout.day_label}
           onChange={(e) => onUpdateWorkout({ day_label: e.target.value })}
-          className="w-28 font-display text-sm"
+          className={isExpanded ? "w-48 font-display text-base" : "w-28 font-display text-sm"}
           style={{
             backgroundColor: "transparent",
             color: "#FAF8F5",
@@ -172,11 +176,27 @@ export function DayCard({
             Descanso
           </Label>
         </div>
+
+        {/* Expand/collapse button */}
+        {onToggleExpand && (
+          <button
+            onClick={onToggleExpand}
+            className="p-1.5 rounded hover:bg-white/10 transition-colors"
+            style={{ color: "#8A8A8E" }}
+            title={isExpanded ? "Vista compacta" : "Vista expandida"}
+          >
+            {isExpanded ? (
+              <Minimize2 className="w-4 h-4" />
+            ) : (
+              <Maximize2 className="w-4 h-4" />
+            )}
+          </button>
+        )}
       </div>
 
       {/* Body (only if not rest day) */}
       {!workout.is_rest_day && (
-        <div className="px-3 pb-3 space-y-2">
+        <div className={isExpanded ? "px-4 pb-4 space-y-3" : "px-3 pb-3 space-y-2"}>
           {/* Collapsible notes */}
           <div className="flex gap-2">
             <Collapsible open={coachNoteOpen} onOpenChange={setCoachNoteOpen}>
@@ -262,6 +282,7 @@ export function DayCard({
                 block={block}
                 isFirst={idx === 0}
                 isLast={idx === blocks.length - 1}
+                dayExpanded={isExpanded}
                 onMove={(dir) => onMoveBlock(block.label, dir)}
                 onDelete={() => onDeleteBlock(block.label)}
                 onRename={(newLabel) => onRenameBlock(block.label, newLabel)}

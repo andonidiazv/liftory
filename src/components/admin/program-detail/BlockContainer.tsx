@@ -8,6 +8,7 @@ interface BlockContainerProps {
   block: DerivedBlock;
   isFirst: boolean;
   isLast: boolean;
+  dayExpanded?: boolean;
   onMove: (direction: "up" | "down") => void;
   onDelete: () => void;
   onRename: (newLabel: string) => void;
@@ -21,6 +22,7 @@ export function BlockContainer({
   block,
   isFirst,
   isLast,
+  dayExpanded = false,
   onMove,
   onDelete,
   onAddExercise,
@@ -28,7 +30,8 @@ export function BlockContainer({
   onDeleteExercise,
   onSwapExercise,
 }: BlockContainerProps) {
-  const [expanded, setExpanded] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
+  const isOpen = !collapsed;
 
   return (
     <div className="rounded-lg overflow-hidden" style={{ backgroundColor: "#1C1C1E" }}>
@@ -41,11 +44,11 @@ export function BlockContainer({
         <div className="flex items-center gap-2 px-3 py-2">
           {/* Collapse toggle */}
           <button
-            onClick={() => setExpanded(!expanded)}
+            onClick={() => setCollapsed(!collapsed)}
             className="p-0.5"
             style={{ color: "#8A8A8E" }}
           >
-            {expanded ? (
+            {isOpen ? (
               <ChevronDown className="w-4 h-4" />
             ) : (
               <ChevronRight className="w-4 h-4" />
@@ -66,6 +69,13 @@ export function BlockContainer({
           >
             {block.sets.length} sets
           </span>
+
+          {/* Exercise count when collapsed */}
+          {!isOpen && (
+            <span className="font-mono text-[10px]" style={{ color: "#8A8A8E" }}>
+              · {block.exerciseGroups.length} ejercicios
+            </span>
+          )}
 
           {/* Spacer */}
           <div className="flex-1" />
@@ -102,13 +112,14 @@ export function BlockContainer({
         </div>
 
         {/* Body */}
-        {expanded && (
-          <div className="px-2 pb-2 space-y-0.5">
+        {isOpen && (
+          <div className={dayExpanded ? "px-3 pb-3 space-y-1" : "px-2 pb-2 space-y-0.5"}>
             {block.exerciseGroups.map((eg) => (
               <ExerciseRow
                 key={eg.exerciseId}
                 exerciseGroup={eg}
                 blockColor={block.color}
+                expanded={dayExpanded}
                 onEdit={onEditExercise}
                 onDelete={() => onDeleteExercise(eg.exerciseId)}
                 onSwap={() => onSwapExercise(eg.exerciseId)}
