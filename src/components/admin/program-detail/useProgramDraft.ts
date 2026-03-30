@@ -40,12 +40,27 @@ export function useProgramDraft(programId: string | undefined) {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [undoStack, setUndoStack] = useState<DraftState[]>([]);
+
+  /** Wrap setDraft to auto-push undo — uses functional updater to avoid stale closures */
+  const setDraftWithUndo = useCallback(
+    (updater: DraftState | ((prev: DraftState) => DraftState)) => {
+      setDraft((prev) => {
+        // Push current state to undo stack BEFORE applying the update
+        setUndoStack((stack) => [...stack.slice(-29), deepClone(prev)]);
+        return typeof updater === "function" ? updater(prev) : updater;
+      });
+    },
+    [],
+  );
 
   /* ---- Dirty check ---- */
   const hasChanges = useMemo(
     () => JSON.stringify(original) !== JSON.stringify(draft),
     [original, draft],
   );
+
+  const canUndo = undoStack.length > 0;
 
   /* ---- Warn on unload ---- */
   useEffect(() => {
@@ -181,7 +196,7 @@ export function useProgramDraft(programId: string | undefined) {
 
   const updateProgram = useCallback(
     (fields: Partial<Omit<DraftProgram, "id">>) => {
-      setDraft((prev) => ({
+      setDraftWithUndo((prev) => ({
         ...prev,
         program: prev.program ? { ...prev.program, ...fields } : prev.program,
       }));
@@ -193,7 +208,7 @@ export function useProgramDraft(programId: string | undefined) {
 
   const updateWorkout = useCallback(
     (workoutId: string, fields: Partial<Omit<DraftWorkout, "id">>) => {
-      setDraft((prev) => ({
+      setDraftWithUndo((prev) => ({
         ...prev,
         workouts: prev.workouts.map((w) =>
           w.id === workoutId ? { ...w, ...fields } : w,
@@ -205,7 +220,7 @@ export function useProgramDraft(programId: string | undefined) {
 
   const createWorkoutForDay = useCallback(
     (weekNumber: number, dayLabel: string) => {
-      setDraft((prev) => {
+      setDraftWithUndo((prev) => {
         if (!prev.program) return prev;
         // Calculate a date (week 1 day 0 = 2025-01-06)
         const DAY_LABELS = [
@@ -282,7 +297,7 @@ export function useProgramDraft(programId: string | undefined) {
 
   const moveBlock = useCallback(
     (workoutId: string, blockLabel: string, direction: "up" | "down") => {
-      setDraft((prev) => {
+      setDraftWithUndo((prev) => {
         const labels = _getBlockLabels(prev.sets, workoutId);
         const idx = labels.indexOf(blockLabel);
         const swapIdx = direction === "up" ? idx - 1 : idx + 1;
@@ -325,7 +340,7 @@ export function useProgramDraft(programId: string | undefined) {
 
   const deleteBlock = useCallback(
     (workoutId: string, blockLabel: string) => {
-      setDraft((prev) => {
+      setDraftWithUndo((prev) => {
         let newSets = prev.sets.filter(
           (s) => !(s.workout_id === workoutId && s.block_label === blockLabel),
         );
@@ -338,7 +353,7 @@ export function useProgramDraft(programId: string | undefined) {
 
   const insertBlock = useCallback(
     (workoutId: string, newBlockLabel: string, afterBlockLabel: string | null) => {
-      setDraft((prev) => {
+      setDraftWithUndo((prev) => {
         // We insert an empty block — no sets are created yet.
         // Adjust set_order of blocks that come after `afterBlockLabel` to leave a gap.
         if (afterBlockLabel === null) {
@@ -370,7 +385,7 @@ export function useProgramDraft(programId: string | undefined) {
 
   const renameBlock = useCallback(
     (workoutId: string, oldLabel: string, newLabel: string) => {
-      setDraft((prev) => ({
+      setDraftWithUndo((prev) => ({
         ...prev,
         sets: prev.sets.map((s) =>
           s.workout_id === workoutId && s.block_label === oldLabel
@@ -401,7 +416,7 @@ export function useProgramDraft(programId: string | undefined) {
       },
       count: number,
     ) => {
-      setDraft((prev) => {
+      setDraftWithUndo((prev) => {
         // Find the max set_order within this block (or overall workout if block is empty)
         const blockSets = prev.sets.filter(
           (s) => s.workout_id === workoutId && s.block_label === blockLabel,
@@ -465,7 +480,7 @@ export function useProgramDraft(programId: string | undefined) {
 
   const updateSet = useCallback(
     (setId: string, fields: Partial<Omit<DraftSet, "id">>) => {
-      setDraft((prev) => ({
+      setDraftWithUndo((prev) => ({
         ...prev,
         sets: prev.sets.map((s) => (s.id === setId ? { ...s, ...fields } : s)),
       }));
@@ -475,7 +490,7 @@ export function useProgramDraft(programId: string | undefined) {
 
   const deleteExerciseFromBlock = useCallback(
     (workoutId: string, blockLabel: string, exerciseId: string) => {
-      setDraft((prev) => {
+      setDraftWithUndo((prev) => {
         let newSets = prev.sets.filter(
           (s) =>
             !(
@@ -498,7 +513,7 @@ export function useProgramDraft(programId: string | undefined) {
       oldExerciseId: string,
       newExercise: ExerciseOption,
     ) => {
-      setDraft((prev) => ({
+      setDraftWithUndo((prev) => ({
         ...prev,
         sets: prev.sets.map((s) =>
           s.workout_id === workoutId &&
@@ -524,7 +539,7 @@ export function useProgramDraft(programId: string | undefined) {
       fromBlock: string,
       toBlock: string,
     ) => {
-      setDraft((prev) => {
+      setDraftWithUndo((prev) => {
         // Find sets to move
         const toMove = prev.sets.filter(
           (s) =>
@@ -995,10 +1010,22 @@ export function useProgramDraft(programId: string | undefined) {
     [draft, original, fetchData],
   );
 
+  /* ---- Undo ---- */
+
+  const undo = useCallback(() => {
+    setUndoStack((prev) => {
+      if (prev.length === 0) return prev;
+      const last = prev[prev.length - 1];
+      setDraft(deepClone(last));
+      return prev.slice(0, -1);
+    });
+  }, []);
+
   /* ---- Discard ---- */
 
   const discard = useCallback(() => {
     setDraft(deepClone(original));
+    setUndoStack([]);
     toast.success("Cambios descartados");
   }, [original]);
 
@@ -1014,6 +1041,7 @@ export function useProgramDraft(programId: string | undefined) {
     loading,
     saving,
     hasChanges,
+    canUndo,
 
     // Program
     updateProgram,
@@ -1038,6 +1066,7 @@ export function useProgramDraft(programId: string | undefined) {
     // Persistence
     save,
     discard,
+    undo,
     fetchData,
   };
 }

@@ -57,6 +57,7 @@ export default function AdminProgramDetail() {
     loading,
     saving,
     hasChanges,
+    canUndo,
     updateProgram,
     updateWorkout,
     createWorkoutForDay,
@@ -71,6 +72,7 @@ export default function AdminProgramDetail() {
     moveExerciseBetweenBlocks,
     save,
     discard,
+    undo,
   } = useProgramDraft(id);
 
   /* ---- Week tab ---- */
@@ -516,8 +518,10 @@ export default function AdminProgramDetail() {
       {/* Unsaved changes banner (fixed at bottom) */}
       <UnsavedChangesBanner
         hasChanges={hasChanges}
+        canUndo={canUndo}
         onSave={handleSaveBanner}
         onDiscard={discard}
+        onUndo={undo}
         saving={saving}
       />
     </div>
