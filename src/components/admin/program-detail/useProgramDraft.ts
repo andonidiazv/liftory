@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { BLOCK_ORDER } from "@/constants/blocks";
 import type {
   DraftProgram,
   DraftWorkout,
@@ -22,56 +21,6 @@ interface DraftState {
 
 function deepClone<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj));
-}
-
-/**
- * Normalize set_order values so blocks appear in BLOCK_ORDER sequence.
- * Within each block, exercises keep their relative order.
- * This runs once on load so that the DB's possibly-wrong set_order
- * (e.g. PRIME at 100) gets corrected to the canonical visual order.
- */
-function normalizeSetOrder(sets: DraftSet[], workoutIds: string[]): DraftSet[] {
-  const result = [...sets];
-
-  for (const wId of workoutIds) {
-    const wSets = result.filter((s) => s.workout_id === wId);
-    if (wSets.length === 0) continue;
-
-    // Group by block_label
-    const blockMap = new Map<string, DraftSet[]>();
-    for (const s of wSets) {
-      const label = s.block_label || "UNASSIGNED";
-      if (!blockMap.has(label)) blockMap.set(label, []);
-      blockMap.get(label)!.push(s);
-    }
-
-    // Sort each block's internal sets by current set_order
-    for (const blockSets of blockMap.values()) {
-      blockSets.sort((a, b) => a.set_order - b.set_order);
-    }
-
-    // Sort block labels by BLOCK_ORDER; unknowns go to end by their current min set_order
-    const sortedLabels = [...blockMap.keys()].sort((a, b) => {
-      const idxA = BLOCK_ORDER.indexOf(a);
-      const idxB = BLOCK_ORDER.indexOf(b);
-      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-      if (idxA !== -1) return -1;
-      if (idxB !== -1) return 1;
-      const minA = Math.min(...blockMap.get(a)!.map((s) => s.set_order));
-      const minB = Math.min(...blockMap.get(b)!.map((s) => s.set_order));
-      return minA - minB;
-    });
-
-    // Reassign sequential set_order
-    let order = 1;
-    for (const label of sortedLabels) {
-      for (const s of blockMap.get(label)!) {
-        s.set_order = order++;
-      }
-    }
-  }
-
-  return result;
 }
 
 /* ------------------------------------------------------------------ */
@@ -207,15 +156,10 @@ export function useProgramDraft(programId: string | undefined) {
         );
       }
 
-      // Normalize set_order so blocks follow BLOCK_ORDER on first load.
-      // This corrects DB values where e.g. PRIME BLOCK has set_order 100+.
-      const workoutIds = draftWorkouts.map((w) => w.id);
-      const normalizedSets = normalizeSetOrder(draftSets, workoutIds);
-
       const snapshot: DraftState = {
         program: draftProgram,
         workouts: draftWorkouts,
-        sets: normalizedSets,
+        sets: draftSets,
       };
 
       setOriginal(deepClone(snapshot));

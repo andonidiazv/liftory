@@ -1,4 +1,4 @@
-import { BLOCK_LABEL_COLORS, BLOCK_ORDER } from "@/constants/blocks";
+import { BLOCK_LABEL_COLORS } from "@/constants/blocks";
 
 /* ------------------------------------------------------------------ */
 /*  Draft interfaces — mutable working copies of DB rows              */
