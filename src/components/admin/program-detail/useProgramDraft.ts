@@ -908,13 +908,8 @@ export function useProgramDraft(programId: string | undefined) {
           if (userCopies && userCopies.length > 0) {
             console.log(`[SAVE] Found ${userCopies.length} user copies to update`);
 
-            // ALWAYS sync ALL weeks to user copies — the template is the
-            // source of truth and any week may have pending changes from
-            // earlier saves that only targeted "current week".
-            const allWeeksToSync = Array.from(
-              { length: draft.program!.total_weeks },
-              (_, i) => i + 1,
-            );
+            // Sync the same weeks that the admin chose in the scope
+            const allWeeksToSync = [sourceWeek, ...targetWeeks];
 
             // Fetch the FRESH template workouts + sets from DB
             // (Phase 2 & 3 may have changed them since the draft was loaded)
