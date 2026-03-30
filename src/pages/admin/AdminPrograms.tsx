@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,8 +7,18 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Copy, Eye, Trash2, Users } from "lucide-react";
+import { Plus, Copy, Eye, Trash2, Users, ChevronDown, ChevronRight, Calendar, Circle } from "lucide-react";
 import { toast } from "sonner";
+
+interface MesocycleRow {
+  id: string;
+  cycle_number: number;
+  cycle_start_date: string;
+  cycle_end_date: string;
+  total_weeks: number;
+  status: string;
+  athlete_count: number;
+}
 
 interface ProgramRow {
   id: string;
@@ -18,6 +28,7 @@ interface ProgramRow {
   created_at: string;
   workout_count: number;
   active_users: number;
+  mesocycles: MesocycleRow[];
 }
 
 export default function AdminPrograms() {
@@ -30,6 +41,7 @@ export default function AdminPrograms() {
   const [creating, setCreating] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ProgramRow | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [expandedProgram, setExpandedProgram] = useState<string | null>(null);
 
   const fetchPrograms = async () => {
     setLoading(true);
@@ -63,14 +75,40 @@ export default function AdminPrograms() {
     // Count active users per template (user copies with same name + is_active)
     const { data: userCopies } = await supabase
       .from("programs")
-      .select("name, user_id, is_active")
+      .select("name, user_id, is_active, mesocycle_id")
       .not("user_id", "is", null);
 
     const activeUsersMap: Record<string, number> = {};
+    const mesocycleAthleteMap: Record<string, number> = {};
     (userCopies ?? []).forEach((uc) => {
       if (uc.is_active) {
         activeUsersMap[uc.name] = (activeUsersMap[uc.name] || 0) + 1;
+        if (uc.mesocycle_id) {
+          mesocycleAthleteMap[uc.mesocycle_id] = (mesocycleAthleteMap[uc.mesocycle_id] || 0) + 1;
+        }
       }
+    });
+
+    // Fetch mesocycles for all templates
+    const { data: mesocyclesData } = await supabase
+      .from("mesocycles")
+      .select("*")
+      .in("template_program_id", ids)
+      .order("cycle_number", { ascending: true });
+
+    const mesocyclesByTemplate: Record<string, MesocycleRow[]> = {};
+    (mesocyclesData ?? []).forEach((mc) => {
+      const tid = mc.template_program_id;
+      if (!mesocyclesByTemplate[tid]) mesocyclesByTemplate[tid] = [];
+      mesocyclesByTemplate[tid].push({
+        id: mc.id,
+        cycle_number: mc.cycle_number,
+        cycle_start_date: mc.cycle_start_date,
+        cycle_end_date: mc.cycle_end_date,
+        total_weeks: mc.total_weeks,
+        status: mc.status,
+        athlete_count: mesocycleAthleteMap[mc.id] || 0,
+      });
     });
 
     setPrograms(
@@ -78,6 +116,7 @@ export default function AdminPrograms() {
         ...p,
         workout_count: countMap[p.id] || 0,
         active_users: activeUsersMap[p.name] || 0,
+        mesocycles: mesocyclesByTemplate[p.id] || [],
       }))
     );
     setLoading(false);
@@ -182,13 +221,36 @@ export default function AdminPrograms() {
             </TableHeader>
             <TableBody>
               {programs.map((p) => (
+                <Fragment key={p.id}>
                 <TableRow
-                  key={p.id}
                   style={{ borderColor: "#2A2A2A", cursor: "pointer" }}
                   className="hover:bg-white/5"
                   onClick={() => navigate(`/admin/programs/${p.id}`)}
                 >
-                  <TableCell style={{ color: "#FAF8F5" }} className="font-display font-medium">{p.name}</TableCell>
+                  <TableCell style={{ color: "#FAF8F5" }} className="font-display font-medium">
+                    <div className="flex items-center gap-2">
+                      {p.mesocycles.length > 0 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedProgram(expandedProgram === p.id ? null : p.id);
+                          }}
+                          className="p-0.5 rounded hover:bg-white/10 transition-colors"
+                        >
+                          {expandedProgram === p.id
+                            ? <ChevronDown className="h-4 w-4" style={{ color: "#8A8A8E" }} />
+                            : <ChevronRight className="h-4 w-4" style={{ color: "#8A8A8E" }} />}
+                        </button>
+                      )}
+                      <span>{p.name}</span>
+                      {p.mesocycles.some(mc => mc.status === "live") && (
+                        <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider"
+                          style={{ background: "rgba(122,139,92,0.15)", color: "#7A8B5C" }}>
+                          <Circle className="h-1.5 w-1.5 fill-current" /> live
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell style={{ color: "#FAF8F5" }}>{p.total_weeks}</TableCell>
                   <TableCell style={{ color: "#FAF8F5" }}>{p.workout_count}</TableCell>
                   <TableCell>
@@ -217,6 +279,48 @@ export default function AdminPrograms() {
                     </div>
                   </TableCell>
                 </TableRow>
+
+                {/* Mesocycles sub-rows */}
+                {expandedProgram === p.id && p.mesocycles.map((mc) => {
+                  const statusConfig: Record<string, { bg: string; color: string; label: string }> = {
+                    live: { bg: "rgba(122,139,92,0.15)", color: "#7A8B5C", label: "LIVE" },
+                    draft: { bg: "rgba(201,169,110,0.15)", color: "#C9A96E", label: "DRAFT" },
+                    completed: { bg: "rgba(138,138,142,0.15)", color: "#8A8A8E", label: "COMPLETADO" },
+                  };
+                  const st = statusConfig[mc.status] || statusConfig.draft;
+                  const startDate = new Date(mc.cycle_start_date + "T12:00:00");
+                  const endDate = new Date(mc.cycle_end_date + "T12:00:00");
+                  const fmtDate = (d: Date) => d.toLocaleDateString("es-MX", { day: "numeric", month: "short" });
+
+                  return (
+                    <TableRow key={mc.id} style={{ borderColor: "#2A2A2A", background: "#151515" }}>
+                      <TableCell colSpan={6} style={{ paddingLeft: "3rem" }}>
+                        <div className="flex items-center gap-4 py-1">
+                          <Calendar className="h-3.5 w-3.5 shrink-0" style={{ color: "#5A5A5A" }} />
+                          <span className="font-mono text-xs" style={{ color: "#FAF8F5" }}>
+                            Ciclo {mc.cycle_number}
+                          </span>
+                          <span className="font-mono text-xs" style={{ color: "#8A8A8E" }}>
+                            {fmtDate(startDate)} → {fmtDate(endDate)}
+                          </span>
+                          <span className="font-mono text-xs" style={{ color: "#5A5A5A" }}>
+                            {mc.total_weeks} sem
+                          </span>
+                          <span
+                            className="inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider"
+                            style={{ background: st.bg, color: st.color }}
+                          >
+                            {st.label}
+                          </span>
+                          <span className="flex items-center gap-1 font-mono text-xs" style={{ color: "#8A8A8E" }}>
+                            <Users className="h-3 w-3" /> {mc.athlete_count}
+                          </span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+                </Fragment>
               ))}
               {!programs.length && (
                 <TableRow>
