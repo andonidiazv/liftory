@@ -3,11 +3,16 @@ import { supabase } from "@/integrations/supabase/client";
 /**
  * assignProgram — Assigns a pre-loaded program template to a user.
  * Templates are programs with user_id IS NULL, created by admins.
+ *
+ * mode:
+ *   "live"   → dates aligned to the mesocycle's cycle_start_date (GO LIVE)
+ *   "fresh"  → dates start from this Monday (personal calendar)
  */
 export async function assignProgram(
   userId: string,
   gender: string,
-  level: string
+  level: string,
+  mode: "live" | "fresh" = "live"
 ): Promise<{ success: boolean; programId?: string; noExercises?: boolean }> {
   // 1. Determine program name
   let programName = "";
@@ -43,14 +48,37 @@ export async function assignProgram(
     return { success: true, programId: program?.id, noExercises: true };
   }
 
-  // 3. Deactivate any existing active programs
+  // 3. Fetch the live mesocycle for this program (if any)
+  const { data: mesocycle } = await supabase
+    .from("mesocycles")
+    .select("id, cycle_start_date")
+    .eq("template_program_id", template.id)
+    .eq("status", "live")
+    .single();
+
+  // 4. Determine the start date for the user's workouts
+  let startDate: Date;
+
+  if (mode === "live" && mesocycle) {
+    // GO LIVE: use the mesocycle's cycle_start_date
+    startDate = new Date(mesocycle.cycle_start_date + "T00:00:00");
+  } else {
+    // FRESH: start from this Monday
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0=Sun
+    const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    startDate = new Date(today);
+    startDate.setDate(today.getDate() - daysSinceMonday);
+  }
+
+  // 5. Deactivate any existing active programs
   await supabase
     .from("programs")
     .update({ is_active: false })
     .eq("user_id", userId)
     .eq("is_active", true);
 
-  // 4. Copy template program for this user
+  // 6. Copy template program for this user
   const { data: program } = await supabase
     .from("programs")
     .insert({
@@ -60,10 +88,12 @@ export async function assignProgram(
       current_week: 1,
       current_block: "accumulation",
       is_active: true,
+      mesocycle_id: mesocycle?.id ?? template.mesocycle_id ?? null,
       ai_params: {
         assigned_template: programName,
         template_id: template.id,
         generated_by: "curated_v1",
+        mode,
       },
     })
     .select()
@@ -71,7 +101,7 @@ export async function assignProgram(
 
   if (!program) return { success: false };
 
-  // 5. Copy template workouts, adjusting dates to next Monday
+  // 7. Copy template workouts, adjusting dates
   const { data: templateWorkouts } = await supabase
     .from("workouts")
     .select("*")
@@ -82,17 +112,11 @@ export async function assignProgram(
     return { success: true, programId: program.id, noExercises: true };
   }
 
-  const today = new Date();
-  const dayOfWeek = today.getDay(); // 0=Sun
-  const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-  const startDate = new Date(today);
-  startDate.setDate(today.getDate() - daysSinceMonday);
-
-  const templateStart = new Date(templateWorkouts[0].scheduled_date);
+  const templateStart = new Date(templateWorkouts[0].scheduled_date + "T00:00:00");
 
   const workoutInserts = templateWorkouts.map((tw) => {
     const daysDiff = Math.floor(
-      (new Date(tw.scheduled_date).getTime() - templateStart.getTime()) / 86400000
+      (new Date(tw.scheduled_date + "T00:00:00").getTime() - templateStart.getTime()) / 86400000
     );
     const newDate = new Date(startDate);
     newDate.setDate(startDate.getDate() + daysDiff);
@@ -119,7 +143,7 @@ export async function assignProgram(
 
   if (!createdWorkouts) return { success: false };
 
-  // 6. Map old workout IDs → new, copy all workout_sets
+  // 8. Map old workout IDs → new, copy all workout_sets
   const dateToNewId: Record<string, string> = {};
   createdWorkouts.forEach((w) => {
     dateToNewId[w.scheduled_date] = w.id;
@@ -128,7 +152,7 @@ export async function assignProgram(
   const oldDateToOldId: Record<string, string> = {};
   templateWorkouts.forEach((tw) => {
     const daysDiff = Math.floor(
-      (new Date(tw.scheduled_date).getTime() - templateStart.getTime()) / 86400000
+      (new Date(tw.scheduled_date + "T00:00:00").getTime() - templateStart.getTime()) / 86400000
     );
     const nd = new Date(startDate);
     nd.setDate(startDate.getDate() + daysDiff);

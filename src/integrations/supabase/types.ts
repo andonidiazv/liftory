@@ -233,6 +233,58 @@ export type Database = {
           },
         ]
       }
+      mesocycles: {
+        Row: {
+          id: string
+          program_name: string
+          cycle_number: number
+          cycle_start_date: string
+          cycle_end_date: string
+          total_weeks: number
+          status: string
+          template_program_id: string
+          previous_cycle_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          program_name: string
+          cycle_number: number
+          cycle_start_date: string
+          total_weeks?: number
+          status?: string
+          template_program_id: string
+          previous_cycle_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          program_name?: string
+          cycle_number?: number
+          cycle_start_date?: string
+          total_weeks?: number
+          status?: string
+          template_program_id?: string
+          previous_cycle_id?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mesocycles_template_program_id_fkey"
+            columns: ["template_program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mesocycles_previous_cycle_id_fkey"
+            columns: ["previous_cycle_id"]
+            isOneToOne: false
+            referencedRelation: "mesocycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       onboarding_answers: {
         Row: {
           connected_wearable: string | null
@@ -347,6 +399,7 @@ export type Database = {
           generated_at: string
           id: string
           is_active: boolean
+          mesocycle_id: string | null
           name: string
           total_weeks: number
           user_id: string | null
@@ -359,6 +412,7 @@ export type Database = {
           generated_at?: string
           id?: string
           is_active?: boolean
+          mesocycle_id?: string | null
           name: string
           total_weeks?: number
           user_id?: string | null
@@ -371,11 +425,20 @@ export type Database = {
           generated_at?: string
           id?: string
           is_active?: boolean
+          mesocycle_id?: string | null
           name?: string
           total_weeks?: number
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "programs_mesocycle_id_fkey"
+            columns: ["mesocycle_id"]
+            isOneToOne: false
+            referencedRelation: "mesocycles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscriptions: {
         Row: {
@@ -742,6 +805,10 @@ export type Database = {
     Functions: {
       ex: { Args: { p_name: string }; Returns: string }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      recalculate_workout_dates: {
+        Args: { p_program_id: string; p_cycle_start_date: string }
+        Returns: number
+      }
       wk: {
         Args: { p_day_offset: number; p_prog_id: string; p_week: number }
         Returns: string

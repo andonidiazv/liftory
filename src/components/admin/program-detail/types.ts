@@ -12,6 +12,7 @@ export interface DraftProgram {
   current_block: string;
   is_active: boolean;
   user_id: string | null;
+  mesocycle_id: string | null;
 }
 
 export interface DraftWorkout {
