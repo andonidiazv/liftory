@@ -908,8 +908,26 @@ export function useProgramDraft(programId: string | undefined) {
           if (userCopies && userCopies.length > 0) {
             console.log(`[SAVE] Found ${userCopies.length} user copies to update`);
 
-            // Determine which weeks to propagate based on scope
-            const allWeeksToSync = [sourceWeek, ...targetWeeks];
+            // ALWAYS sync ALL weeks to user copies — the template is the
+            // source of truth and any week may have pending changes from
+            // earlier saves that only targeted "current week".
+            const allWeeksToSync = Array.from(
+              { length: draft.program!.total_weeks },
+              (_, i) => i + 1,
+            );
+
+            // Fetch the FRESH template workouts + sets from DB
+            // (Phase 2 & 3 may have changed them since the draft was loaded)
+            const { data: freshTemplateWorkouts } = await supabase
+              .from("workouts")
+              .select("id, week_number, day_label, workout_type, estimated_duration, is_rest_day, coach_note, short_on_time_note")
+              .eq("program_id", draft.program!.id);
+
+            const freshTemplateWorkoutIds = (freshTemplateWorkouts ?? []).map((w) => w.id);
+            const { data: freshTemplateSets } = await supabase
+              .from("workout_sets")
+              .select("workout_id, exercise_id, set_order, set_type, block_label, planned_reps, planned_weight, planned_rpe, planned_rir, planned_tempo, planned_rest_seconds, coaching_cue_override")
+              .in("workout_id", freshTemplateWorkoutIds);
 
             for (const userProg of userCopies) {
               // Get all workouts for this user's program
@@ -921,8 +939,8 @@ export function useProgramDraft(programId: string | undefined) {
               if (!userWorkouts) continue;
 
               for (const weekNum of allWeeksToSync) {
-                // Get the template workouts for this week (from our just-saved draft)
-                const templateWorkouts = draft.workouts.filter(
+                // Get the FRESH template workouts for this week from DB
+                const templateWorkouts = (freshTemplateWorkouts ?? []).filter(
                   (w) => w.week_number === weekNum,
                 );
 
@@ -956,8 +974,8 @@ export function useProgramDraft(programId: string | undefined) {
                     .delete()
                     .eq("workout_id", userWorkout.id);
 
-                  // Get template sets for this workout
-                  const templateSets = draft.sets.filter(
+                  // Get FRESH template sets from DB for this workout
+                  const templateSets = (freshTemplateSets ?? []).filter(
                     (s) => s.workout_id === tmplWorkout.id,
                   );
 
