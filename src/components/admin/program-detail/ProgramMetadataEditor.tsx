@@ -84,7 +84,7 @@ function MesocycleSection({ programId, totalWeeks }: { programId: string; totalW
     setSaving(true);
     const { error } = await supabase
       .from("mesocycles")
-      .update({ cycle_start_date: newStart, cycle_end_date: newEnd })
+      .update({ cycle_start_date: newStart })
       .eq("id", mesocycle.id);
     setSaving(false);
     setCalendarOpen(false);
