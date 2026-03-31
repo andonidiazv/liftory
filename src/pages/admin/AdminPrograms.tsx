@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Copy, Eye, Trash2, Users, ChevronDown, ChevronRight, Calendar, Circle } from "lucide-react";
+import { Plus, Copy, Eye, Trash2, Users, ChevronDown, ChevronRight, Calendar, Circle, Rocket, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface MesocycleRow {
@@ -190,6 +190,168 @@ export default function AdminPrograms() {
     fetchPrograms();
   };
 
+  const [cycleLoading, setCycleLoading] = useState<string | null>(null);
+  const [launchTarget, setLaunchTarget] = useState<{ mc: MesocycleRow; prog: ProgramRow } | null>(null);
+  const [launching, setLaunching] = useState(false);
+
+  const handleNewCycle = async (prog: ProgramRow) => {
+    const liveCycle = prog.mesocycles.find((mc) => mc.status === "live");
+    const lastCycle = prog.mesocycles[prog.mesocycles.length - 1];
+    if (!lastCycle) return;
+
+    // Check if there's already a draft
+    if (prog.mesocycles.some((mc) => mc.status === "draft")) {
+      toast.error("Ya existe un ciclo en DRAFT. Edítalo o lánzalo primero.");
+      return;
+    }
+
+    setCycleLoading(prog.id);
+
+    // Calculate next start date: day after current cycle ends (should be a Monday)
+    const prevEnd = new Date(lastCycle.cycle_end_date + "T12:00:00");
+    const nextStart = new Date(prevEnd);
+    nextStart.setDate(prevEnd.getDate() + 1);
+    // Snap to Monday just in case
+    const day = nextStart.getDay();
+    if (day !== 1) {
+      const diff = day === 0 ? 1 : 8 - day;
+      nextStart.setDate(nextStart.getDate() + diff);
+    }
+    const startStr = nextStart.toISOString().split("T")[0];
+    const endDate = new Date(nextStart);
+    endDate.setDate(nextStart.getDate() + prog.total_weeks * 7 - 1);
+    const endStr = endDate.toISOString().split("T")[0];
+
+    // 1. Create new mesocycle record
+    const { data: newMc, error: mcErr } = await supabase
+      .from("mesocycles")
+      .insert({
+        program_name: prog.name,
+        cycle_number: lastCycle.cycle_number + 1,
+        cycle_start_date: startStr,
+        cycle_end_date: endStr,
+        total_weeks: prog.total_weeks,
+        status: "draft",
+        template_program_id: prog.id,
+        previous_cycle_id: lastCycle.id,
+      })
+      .select()
+      .single();
+
+    if (mcErr || !newMc) {
+      toast.error("Error al crear mesociclo");
+      setCycleLoading(null);
+      return;
+    }
+
+    // 2. Clone the template workouts with new scheduled_dates
+    const { data: templateWorkouts } = await supabase
+      .from("workouts")
+      .select("*")
+      .eq("program_id", prog.id)
+      .order("scheduled_date", { ascending: true });
+
+    if (templateWorkouts?.length) {
+      const templateStart = new Date(templateWorkouts[0].scheduled_date + "T12:00:00");
+
+      for (const tw of templateWorkouts) {
+        const daysDiff = Math.floor(
+          (new Date(tw.scheduled_date + "T12:00:00").getTime() - templateStart.getTime()) / 86400000
+        );
+        const newDate = new Date(nextStart);
+        newDate.setDate(nextStart.getDate() + daysDiff);
+
+        const { data: nw } = await supabase
+          .from("workouts")
+          .insert({
+            program_id: prog.id,
+            scheduled_date: newDate.toISOString().split("T")[0],
+            week_number: tw.week_number,
+            day_label: tw.day_label,
+            workout_type: tw.workout_type,
+            estimated_duration: tw.estimated_duration,
+            is_rest_day: tw.is_rest_day,
+            notes: tw.notes,
+            coach_note: tw.coach_note,
+            short_on_time_note: tw.short_on_time_note,
+          })
+          .select("id")
+          .single();
+
+        if (!nw) continue;
+
+        const { data: sets } = await supabase
+          .from("workout_sets")
+          .select("*")
+          .eq("workout_id", tw.id);
+
+        if (sets?.length) {
+          await supabase.from("workout_sets").insert(
+            sets.map((s) => ({
+              workout_id: nw.id,
+              exercise_id: s.exercise_id,
+              set_order: s.set_order,
+              set_type: s.set_type,
+              planned_reps: s.planned_reps,
+              planned_weight: s.planned_weight,
+              planned_rpe: s.planned_rpe,
+              planned_rir: s.planned_rir,
+              planned_rest_seconds: s.planned_rest_seconds,
+              planned_tempo: s.planned_tempo,
+              coaching_cue_override: s.coaching_cue_override,
+              block_label: s.block_label,
+            }))
+          );
+        }
+      }
+    }
+
+    setCycleLoading(null);
+    toast.success(`Ciclo ${lastCycle.cycle_number + 1} creado como DRAFT. Edítalo y luego lánzalo.`);
+    fetchPrograms();
+  };
+
+  const handleLaunchCycle = async () => {
+    if (!launchTarget) return;
+    const { mc, prog } = launchTarget;
+    setLaunching(true);
+
+    // 1. Set all other mesocycles for this program to "completed"
+    const otherIds = prog.mesocycles.filter((m) => m.id !== mc.id && m.status === "live").map((m) => m.id);
+    if (otherIds.length) {
+      await supabase.from("mesocycles").update({ status: "completed" }).in("id", otherIds);
+    }
+
+    // 2. Set this mesocycle to "live"
+    const { error } = await supabase
+      .from("mesocycles")
+      .update({ status: "live" })
+      .eq("id", mc.id);
+
+    if (error) {
+      toast.error("Error al lanzar ciclo");
+      setLaunching(false);
+      setLaunchTarget(null);
+      return;
+    }
+
+    // 3. Propagate template sets to all user copies
+    try {
+      await supabase.rpc("propagate_template_sets", {
+        p_template_program_id: prog.id,
+        p_from_week: 1,
+        p_to_week: prog.total_weeks,
+      });
+    } catch (e) {
+      console.warn("Propagation RPC not available or failed:", e);
+    }
+
+    setLaunching(false);
+    setLaunchTarget(null);
+    toast.success(`¡Ciclo ${mc.cycle_number} está LIVE! Atletas actualizados.`);
+    fetchPrograms();
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -315,11 +477,43 @@ export default function AdminPrograms() {
                           <span className="flex items-center gap-1 font-mono text-xs" style={{ color: "#8A8A8E" }}>
                             <Users className="h-3 w-3" /> {mc.athlete_count}
                           </span>
+
+                          {/* Launch button for DRAFT cycles */}
+                          {mc.status === "draft" && (
+                            <Button
+                              size="sm"
+                              className="h-6 px-2.5 font-mono text-[10px] uppercase tracking-wider ml-auto"
+                              style={{ background: "#7A8B5C", color: "#FAF8F5" }}
+                              onClick={(e) => { e.stopPropagation(); setLaunchTarget({ mc, prog: p }); }}
+                            >
+                              <Rocket className="h-3 w-3 mr-1" /> Lanzar
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
                   );
                 })}
+
+                {/* "+ Nuevo ciclo" row */}
+                {expandedProgram === p.id && (
+                  <TableRow style={{ borderColor: "#2A2A2A", background: "#151515" }}>
+                    <TableCell colSpan={6} style={{ paddingLeft: "3rem" }}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 font-mono text-[11px] gap-1.5"
+                        style={{ color: "#C9A96E" }}
+                        disabled={cycleLoading === p.id}
+                        onClick={(e) => { e.stopPropagation(); handleNewCycle(p); }}
+                      >
+                        {cycleLoading === p.id
+                          ? <><Loader2 className="h-3 w-3 animate-spin" /> Creando ciclo…</>
+                          : <><Plus className="h-3 w-3" /> Nuevo ciclo</>}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                )}
                 </Fragment>
               ))}
               {!programs.length && (
@@ -353,6 +547,24 @@ export default function AdminPrograms() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Launch cycle confirmation */}
+      <AlertDialog open={!!launchTarget} onOpenChange={(open) => !open && setLaunchTarget(null)}>
+        <AlertDialogContent style={{ background: "#1C1C1E", borderColor: "#2A2A2A" }}>
+          <AlertDialogHeader>
+            <AlertDialogTitle style={{ color: "#FAF8F5" }}>¿Lanzar Ciclo {launchTarget?.mc.cycle_number}?</AlertDialogTitle>
+            <AlertDialogDescription style={{ color: "#8A8A8E" }}>
+              El ciclo anterior pasará a COMPLETADO. Los atletas activos recibirán los workouts del nuevo ciclo. Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel style={{ color: "#8A8A8E", borderColor: "#2A2A2A" }}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLaunchCycle} disabled={launching} style={{ background: "#7A8B5C" }}>
+              {launching ? "Lanzando…" : "Lanzar ciclo"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent style={{ background: "#1C1C1E", borderColor: "#2A2A2A" }}>
