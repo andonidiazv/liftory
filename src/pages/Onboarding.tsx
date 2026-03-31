@@ -34,7 +34,7 @@ type Experience = "beginner" | "intermediate" | "advanced";
 type Objective = "muscle_strength" | "athletic_performance" | "look_feel_better" | "move_better";
 
 /* ───────── constants ───────── */
-const TOTAL_STEPS = 10;
+const TOTAL_STEPS = 11;
 const PROGRESS_STEPS = 7;
 const STORAGE_KEY = "liftory_onboarding";
 
@@ -135,6 +135,8 @@ export default function Onboarding() {
   const [assignDone, setAssignDone] = useState(false);
   const [assignError, setAssignError] = useState(false);
   const [programName, setProgramName] = useState("");
+  const [joinMode, setJoinMode] = useState<"live" | "fresh">("live");
+  const [mesocycleInfo, setMesocycleInfo] = useState<{ currentWeek: number; totalWeeks: number; weeksLeft: number; todayDay: string; endDate: string } | null>(null);
   const loadingStart = useRef(0);
   const programStarted = useRef(false);
 
@@ -154,12 +156,12 @@ export default function Onboarding() {
     if (saved && !programStarted.current) {
       setName(saved.name); setGender(saved.gender);
       setExperience(saved.experience); setObjective(saved.objective);
-      setStep(9);
+      setStep(10);
     }
   }, [authLoading, user]);
 
   useEffect(() => {
-    if (step !== 9 || !user || programStarted.current) return;
+    if (step !== 10 || !user || programStarted.current) return;
     const saved = loadAnswers();
     if (!saved) return;
     const g = gender || saved.gender; const e = experience || saved.experience;
@@ -175,7 +177,36 @@ export default function Onboarding() {
   const handleBuildProgram = () => {
     if (!gender || !experience || !objective) return;
     saveAnswers({ name: `${name.trim()} ${lastName.trim()}`.trim(), gender, experience, objective });
-    if (user) { setStep(9); } else { setStep(8); }
+    // Fetch mesocycle info for the Live vs S1 choice screen
+    const level = determineProgramLevel(experience, objective);
+    const pName = getProgramName(gender, level);
+    setProgramName(pName);
+    fetchMesocycleInfo(pName);
+    setStep(8);
+  };
+
+  const fetchMesocycleInfo = async (pName: string) => {
+    try {
+      const { data: mc } = await supabase
+        .from("mesocycles")
+        .select("cycle_start_date, cycle_end_date, total_weeks")
+        .eq("program_name", pName)
+        .eq("status", "live")
+        .single();
+      if (!mc) { setMesocycleInfo(null); return; }
+      const start = new Date(mc.cycle_start_date + "T12:00:00");
+      const end = new Date(mc.cycle_end_date + "T12:00:00");
+      const now = new Date();
+      const daysSinceStart = Math.floor((now.getTime() - start.getTime()) / 86400000);
+      const currentWeek = Math.min(Math.floor(daysSinceStart / 7) + 1, mc.total_weeks);
+      const weeksLeft = mc.total_weeks - currentWeek;
+      const endFmt = end.toLocaleDateString("es-MX", { day: "numeric", month: "long" });
+      // Determine today's training day name
+      const dayOfWeek = now.getDay(); // 0=Sun
+      const dayNames = ["Descanso", "Día 1", "Día 2", "Día 3", "Día 4", "Día 5", "Día 6"];
+      const todayDay = dayNames[dayOfWeek] || "Descanso";
+      setMesocycleInfo({ currentWeek, totalWeeks: mc.total_weeks, weeksLeft, todayDay, endDate: endFmt });
+    } catch { setMesocycleInfo(null); }
   };
 
   const handleOnboardingSignup = async () => {
@@ -188,7 +219,7 @@ export default function Onboarding() {
       const fullName = `${name.trim()} ${lastName.trim()}`.trim();
       const { data, error } = await signUp(trimmedEmail, signupPassword, fullName);
       if (error) { setSignupError(error.message); setSignupLoading(false); return; }
-      if (data.session && data.user) { setStep(9); }
+      if (data.session && data.user) { setStep(10); }
       else if (data.user && !data.session) { setSignupError("Revisa tu correo para confirmar tu cuenta antes de continuar."); }
     } catch { setSignupError("Error al crear la cuenta. Intenta de nuevo."); }
     setSignupLoading(false);
@@ -216,14 +247,14 @@ export default function Onboarding() {
         full_name: userName, gender: g, onboarding_completed: true,
         training_days_per_week: 5, training_location: "full_gym", experience_level: e,
       }).eq("user_id", userId);
-      const result = await assignProgram(userId, g, level);
+      const result = await assignProgram(userId, g, level, joinMode);
       if (!result.success) throw new Error("assign failed");
       clearAnswers(); setAssignDone(true);
     } catch (err) { console.error("Onboarding error:", err); setAssignError(true); }
   };
 
   useEffect(() => {
-    if (step !== 9 || !loadingStart.current) return;
+    if (step !== 10 || !loadingStart.current) return;
     const MIN_DURATION = 4000;
     const msgTimer = setInterval(() => { setLoadingMsgIdx((p) => (p < 3 ? p + 1 : p)); }, 1000);
     const progressTimer = setInterval(() => {
@@ -607,8 +638,113 @@ export default function Onboarding() {
     );
   }
 
-  /* ════════════ STEP 8: CREAR CUENTA (dark theme) ════════════ */
+  /* ════════════ STEP 8: LIVE vs S1 CHOICE ════════════ */
   if (step === 8) {
+    const showRecommendWait = mesocycleInfo && mesocycleInfo.weeksLeft <= 0;
+    const handleJoinChoice = (mode: "live" | "fresh") => {
+      setJoinMode(mode);
+      if (user) { setStep(10); } else { setStep(9); }
+    };
+
+    return (
+      <div className="flex min-h-screen flex-col" style={{ background: t.bg }}>
+        <div className="px-6 pt-14 anim-in">
+          <button onClick={() => setStep(7)} className="flex items-center gap-1 font-body active:scale-95" style={{ fontSize: 13, color: t.textMuted }}>
+            <ChevronLeft className="h-4 w-4" /> Atrás
+          </button>
+        </div>
+        <div className="flex flex-1 flex-col px-6 pt-6 pb-8">
+          <h1 className="font-display font-bold anim-in" style={{ fontSize: 22, color: t.text }}>
+            ¿Cómo quieres empezar?
+          </h1>
+          <p className="mt-2 font-body anim-in-d1" style={{ fontSize: 14, color: t.textMuted }}>
+            Tu programa: <span style={{ color: t.text, fontWeight: 600 }}>{programName}</span>
+          </p>
+
+          <div className="mt-8 flex flex-col gap-4">
+            {/* LIVE option */}
+            <button
+              onClick={() => handleJoinChoice("live")}
+              className="w-full text-left transition-all duration-200 active:scale-[0.98] anim-in-d2"
+              style={{
+                background: t.cardBg,
+                border: `2px solid ${t.accent}`,
+                borderRadius: 16,
+                padding: "20px 18px",
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div className={iconBox(44, "rounded-xl")} style={iconBoxStyle(44)}>
+                  <Zap className="h-5 w-5" style={{ color: cream }} />
+                </div>
+                <div className="flex-1">
+                  <p className="font-display font-bold uppercase" style={{ fontSize: 15, color: t.text, letterSpacing: "0.03em" }}>
+                    Unirse al ciclo live
+                  </p>
+                  {mesocycleInfo ? (
+                    <div className="mt-1.5 space-y-0.5">
+                      <p className="font-body" style={{ fontSize: 12, color: t.textMuted }}>
+                        El grupo va en <span style={{ color: t.text, fontWeight: 600 }}>Semana {mesocycleInfo.currentWeek} de {mesocycleInfo.totalWeeks}</span>
+                      </p>
+                      <p className="font-body" style={{ fontSize: 12, color: t.textMuted }}>
+                        {mesocycleInfo.weeksLeft > 0
+                          ? `Quedan ${mesocycleInfo.weeksLeft} semana${mesocycleInfo.weeksLeft > 1 ? "s" : ""} del ciclo`
+                          : "Última semana del ciclo"}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="mt-1 font-body" style={{ fontSize: 12, color: t.textMuted }}>
+                      Te unes donde va el grupo y entrenas lo mismo que todos.
+                    </p>
+                  )}
+                </div>
+                <ArrowRight className="h-5 w-5 shrink-0" style={{ color: t.textMuted }} />
+              </div>
+            </button>
+
+            {/* FRESH / S1 option */}
+            <button
+              onClick={() => handleJoinChoice("fresh")}
+              className="w-full text-left transition-all duration-200 active:scale-[0.98] anim-in-d3"
+              style={{
+                background: t.cardBg,
+                border: `1px solid ${t.border}`,
+                borderRadius: 16,
+                padding: "20px 18px",
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div className={iconBox(44, "rounded-xl")} style={iconBoxStyle(44)}>
+                  <Play className="h-5 w-5" style={{ color: cream }} />
+                </div>
+                <div className="flex-1">
+                  <p className="font-display font-bold uppercase" style={{ fontSize: 15, color: t.text, letterSpacing: "0.03em" }}>
+                    Empezar desde Semana 1
+                  </p>
+                  <p className="mt-1 font-body" style={{ fontSize: 12, color: t.textMuted }}>
+                    Comienzas el programa desde el inicio con tu propio calendario personal.
+                  </p>
+                </div>
+                <ArrowRight className="h-5 w-5 shrink-0" style={{ color: t.textMuted }} />
+              </div>
+            </button>
+          </div>
+
+          {showRecommendWait && (
+            <div className="mt-4 rounded-xl p-3.5 anim-in-d4" style={{ background: "rgba(201,169,110,0.08)", border: "1px solid rgba(201,169,110,0.2)" }}>
+              <p className="font-body text-center" style={{ fontSize: 12, color: "#C9A96E" }}>
+                El ciclo actual termina el {mesocycleInfo?.endDate}. Te recomendamos <span style={{ fontWeight: 600 }}>empezar desde S1</span> para aprovechar el siguiente ciclo completo.
+              </p>
+            </div>
+          )}
+        </div>
+        <style>{globalAnimations}</style>
+      </div>
+    );
+  }
+
+  /* ════════════ STEP 9: CREAR CUENTA (dark theme) ════════════ */
+  if (step === 9) {
     const s = lightTheme;
     const signupInput: React.CSSProperties = {
       background: s.inputBg, border: `1px solid ${s.inputBorder}`, color: s.inputText,
@@ -675,7 +811,7 @@ export default function Onboarding() {
           </button>
         </div>
 
-        <button onClick={() => setStep(7)} className="mt-8 font-body underline active:scale-[0.97] transition-transform" style={{ fontSize: 13, color: s.textMuted }}>
+        <button onClick={() => setStep(8)} className="mt-8 font-body underline active:scale-[0.97] transition-transform" style={{ fontSize: 13, color: s.textMuted }}>
           ← Atrás
         </button>
         <style>{globalAnimations}</style>
@@ -683,8 +819,8 @@ export default function Onboarding() {
     );
   }
 
-  /* ════════════ STEP 9: LOADING (dark theme) ════════════ */
-  if (step === 9) {
+  /* ════════════ STEP 10: LOADING (dark theme) ════════════ */
+  if (step === 10) {
     const d = darkTheme;
     const msgs = ["Analizando tu perfil...", "Seleccionando ejercicios para tu nivel...", "Armando tu mesociclo de 6 semanas...", "¡Listo!"];
     return (
