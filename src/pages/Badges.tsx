@@ -77,17 +77,19 @@ interface BadgeTier {
   id: string;
   badge_id: string;
   tier: string;
+  tier_label: string;
   weight_male: number | null;
   weight_female: number | null;
-  reps_required: number | null;
-  description: string | null;
+  reps_male: number;
+  reps_female: number;
+  color: string;
+  sort_order: number;
 }
 
 interface UserBadge {
-  id: string;
-  user_id: string;
-  badge_id: string;
+  tier_id: string;
   tier: string;
+  status: string;
   earned_at: string;
 }
 
@@ -187,26 +189,45 @@ export default function Badges() {
     async function fetchBadges() {
       setLoading(true);
 
-      const { data, error } = await supabase
+      // Fetch badge definitions with their tiers
+      const { data: defs, error: defErr } = await (supabase as any)
         .from("badge_definitions")
         .select(`
-          id,
-          slug,
-          name,
-          exercise_name,
-          description,
-          fun_fact,
-          icon_name,
-          category,
-          badge_tiers ( id, badge_id, tier, weight_male, weight_female, reps_required, description ),
-          user_badges ( id, user_id, badge_id, tier, earned_at )
+          id, slug, name, exercise_name, description, fun_fact, icon_name, category,
+          badge_tiers ( id, badge_id, tier, tier_label, weight_male, weight_female, reps_male, reps_female, color, sort_order )
         `)
-        .eq("user_badges.user_id", user!.id)
-        .order("name");
+        .eq("is_active", true)
+        .order("sort_order");
 
-      if (!error && data) {
-        setBadges(data as unknown as BadgeDefinition[]);
+      if (defErr || !defs) {
+        console.error("Badge fetch error:", defErr);
+        setLoading(false);
+        return;
       }
+
+      // Fetch user's earned badges
+      const { data: earned } = await (supabase as any)
+        .from("user_badges")
+        .select("id, badge_tier_id, status, earned_at")
+        .eq("user_id", user!.id);
+
+      const earnedMap = new Map<string, { status: string; earned_at: string }>();
+      if (earned) {
+        for (const e of earned) {
+          earnedMap.set(e.badge_tier_id, { status: e.status, earned_at: e.earned_at });
+        }
+      }
+
+      // Merge
+      const merged: BadgeDefinition[] = defs.map((d: any) => ({
+        ...d,
+        badge_tiers: (d.badge_tiers || []).sort((a: any, b: any) => a.sort_order - b.sort_order),
+        user_badges: (d.badge_tiers || [])
+          .filter((t: any) => earnedMap.has(t.id))
+          .map((t: any) => ({ tier_id: t.id, tier: t.tier, ...earnedMap.get(t.id) })),
+      }));
+
+      setBadges(merged);
 
       setLoading(false);
     }
@@ -229,17 +250,16 @@ export default function Badges() {
   }
 
   function tierStatus(badge: BadgeDefinition, tierName: string): "locked" | "pending" | "earned" {
-    const earned = badge.user_badges?.find(
-      (ub) => ub.tier === tierName
-    );
-    if (earned) return "earned";
-    // Could check pending claims in the future
+    const ub = badge.user_badges?.find((u) => u.tier === tierName);
+    if (!ub) return "locked";
+    if (ub.status === "approved") return "earned";
+    if (ub.status === "pending") return "pending";
     return "locked";
   }
 
   function earnedDate(badge: BadgeDefinition, tierName: string): string | null {
-    const earned = badge.user_badges?.find((ub) => ub.tier === tierName);
-    return earned?.earned_at ?? null;
+    const ub = badge.user_badges?.find((u) => u.tier === tierName && u.status === "approved");
+    return ub?.earned_at ?? null;
   }
 
   function formatDate(dateStr: string): string {
@@ -409,6 +429,7 @@ export default function Badges() {
                       const weight = isFemale
                         ? tier.weight_female
                         : tier.weight_male;
+                      const reps = isFemale ? tier.reps_female : tier.reps_male;
                       const earned = earnedDate(badge, tier.tier);
 
                       return (
@@ -489,9 +510,9 @@ export default function Badges() {
                               }}
                             >
                               {weight != null && `${weight} kg`}
-                              {weight != null && tier.reps_required != null && " x "}
-                              {tier.reps_required != null &&
-                                `${tier.reps_required} rep${tier.reps_required > 1 ? "s" : ""}`}
+                              {weight != null && reps != null && " x "}
+                              {reps != null &&
+                                `${reps} rep${reps > 1 ? "s" : ""}`}
                             </p>
                           </div>
 
