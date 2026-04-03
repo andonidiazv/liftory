@@ -102,11 +102,17 @@ export async function assignProgram(
   if (!program) return { success: false };
 
   // 7. Copy template workouts, adjusting dates
-  const { data: templateWorkouts } = await supabase
+  //    Filter by mesocycle_id so we only copy the LIVE cycle's workouts
+  let workoutQuery = supabase
     .from("workouts")
     .select("*")
-    .eq("program_id", template.id)
-    .order("scheduled_date", { ascending: true });
+    .eq("program_id", template.id);
+
+  if (mesocycle) {
+    workoutQuery = workoutQuery.eq("mesocycle_id", mesocycle.id);
+  }
+
+  const { data: templateWorkouts } = await workoutQuery.order("scheduled_date", { ascending: true });
 
   if (!templateWorkouts?.length) {
     return { success: true, programId: program.id, noExercises: true };

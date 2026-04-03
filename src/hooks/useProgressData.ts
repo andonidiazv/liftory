@@ -68,12 +68,14 @@ export function useProgressData() {
 
     // Parallel queries
     const [prsRes, programmedRes, completedRes, lifetimeRes, streakRes] = await Promise.all([
-      // PRs
+      // PRs — use English name, filter out null weights
       supabase
         .from("workout_sets")
-        .select("actual_weight, actual_reps, logged_at, exercise:exercises(name_es)")
+        .select("actual_weight, actual_reps, logged_at, exercise:exercises(name)")
         .eq("user_id", user.id)
         .eq("is_pr", true)
+        .not("actual_weight", "is", null)
+        .gt("actual_weight", 0)
         .order("logged_at", { ascending: false })
         .limit(10),
 
@@ -110,12 +112,21 @@ export function useProgressData() {
         .limit(30),
     ]);
 
-    // PRs
-    const prList: PRRecord[] = ((prsRes.data as Array<{ actual_weight: number | null; actual_reps: number | null; logged_at: string | null; exercise: { name_es: string } | null }>) ?? []).map((r) => ({
-      actual_weight: r.actual_weight,
+    // PRs — deduplicate: only show the best PR per exercise (highest weight)
+    const rawPrs = ((prsRes.data as Array<{ actual_weight: number | null; actual_reps: number | null; logged_at: string | null; exercise: { name: string } | null }>) ?? []);
+    const bestByExercise = new Map<string, typeof rawPrs[0]>();
+    for (const r of rawPrs) {
+      const name = r.exercise?.name ?? "Exercise";
+      const existing = bestByExercise.get(name);
+      if (!existing || (r.actual_weight ?? 0) > (existing.actual_weight ?? 0)) {
+        bestByExercise.set(name, r);
+      }
+    }
+    const prList: PRRecord[] = Array.from(bestByExercise.values()).map((r) => ({
+      actual_weight: r.actual_weight ?? 0,
       actual_reps: r.actual_reps,
-      logged_at: r.logged_at,
-      exercise_name: r.exercise?.name_es ?? "Ejercicio",
+      logged_at: r.logged_at ?? "",
+      exercise_name: r.exercise?.name ?? "Exercise",
     }));
     setPrs(prList);
 

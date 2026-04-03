@@ -27,7 +27,7 @@ function deepClone<T>(obj: T): T {
 /*  Hook                                                              */
 /* ------------------------------------------------------------------ */
 
-export function useProgramDraft(programId: string | undefined) {
+export function useProgramDraft(programId: string | undefined, mesocycleId?: string | null) {
   const [original, setOriginal] = useState<DraftState>({
     program: null,
     workouts: [],
@@ -104,14 +104,20 @@ export function useProgramDraft(programId: string | undefined) {
         current_block: prog.current_block,
         is_active: prog.is_active,
         user_id: prog.user_id,
+        mesocycle_id: mesocycleId ?? prog.mesocycle_id ?? null,
       };
 
-      // 2. Workouts
-      const { data: ws, error: wsErr } = await supabase
+      // 2. Workouts — filter by mesocycle_id when provided
+      let workoutsQuery = supabase
         .from("workouts")
         .select("*")
-        .eq("program_id", programId)
-        .order("scheduled_date");
+        .eq("program_id", programId);
+
+      if (mesocycleId) {
+        workoutsQuery = workoutsQuery.eq("mesocycle_id", mesocycleId);
+      }
+
+      const { data: ws, error: wsErr } = await workoutsQuery.order("scheduled_date");
 
       if (wsErr) {
         toast.error("Error al cargar workouts");
@@ -182,7 +188,7 @@ export function useProgramDraft(programId: string | undefined) {
     } finally {
       setLoading(false);
     }
-  }, [programId]);
+  }, [programId, mesocycleId]);
 
   useEffect(() => {
     fetchData();
@@ -913,10 +919,17 @@ export function useProgramDraft(programId: string | undefined) {
 
             // Fetch the FRESH template workouts + sets from DB
             // (Phase 2 & 3 may have changed them since the draft was loaded)
-            const { data: freshTemplateWorkouts } = await supabase
+            // Filter by mesocycle_id to avoid mixing cycles
+            let freshQuery = supabase
               .from("workouts")
               .select("id, week_number, day_label, workout_type, estimated_duration, is_rest_day, coach_note, short_on_time_note")
               .eq("program_id", draft.program!.id);
+
+            if (mesocycleId) {
+              freshQuery = freshQuery.eq("mesocycle_id", mesocycleId);
+            }
+
+            const { data: freshTemplateWorkouts } = await freshQuery;
 
             const freshTemplateWorkoutIds = (freshTemplateWorkouts ?? []).map((w) => w.id);
             const { data: freshTemplateSets } = await supabase

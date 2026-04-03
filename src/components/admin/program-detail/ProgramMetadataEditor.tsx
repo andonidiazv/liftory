@@ -29,11 +29,12 @@ interface Mesocycle {
 interface ProgramMetadataEditorProps {
   program: DraftProgram;
   onUpdate: (fields: Partial<DraftProgram>) => void;
+  activeCycleId?: string | null;
 }
 
 const BLOCK_OPTIONS = ["accumulation", "intensification", "peaking", "deload"];
 
-function MesocycleSection({ programId, totalWeeks }: { programId: string; totalWeeks: number }) {
+function MesocycleSection({ programId, totalWeeks, mesocycleId }: { programId: string; totalWeeks: number; mesocycleId?: string | null }) {
   const [mesocycle, setMesocycle] = useState<Mesocycle | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -41,17 +42,25 @@ function MesocycleSection({ programId, totalWeeks }: { programId: string; totalW
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
+      setLoading(true);
+      let query = supabase
         .from("mesocycles")
-        .select("id, cycle_number, cycle_start_date, cycle_end_date, total_weeks, status")
-        .eq("template_program_id", programId)
-        .order("cycle_number", { ascending: false })
-        .limit(1)
-        .single();
+        .select("id, cycle_number, cycle_start_date, cycle_end_date, total_weeks, status");
+
+      if (mesocycleId) {
+        query = query.eq("id", mesocycleId);
+      } else {
+        query = query
+          .eq("template_program_id", programId)
+          .order("cycle_number", { ascending: false })
+          .limit(1);
+      }
+
+      const { data } = await query.single();
       setMesocycle(data);
       setLoading(false);
     })();
-  }, [programId]);
+  }, [programId, mesocycleId]);
 
   if (loading) return null;
   if (!mesocycle) return null;
@@ -188,6 +197,7 @@ function MesocycleSection({ programId, totalWeeks }: { programId: string; totalW
 export function ProgramMetadataEditor({
   program,
   onUpdate,
+  activeCycleId,
 }: ProgramMetadataEditorProps) {
   return (
     <div className="space-y-2">
@@ -231,54 +241,7 @@ export function ProgramMetadataEditor({
         />
       </div>
 
-      {/* Current week */}
-      <div className="flex items-center gap-2">
-        <Label className="font-mono text-xs whitespace-nowrap" style={{ color: "#8A8A8E" }}>
-          Sem. actual
-        </Label>
-        <Input
-          type="number"
-          min={1}
-          max={program.total_weeks}
-          value={program.current_week}
-          onChange={(e) => onUpdate({ current_week: parseInt(e.target.value) || 1 })}
-          className="w-20 font-body text-sm"
-          style={{
-            backgroundColor: "#0D0C0A",
-            color: "#FAF8F5",
-            borderColor: "#3A3A3A",
-          }}
-        />
-      </div>
-
-      {/* Current block */}
-      <div className="flex items-center gap-2">
-        <Label className="font-mono text-xs whitespace-nowrap" style={{ color: "#8A8A8E" }}>
-          Bloque
-        </Label>
-        <Select
-          value={program.current_block}
-          onValueChange={(val) => onUpdate({ current_block: val })}
-        >
-          <SelectTrigger
-            className="w-[160px] font-body text-sm"
-            style={{
-              backgroundColor: "#0D0C0A",
-              color: "#FAF8F5",
-              borderColor: "#3A3A3A",
-            }}
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent style={{ backgroundColor: "#1C1C1E", borderColor: "#3A3A3A" }}>
-            {BLOCK_OPTIONS.map((b) => (
-              <SelectItem key={b} value={b} style={{ color: "#FAF8F5" }}>
-                {b.charAt(0).toUpperCase() + b.slice(1)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {/* Current week & block hidden — auto-calculated from week number, not editable on templates */}
 
       {/* Is active */}
       <div className="flex items-center gap-2">
@@ -295,8 +258,8 @@ export function ProgramMetadataEditor({
       </div>
     </div>
 
-    {/* Mesocycle section — independent from program save pipeline */}
-    <MesocycleSection programId={program.id} totalWeeks={program.total_weeks} />
+    {/* Mesocycle section — shows info for the currently selected cycle */}
+    <MesocycleSection programId={program.id} totalWeeks={program.total_weeks} mesocycleId={activeCycleId} />
     </div>
   );
 }

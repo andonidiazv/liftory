@@ -8,7 +8,7 @@ import { es } from "date-fns/locale";
 import {
   Camera, LogOut, Trash2, Crown,
   AlertTriangle, Clock, Edit2, Check, X, Dumbbell, Target,
-  Calendar, MapPin, Shield,
+  Calendar, MapPin, Shield, BookOpen, ChevronRight,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -281,6 +281,25 @@ export default function Profile() {
             )}
           </div>
         </div>
+
+        {/* ═══ BIBLIOTECA DE EJERCICIOS ═══ */}
+        <button
+          onClick={() => navigate("/exercises")}
+          className="press-scale mt-8 flex w-full items-center gap-4 rounded-xl bg-card p-4 text-left transition-colors"
+          style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+        >
+          <div
+            className="flex h-9 w-9 items-center justify-center rounded-lg"
+            style={{ background: "rgba(199,91,57,0.1)" }}
+          >
+            <BookOpen className="h-4 w-4" style={{ color: "#C75B39" }} />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-body font-medium text-foreground">Biblioteca de Ejercicios</p>
+            <p className="text-xs text-muted-foreground font-body">Videos, técnica y coaching cues</p>
+          </div>
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        </button>
 
         {/* ═══ CERRAR SESIÓN ═══ */}
         <button

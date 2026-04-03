@@ -2,10 +2,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useWorkoutData } from "@/hooks/useWorkoutData";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Trophy, TrendingUp, Clock, Dumbbell, Star, Leaf, Send, Skull, Angry, Smile, Flame, ArrowRight, Check } from "lucide-react";
-import Layout from "@/components/Layout";
+import { Trophy, TrendingUp, Clock, Dumbbell, Star, Leaf, Send, Share2, Download, ChevronLeft, Instagram } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 
 // ── Question pool ──────────────────────────────────────────────
 interface FeedbackQuestion {
@@ -13,6 +12,7 @@ interface FeedbackQuestion {
   text: string;
   type: "emoji" | "chips" | "exercise-vote" | "single";
   options?: { label: string; value: string }[];
+  allowOther?: boolean; // show "Otro" with free text input
 }
 
 const QUESTION_POOL: FeedbackQuestion[] = [
@@ -52,6 +52,7 @@ const QUESTION_POOL: FeedbackQuestion[] = [
     id: "discomfort_flags",
     text: "¿Algo te molestó?",
     type: "chips",
+    allowOther: true,
     options: [
       { label: "Rodillas", value: "knees" },
       { label: "Espalda baja", value: "lower_back" },
@@ -64,9 +65,73 @@ const QUESTION_POOL: FeedbackQuestion[] = [
 ];
 
 function pickTwoQuestions(): FeedbackQuestion[] {
-  // Simple random pick of 2 unique questions
   const shuffled = [...QUESTION_POOL].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, 2);
+}
+
+// ── Prime Score calculation ─────────────────────────────────────
+function calculatePrimeScore(args: {
+  completedSets: number;
+  totalSets: number;
+  setsWithWeight: number;
+  strengthSets: number;
+  prs: number;
+  cooldownDone: boolean;
+  durationMinutes: number;
+}): number {
+  const { completedSets, totalSets, setsWithWeight, strengthSets, prs, cooldownDone, durationMinutes } = args;
+
+  // 1. Completion rate (0-40 pts)
+  const completionRate = totalSets > 0 ? completedSets / totalSets : 0;
+  const completionScore = completionRate * 40;
+
+  // 2. Weight logging rate (0-30 pts)
+  const weightLogRate = strengthSets > 0 ? setsWithWeight / strengthSets : 1;
+  const weightScore = weightLogRate * 30;
+
+  // 3. PRs bonus (0-15 pts)
+  const prScore = Math.min(prs * 5, 15);
+
+  // 4. Cooldown bonus (0-5 pts)
+  const cooldownScore = cooldownDone ? 5 : 0;
+
+  // 5. Duration bonus — showed up and put in time (0-10 pts)
+  const durationScore = durationMinutes >= 20 ? 10 : durationMinutes >= 10 ? 7 : durationMinutes >= 5 ? 4 : 0;
+
+  return Math.min(100, Math.round(completionScore + weightScore + prScore + cooldownScore + durationScore));
+}
+
+function getScoreLabel(score: number): string {
+  if (score >= 95) return "IMPARABLE";
+  if (score >= 85) return "CRACK";
+  if (score >= 70) return "FIRME";
+  if (score >= 50) return "SUBIENDO";
+  return "CALENTANDO";
+}
+
+function getScoreColor(score: number): string {
+  if (score >= 85) return "#C9A96E"; // gold
+  if (score >= 70) return "#C75B39"; // terracotta
+  if (score >= 50) return "#7A8B5C"; // sage
+  return "#B0ACA7"; // muted
+}
+
+function getPhaseForWeek(week: number): string {
+  if (week === 1) return "BASE";
+  if (week === 2) return "BASE +";
+  if (week === 3) return "ACUMULACIÓN";
+  if (week === 4) return "INTENSIFICACIÓN";
+  if (week === 5) return "PEAK";
+  return "DELOAD";
+}
+
+function getPhaseDescription(week: number): string {
+  if (week === 1) return "Construyendo patrones de movimiento y adaptación.";
+  if (week === 2) return "Subiendo volumen con la base técnica establecida.";
+  if (week === 3) return "Acumulando volumen. Tu cuerpo se adapta a cargas más exigentes.";
+  if (week === 4) return "Subiendo intensidad, bajando repeticiones. Preparando cargas máximas.";
+  if (week === 5) return "Semana de máximo rendimiento. Pocas reps, máxima intensidad.";
+  return "Recuperación activa. Volumen bajo para regenerar y sobrecompensar.";
 }
 
 // ── Component ──────────────────────────────────────────────────
@@ -74,17 +139,21 @@ export default function WorkoutComplete() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { workout, sets, loading, weightUnit, cooldownCompleted, exerciseGroups } = useWorkoutData(id);
+  const { workout, sets, loading, weightUnit, cooldownCompleted } = useWorkoutData(id);
+  const scoreCardRef = useRef<HTMLDivElement>(null);
 
   const [feedbackDone, setFeedbackDone] = useState(false);
   const [feedbackSkipped, setFeedbackSkipped] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [questions] = useState<FeedbackQuestion[]>(() => pickTwoQuestions());
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
-
-  // Exercise vote state (question id = "exercise_vote")
-  const [likedExercises, setLikedExercises] = useState<string[]>([]);
-  const [dislikedExercises, setDislikedExercises] = useState<string[]>([]);
+  const [otherTexts, setOtherTexts] = useState<Record<string, string>>({});
+  const [showOtherInput, setShowOtherInput] = useState<Record<string, boolean>>({});
+  const [sharing, setSharing] = useState(false);
+  const [animatedScore, setAnimatedScore] = useState(0);
+  const [animatedStats, setAnimatedStats] = useState({ completedSets: 0, volume: 0, prs: 0, durationSec: 0 });
+  const [stickerVisible, setStickerVisible] = useState(false);
+  const animStartedRef = useRef(false);
 
   const showFeedback = !feedbackDone && !feedbackSkipped;
 
@@ -92,7 +161,6 @@ export default function WorkoutComplete() {
     setAnswers((prev) => {
       if (multi) {
         const current = (prev[questionId] as string[]) || [];
-        // "none" clears others; selecting other clears "none"
         if (value === "none") return { ...prev, [questionId]: ["none"] };
         const withoutNone = current.filter((v) => v !== "none");
         const updated = withoutNone.includes(value)
@@ -114,25 +182,29 @@ export default function WorkoutComplete() {
     if (!user || !id) return;
     setSubmitting(true);
     try {
-      const responses: Record<string, unknown> = { ...answers };
-      if (likedExercises.length > 0) responses.liked_exercises = likedExercises;
-      if (dislikedExercises.length > 0) responses.disliked_exercises = dislikedExercises;
-
+      // Merge other texts into responses
+      const mergedResponses: Record<string, unknown> = { ...answers };
+      for (const [qId, text] of Object.entries(otherTexts)) {
+        if (text.trim()) {
+          const current = (mergedResponses[qId] as string[]) || [];
+          mergedResponses[qId] = [...current.filter(v => v !== "other"), `other:${text.trim()}`];
+        }
+      }
       await supabase.from("user_feedback").insert({
         user_id: user.id,
         workout_id: id,
         question_ids: questions.map((q) => q.id),
-        responses,
+        responses: mergedResponses,
       });
     } catch {
-      // Silent fail — V1.1 will handle retry
+      // Silent fail
     }
     setSubmitting(false);
     setFeedbackDone(true);
-  }, [user, id, answers, likedExercises, dislikedExercises, questions]);
+  }, [user, id, answers, otherTexts, questions]);
 
   const stats = useMemo(() => {
-    if (!sets.length) return { totalSets: 0, volume: 0, prs: 0, duration: "" };
+    if (!sets.length) return { totalSets: 0, completedSets: 0, volume: 0, prs: 0, duration: "", durationMinutes: 0, setsWithWeight: 0, strengthSets: 0 };
 
     const completedSets = sets.filter((s) => s.is_completed);
     const volume = completedSets.reduce(
@@ -141,7 +213,13 @@ export default function WorkoutComplete() {
     );
     const prs = completedSets.filter((s) => s.is_pr).length;
 
+    // Strength sets = non-mobility, non-cooldown
+    const mobilityBlocks = ['PRIME BLOCK', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION', 'RECOVERY BLOCK'];
+    const strengthSets = completedSets.filter(s => !mobilityBlocks.includes(s.block_label || ''));
+    const setsWithWeight = strengthSets.filter(s => s.actual_weight != null && s.actual_weight > 0).length;
+
     let duration = "—";
+    let durationMinutes = 0;
     if (workout?.completed_at) {
       const loggedTimes = completedSets
         .filter((s) => s.logged_at)
@@ -153,54 +231,342 @@ export default function WorkoutComplete() {
         const m = Math.floor(diffSec / 60);
         const sec = diffSec % 60;
         duration = `${m}:${sec.toString().padStart(2, "0")}`;
+        durationMinutes = m;
       }
     }
 
-    return { totalSets: completedSets.length, volume: Math.round(volume), prs, duration };
+    return { totalSets: sets.length, completedSets: completedSets.length, volume: Math.round(volume), prs, duration, durationMinutes, setsWithWeight, strengthSets: strengthSets.length };
   }, [sets, workout]);
+
+  const primeScore = useMemo(() => calculatePrimeScore({
+    completedSets: stats.completedSets,
+    totalSets: stats.totalSets,
+    setsWithWeight: stats.setsWithWeight,
+    strengthSets: stats.strengthSets,
+    prs: stats.prs,
+    cooldownDone: cooldownCompleted,
+    durationMinutes: stats.durationMinutes,
+  }), [stats, cooldownCompleted]);
+
+  const scoreLabel = getScoreLabel(primeScore);
+  const scoreColor = getScoreColor(primeScore);
+
+  // Animate score and stats on mount (must be after primeScore/stats are defined)
+  useEffect(() => {
+    if (loading || animStartedRef.current) return;
+    if (sets.length === 0) return; // Wait for data
+    animStartedRef.current = true;
+
+    const scoreDuration = 2800; // ring + score counter
+    const statsDuration = 3800; // stats take longer — suspense
+    const fps = 60;
+    const scoreSteps = Math.ceil(scoreDuration / (1000 / fps));
+    const statsSteps = Math.ceil(statsDuration / (1000 / fps));
+    let step = 0;
+
+    const targetDurationSec = stats.durationMinutes * 60 + (stats.duration !== "—" ? parseInt(stats.duration.split(":")[1] || "0") : 0);
+
+    // Roulette ease: fast start, dramatically slows at the end
+    // Hits ~85% of value in the first 50% of time, then crawls the last 15%
+    const rouletteEase = (t: number): number => {
+      if (t >= 1) return 1;
+      // Blend two curves: fast power curve early + extreme deceleration late
+      // Using exponent 5 (quintic) makes the tail VERY slow
+      return 1 - Math.pow(1 - t, 5);
+    };
+
+    const interval = setInterval(() => {
+      step++;
+      // Score uses cubic ease-out
+      const tScore = Math.min(step / scoreSteps, 1);
+      const easeScore = 1 - Math.pow(1 - tScore, 3);
+
+      // Stats use roulette ease — rockets up then crawls the last stretch
+      const tStats = Math.min(step / statsSteps, 1);
+      const easeStats = rouletteEase(tStats);
+
+      setAnimatedScore(Math.round(primeScore * easeScore));
+      setAnimatedStats({
+        completedSets: Math.round(stats.completedSets * easeStats),
+        volume: Math.round(stats.volume * easeStats),
+        prs: Math.round(stats.prs * easeStats),
+        durationSec: Math.round(targetDurationSec * easeStats),
+      });
+
+      if (tScore >= 1 && tStats >= 1) {
+        clearInterval(interval);
+      }
+      // Trigger sticker slam 2s after score ring completes
+      if (tScore >= 1 && !stickerVisible) {
+        setTimeout(() => setStickerVisible(true), 2000);
+      }
+    }, 1000 / fps);
+
+    return () => clearInterval(interval);
+  }, [loading, primeScore, stats, sets.length]);
+
+  const formatAnimDuration = (totalSec: number) => {
+    if (stats.duration === "—") return "—";
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  };
+
+  const storyCardRef = useRef<HTMLDivElement>(null);
+
+  // Share functionality
+  const handleShare = async (mode: "story" | "card" = "card") => {
+    const ref = mode === "story" ? storyCardRef.current : scoreCardRef.current;
+    if (!ref) return;
+    setSharing(true);
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      // For stories: render at exact 1080x1920 (scale handles pixel density)
+      const canvas = await html2canvas(ref, {
+        backgroundColor: null,
+        scale: mode === "story" ? 2 : 3,
+        useCORS: true,
+        width: mode === "story" ? 360 : undefined,
+        height: mode === "story" ? 640 : undefined,
+      });
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
+      if (!blob) { setSharing(false); return; }
+
+      const fileName = mode === "story" ? "prime-score-story.png" : "prime-score.png";
+      const file = new File([blob], fileName, { type: "image/png" });
+
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: "LIFTORY Prime Score",
+          text: `Prime Score: ${primeScore}/100 — ${workout?.day_label ?? "Workout"} completado en LIFTORY`,
+        });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `prime-score-${mode}-${new Date().toISOString().slice(0, 10)}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setSharing(false);
+  };
 
   if (loading) {
     return (
-      <Layout>
-        <div className="flex flex-col items-center px-6 pt-20">
-          <Skeleton className="h-24 w-24 rounded-full bg-muted" />
-          <Skeleton className="mt-8 h-8 w-48 bg-muted" />
-          <Skeleton className="mt-4 h-4 w-36 bg-muted" />
-          <div className="mt-10 grid w-full grid-cols-2 gap-3">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-28 rounded-xl bg-muted" />
-            ))}
-          </div>
+      <div className="flex min-h-screen flex-col items-center bg-background px-6 pt-20">
+        <Skeleton className="h-24 w-24 rounded-full bg-muted" />
+        <Skeleton className="mt-8 h-8 w-48 bg-muted" />
+        <Skeleton className="mt-4 h-4 w-36 bg-muted" />
+        <div className="mt-10 grid w-full max-w-md grid-cols-2 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 rounded-xl bg-muted" />
+          ))}
         </div>
-      </Layout>
+      </div>
     );
   }
 
-  const hasPRs = stats.prs > 0;
-  const motivationalMessage = hasPRs
-    ? "Nuevo récord personal. No fue suerte — fue el trabajo acumulado."
-    : "Sesión registrada. Eso es exactamente de lo que está hecho el progreso real.";
+  const weekNumber = workout?.week_number ?? 1;
+  const phaseLabel = getPhaseForWeek(weekNumber);
+  const phaseDesc = getPhaseDescription(weekNumber);
+
+  const today = new Date();
+  const dateStr = today.toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" }).toUpperCase();
 
   return (
-    <Layout>
-      <div className="flex flex-col items-center px-6 pt-20 stagger-fade-in">
-        {/* Celebration glow */}
-        <div className="relative">
-          <div className="h-24 w-24 rounded-full bg-primary/20 glow-primary flex items-center justify-center animate-set-complete">
-            {hasPRs ? <Star className="h-10 w-10 text-gold" /> : <Trophy className="h-10 w-10 text-primary" />}
+    <div className="flex min-h-screen flex-col bg-background">
+      {/* Header */}
+      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm px-5 pb-3 pt-14 flex items-center justify-between">
+        <button onClick={() => navigate("/home", { replace: true })} className="press-scale flex items-center gap-1.5 rounded-xl bg-secondary px-3 py-2">
+          <ChevronLeft className="h-4 w-4 text-foreground" />
+          <span className="font-body text-sm text-foreground">Inicio</span>
+        </button>
+        <span className="font-mono uppercase text-muted-foreground" style={{ fontSize: 10, letterSpacing: "0.15em", fontWeight: 600 }}>
+          SESIÓN COMPLETADA
+        </span>
+        <div style={{ width: 72 }} /> {/* Spacer for centering */}
+      </div>
+
+      <div className="flex flex-col items-center px-5 pb-10 stagger-fade-in">
+        {/* ═══ PRIME SCORE CARD (dark, shareable) ═══ */}
+        <div
+          ref={scoreCardRef}
+          className="w-full max-w-md rounded-2xl overflow-hidden"
+          style={{
+            background: "linear-gradient(170deg, #1C1C1E 0%, #0D0D0F 50%, #1A1614 100%)",
+            padding: "32px 24px 24px",
+          }}
+        >
+          {/* Top: LIFTORY centered + date */}
+          <div className="flex flex-col items-center">
+            <span className="font-display" style={{ fontSize: 22, color: "#FAF8F5", fontWeight: 800, letterSpacing: "-0.03em" }}>
+              PRIME SCORE
+            </span>
+            <span className="font-mono uppercase mt-1" style={{ fontSize: 9, color: "rgba(250,248,245,0.3)", letterSpacing: "0.1em" }}>
+              {dateStr}
+            </span>
+          </div>
+
+          {/* Score circle */}
+          <div className="flex flex-col items-center mt-6">
+            <div className="relative flex items-center justify-center" style={{ width: 150, height: 150 }}>
+              {/* Glow behind ring */}
+              <div
+                className="absolute rounded-full"
+                style={{
+                  width: 130, height: 130,
+                  background: `radial-gradient(circle, ${scoreColor}20 0%, transparent 70%)`,
+                  filter: `blur(12px)`,
+                  opacity: animatedScore / primeScore || 0,
+                }}
+              />
+              {/* Ring SVG */}
+              <svg width="150" height="150" className="absolute">
+                <circle cx="75" cy="75" r="62" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5" />
+                <circle
+                  cx="75" cy="75" r="62"
+                  fill="none"
+                  stroke={scoreColor}
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                  strokeDasharray={`${(animatedScore / 100) * 390} 390`}
+                  strokeDashoffset="0"
+                  transform="rotate(-90 75 75)"
+                  style={{ filter: `drop-shadow(0 0 6px ${scoreColor}88) drop-shadow(0 0 14px ${scoreColor}44)` }}
+                />
+              </svg>
+              {/* Score number */}
+              <div className="flex items-baseline justify-center z-10">
+                <span className="font-mono font-bold" style={{ fontSize: 48, color: "#FAF8F5", letterSpacing: "-0.03em", lineHeight: 1 }}>
+                  {animatedScore}
+                </span>
+                <span className="font-mono" style={{ fontSize: 14, color: "rgba(250,248,245,0.3)", marginLeft: 2 }}>
+                  /100
+                </span>
+              </div>
+            </div>
+
+            {/* Sticker label */}
+            <div className="mt-3 relative" style={{ height: 28, overflow: "visible" }}>
+              <span
+                className={`sticker-label font-display uppercase ${stickerVisible ? "sticker-slam" : ""}`}
+                style={{
+                  fontSize: 13,
+                  color: scoreColor,
+                  fontWeight: 800,
+                  letterSpacing: "0.08em",
+                  opacity: stickerVisible ? 1 : 0,
+                  display: "inline-block",
+                  textShadow: stickerVisible ? `0 0 20px ${scoreColor}66, 0 0 40px ${scoreColor}33` : "none",
+                }}
+              >
+                {scoreLabel}
+              </span>
+            </div>
+
+            {/* Workout name + phase */}
+            <p className="mt-2 font-display text-center" style={{ fontSize: 16, color: "rgba(250,248,245,0.85)", fontWeight: 600, letterSpacing: "-0.01em" }}>
+              {workout?.day_label ?? "Workout"}
+            </p>
+            <div className="flex items-center gap-2 mt-2">
+              <span className="font-mono uppercase rounded-full px-2.5 py-0.5" style={{ fontSize: 9, letterSpacing: "0.12em", fontWeight: 700, color: "#C75B39", background: "rgba(199,91,57,0.15)", border: "1px solid rgba(199,91,57,0.25)" }}>
+                SEMANA {weekNumber} · {phaseLabel}
+              </span>
+            </div>
+          </div>
+
+          {/* Stats grid */}
+          <div className="grid grid-cols-2 gap-3 mt-6">
+            {[
+              { Icon: Clock, label: "DURACIÓN", value: formatAnimDuration(animatedStats.durationSec) },
+              { Icon: Dumbbell, label: "SETS", value: `${animatedStats.completedSets}/${stats.totalSets}` },
+              { Icon: TrendingUp, label: "VOLUMEN", value: `${animatedStats.volume.toLocaleString()} ${weightUnit}` },
+              { Icon: Trophy, label: "PRs", value: String(animatedStats.prs) },
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                className="rounded-xl text-center py-3 px-2"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
+              >
+                <stat.Icon className="h-4 w-4 mx-auto" style={{ color: "rgba(250,248,245,0.4)" }} />
+                <p className="font-mono font-semibold mt-1.5 tabular-nums" style={{ fontSize: 18, color: "#FAF8F5", letterSpacing: "0.02em" }}>
+                  {stat.value}
+                </p>
+                <p className="font-mono uppercase mt-0.5" style={{ fontSize: 8, color: "rgba(250,248,245,0.35)", letterSpacing: "0.15em" }}>
+                  {stat.label}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Badges row */}
+          <div className="flex items-center justify-center gap-2 mt-5">
+            {stats.prs > 0 && (
+              <span className="flex items-center gap-1 rounded-full px-3 py-1" style={{ background: "rgba(201,169,110,0.15)", border: "1px solid rgba(201,169,110,0.3)" }}>
+                <Star className="h-3 w-3" style={{ color: "#C9A96E" }} />
+                <span className="font-mono uppercase" style={{ fontSize: 9, color: "#C9A96E", fontWeight: 600, letterSpacing: "0.1em" }}>
+                  {stats.prs} PR{stats.prs > 1 ? "s" : ""}
+                </span>
+              </span>
+            )}
+            {cooldownCompleted && (
+              <span className="flex items-center gap-1 rounded-full px-3 py-1" style={{ background: "rgba(122,139,92,0.15)", border: "1px solid rgba(122,139,92,0.3)" }}>
+                <Leaf className="h-3 w-3" style={{ color: "#7A8B5C" }} />
+                <span className="font-mono uppercase" style={{ fontSize: 9, color: "#7A8B5C", fontWeight: 600, letterSpacing: "0.1em" }}>
+                  RECOVERY
+                </span>
+              </span>
+            )}
+            {primeScore >= 85 && (
+              <span className="flex items-center gap-1 rounded-full px-3 py-1" style={{ background: "rgba(199,91,57,0.15)", border: "1px solid rgba(199,91,57,0.3)" }}>
+                <Trophy className="h-3 w-3" style={{ color: "#C75B39" }} />
+                <span className="font-mono uppercase" style={{ fontSize: 9, color: "#C75B39", fontWeight: 600, letterSpacing: "0.1em" }}>
+                  ÉLITE
+                </span>
+              </span>
+            )}
+          </div>
+
+          {/* Bottom branding */}
+          <div className="flex items-center justify-center gap-1.5 mt-5 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+            <span className="font-mono uppercase" style={{ fontSize: 8, color: "rgba(250,248,245,0.65)", letterSpacing: "0.2em" }}>
+              POWERED BY
+            </span>
+            <span className="font-display" style={{ fontSize: 10, color: "#FAF8F5", fontWeight: 800, letterSpacing: "-0.02em" }}>
+              LIFTORY
+            </span>
           </div>
         </div>
 
-        <h1 className="mt-8 text-hero text-foreground text-center">
-          Sesión completada
-        </h1>
-        <p className="mt-2 text-muted-foreground text-center font-body font-light">
-          {workout?.day_label ?? "Workout"}
-        </p>
+        {/* Share buttons */}
+        <div className="flex w-full max-w-md gap-3 mt-4">
+          <button
+            onClick={() => handleShare("story")}
+            disabled={sharing}
+            className="press-scale flex flex-1 items-center justify-center gap-2 rounded-xl py-4 font-display text-[15px] font-semibold text-primary-foreground transition-all"
+            style={{ background: "#C75B39" }}
+          >
+            <Instagram className="h-4 w-4" />
+            {sharing ? "..." : "Stories"}
+          </button>
+          <button
+            onClick={() => handleShare("card")}
+            disabled={sharing}
+            className="press-scale flex flex-1 items-center justify-center gap-2 rounded-xl py-4 font-display text-[15px] font-semibold transition-all"
+            style={{ background: "rgba(199,91,57,0.12)", color: "#C75B39", border: "1px solid rgba(199,91,57,0.3)" }}
+          >
+            <Share2 className="h-4 w-4" />
+            {sharing ? "..." : "Compartir"}
+          </button>
+        </div>
 
-        {/* ── FEEDBACK SECTION (before stats) ── */}
+        {/* ── FEEDBACK SECTION ── */}
         {showFeedback && (
-          <div className="mt-8 w-full animate-fade-up">
+          <div className="mt-8 w-full max-w-md">
             <p className="font-mono uppercase text-muted-foreground text-center mb-5" style={{ fontSize: 11, letterSpacing: "0.15em", fontWeight: 600 }}>
               FEEDBACK RÁPIDO
             </p>
@@ -249,20 +615,44 @@ export default function WorkoutComplete() {
                   )}
 
                   {q.type === "chips" && q.options && (
-                    <div className="flex flex-wrap gap-2">
-                      {q.options.map((opt) => (
-                        <button
-                          key={opt.value}
-                          onClick={() => handleSelect(q.id, opt.value, true)}
-                          className={`press-scale rounded-full border-2 px-4 py-2 font-body text-sm font-medium transition-all ${
-                            isSelected(q.id, opt.value)
-                              ? "border-primary bg-primary/10 text-foreground"
-                              : "border-border bg-secondary/50 text-muted-foreground"
-                          }`}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
+                    <div className="flex flex-col gap-2">
+                      <div className="flex flex-wrap gap-2">
+                        {q.options.map((opt) => (
+                          <button
+                            key={opt.value}
+                            onClick={() => handleSelect(q.id, opt.value, true)}
+                            className={`press-scale rounded-full border-2 px-4 py-2 font-body text-sm font-medium transition-all ${
+                              isSelected(q.id, opt.value)
+                                ? "border-primary bg-primary/10 text-foreground"
+                                : "border-border bg-secondary/50 text-muted-foreground"
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                        {q.allowOther && (
+                          <button
+                            onClick={() => setShowOtherInput(prev => ({ ...prev, [q.id]: !prev[q.id] }))}
+                            className={`press-scale rounded-full border-2 px-4 py-2 font-body text-sm font-medium transition-all ${
+                              showOtherInput[q.id]
+                                ? "border-primary bg-primary/10 text-foreground"
+                                : "border-border bg-secondary/50 text-muted-foreground"
+                            }`}
+                          >
+                            + Otro
+                          </button>
+                        )}
+                      </div>
+                      {q.allowOther && showOtherInput[q.id] && (
+                        <input
+                          type="text"
+                          placeholder="Describe..."
+                          value={otherTexts[q.id] || ""}
+                          onChange={(e) => setOtherTexts(prev => ({ ...prev, [q.id]: e.target.value }))}
+                          className="rounded-xl border-2 border-border bg-secondary/50 px-4 py-2.5 font-body text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors"
+                          maxLength={200}
+                        />
+                      )}
                     </div>
                   )}
                 </div>
@@ -274,7 +664,7 @@ export default function WorkoutComplete() {
               <button
                 onClick={submitFeedback}
                 disabled={submitting || Object.keys(answers).length === 0}
-                className="press-scale flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-body text-[15px] font-medium text-primary-foreground glow-primary disabled:opacity-40"
+                className="press-scale flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-body text-[15px] font-medium text-primary-foreground disabled:opacity-40"
               >
                 <Send className="h-4 w-4" />
                 {submitting ? "Enviando..." : "Enviar feedback"}
@@ -289,67 +679,173 @@ export default function WorkoutComplete() {
           </div>
         )}
 
-        {/* ── STATS (shown after feedback or skip) ── */}
-        {!showFeedback && (
-          <>
-            <div className="mt-10 grid w-full grid-cols-2 gap-3 animate-fade-up">
-              {[
-                { icon: Clock, label: "DURACIÓN", value: stats.duration, unit: "MIN" },
-                { icon: Dumbbell, label: "SETS", value: String(stats.totalSets), unit: "COMPLETADOS" },
-                { icon: TrendingUp, label: "VOLUMEN", value: stats.volume.toLocaleString(), unit: `${weightUnit.toUpperCase()} TOTAL` },
-                { icon: Trophy, label: "PRs", value: String(stats.prs), unit: "RÉCORDS" },
-              ].map((stat) => (
-                <div key={stat.label} className="card-fbb text-center">
-                  <stat.icon className="mx-auto h-5 w-5 text-primary" />
-                  <p className="mt-2 font-mono text-[28px] font-medium text-foreground" style={{ letterSpacing: "0.05em", lineHeight: 1 }}>
-                    {stat.value}
-                  </p>
-                  <p className="mt-1 font-mono text-muted-foreground" style={{ fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase" }}>
-                    {stat.unit}
-                  </p>
-                  <p className="mt-1 font-mono text-muted-foreground" style={{ fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase" }}>
-                    {stat.label}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {/* Motivational message */}
-            <div className="mt-6 w-full card-fbb card-accent-gold bg-success/5 border border-success/20">
-              <p className="font-serif italic" style={{ fontSize: 17, fontWeight: 300, color: "rgba(250,248,245,0.7)", lineHeight: 1.4 }}>
-                {motivationalMessage}
-              </p>
-            </div>
-
-            {/* Cool-down badge */}
-            {cooldownCompleted && (
-              <div className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl py-3" style={{ backgroundColor: "hsl(var(--success) / 0.1)", border: "1px solid hsl(var(--success) / 0.25)" }}>
-                <Leaf className="h-4 w-4" style={{ color: "hsl(var(--success))" }} />
-                <span className="font-body text-sm font-medium" style={{ color: "hsl(var(--success))" }}>
-                  Cool-down completado
-                </span>
-              </div>
-            )}
-
-            {/* Feedback submitted badge */}
-            {feedbackDone && (
-              <div className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl py-3 bg-primary/10 border border-primary/20">
-                <Send className="h-3.5 w-3.5 text-primary" />
-                <span className="font-body text-sm font-medium text-primary">
-                  Feedback enviado — gracias
-                </span>
-              </div>
-            )}
-
-            <button
-              onClick={() => navigate("/home", { replace: true })}
-              className="press-scale mt-8 mb-8 w-full rounded-xl bg-primary py-4 font-body text-[15px] font-medium text-primary-foreground"
-            >
-              Volver al inicio
-            </button>
-          </>
+        {/* Feedback done badge */}
+        {feedbackDone && (
+          <div className="mt-4 w-full max-w-md flex items-center justify-center gap-2 rounded-xl py-3 bg-primary/10 border border-primary/20">
+            <Send className="h-3.5 w-3.5 text-primary" />
+            <span className="font-body text-sm font-medium text-primary">
+              Feedback enviado — gracias
+            </span>
+          </div>
         )}
+
+        {/* Phase info card */}
+        <div className="mt-6 w-full max-w-md rounded-xl p-4" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="font-mono uppercase" style={{ fontSize: 10, letterSpacing: "0.12em", fontWeight: 700, color: "#C75B39" }}>
+              SEMANA {weekNumber} · {phaseLabel}
+            </span>
+          </div>
+          <p className="font-body text-muted-foreground" style={{ fontSize: 13, lineHeight: 1.5 }}>
+            {phaseDesc}
+          </p>
+        </div>
+
+        {/* Navigation buttons */}
+        <div className="mt-6 mb-8 w-full max-w-md flex flex-col gap-3">
+          <button
+            onClick={() => navigate(`/workout/${id}`, { replace: true })}
+            className="press-scale w-full rounded-xl py-4 font-body text-[15px] font-medium text-foreground transition-all"
+            style={{ background: "hsl(var(--secondary))" }}
+          >
+            Ver resumen del workout
+          </button>
+          <button
+            onClick={() => navigate("/home", { replace: true })}
+            className="press-scale w-full rounded-xl py-4 font-body text-[15px] font-medium text-primary-foreground transition-all"
+            style={{ background: "#C75B39" }}
+          >
+            Volver al inicio
+          </button>
+        </div>
       </div>
-    </Layout>
+
+      {/* ═══ HIDDEN STORY CARD (9:16 ratio for Instagram Stories) ═══ */}
+      <div style={{ position: "fixed", left: "-9999px", top: 0, pointerEvents: "none" }}>
+        <div
+          ref={storyCardRef}
+          style={{
+            width: 360,
+            height: 640,
+            background: "linear-gradient(170deg, #1C1C1E 0%, #0D0D0F 40%, #1A1614 100%)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "40px 28px",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          {/* Ambient glow */}
+          <div style={{
+            position: "absolute",
+            width: 300, height: 300,
+            borderRadius: "50%",
+            background: `radial-gradient(circle, ${scoreColor}15 0%, transparent 70%)`,
+            filter: "blur(60px)",
+            top: "50%", left: "50%",
+            transform: "translate(-50%, -60%)",
+          }} />
+
+          {/* Top: PRIME SCORE */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", zIndex: 1 }}>
+            <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 26, color: "#FAF8F5", fontWeight: 800, letterSpacing: "-0.03em" }}>
+              PRIME SCORE
+            </span>
+            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: "rgba(250,248,245,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 4 }}>
+              {dateStr}
+            </span>
+          </div>
+
+          {/* Score ring */}
+          <div style={{ position: "relative", width: 180, height: 180, display: "flex", alignItems: "center", justifyContent: "center", marginTop: 28, zIndex: 1 }}>
+            <div style={{
+              position: "absolute", width: 160, height: 160, borderRadius: "50%",
+              background: `radial-gradient(circle, ${scoreColor}25 0%, transparent 70%)`,
+              filter: "blur(16px)",
+            }} />
+            <svg width="180" height="180" style={{ position: "absolute" }}>
+              <circle cx="90" cy="90" r="74" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5" />
+              <circle
+                cx="90" cy="90" r="74"
+                fill="none" stroke={scoreColor} strokeWidth="5" strokeLinecap="round"
+                strokeDasharray={`${(primeScore / 100) * 465} 465`}
+                strokeDashoffset="0"
+                transform="rotate(-90 90 90)"
+                style={{ filter: `drop-shadow(0 0 8px ${scoreColor}88) drop-shadow(0 0 18px ${scoreColor}44)` }}
+              />
+            </svg>
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", zIndex: 1 }}>
+              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 56, color: "#FAF8F5", fontWeight: 700, letterSpacing: "-0.03em", lineHeight: 1 }}>
+                {primeScore}
+              </span>
+              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 16, color: "rgba(250,248,245,0.3)", marginLeft: 2 }}>
+                /100
+              </span>
+            </div>
+          </div>
+
+          {/* Sticker label */}
+          <span style={{
+            fontFamily: "'Syne', sans-serif", fontSize: 14, color: scoreColor, fontWeight: 800,
+            letterSpacing: "0.08em", textTransform: "uppercase", marginTop: 10,
+            textShadow: `0 0 20px ${scoreColor}66, 0 0 40px ${scoreColor}33`, zIndex: 1,
+          }}>
+            {scoreLabel}
+          </span>
+
+          {/* Workout name + phase */}
+          <p style={{ fontFamily: "'Syne', sans-serif", fontSize: 17, color: "rgba(250,248,245,0.85)", fontWeight: 600, letterSpacing: "-0.01em", marginTop: 12, textAlign: "center", zIndex: 1 }}>
+            {workout?.day_label ?? "Workout"}
+          </p>
+          <span style={{
+            fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", fontWeight: 700,
+            color: "#C75B39", background: "rgba(199,91,57,0.15)", border: "1px solid rgba(199,91,57,0.25)",
+            borderRadius: 999, padding: "3px 10px", textTransform: "uppercase", marginTop: 8, zIndex: 1,
+          }}>
+            SEMANA {weekNumber} · {phaseLabel}
+          </span>
+
+          {/* Stats grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, width: "100%", marginTop: 24, zIndex: 1 }}>
+            {[
+              { label: "DURACIÓN", value: stats.durationMinutes > 0 ? `${Math.floor(stats.durationMinutes)}:${String(Math.round((stats.durationMinutes % 1) * 60)).padStart(2, "0")}` : "—" },
+              { label: "SETS", value: `${stats.completedSets}/${stats.totalSets}` },
+              { label: "VOLUMEN", value: `${stats.volume.toLocaleString()} ${weightUnit}` },
+              { label: "PRs", value: String(stats.prs) },
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                style={{
+                  background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)",
+                  borderRadius: 12, textAlign: "center", padding: "10px 6px",
+                }}
+              >
+                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 20, color: "#FAF8F5", fontWeight: 600, letterSpacing: "0.02em" }}>
+                  {stat.value}
+                </p>
+                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 8, color: "rgba(250,248,245,0.35)", letterSpacing: "0.15em", textTransform: "uppercase", marginTop: 2 }}>
+                  {stat.label}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Bottom branding */}
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            marginTop: "auto", paddingTop: 20, zIndex: 1,
+          }}>
+            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 8, color: "rgba(250,248,245,0.65)", letterSpacing: "0.2em", textTransform: "uppercase" }}>
+              POWERED BY
+            </span>
+            <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 11, color: "#FAF8F5", fontWeight: 800, letterSpacing: "-0.02em" }}>
+              LIFTORY
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

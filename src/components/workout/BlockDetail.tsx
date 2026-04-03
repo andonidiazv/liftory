@@ -1,7 +1,9 @@
 import { useState, useCallback, useEffect } from "react";
-import { ChevronLeft, Check, Dumbbell, Loader2, Quote, Trophy, Shuffle, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Dumbbell, Loader2, Quote, Trophy, Shuffle, X } from "lucide-react";
 import ExerciseThumbnail from "./ExerciseThumbnail";
 import SwapBottomSheet from "./SwapBottomSheet";
+import WeightPickerSheet from "./WeightPickerSheet";
+import RepsPickerSheet from "./RepsPickerSheet";
 import type { WorkoutBlock } from "./WorkoutOverview";
 import ExerciseVideoOverlay from "./ExerciseVideoOverlay";
 import type { WorkoutSetData, ExerciseGroup } from "@/hooks/useWorkoutData";
@@ -62,12 +64,15 @@ interface Props {
   weightUnit: string;
   saving: boolean;
   workoutId?: string;
+  nextBlockName?: string | null;
   onBack: () => void;
   onCompleteSet: (set: WorkoutSetData, data: { actual_weight: number; actual_reps: number }) => Promise<unknown>;
   onUncompleteSet: (setId: string) => Promise<boolean>;
   getSuggestedWeight: (exerciseId: string, plannedReps: number | null) => { weight: number | null; hint: string | null };
   onRestStart: (seconds: number) => void;
   onSwapExercise?: () => void;
+  onNextBlock?: () => void;
+  onFinishWorkout?: () => void;
 }
 
 function formatPrescription(sets: WorkoutSetData[]): string {
@@ -96,21 +101,36 @@ function parseSubGroupHeader(cue: string | null | undefined): { header: string |
 
 export default function BlockDetail({
   block,
-  weightUnit,
+  weightUnit: initialWeightUnit,
   saving,
   workoutId,
+  nextBlockName,
   onBack,
   onCompleteSet,
   onUncompleteSet,
   getSuggestedWeight,
   onRestStart,
   onSwapExercise,
+  onNextBlock,
+  onFinishWorkout,
 }: Props) {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const [setInputs, setSetInputs] = useState<Record<string, SetInputs>>({});
   const [prFlash, setPrFlash] = useState<string | null>(null);
   const [justCompleted, setJustCompleted] = useState<string | null>(null);
   const [videoOverlay, setVideoOverlay] = useState<{ name: string; videoUrl: string | null; coachingCue: string | null } | null>(null);
+  const [localUnit, setLocalUnit] = useState(initialWeightUnit || "kg");
+
+  const weightUnit = localUnit;
+
+  const handleToggleUnit = async () => {
+    const newUnit = localUnit === "kg" ? "lb" : "kg";
+    setLocalUnit(newUnit);
+    if (user) {
+      await supabase.from("user_profiles").update({ weight_unit: newUnit }).eq("user_id", user.id);
+      refreshProfile();
+    }
+  };
 
   // Optimistic completed state
   const [optimisticCompleted, setOptimisticCompleted] = useState<Set<string>>(() => {
@@ -138,7 +158,7 @@ export default function BlockDetail({
   );
 
   const updateInput = (setId: string, field: keyof SetInputs, value: string) => {
-    const existing = setInputs[setId] || { weight: "", reps: "" };
+    const existing = setInputs[setId] || getInputs(block.groups.flatMap(g => g.sets).find(s => s.id === setId)!);
     setSetInputs((prev) => ({ ...prev, [setId]: { ...existing, [field]: value } }));
   };
 
@@ -146,6 +166,12 @@ export default function BlockDetail({
     const w = parseFloat(newWeight);
     if (isNaN(w)) return;
     await supabase.from("workout_sets").update({ actual_weight: w }).eq("id", setId);
+  }, []);
+
+  const updateCompletedReps = useCallback(async (setId: string, newReps: string) => {
+    const r = parseInt(newReps);
+    if (isNaN(r)) return;
+    await supabase.from("workout_sets").update({ actual_reps: r }).eq("id", setId);
   }, []);
 
   const handleComplete = async (set: WorkoutSetData, groupIndex: number, isLastInSuperset: boolean) => {
@@ -245,6 +271,15 @@ export default function BlockDetail({
                 }
               }
             }}
+            onUncompleteAll={async () => {
+              for (const g of block.groups) {
+                for (const set of g.sets) {
+                  if (isCompleted(set)) {
+                    await handleUncomplete(set);
+                  }
+                }
+              }
+            }}
             onOpenVideo={(v) => setVideoOverlay(v)}
             workoutId={workoutId}
             userId={user?.id}
@@ -263,6 +298,13 @@ export default function BlockDetail({
                     if (!isCompleted(set)) {
                       setOptimisticCompleted((prev) => new Set(prev).add(set.id));
                       await onCompleteSet(set, { actual_weight: 0, actual_reps: set.planned_reps || 1 });
+                    }
+                  }
+                }}
+                onUncompleteAll={async () => {
+                  for (const set of group.sets) {
+                    if (isCompleted(set)) {
+                      await handleUncomplete(set);
                     }
                   }
                 }}
@@ -326,6 +368,7 @@ export default function BlockDetail({
             updateInput={updateInput}
             handleToggle={handleToggleSet}
             updateCompletedWeight={updateCompletedWeight}
+            updateCompletedReps={updateCompletedReps}
             getSuggestedWeight={getSuggestedWeight}
             prFlash={prFlash}
             justCompleted={justCompleted}
@@ -334,6 +377,8 @@ export default function BlockDetail({
             workoutId={workoutId}
             userId={user?.id}
             onSwapExercise={onSwapExercise}
+            localUnit={localUnit}
+            onToggleUnit={handleToggleUnit}
           />
         ) : (
           <div className="flex flex-col gap-6">
@@ -347,6 +392,7 @@ export default function BlockDetail({
                 updateInput={updateInput}
                 onToggle={(set) => handleToggleSet(set, gi, true)}
                 updateCompletedWeight={updateCompletedWeight}
+                updateCompletedReps={updateCompletedReps}
                 getSuggestedWeight={getSuggestedWeight}
                 prFlash={prFlash}
                 justCompleted={justCompleted}
@@ -355,11 +401,41 @@ export default function BlockDetail({
                 workoutId={workoutId}
                 userId={user?.id}
                 onSwapExercise={onSwapExercise}
+                localUnit={localUnit}
+                onToggleUnit={handleToggleUnit}
               />
             ))}
           </div>
         )}
       </div>
+
+      {/* Next block button */}
+      {onNextBlock && nextBlockName && (
+        <div className="px-5 pb-8">
+          <button
+            onClick={onNextBlock}
+            className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-display text-[14px] font-semibold transition-colors"
+            style={{ background: "rgba(199,91,57,0.1)", color: "#C75B39", border: "1px solid rgba(199,91,57,0.2)" }}
+          >
+            Siguiente: {nextBlockName} <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Finish workout button (last block) */}
+      {!onNextBlock && onFinishWorkout && (
+        <div className="px-5 pb-8">
+          <button
+            onClick={onFinishWorkout}
+            disabled={saving}
+            className="flex w-full items-center justify-center gap-2 rounded-xl py-4 font-display text-[15px] font-semibold text-primary-foreground transition-all press-scale"
+            style={{ background: "#C75B39" }}
+          >
+            <Check className="h-4 w-4" />
+            Terminar sesión
+          </button>
+        </div>
+      )}
 
       <ExerciseVideoOverlay
         videoUrl={videoOverlay?.videoUrl ?? null}
@@ -374,12 +450,13 @@ export default function BlockDetail({
 
 /* ═══════ EMOM CARD (instruction mode) ═══════ */
 function EmomCard({
-  block, saving, isCompleted, onCompleteAll, onOpenVideo,
+  block, saving, isCompleted, onCompleteAll, onUncompleteAll, onOpenVideo,
   workoutId, userId, onSwapExercise,
 }: {
   block: WorkoutBlock; saving: boolean;
   isCompleted: (s: WorkoutSetData) => boolean;
   onCompleteAll: () => Promise<void>;
+  onUncompleteAll: () => Promise<void>;
   onOpenVideo: (v: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
   workoutId?: string; userId?: string; onSwapExercise?: () => void;
 }) {
@@ -502,12 +579,16 @@ function EmomCard({
       </div>
 
       {allDone ? (
-        <div className="flex items-center justify-center gap-2 py-3">
+        <button
+          onClick={async () => { setCompleting(true); await onUncompleteAll(); setCompleting(false); }}
+          disabled={saving || completing}
+          className="flex items-center justify-center gap-2 py-3 w-full"
+        >
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary">
             <Check className="h-4 w-4 text-primary-foreground" />
           </div>
           <span className="font-body text-sm font-medium text-foreground">Completado</span>
-        </div>
+        </button>
       ) : (
         <>
           <textarea
@@ -552,19 +633,22 @@ function EmomCard({
 /* ═══════ SUPERSET ═══════ */
 function SupersetContent({
   block, weightUnit, saving, getInputs, updateInput, handleToggle,
-  updateCompletedWeight, getSuggestedWeight, prFlash, justCompleted, isCompleted, onOpenVideo,
-  workoutId, userId, onSwapExercise,
+  updateCompletedWeight, updateCompletedReps, getSuggestedWeight, prFlash, justCompleted, isCompleted, onOpenVideo,
+  workoutId, userId, onSwapExercise, localUnit, onToggleUnit,
 }: {
   block: WorkoutBlock; weightUnit: string; saving: boolean;
   getInputs: (s: WorkoutSetData) => SetInputs;
   updateInput: (id: string, f: keyof SetInputs, v: string) => void;
   handleToggle: (s: WorkoutSetData, gi: number, last: boolean) => void;
   updateCompletedWeight: (id: string, w: string) => void;
+  updateCompletedReps: (id: string, r: string) => void;
   getSuggestedWeight: (eid: string, reps: number | null) => { weight: number | null; hint: string | null };
   prFlash: string | null; justCompleted: string | null;
   isCompleted: (s: WorkoutSetData) => boolean;
   onOpenVideo: (v: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
   workoutId?: string; userId?: string; onSwapExercise?: () => void;
+  localUnit: string;
+  onToggleUnit: () => void;
 }) {
   const label = block.supersetGroup?.label || "SUPERSET";
   return (
@@ -586,6 +670,7 @@ function SupersetContent({
             updateInput={updateInput}
             onToggle={(set) => handleToggle(set, gi, gi === block.groups.length - 1)}
             updateCompletedWeight={updateCompletedWeight}
+            updateCompletedReps={updateCompletedReps}
             getSuggestedWeight={getSuggestedWeight}
             prFlash={prFlash}
             justCompleted={justCompleted}
@@ -594,6 +679,8 @@ function SupersetContent({
             workoutId={workoutId}
             userId={userId}
             onSwapExercise={onSwapExercise}
+            localUnit={localUnit}
+            onToggleUnit={onToggleUnit}
           />
         ))}
       </div>
@@ -604,14 +691,15 @@ function SupersetContent({
 /* ═══════ STRENGTH EXERCISE CARD ═══════ */
 function ExerciseCard({
   group, weightUnit, saving, getInputs, updateInput, onToggle,
-  updateCompletedWeight, getSuggestedWeight, prFlash, justCompleted, isCompleted, onOpenVideo,
-  workoutId, userId, onSwapExercise,
+  updateCompletedWeight, updateCompletedReps, getSuggestedWeight, prFlash, justCompleted, isCompleted, onOpenVideo,
+  workoutId, userId, onSwapExercise, localUnit, onToggleUnit,
 }: {
   group: ExerciseGroup; weightUnit: string; saving: boolean;
   getInputs: (s: WorkoutSetData) => SetInputs;
   updateInput: (id: string, f: keyof SetInputs, v: string) => void;
   onToggle: (s: WorkoutSetData) => void;
   updateCompletedWeight: (id: string, w: string) => void;
+  updateCompletedReps: (id: string, r: string) => void;
   getSuggestedWeight: (eid: string, reps: number | null) => { weight: number | null; hint: string | null };
   prFlash: string | null; justCompleted: string | null;
   isCompleted: (s: WorkoutSetData) => boolean;
@@ -619,6 +707,8 @@ function ExerciseCard({
   workoutId?: string;
   userId?: string;
   onSwapExercise?: () => void;
+  localUnit: string;
+  onToggleUnit: () => void;
 }) {
   const ex = group.exercise;
   const sets = group.sets;
@@ -630,6 +720,38 @@ function ExerciseCard({
   const [showSwapSheet, setShowSwapSheet] = useState(false);
   const [hasSubs, setHasSubs] = useState(false);
   const [originalExerciseId, setOriginalExerciseId] = useState<string | null>(null);
+
+  // Weight picker state
+  const [pickerSetId, setPickerSetId] = useState<string | null>(null);
+  const [pickerInitialValue, setPickerInitialValue] = useState(0);
+
+  const openWeightPicker = (set: WorkoutSetData) => {
+    const inputs = getInputs(set);
+    const val = parseFloat(inputs.weight) || 0;
+    setPickerInitialValue(val);
+    setPickerSetId(set.id);
+  };
+
+  // Reps picker state
+  const [repsPickerSetId, setRepsPickerSetId] = useState<string | null>(null);
+  const [repsPickerInitialValue, setRepsPickerInitialValue] = useState(1);
+
+  const openRepsPicker = (set: WorkoutSetData) => {
+    const inputs = getInputs(set);
+    const val = parseInt(inputs.reps) || set.planned_reps || 1;
+    setRepsPickerInitialValue(val);
+    setRepsPickerSetId(set.id);
+  };
+
+  const handlePickerConfirm = (value: number) => {
+    if (!pickerSetId) return;
+    updateInput(pickerSetId, "weight", String(value));
+    // If set is already completed, also update in DB
+    const set = sets.find(s => s.id === pickerSetId);
+    if (set && isCompleted(set)) {
+      updateCompletedWeight(pickerSetId, String(value));
+    }
+  };
 
   // Check if this exercise has substitutions — either directly or via a swap record
   useEffect(() => {
@@ -736,12 +858,83 @@ function ExerciseCard({
         </div>
       )}
 
+      {/* Weight Picker */}
+      <WeightPickerSheet
+        visible={pickerSetId !== null}
+        unit={weightUnit as "kg" | "lb"}
+        initialValue={pickerInitialValue}
+        onConfirm={(value) => {
+          const targetSetId = pickerSetId;
+          if (!targetSetId) return;
+          updateInput(targetSetId, "weight", String(value));
+          const set = sets.find(s => s.id === targetSetId);
+          if (set && isCompleted(set)) {
+            updateCompletedWeight(targetSetId, String(value));
+          }
+        }}
+        onClose={() => setPickerSetId(null)}
+      />
+
+      {/* Reps Picker */}
+      <RepsPickerSheet
+        visible={repsPickerSetId !== null}
+        initialValue={repsPickerInitialValue}
+        onConfirm={(value) => {
+          const targetSetId = repsPickerSetId;
+          if (!targetSetId) return;
+          updateInput(targetSetId, "reps", String(value));
+          const set = sets.find(s => s.id === targetSetId);
+          if (set && isCompleted(set)) {
+            updateCompletedReps(targetSetId, String(value));
+          }
+        }}
+        onClose={() => setRepsPickerSetId(null)}
+      />
+
       {/* Set table */}
       <div className="mt-3">
         <div className="grid grid-cols-[28px_48px_72px_52px_28px] gap-2 px-1 mb-1.5">
           <span className="font-mono uppercase text-muted-foreground" style={{ fontSize: 9 }}>SET</span>
           <span className="font-mono uppercase text-muted-foreground" style={{ fontSize: 9 }}>RPE</span>
-          <span className="font-mono uppercase text-muted-foreground" style={{ fontSize: 9 }}>PESO</span>
+          <div
+            onClick={onToggleUnit}
+            className="flex items-center rounded-full cursor-pointer select-none -mx-1"
+            style={{
+              background: "rgba(199,91,57,0.08)",
+              border: "1px solid rgba(199,91,57,0.15)",
+              height: 20,
+              width: 58,
+            }}
+          >
+            <span
+              className="font-mono flex-1 text-center transition-all"
+              style={{
+                fontSize: 8,
+                fontWeight: localUnit === "kg" ? 700 : 400,
+                color: localUnit === "kg" ? "#fff" : "#B0ACA7",
+                background: localUnit === "kg" ? "#C75B39" : "transparent",
+                borderRadius: 9999,
+                lineHeight: "18px",
+                letterSpacing: "0.05em",
+              }}
+            >
+              KG
+            </span>
+            <span
+              className="font-mono flex-1 text-center transition-all"
+              style={{
+                fontSize: 8,
+                fontWeight: localUnit === "lb" ? 700 : 400,
+                color: localUnit === "lb" ? "#fff" : "#B0ACA7",
+                background: localUnit === "lb" ? "#C75B39" : "transparent",
+                borderRadius: 9999,
+                lineHeight: "18px",
+                letterSpacing: "0.05em",
+              }}
+            >
+              LB
+            </span>
+          </div>
           <span className="font-mono uppercase text-muted-foreground" style={{ fontSize: 9 }}>REPS</span>
           <Check className="h-3 w-3 text-muted-foreground mx-auto" />
         </div>
@@ -777,41 +970,40 @@ function ExerciseCard({
                 {set.planned_rpe ? `RPE ${set.planned_rpe}` : "—"}
               </span>
 
-              <input
-                type="number"
-                step={0.5}
-                value={completed ? (set.actual_weight != null ? String(set.actual_weight) : inputs.weight) : inputs.weight}
-                onChange={(e) => {
-                  updateInput(set.id, "weight", e.target.value);
-                  if (completed) updateCompletedWeight(set.id, e.target.value);
-                }}
-                placeholder={weightUnit}
-                className="font-mono text-sm text-foreground rounded-lg px-2 py-1.5 w-full outline-none focus:ring-1 focus:ring-primary/50"
-                style={{ background: "hsl(var(--border))", border: "none", fontSize: 14 }}
-              />
+              <button
+                onClick={() => openWeightPicker(set)}
+                className="font-mono text-sm text-foreground rounded-lg px-2 py-1.5 w-full text-left"
+                style={{ background: "hsl(var(--border))", border: "none", fontSize: 14, minHeight: 34 }}
+              >
+                {(() => {
+                  const displayVal = inputs.weight || (set.actual_weight != null ? String(set.actual_weight) : "");
+                  return displayVal ? (
+                    <span>{displayVal}</span>
+                  ) : (
+                    <span className="text-muted-foreground" style={{ fontSize: 12 }}>{weightUnit}</span>
+                  );
+                })()}
+              </button>
 
               {/* Reps with /lado */}
-              {completed ? (
-                <span className="font-mono text-sm text-foreground" style={{ letterSpacing: "0.03em" }}>
-                  {set.actual_reps ?? inputs.reps}{isPerSide(setCue) ? <span className="text-muted-foreground" style={{ fontSize: 9 }}>/l</span> : null}
-                  {isPrFlash && <span className="ml-1 font-mono" style={{ fontSize: 9, color: "#C9A96E" }}>PR</span>}
-                </span>
-              ) : (
-                <div className="relative">
-                  <input
-                    type="number"
-                    step={1}
-                    value={inputs.reps}
-                    onChange={(e) => updateInput(set.id, "reps", e.target.value)}
-                    placeholder={String(set.planned_reps ?? "")}
-                    className="font-mono text-sm text-foreground rounded-lg px-2 py-1.5 w-full outline-none focus:ring-1 focus:ring-primary/50"
-                    style={{ background: "hsl(var(--border))", border: "none", fontSize: 14 }}
-                  />
-                  {isPerSide(setCue) && (
-                    <span className="absolute right-1 top-1/2 -translate-y-1/2 font-mono text-muted-foreground pointer-events-none" style={{ fontSize: 8 }}>/l</span>
-                  )}
-                </div>
-              )}
+              <button
+                onClick={() => openRepsPicker(set)}
+                className="font-mono text-sm text-foreground rounded-lg px-2 py-1.5 w-full text-left"
+                style={{ background: "hsl(var(--border))", border: "none", fontSize: 14, minHeight: 34 }}
+              >
+                {(() => {
+                  const displayVal = inputs.reps || (set.actual_reps != null ? String(set.actual_reps) : "");
+                  return displayVal ? (
+                    <span>
+                      {displayVal}
+                      {isPerSide(setCue) ? <span className="text-muted-foreground" style={{ fontSize: 9 }}>/l</span> : null}
+                      {isPrFlash && <span className="ml-1 font-mono" style={{ fontSize: 9, color: "#C9A96E" }}>PR</span>}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground" style={{ fontSize: 12 }}>reps</span>
+                  );
+                })()}
+              </button>
 
               <button
                 onClick={() => onToggle(set)}
@@ -977,11 +1169,12 @@ function CooldownCard({
 
 /* ═══════ CARDIO CARD ═══════ */
 function CardioCard({
-  group, saving, isCompleted, onCompleteAll, onOpenVideo,
+  group, saving, isCompleted, onCompleteAll, onUncompleteAll, onOpenVideo,
 }: {
   group: ExerciseGroup; saving: boolean;
   isCompleted: (s: WorkoutSetData) => boolean;
   onCompleteAll: () => Promise<void>;
+  onUncompleteAll: () => Promise<void>;
   onOpenVideo: (v: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
 }) {
   const [notes, setNotes] = useState("");
@@ -1011,9 +1204,13 @@ function CardioCard({
           <p className="font-body text-[15px] font-semibold text-foreground">{ex.name}</p>
         </div>
         {allDone && (
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary shrink-0">
+          <button
+            onClick={async () => { setCompleting(true); await onUncompleteAll(); setCompleting(false); }}
+            disabled={saving || completing}
+            className="flex h-7 w-7 items-center justify-center rounded-full bg-primary shrink-0"
+          >
             <Check className="h-4 w-4 text-primary-foreground" />
-          </div>
+          </button>
         )}
       </div>
 

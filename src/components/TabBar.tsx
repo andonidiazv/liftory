@@ -1,10 +1,10 @@
-import { Home, CalendarDays, Dumbbell, User } from "lucide-react";
+import { Home, CalendarDays, TrendingUp, User } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const tabs = [
   { id: "home", icon: Home, label: "Home", path: "/home" },
   { id: "program", icon: CalendarDays, label: "Programa", path: "/program" },
-  { id: "exercises", icon: Dumbbell, label: "Ejercicios", path: "/exercises" },
+  { id: "progress", icon: TrendingUp, label: "Progreso", path: "/progress" },
   { id: "profile", icon: User, label: "Perfil", path: "/profile" },
 ];
 

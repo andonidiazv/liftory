@@ -5,12 +5,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Check, Leaf } from "lucide-react";
 
 const BLOCK_LABELS: Record<string, string> = {
-  accumulation: "PROGRESSIVE OVERLOAD I",
-  intensification: "INTENSIFICACIÓN",
+  accumulation: "BASE",
+  intensification: "ACUMULACIÓN",
   peaking: "PEAK",
   deload: "DELOAD",
   base: "BASE",
 };
+
+function getPhaseForWeek(week: number): string {
+  if (week === 1) return "BASE";
+  if (week === 2) return "BASE +";
+  if (week === 3) return "ACUMULACIÓN";
+  if (week === 4) return "INTENSIFICACIÓN";
+  if (week === 5) return "PEAK";
+  return "DELOAD";
+}
 
 const DAY_LETTERS = ["L", "M", "M", "J", "V", "S", "D"];
 
@@ -67,7 +76,7 @@ export default function Program() {
             className="mt-2 inline-block rounded-full px-3 py-1 font-mono text-[9px] uppercase tracking-wider"
             style={{ background: "rgba(199,91,57,0.15)", color: "#C75B39" }}
           >
-            {BLOCK_LABELS[program.current_block] ?? program.current_block.toUpperCase()}
+            {getPhaseForWeek(program.current_week)}
           </span>
         </div>
 
@@ -97,7 +106,7 @@ export default function Program() {
               >
                 {/* Week label */}
                 <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-3">
-                  SEMANA {week} — {BLOCK_LABELS[program.current_block] ?? program.current_block.toUpperCase()}
+                  SEMANA {week} — {getPhaseForWeek(week)}
                 </p>
 
                 {/* 7 day squares */}

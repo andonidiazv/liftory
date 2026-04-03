@@ -1,6 +1,7 @@
-import { useState, useMemo, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { ArrowLeft, Circle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 // DAY_NAMES not needed — workouts use custom day_label (e.g., "UPPER PULL", "HINGE DAY")
@@ -45,9 +46,45 @@ interface SwapTarget {
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
+interface MesocycleOption {
+  id: string;
+  cycle_number: number;
+  status: string;
+}
+
 export default function AdminProgramDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const cycleParam = searchParams.get("cycle");
+
+  /* ---- Mesocycle selector state ---- */
+  const [mesocycles, setMesocycles] = useState<MesocycleOption[]>([]);
+  const [activeCycleId, setActiveCycleId] = useState<string | null>(cycleParam);
+
+  useEffect(() => {
+    if (!id) return;
+    (async () => {
+      const { data } = await supabase
+        .from("mesocycles")
+        .select("id, cycle_number, status")
+        .eq("template_program_id", id)
+        .order("cycle_number", { ascending: true });
+      if (data && data.length > 0) {
+        setMesocycles(data);
+        if (!cycleParam) {
+          // Default: latest live, or latest overall
+          const live = data.find((m) => m.status === "live");
+          setActiveCycleId(live ? live.id : data[data.length - 1].id);
+        }
+      }
+    })();
+  }, [id, cycleParam]);
+
+  const handleCycleChange = (mcId: string) => {
+    setActiveCycleId(mcId);
+    setSearchParams({ cycle: mcId });
+  };
 
   /* ---- Draft hook ---- */
   const {
@@ -73,7 +110,7 @@ export default function AdminProgramDetail() {
     save,
     discard,
     undo,
-  } = useProgramDraft(id);
+  } = useProgramDraft(id, activeCycleId);
 
   /* ---- Week tab ---- */
   const [activeWeek, setActiveWeek] = useState("1");
@@ -317,7 +354,45 @@ export default function AdminProgramDetail() {
       </div>
 
       {/* Program metadata editor */}
-      <ProgramMetadataEditor program={program} onUpdate={updateProgram} />
+      <ProgramMetadataEditor program={program} onUpdate={updateProgram} activeCycleId={activeCycleId} />
+
+      {/* Cycle selector tabs */}
+      {mesocycles.length > 1 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-mono text-[10px] uppercase tracking-wider mr-1" style={{ color: "#5A5A5A" }}>
+            Ciclo
+          </span>
+          {mesocycles.map((mc) => {
+            const isActive = mc.id === activeCycleId;
+            const statusConfig: Record<string, { bg: string; color: string; label: string }> = {
+              live: { bg: "rgba(122,139,92,0.15)", color: "#7A8B5C", label: "LIVE" },
+              draft: { bg: "rgba(201,169,110,0.15)", color: "#C9A96E", label: "DRAFT" },
+              completed: { bg: "rgba(138,138,142,0.15)", color: "#8A8A8E", label: "DONE" },
+            };
+            const st = statusConfig[mc.status] || statusConfig.draft;
+            return (
+              <button
+                key={mc.id}
+                onClick={() => handleCycleChange(mc.id)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-xs transition-colors"
+                style={{
+                  backgroundColor: isActive ? "#2A2A2A" : "transparent",
+                  color: isActive ? "#FAF8F5" : "#8A8A8E",
+                  border: `1px solid ${isActive ? "#3A3A3A" : "transparent"}`,
+                }}
+              >
+                Ciclo {mc.cycle_number}
+                <span
+                  className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider"
+                  style={{ background: st.bg, color: st.color }}
+                >
+                  <Circle className="h-1 w-1 fill-current" /> {st.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Week tabs */}
       <Tabs value={activeWeek} onValueChange={setActiveWeek}>

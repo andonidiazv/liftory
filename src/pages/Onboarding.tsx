@@ -507,10 +507,11 @@ export default function Onboarding() {
   /* ════════════ STEP 6: PERIODIZACIÓN ════════════ */
   if (step === 6) {
     const phases = [
-      { name: "Asimilación", desc: "Aprende. Calibra. Establece la base.", weeks: "S1 — S2", accent: false },
-      { name: "Escalar", desc: "Más peso. Más volumen. Más tú.", weeks: "S3 — S4", accent: true },
-      { name: "Peak", desc: "Todo apuntó a esta semana.", weeks: "S5", accent: true },
-      { name: "Recarga", desc: "Sigues. Tu cuerpo asimila el trabajo.", weeks: "S6", accent: false },
+      { name: "Base", desc: "Aprende. Calibra. Establece tus pesos.", weeks: "S1 — S2", accent: false },
+      { name: "Acumulación", desc: "Más volumen. Más rondas. Más trabajo.", weeks: "S3", accent: false },
+      { name: "Intensificación", desc: "Menos reps. Más peso. Más fuerza.", weeks: "S4", accent: true },
+      { name: "Peak", desc: "Todo apuntó a esta semana. Da todo.", weeks: "S5", accent: true },
+      { name: "Deload", desc: "Tu cuerpo asimila el trabajo.", weeks: "S6", accent: false },
     ];
 
     return (
@@ -542,10 +543,11 @@ export default function Onboarding() {
               <path d="M50,75 C80,70 110,55 150,40 C180,28 200,18 220,15 C235,20 250,45 265,55" fill="none" stroke={t.accent} strokeWidth="2" />
               <circle cx="220" cy="15" r="5" fill={t.accent} />
               <circle cx="265" cy="55" r="4" fill={t.textMuted} />
-              <text x="80" y="108" fill={t.textSubtle} fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">ASIMILACIÓN</text>
-              <text x="165" y="108" fill={t.textSubtle} fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">ESCALAR</text>
-              <text x="220" y="108" fill={t.accent} fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">PEAK</text>
-              <text x="265" y="108" fill={t.textMuted} fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">RECARGA</text>
+              <text x="75" y="108" fill={t.textSubtle} fontSize="6" fontFamily="'DM Mono', monospace" textAnchor="middle">BASE</text>
+              <text x="140" y="108" fill={t.textSubtle} fontSize="6" fontFamily="'DM Mono', monospace" textAnchor="middle">ACUMULACIÓN</text>
+              <text x="185" y="108" fill={t.accent} fontSize="6" fontFamily="'DM Mono', monospace" textAnchor="middle">INTENSIF.</text>
+              <text x="220" y="108" fill={t.accent} fontSize="6" fontFamily="'DM Mono', monospace" textAnchor="middle">PEAK</text>
+              <text x="265" y="108" fill={t.textMuted} fontSize="6" fontFamily="'DM Mono', monospace" textAnchor="middle">DELOAD</text>
               <text x="50" y="100" fill={t.textSubtle} fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">S1</text>
               <text x="100" y="100" fill={t.textSubtle} fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">S2</text>
               <text x="140" y="100" fill={t.textSubtle} fontSize="7" fontFamily="'DM Mono', monospace" textAnchor="middle">S3</text>
@@ -555,7 +557,7 @@ export default function Onboarding() {
             </svg>
           </div>
 
-          <div className="mt-4 grid grid-cols-4 gap-2 anim-in-d2">
+          <div className="mt-4 grid grid-cols-5 gap-1.5 anim-in-d2">
             {phases.map((p) => (
               <div key={p.name} className="rounded-xl p-2.5" style={{ background: t.cardBg, border: `1px solid ${t.border}` }}>
                 <div className="h-2 w-2 rounded-full" style={{ background: p.accent ? t.accent : t.textMuted }} />

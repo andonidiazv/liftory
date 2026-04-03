@@ -1,6 +1,6 @@
-import { ChevronLeft, Check, Clock, ChevronRight } from "lucide-react";
+import { ChevronLeft, Check, Clock, ChevronRight, AlertCircle } from "lucide-react";
 import type { WorkoutData, ExerciseGroup, SupersetGroup } from "@/hooks/useWorkoutData";
-import { useState } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 
 /** A "block" is a visual grouping of exercises for the overview */
 export interface WorkoutBlock {
@@ -52,6 +52,20 @@ function isInstructionBlock(block: WorkoutBlock): boolean {
   return INSTRUCTION_BLOCK_LABELS.includes(block.name);
 }
 
+/** Check if a strength block has sets completed but missing weight data */
+function getBlockWarnings(block: WorkoutBlock): { unloggedSets: number; missingWeights: number } {
+  let unloggedSets = 0;
+  let missingWeights = 0;
+  const isStrength = !isInstructionBlock(block);
+  for (const g of block.groups) {
+    for (const s of g.sets) {
+      if (!s.is_completed) unloggedSets++;
+      else if (isStrength && (s.actual_weight == null || s.actual_weight === 0)) missingWeights++;
+    }
+  }
+  return { unloggedSets, missingWeights };
+}
+
 function getInstructionSummary(block: WorkoutBlock): string {
   const cues = block.groups
     .map(g => g.sets[0]?.coaching_cue_override)
@@ -86,6 +100,7 @@ interface Props {
   totalSets: number;
   completedSets: number;
   programTotalWeeks: number;
+  scrollToBlockId?: string | null;
   onBack: () => void;
   onBlockSelect: (block: WorkoutBlock) => void;
   onFinish: () => void;
@@ -98,14 +113,77 @@ export default function WorkoutOverview({
   totalSets,
   completedSets,
   programTotalWeeks,
+  scrollToBlockId,
   onBack,
   onBlockSelect,
   onFinish,
   saving,
 }: Props) {
   const [showConfirm, setShowConfirm] = useState(false);
+  const [softGateBlockId, setSoftGateBlockId] = useState<string | null>(null);
+  const [softGateNextBlock, setSoftGateNextBlock] = useState<WorkoutBlock | null>(null);
   const allDone = completedSets >= totalSets && totalSets > 0;
   const pendingSets = totalSets - completedSets;
+  const blockRefs = useRef<Record<string, HTMLElement | null>>({});
+
+  // Find the first incomplete block index
+  const firstPendingIdx = useMemo(() => {
+    return blocks.findIndex(b => b.completedSets < b.totalSets || b.totalSets === 0);
+  }, [blocks]);
+
+  // Scroll to last visited block on mount
+  useEffect(() => {
+    if (scrollToBlockId && blockRefs.current[scrollToBlockId]) {
+      requestAnimationFrame(() => {
+        blockRefs.current[scrollToBlockId]?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    }
+  }, [scrollToBlockId]);
+
+  // Soft gate: when navigating to any block, check if there's an earlier strength block
+  // (including the one right before) with unlogged sets or missing weights
+  const handleBlockNavigate = (targetBlock: WorkoutBlock, fromBlockId?: string) => {
+    const targetIdx = blocks.findIndex(b => b.id === targetBlock.id);
+    // Look from the start up to (but not including) the target for any strength block with issues
+    for (let i = 0; i < targetIdx; i++) {
+      const prevBlock = blocks[i];
+      const prevDone = prevBlock.completedSets >= prevBlock.totalSets && prevBlock.totalSets > 0;
+      if (prevDone) {
+        // Even if "done" (all sets marked complete), check if weights are missing
+        const isStrength = !isInstructionBlock(prevBlock);
+        if (isStrength) {
+          const warnings = getBlockWarnings(prevBlock);
+          if (warnings.missingWeights > 0) {
+            setSoftGateBlockId(prevBlock.id);
+            setSoftGateNextBlock(targetBlock);
+            return;
+          }
+        }
+        continue;
+      }
+      const isStrength = !isInstructionBlock(prevBlock);
+      if (!isStrength) continue; // mobility/cooldown, skip
+      const warnings = getBlockWarnings(prevBlock);
+      if (warnings.unloggedSets > 0 || warnings.missingWeights > 0) {
+        setSoftGateBlockId(prevBlock.id);
+        setSoftGateNextBlock(targetBlock);
+        return;
+      }
+    }
+    // Also check the "from" block (the one we're leaving) if provided
+    if (fromBlockId) {
+      const fromBlock = blocks.find(b => b.id === fromBlockId);
+      if (fromBlock && !isInstructionBlock(fromBlock)) {
+        const warnings = getBlockWarnings(fromBlock);
+        if (warnings.unloggedSets > 0 || warnings.missingWeights > 0) {
+          setSoftGateBlockId(fromBlock.id);
+          setSoftGateNextBlock(targetBlock);
+          return;
+        }
+      }
+    }
+    onBlockSelect(targetBlock);
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -137,20 +215,59 @@ export default function WorkoutOverview({
       {/* Blocks */}
       <div className="flex-1 px-5 pb-32">
         <div className="flex flex-col gap-3">
-          {blocks.map((block) => {
+          {blocks.map((block, blockIdx) => {
             const done = block.completedSets >= block.totalSets && block.totalSets > 0;
             const color = getBlockColor(block);
             const isRecovery = block.name === 'RECOVERY BLOCK';
+            const isActive = blockIdx === firstPendingIdx;
+            const nextBlock = blockIdx < blocks.length - 1 ? blocks[blockIdx + 1] : null;
+
+            // Completed block — compact view
+            if (done) {
+              return (
+                <div key={block.id} ref={(el) => { blockRefs.current[block.id] = el; }}>
+                  <button
+                    onClick={() => onBlockSelect(block)}
+                    className="flex w-full items-center gap-3 text-left rounded-xl px-4 py-3 transition-all"
+                    style={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      opacity: 0.7,
+                    }}
+                  >
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary shrink-0">
+                      <Check className="h-3.5 w-3.5 text-primary-foreground" />
+                    </div>
+                    <BlockNameDisplay name={block.name} />
+                    <span className="ml-auto font-mono text-muted-foreground" style={{ fontSize: 11 }}>
+                      {block.completedSets}/{block.totalSets}
+                    </span>
+                  </button>
+                  {/* "Next block" button after last completed block before the active one */}
+                  {nextBlock && blockIdx === firstPendingIdx - 1 && (
+                    <button
+                      onClick={() => handleBlockNavigate(nextBlock)}
+                      className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 font-display text-[13px] font-semibold transition-colors"
+                      style={{ background: "rgba(199,91,57,0.1)", color: "#C75B39" }}
+                    >
+                      Siguiente bloque <ChevronRight className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              );
+            }
+
+            // Active block — with breathing glow
             return (
               <button
                 key={block.id}
-                onClick={() => onBlockSelect(block)}
-                className="press-scale flex w-full items-stretch gap-0 text-left transition-all"
+                ref={(el) => { blockRefs.current[block.id] = el; }}
+                onClick={() => handleBlockNavigate(block)}
+                className={`press-scale flex w-full items-stretch gap-0 text-left transition-all ${isActive ? "block-breathing" : ""}`}
                 style={{
                   borderRadius: 16,
-                  border: "1px solid hsl(var(--border))",
-                  backgroundColor: "hsl(var(--card))",
-                  opacity: done ? 0.75 : 1,
+                  border: isActive ? "1.5px solid rgba(199,91,57,0.4)" : "1px solid hsl(var(--border))",
+                  backgroundColor: isActive ? "rgba(199,91,57,0.03)" : "hsl(var(--card))",
                   overflow: "hidden",
                 }}
               >
@@ -167,6 +284,14 @@ export default function WorkoutOverview({
                           style={{ fontSize: 9, letterSpacing: "0.05em", backgroundColor: "#1C1C1E", color: "#FAF8F5" }}
                         >
                           {block.formatBadge}
+                        </span>
+                      )}
+                      {isActive && (
+                        <span
+                          className="font-mono rounded-full px-2 py-0.5"
+                          style={{ fontSize: 8, letterSpacing: "0.1em", backgroundColor: "rgba(199,91,57,0.15)", color: "#C75B39", fontWeight: 700 }}
+                        >
+                          SIGUIENTE
                         </span>
                       )}
                     </div>
@@ -189,15 +314,9 @@ export default function WorkoutOverview({
                     )}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    {done ? (
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary">
-                        <Check className="h-4 w-4 text-primary-foreground" />
-                      </div>
-                    ) : (
-                      <span className="font-mono text-muted-foreground" style={{ fontSize: 12 }}>
-                        {block.completedSets}/{block.totalSets}
-                      </span>
-                    )}
+                    <span className="font-mono text-muted-foreground" style={{ fontSize: 12 }}>
+                      {block.completedSets}/{block.totalSets}
+                    </span>
                     <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   </div>
                 </div>
@@ -229,13 +348,61 @@ export default function WorkoutOverview({
             }
           }}
           disabled={saving}
-          className="press-scale flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-display text-[15px] font-semibold text-primary-foreground disabled:opacity-50"
+          className={`press-scale flex w-full items-center justify-center gap-2 rounded-xl py-4 font-display text-[15px] font-semibold text-primary-foreground disabled:opacity-50 ${allDone ? "block-breathing" : ""}`}
+          style={{ backgroundColor: "hsl(var(--primary))" }}
         >
           TERMINAR SESIÓN
         </button>
       </div>
 
-      {/* Confirm dialog */}
+      {/* Soft gate dialog */}
+      {softGateBlockId && softGateNextBlock && (
+        <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60" onClick={() => { setSoftGateBlockId(null); setSoftGateNextBlock(null); }}>
+          <div className="w-full max-w-lg rounded-t-2xl bg-card p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle className="h-5 w-5 text-primary" />
+              <h3 className="font-display text-lg font-semibold text-foreground">Bloque incompleto</h3>
+            </div>
+            <p className="font-body text-sm text-muted-foreground">
+              {(() => {
+                const b = blocks.find(b => b.id === softGateBlockId);
+                if (!b) return "";
+                const w = getBlockWarnings(b);
+                const parts: string[] = [];
+                if (w.unloggedSets > 0) parts.push(`${w.unloggedSets} sets sin completar`);
+                if (w.missingWeights > 0) parts.push(`${w.missingWeights} sets sin peso registrado`);
+                return `Tienes ${parts.join(" y ")}. Logear tus pesos ayuda a trackear tu progreso y sugerirte cargas futuras.`;
+              })()}
+            </p>
+            <div className="mt-4 flex gap-3">
+              <button
+                onClick={() => {
+                  const b = blocks.find(b => b.id === softGateBlockId);
+                  setSoftGateBlockId(null);
+                  setSoftGateNextBlock(null);
+                  if (b) onBlockSelect(b);
+                }}
+                className="flex-1 rounded-xl bg-primary py-3 font-body text-sm font-medium text-primary-foreground"
+              >
+                Completar bloque
+              </button>
+              <button
+                onClick={() => {
+                  const next = softGateNextBlock;
+                  setSoftGateBlockId(null);
+                  setSoftGateNextBlock(null);
+                  if (next) onBlockSelect(next);
+                }}
+                className="flex-1 rounded-xl bg-secondary py-3 font-body text-sm font-medium text-foreground"
+              >
+                Continuar así
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm finish dialog */}
       {showConfirm && (
         <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60" onClick={() => setShowConfirm(false)}>
           <div className="w-full max-w-lg rounded-t-2xl bg-card p-6" onClick={(e) => e.stopPropagation()}>
@@ -260,16 +427,28 @@ export default function WorkoutOverview({
           </div>
         </div>
       )}
+
+      {/* Breathing animation */}
+      <style>{`
+        @keyframes blockBreathe {
+          0%, 100% { box-shadow: 0 4px 16px 0 rgba(0,0,0,0.15); }
+          50% { box-shadow: 0 10px 40px 8px rgba(0,0,0,0.4); }
+        }
+        .block-breathing {
+          animation: blockBreathe 3s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 }
 
 function CoachNote({ note, shortOnTimeNote }: { note: string; shortOnTimeNote: string | null }) {
   const [expanded, setExpanded] = useState(false);
+  const [showShortNote, setShowShortNote] = useState(false);
   const isLong = note.length > 120;
 
   return (
-    <div className="px-5 mb-4">
+    <div className="px-5 mb-4 space-y-3">
       <div
         className="rounded-2xl p-4"
         style={{
@@ -298,15 +477,42 @@ function CoachNote({ note, shortOnTimeNote }: { note: string; shortOnTimeNote: s
             Leer más
           </button>
         )}
-        {shortOnTimeNote && (
-          <div className="mt-2 flex items-start gap-1.5">
-            <Clock className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
-            <p className="font-body text-muted-foreground" style={{ fontSize: 12 }}>
-              SHORT ON TIME: {shortOnTimeNote}
-            </p>
-          </div>
-        )}
       </div>
+
+      {/* Short on time pill */}
+      {shortOnTimeNote && !showShortNote && (
+        <button
+          onClick={() => setShowShortNote(true)}
+          className="flex items-center gap-1.5 rounded-lg px-3 py-2 transition-colors"
+          style={{ background: "rgba(199,91,57,0.06)", border: "1px solid rgba(199,91,57,0.12)" }}
+        >
+          <Clock className="h-3.5 w-3.5" style={{ color: "#C75B39" }} />
+          <span className="font-body text-[12px] font-medium" style={{ color: "#C75B39" }}>
+            ¿Poco tiempo?
+          </span>
+        </button>
+      )}
+      {shortOnTimeNote && showShortNote && (
+        <div
+          className="rounded-xl p-3"
+          style={{ background: "rgba(199,91,57,0.05)", border: "1px solid rgba(199,91,57,0.12)" }}
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-start gap-2">
+              <Clock className="h-3.5 w-3.5 mt-0.5 shrink-0" style={{ color: "#C75B39" }} />
+              <p className="font-body text-[12px] text-foreground leading-relaxed">
+                {shortOnTimeNote}
+              </p>
+            </div>
+            <button
+              onClick={() => setShowShortNote(false)}
+              className="shrink-0 p-0.5 rounded-full"
+            >
+              <span className="text-muted-foreground text-xs">✕</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

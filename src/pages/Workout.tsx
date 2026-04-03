@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useWorkoutData, type WorkoutSetData, type ExerciseGroup, type SupersetGroup } from "@/hooks/useWorkoutData";
 import { useApp } from "@/context/AppContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import WorkoutOverview, { type WorkoutBlock } from "@/components/workout/WorkoutOverview";
 import BlockDetail from "@/components/workout/BlockDetail";
@@ -18,6 +18,24 @@ function getBlockType(label: string): WorkoutBlock["type"] {
   if (label.startsWith('BUILD BLOCK')) return 'sculpt';
   if (['ENGINE BLOCK'].includes(label)) return 'conditioning';
   return 'strength';
+}
+
+/** Check if a block needs weight logging (strength/sculpt types) */
+function blockNeedsWeights(block: WorkoutBlock): boolean {
+  return block.type === 'strength' || block.type === 'sculpt';
+}
+
+/** Get warnings for a block: unlogged sets and missing weights */
+function getBlockWarnings(block: WorkoutBlock): { unloggedSets: number; missingWeights: number } {
+  let unloggedSets = 0;
+  let missingWeights = 0;
+  for (const g of block.groups) {
+    for (const s of g.sets) {
+      if (!s.is_completed) unloggedSets++;
+      else if (blockNeedsWeights(block) && (s.actual_weight == null || s.actual_weight === 0)) missingWeights++;
+    }
+  }
+  return { unloggedSets, missingWeights };
 }
 
 export default function Workout() {
@@ -47,6 +65,8 @@ export default function Workout() {
 
   const [activeBlock, setActiveBlock] = useState<WorkoutBlock | null>(null);
   const [timerBlock, setTimerBlock] = useState<WorkoutBlock | null>(null);
+  const [lastVisitedBlockId, setLastVisitedBlockId] = useState<string | null>(null);
+  const [detailSoftGate, setDetailSoftGate] = useState<{ currentBlock: WorkoutBlock; nextBlock: WorkoutBlock } | null>(null);
   const [videoOverlay, setVideoOverlay] = useState<{ name: string; videoUrl: string | null; coachingCue: string | null } | null>(null);
   const [restTimerVisible, setRestTimerVisible] = useState(false);
   const [restTimerDuration, setRestTimerDuration] = useState(90);
@@ -194,9 +214,8 @@ export default function Workout() {
   }, [completeSet, refetch]);
 
   const handleBlockSelect = useCallback((block: WorkoutBlock) => {
+    setLastVisitedBlockId(block.id);
     const badge = block.formatBadge?.toUpperCase();
-    // EMOMs are now rendered as instruction blocks inside BlockDetail
-    // Only AMRAPs get the timer screen
     if (badge === "AMRAP") {
       setTimerBlock(block);
     } else {
@@ -258,6 +277,9 @@ export default function Workout() {
 
   // ─── LEVEL 2: Block detail ───
   if (activeBlock) {
+    const activeIdx = blocks.findIndex(b => b.id === activeBlock.id);
+    const nextBlock = activeIdx >= 0 && activeIdx < blocks.length - 1 ? blocks[activeIdx + 1] : null;
+
     return (
       <>
         <BlockDetail
@@ -265,6 +287,7 @@ export default function Workout() {
           weightUnit={weightUnit}
           saving={saving}
           workoutId={id}
+          nextBlockName={nextBlock?.name ?? null}
           onBack={() => {
             setActiveBlock(null);
             refetch();
@@ -277,12 +300,130 @@ export default function Workout() {
             setActiveBlock(null);
             refetch();
           }}
+          onNextBlock={nextBlock ? async () => {
+            // Query fresh set data from DB to avoid stale activeBlock issue
+            if (blockNeedsWeights(activeBlock)) {
+              const setIds = activeBlock.groups.flatMap(g => g.sets.map(s => s.id));
+              const { data: freshSets } = await supabase
+                .from("workout_sets")
+                .select("id, is_completed, actual_weight")
+                .in("id", setIds);
+              if (freshSets) {
+                const unlogged = freshSets.filter(s => !s.is_completed).length;
+                const missingW = freshSets.filter(s => s.is_completed && (s.actual_weight == null || s.actual_weight === 0)).length;
+                if (unlogged > 0 || missingW > 0) {
+                  // Build a patched block for the dialog message
+                  const patchedBlock = {
+                    ...activeBlock,
+                    groups: activeBlock.groups.map(g => ({
+                      ...g,
+                      sets: g.sets.map(s => {
+                        const fresh = freshSets.find(f => f.id === s.id);
+                        return fresh ? { ...s, is_completed: fresh.is_completed, actual_weight: fresh.actual_weight } : s;
+                      }),
+                    })),
+                  };
+                  setDetailSoftGate({ currentBlock: patchedBlock, nextBlock });
+                  return;
+                }
+              }
+            }
+            setLastVisitedBlockId(nextBlock.id);
+            refetch().then(() => {
+              const badge = nextBlock.formatBadge?.toUpperCase();
+              if (badge === "AMRAP") {
+                setActiveBlock(null);
+                setTimerBlock(nextBlock);
+              } else {
+                setActiveBlock(nextBlock);
+              }
+            });
+          } : undefined}
+          onFinishWorkout={!nextBlock ? () => {
+            if (completedSets < totalSets) {
+              setShowFinishModal(true);
+            } else {
+              handleFinish();
+            }
+          } : undefined}
         />
         <RestTimerSheet
           durationSeconds={restTimerDuration}
           visible={restTimerVisible}
           onDismiss={() => setRestTimerVisible(false)}
         />
+
+        {/* Finish modal inside block detail */}
+        {showFinishModal && (
+          <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60" onClick={() => setShowFinishModal(false)}>
+            <div className="w-full max-w-lg rounded-t-2xl bg-card p-6" onClick={(e) => e.stopPropagation()}>
+              <h3 className="font-display text-lg font-semibold text-foreground">Finalizar sesión</h3>
+              <textarea
+                value={finishNotes}
+                onChange={(e) => setFinishNotes(e.target.value)}
+                placeholder="Notas de la sesión (opcional)..."
+                className="mt-4 w-full rounded-xl bg-secondary p-4 text-sm text-foreground font-body placeholder:text-muted-foreground outline-none resize-none"
+                rows={3}
+              />
+              <button
+                onClick={handleFinish}
+                disabled={saving}
+                className="press-scale mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-body text-[15px] font-medium text-primary-foreground disabled:opacity-50"
+              >
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                Finalizar workout
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Soft gate dialog inside block detail */}
+        {detailSoftGate && (
+          <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60" onClick={() => setDetailSoftGate(null)}>
+            <div className="w-full max-w-lg rounded-t-2xl bg-card p-6" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center gap-2 mb-2">
+                <AlertCircle className="h-5 w-5 text-primary" />
+                <h3 className="font-display text-lg font-semibold text-foreground">Bloque incompleto</h3>
+              </div>
+              <p className="font-body text-sm text-muted-foreground">
+                {(() => {
+                  const w = getBlockWarnings(detailSoftGate.currentBlock);
+                  const parts: string[] = [];
+                  if (w.unloggedSets > 0) parts.push(`${w.unloggedSets} sets sin completar`);
+                  if (w.missingWeights > 0) parts.push(`${w.missingWeights} sets sin peso registrado`);
+                  return `Tienes ${parts.join(" y ")}. Logear tus pesos ayuda a trackear tu progreso y sugerirte cargas futuras.`;
+                })()}
+              </p>
+              <div className="mt-4 flex gap-3">
+                <button
+                  onClick={() => setDetailSoftGate(null)}
+                  className="flex-1 rounded-xl bg-primary py-3 font-body text-sm font-medium text-primary-foreground"
+                >
+                  Completar bloque
+                </button>
+                <button
+                  onClick={() => {
+                    const next = detailSoftGate.nextBlock;
+                    setDetailSoftGate(null);
+                    setLastVisitedBlockId(next.id);
+                    refetch().then(() => {
+                      const badge = next.formatBadge?.toUpperCase();
+                      if (badge === "AMRAP") {
+                        setActiveBlock(null);
+                        setTimerBlock(next);
+                      } else {
+                        setActiveBlock(next);
+                      }
+                    });
+                  }}
+                  className="flex-1 rounded-xl bg-secondary py-3 font-body text-sm font-medium text-foreground"
+                >
+                  Continuar así
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </>
     );
   }
@@ -296,6 +437,7 @@ export default function Workout() {
         totalSets={totalSets}
         completedSets={completedSets}
         programTotalWeeks={programTotalWeeks}
+        scrollToBlockId={lastVisitedBlockId}
         onBack={() => navigate("/home")}
         onBlockSelect={handleBlockSelect}
         onFinish={() => {

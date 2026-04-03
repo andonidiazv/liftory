@@ -31,6 +31,7 @@ import AdminAIRules from "./pages/admin/AdminAIRules";
 import AdminAuditLog from "./pages/admin/AdminAuditLog";
 import AdminPrograms from "./pages/admin/AdminPrograms";
 import AdminProgramDetail from "./pages/admin/AdminProgramDetail";
+import AdminFeedback from "./pages/admin/AdminFeedback";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +67,7 @@ const App = () => (
               <Route path="/admin/programs" element={<AdminRoute><AdminLayout><AdminPrograms /></AdminLayout></AdminRoute>} />
               <Route path="/admin/programs/:id" element={<AdminRoute><AdminLayout><AdminProgramDetail /></AdminLayout></AdminRoute>} />
               <Route path="/admin/exercises" element={<AdminRoute><AdminLayout><AdminExercises /></AdminLayout></AdminRoute>} />
+              <Route path="/admin/feedback" element={<AdminRoute><AdminLayout><AdminFeedback /></AdminLayout></AdminRoute>} />
               <Route path="/admin/insights" element={<AdminRoute><AdminLayout><AdminInsights /></AdminLayout></AdminRoute>} />
               <Route path="/admin/ai-rules" element={<AdminRoute><AdminLayout><AdminAIRules /></AdminLayout></AdminRoute>} />
               <Route path="/admin/audit" element={<AdminRoute><AdminLayout><AdminAuditLog /></AdminLayout></AdminRoute>} />

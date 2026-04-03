@@ -12,6 +12,7 @@ export interface DayWorkout {
   exerciseCount: number;
   setCount: number;
   coach_note: string | null;
+  short_on_time_note: string | null;
   scheduled_date: string;
   week_number: number;
 }
@@ -77,6 +78,13 @@ function addDays(d: Date, n: number): Date {
   return r;
 }
 
+export interface NextCycleInfo {
+  cycleNumber: number;
+  mesocycleId: string;
+  templateProgramId: string;
+  startDate: string;
+}
+
 export function useNavigableHome() {
   const { user } = useAuth();
   const [programInfo, setProgramInfo] = useState<ProgramInfo | null>(null);
@@ -87,6 +95,9 @@ export function useNavigableHome() {
   const [selectedWorkout, setSelectedWorkout] = useState<DayWorkout | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentWeekNumber, setCurrentWeekNumber] = useState(1);
+  const [nextCycleInfo, setNextCycleInfo] = useState<NextCycleInfo | null>(null);
+  const [dismissedCycleId, setDismissedCycleId] = useState<string | null>(null);
+  const [transitioning, setTransitioning] = useState(false);
 
   const todayStr = formatDate(new Date());
 
@@ -192,6 +203,58 @@ export function useNavigableHome() {
       streak,
     });
 
+    // --- Detect if a new cycle is available ---
+    if (programRes.data && wks.length > 0) {
+      const prog = programRes.data as ProgramInfo & { mesocycle_id?: string; ai_params?: { template_id?: string } };
+      const lastWorkoutDate = wks[wks.length - 1].scheduled_date;
+      const todayDate = formatDate(today);
+
+      // Only check if all workouts are in the past or today is past the last workout
+      if (lastWorkoutDate < todayDate && prog.mesocycle_id) {
+        // Find the template program by name (user_id IS NULL)
+        const { data: template } = await supabase
+          .from("programs")
+          .select("id")
+          .is("user_id", null)
+          .eq("name", prog.name)
+          .single();
+
+        if (template) {
+          // Check if there's a LIVE mesocycle with a higher cycle_number
+          const { data: currentMc } = await supabase
+            .from("mesocycles")
+            .select("cycle_number")
+            .eq("id", prog.mesocycle_id)
+            .single();
+
+          if (currentMc) {
+            const { data: newerCycle } = await supabase
+              .from("mesocycles")
+              .select("id, cycle_number, cycle_start_date")
+              .eq("template_program_id", template.id)
+              .eq("status", "live")
+              .gt("cycle_number", currentMc.cycle_number)
+              .order("cycle_number", { ascending: true })
+              .limit(1)
+              .single();
+
+            if (newerCycle) {
+              setNextCycleInfo({
+                cycleNumber: newerCycle.cycle_number,
+                mesocycleId: newerCycle.id,
+                templateProgramId: template.id,
+                startDate: newerCycle.cycle_start_date,
+              });
+            } else {
+              setNextCycleInfo(null);
+            }
+          }
+        }
+      } else {
+        setNextCycleInfo(null);
+      }
+    }
+
     setLoading(false);
   }, [user]);
 
@@ -262,7 +325,7 @@ export function useNavigableHome() {
       if (!user) return;
       const { data } = await supabase
         .from("workouts")
-        .select("id, day_label, workout_type, estimated_duration, is_rest_day, is_completed, coach_note, scheduled_date, week_number, workout_sets(id, exercise_id)")
+        .select("id, day_label, workout_type, estimated_duration, is_rest_day, is_completed, coach_note, short_on_time_note, scheduled_date, week_number, workout_sets(id, exercise_id)")
         .eq("user_id", user.id)
         .eq("scheduled_date", selectedDate)
         .maybeSingle();
@@ -280,6 +343,7 @@ export function useNavigableHome() {
           exerciseCount: uniqueExercises.size,
           setCount: sets.length,
           coach_note: data.coach_note,
+          short_on_time_note: data.short_on_time_note,
           scheduled_date: data.scheduled_date,
           week_number: data.week_number,
         });
@@ -332,6 +396,166 @@ export function useNavigableHome() {
     return formatDate(nextMonday) <= maxDate;
   }, [viewingWeekMonday, maxDate]);
 
+  // Transition to a new cycle
+  const transitionToCycle = useCallback(async () => {
+    if (!user || !nextCycleInfo || !programInfo) return;
+    setTransitioning(true);
+
+    try {
+      // 1. Fetch template workouts for the new cycle
+      const { data: templateWorkouts } = await supabase
+        .from("workouts")
+        .select("*")
+        .eq("program_id", nextCycleInfo.templateProgramId)
+        .eq("mesocycle_id", nextCycleInfo.mesocycleId)
+        .order("scheduled_date", { ascending: true });
+
+      if (!templateWorkouts?.length) {
+        setTransitioning(false);
+        return;
+      }
+
+      // 2. Deactivate current program
+      await supabase
+        .from("programs")
+        .update({ is_active: false })
+        .eq("id", programInfo.id);
+
+      // 3. Create new program copy for the user
+      const { data: template } = await supabase
+        .from("programs")
+        .select("*")
+        .eq("id", nextCycleInfo.templateProgramId)
+        .single();
+
+      if (!template) { setTransitioning(false); return; }
+
+      const { data: newProgram } = await supabase
+        .from("programs")
+        .insert({
+          user_id: user.id,
+          name: template.name,
+          total_weeks: template.total_weeks,
+          current_week: 1,
+          current_block: "accumulation",
+          is_active: true,
+          mesocycle_id: nextCycleInfo.mesocycleId,
+          ai_params: {
+            assigned_template: template.name,
+            template_id: nextCycleInfo.templateProgramId,
+            generated_by: "cycle_transition",
+            previous_program_id: programInfo.id,
+          },
+        })
+        .select()
+        .single();
+
+      if (!newProgram) { setTransitioning(false); return; }
+
+      // 4. Clone workouts with dates from the new cycle
+      const templateStart = new Date(templateWorkouts[0].scheduled_date + "T00:00:00");
+
+      const workoutInserts = templateWorkouts.map((tw) => {
+        const daysDiff = Math.floor(
+          (new Date(tw.scheduled_date + "T00:00:00").getTime() - templateStart.getTime()) / 86400000
+        );
+        const cycleStart = new Date(nextCycleInfo.startDate + "T00:00:00");
+        const newDate = new Date(cycleStart);
+        newDate.setDate(cycleStart.getDate() + daysDiff);
+
+        return {
+          program_id: newProgram.id,
+          user_id: user.id,
+          mesocycle_id: nextCycleInfo.mesocycleId,
+          scheduled_date: formatDate(newDate),
+          week_number: tw.week_number,
+          day_label: tw.day_label,
+          workout_type: tw.workout_type,
+          estimated_duration: tw.estimated_duration,
+          is_rest_day: tw.is_rest_day,
+          notes: tw.notes,
+          coach_note: tw.coach_note,
+          short_on_time_note: tw.short_on_time_note,
+        };
+      });
+
+      const { data: createdWorkouts } = await supabase
+        .from("workouts")
+        .insert(workoutInserts)
+        .select("id, scheduled_date");
+
+      if (!createdWorkouts) { setTransitioning(false); return; }
+
+      // 5. Clone workout_sets
+      const dateToNewId: Record<string, string> = {};
+      createdWorkouts.forEach((w) => { dateToNewId[w.scheduled_date] = w.id; });
+
+      const dateToOldId: Record<string, string> = {};
+      templateWorkouts.forEach((tw) => {
+        const daysDiff = Math.floor(
+          (new Date(tw.scheduled_date + "T00:00:00").getTime() - templateStart.getTime()) / 86400000
+        );
+        const cycleStart = new Date(nextCycleInfo.startDate + "T00:00:00");
+        const nd = new Date(cycleStart);
+        nd.setDate(cycleStart.getDate() + daysDiff);
+        dateToOldId[formatDate(nd)] = tw.id;
+      });
+
+      for (const dateStr of Object.keys(dateToNewId)) {
+        const newWorkoutId = dateToNewId[dateStr];
+        const oldWorkoutId = dateToOldId[dateStr];
+        if (!oldWorkoutId) continue;
+
+        const { data: tSets } = await supabase
+          .from("workout_sets")
+          .select("*")
+          .eq("workout_id", oldWorkoutId)
+          .order("set_order");
+
+        if (!tSets?.length) continue;
+
+        await supabase.from("workout_sets").insert(
+          tSets.map((ts) => ({
+            workout_id: newWorkoutId,
+            user_id: user.id,
+            exercise_id: ts.exercise_id,
+            set_order: ts.set_order,
+            set_type: ts.set_type,
+            planned_reps: ts.planned_reps,
+            planned_weight: null,
+            planned_tempo: ts.planned_tempo,
+            planned_rpe: ts.planned_rpe,
+            planned_rir: null,
+            planned_rest_seconds: ts.planned_rest_seconds,
+            coaching_cue_override: ts.coaching_cue_override,
+            block_label: ts.block_label,
+          }))
+        );
+      }
+
+      // 6. Refresh everything
+      setNextCycleInfo(null);
+      await fetchAll();
+      // Reset view to today
+      const today = new Date();
+      setSelectedDate(formatDate(today));
+      setViewingWeekMonday(getMonday(today));
+    } catch (err) {
+      console.error("Cycle transition error:", err);
+    } finally {
+      setTransitioning(false);
+    }
+  }, [user, nextCycleInfo, programInfo, fetchAll]);
+
+  const dismissCycle = useCallback(() => {
+    if (nextCycleInfo) {
+      setDismissedCycleId(nextCycleInfo.mesocycleId);
+    }
+  }, [nextCycleInfo]);
+
+  // Only show next cycle prompt if not dismissed this session
+  const showNextCyclePrompt = nextCycleInfo && nextCycleInfo.mesocycleId !== dismissedCycleId;
+
   return {
     programInfo,
     selectedDate,
@@ -352,5 +576,11 @@ export function useNavigableHome() {
     canGoPrev,
     canGoNext,
     refetch: fetchAll,
+    // Cycle transition
+    showNextCyclePrompt,
+    nextCycleInfo,
+    transitionToCycle,
+    dismissCycle,
+    transitioning,
   };
 }

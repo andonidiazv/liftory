@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Leaf, ChevronRight, ChevronLeft, Flame, Dumbbell, Trophy, Check } from "lucide-react";
+import { Leaf, ChevronRight, ChevronLeft, Flame, Dumbbell, Trophy, Check, Rocket, Loader2 } from "lucide-react";
 import Layout from "@/components/Layout";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigableHome } from "@/hooks/useNavigableHome";
@@ -9,18 +9,29 @@ import MonthCalendarSheet from "@/components/home/MonthCalendarSheet";
 import PrimeWeeklyReset from "@/components/home/PrimeWeeklyReset";
 
 const BLOCK_LABELS: Record<string, string> = {
-  accumulation: "ACUMULACIÓN",
-  intensification: "INTENSIFICACIÓN",
+  accumulation: "BASE",
+  intensification: "ACUMULACIÓN",
   peaking: "PEAK",
   deload: "DELOAD",
   base: "BASE",
 };
 
 function getPhaseForWeek(week: number): string {
-  if (week <= 2) return "ACUMULACIÓN";
-  if (week <= 4) return "INTENSIFICACIÓN";
+  if (week === 1) return "BASE";
+  if (week === 2) return "BASE +";
+  if (week === 3) return "ACUMULACIÓN";
+  if (week === 4) return "INTENSIFICACIÓN";
   if (week === 5) return "PEAK";
   return "DELOAD";
+}
+
+function getPhaseDescription(week: number): string {
+  if (week === 1) return "Construyendo patrones de movimiento y adaptación. Enfoque en técnica y control.";
+  if (week === 2) return "Subiendo volumen con la base técnica establecida. Más series, misma calidad.";
+  if (week === 3) return "Acumulando volumen de trabajo. Tu cuerpo se adapta a cargas más exigentes.";
+  if (week === 4) return "Subiendo intensidad, bajando repeticiones. Preparando el cuerpo para cargas máximas.";
+  if (week === 5) return "Semana de máximo rendimiento. Pocas reps, máxima intensidad. Demuestra tu progreso.";
+  return "Semana de recuperación activa. Volumen bajo para que tu cuerpo se regenere y sobrecompense.";
 }
 
 function HomeSkeleton() {
@@ -59,6 +70,11 @@ export default function Home() {
     goToNextWeek,
     canGoPrev,
     canGoNext,
+    showNextCyclePrompt,
+    nextCycleInfo,
+    transitionToCycle,
+    dismissCycle,
+    transitioning,
   } = useNavigableHome();
 
   const displayName = profile?.full_name || "Atleta";
@@ -92,6 +108,48 @@ export default function Home() {
             </p>
           )}
         </div>
+
+        {/* NEW CYCLE PROMPT */}
+        {showNextCyclePrompt && nextCycleInfo && (
+          <div
+            className="rounded-2xl p-5 space-y-3"
+            style={{
+              background: "linear-gradient(135deg, hsl(var(--card)), hsl(var(--primary) / 0.06))",
+              border: "1px solid hsl(var(--primary) / 0.3)",
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <Rocket className="h-4 w-4 text-primary" />
+              <span className="font-display text-[16px] font-semibold text-foreground">
+                ¡Nuevo ciclo disponible!
+              </span>
+            </div>
+            <p className="text-[13px] text-muted-foreground font-body">
+              El Ciclo {nextCycleInfo.cycleNumber} está listo. Tus datos del ciclo anterior quedan guardados.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={transitionToCycle}
+                disabled={transitioning}
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-primary py-3 font-display text-[13px] font-semibold text-primary-foreground disabled:opacity-60"
+              >
+                {transitioning ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Preparando...</>
+                ) : (
+                  <>Empezar Ciclo {nextCycleInfo.cycleNumber} <ChevronRight className="h-4 w-4" /></>
+                )}
+              </button>
+              <button
+                onClick={dismissCycle}
+                disabled={transitioning}
+                className="px-4 py-3 rounded-xl font-body text-[13px] text-muted-foreground"
+                style={{ border: "1px solid hsl(var(--border))" }}
+              >
+                Ahora no
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* 2. Workout Card / PRIME Weekly Reset */}
         {programInfo ? (
@@ -140,11 +198,6 @@ export default function Home() {
                   <p className="mt-1 text-[13px] text-muted-foreground font-body">
                     {dateDisplay} · ~{workout.estimated_duration ?? "—"} min · {workout.setCount} sets
                   </p>
-                  {workout.coach_note && (
-                    <p className="mt-2 text-[12px] text-muted-foreground font-body italic truncate">
-                      {workout.coach_note}
-                    </p>
-                  )}
                   <button
                     onClick={(e) => { e.stopPropagation(); navigate(`/workout/${workout.id}`); }}
                     className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 font-display text-[14px] font-semibold text-primary-foreground"
@@ -186,11 +239,25 @@ export default function Home() {
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <span className="font-mono text-[11px] uppercase tracking-[2px] text-muted-foreground">
-              {viewingWeekNumber != null && programInfo
-                ? `Semana ${viewingWeekNumber} de ${programInfo.total_weeks}`
-                : "Semana"}
-            </span>
+            <div className="flex items-center gap-2">
+              {viewingWeekNumber != null && programInfo ? (
+                <>
+                  <span className="font-mono text-[11px] uppercase tracking-[2px] text-muted-foreground">
+                    SEMANA {viewingWeekNumber}/{programInfo.total_weeks}
+                  </span>
+                  <span
+                    className="rounded-full px-2.5 py-0.5 font-mono text-[9px] uppercase tracking-wider font-semibold"
+                    style={{ background: "rgba(199,91,57,0.12)", color: "#C75B39" }}
+                  >
+                    {getPhaseForWeek(viewingWeekNumber)}
+                  </span>
+                </>
+              ) : (
+                <span className="font-mono text-[11px] uppercase tracking-[2px] text-muted-foreground">
+                  Semana
+                </span>
+              )}
+            </div>
             <button
               onClick={goToNextWeek}
               disabled={!canGoNext}
@@ -369,6 +436,9 @@ export default function Home() {
                   </span>
                   <p className="mt-1.5 font-mono text-[10px] text-muted-foreground">
                     Semana {currentWeekNumber} de {programInfo.total_weeks}
+                  </p>
+                  <p className="mt-1.5 font-body text-[11px] text-muted-foreground leading-snug">
+                    {getPhaseDescription(currentWeekNumber)}
                   </p>
                 </div>
               </div>

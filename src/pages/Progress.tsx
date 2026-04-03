@@ -151,41 +151,8 @@ export default function Progress() {
           </div>
         </div>
 
-        {/* Radar Chart - Muscle Balance */}
-        <div className="mt-8">
-          <span className="eyebrow-label">BALANCE MUSCULAR</span>
-          <p className="text-xs font-body" style={{ color: "#6B6360", marginTop: 2 }}>Volumen relativo por grupo muscular</p>
-          <div>
-            <div className="mt-4 card-fbb">
-              {muscleData.length > 0 ? (
-                <>
-                  <ResponsiveContainer width="100%" height={260}>
-                    <RadarChart data={muscleData} cx="50%" cy="50%" outerRadius="75%">
-                      <PolarGrid stroke="hsl(30, 5%, 25%)" />
-                      <PolarAngleAxis dataKey="group" tick={{ fontSize: 11, fill: "#A89F95" }} />
-                      <Radar name="Volumen" dataKey="volume" stroke="#C75B39" fill="#C75B39" fillOpacity={0.5} strokeWidth={2} />
-                    </RadarChart>
-                  </ResponsiveContainer>
-                  <div className="mt-3 grid grid-cols-3 gap-2">
-                    {muscleData.slice(0, 6).map((d) => (
-                      <div key={d.group} className="card-fbb flex flex-col items-center py-3">
-                        <span className="font-body text-xs" style={{ color: "#A89F95" }}>{d.group}</span>
-                        <span className="font-mono text-sm font-semibold mt-1 text-foreground">{d.volume}%</span>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <div className="flex items-center justify-center py-12">
-                  <p className="text-sm text-muted-foreground font-body">Completa algunos workouts para ver tu balance muscular.</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
         {/* Quick Stats */}
-        <div className="mt-8 mb-4 grid grid-cols-2 gap-3">
+        <div className="mt-8 grid grid-cols-2 gap-3">
           {[
             { icon: Dumbbell, label: "TOTAL WORKOUTS", value: String(stats.totalWorkouts), unit: "" },
             { icon: Flame, label: "RACHA ACTUAL", value: String(stats.streak), unit: "DÍAS" },
@@ -208,6 +175,31 @@ export default function Progress() {
             </div>
           ))}
         </div>
+
+        {/* Radar Chart - Muscle Balance */}
+        {muscleData.length > 0 && (
+          <div className="mt-8 mb-4">
+            <span className="eyebrow-label">BALANCE MUSCULAR</span>
+            <p className="text-xs font-body" style={{ color: "#6B6360", marginTop: 2 }}>Volumen relativo por grupo muscular</p>
+            <div className="mt-4 card-fbb">
+              <ResponsiveContainer width="100%" height={260}>
+                <RadarChart data={muscleData} cx="50%" cy="50%" outerRadius="75%">
+                  <PolarGrid stroke="hsl(30, 5%, 25%)" />
+                  <PolarAngleAxis dataKey="group" tick={{ fontSize: 11, fill: "#A89F95" }} />
+                  <Radar name="Volumen" dataKey="volume" stroke="#C75B39" fill="#C75B39" fillOpacity={0.5} strokeWidth={2} />
+                </RadarChart>
+              </ResponsiveContainer>
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                {muscleData.slice(0, 6).map((d) => (
+                  <div key={d.group} className="card-fbb flex flex-col items-center py-3">
+                    <span className="font-body text-xs" style={{ color: "#A89F95" }}>{d.group}</span>
+                    <span className="font-mono text-sm font-semibold mt-1 text-foreground">{d.volume}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

@@ -244,10 +244,12 @@ export default function AdminPrograms() {
     }
 
     // 2. Clone the template workouts with new scheduled_dates
+    //    Only clone from the LAST cycle (not all workouts in the program)
     const { data: templateWorkouts } = await supabase
       .from("workouts")
       .select("*")
       .eq("program_id", prog.id)
+      .eq("mesocycle_id", lastCycle.id)
       .order("scheduled_date", { ascending: true });
 
     if (templateWorkouts?.length) {
@@ -264,6 +266,7 @@ export default function AdminPrograms() {
           .from("workouts")
           .insert({
             program_id: prog.id,
+            mesocycle_id: newMc.id,
             scheduled_date: newDate.toISOString().split("T")[0],
             week_number: tw.week_number,
             day_label: tw.day_label,
@@ -428,13 +431,13 @@ export default function AdminPrograms() {
                   <TableCell style={{ color: "#8A8A8E" }}>{new Date(p.created_at).toLocaleDateString()}</TableCell>
                   <TableCell>
                     <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                      <Button size="sm" variant="ghost" onClick={() => navigate(`/admin/programs/${p.id}`)}>
+                      <Button size="sm" variant="ghost" onClick={() => navigate(`/admin/programs/${p.id}`)} style={{ color: "#C9A96E" }}>
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => handleDuplicate(p)}>
+                      <Button size="sm" variant="ghost" onClick={() => handleDuplicate(p)} style={{ color: "#8A8A8E" }}>
                         <Copy className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => setDeleteTarget(p)} className="text-red-400 hover:text-red-300">
+                      <Button size="sm" variant="ghost" onClick={() => setDeleteTarget(p)} style={{ color: "#D45555" }}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -454,7 +457,12 @@ export default function AdminPrograms() {
                   const fmtDate = (d: Date) => d.toLocaleDateString("es-MX", { day: "numeric", month: "short" });
 
                   return (
-                    <TableRow key={mc.id} style={{ borderColor: "#2A2A2A", background: "#151515" }}>
+                    <TableRow
+                      key={mc.id}
+                      style={{ borderColor: "#2A2A2A", background: "#151515", cursor: "pointer" }}
+                      className="hover:bg-white/5"
+                      onClick={() => navigate(`/admin/programs/${p.id}?cycle=${mc.id}`)}
+                    >
                       <TableCell colSpan={6} style={{ paddingLeft: "3rem" }}>
                         <div className="flex items-center gap-4 py-1">
                           <Calendar className="h-3.5 w-3.5 shrink-0" style={{ color: "#5A5A5A" }} />
@@ -478,10 +486,22 @@ export default function AdminPrograms() {
                           </span>
 
                           {/* Launch button for DRAFT cycles */}
+                          {/* View cycle button */}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 px-2 ml-auto"
+                            style={{ color: "#C9A96E" }}
+                            onClick={(e) => { e.stopPropagation(); navigate(`/admin/programs/${p.id}?cycle=${mc.id}`); }}
+                          >
+                            <Eye className="h-3 w-3" />
+                          </Button>
+
+                          {/* Launch button for DRAFT cycles */}
                           {mc.status === "draft" && (
                             <Button
                               size="sm"
-                              className="h-6 px-2.5 font-mono text-[10px] uppercase tracking-wider ml-auto"
+                              className="h-6 px-2.5 font-mono text-[10px] uppercase tracking-wider"
                               style={{ background: "#7A8B5C", color: "#FAF8F5" }}
                               onClick={(e) => { e.stopPropagation(); setLaunchTarget({ mc, prog: p }); }}
                             >

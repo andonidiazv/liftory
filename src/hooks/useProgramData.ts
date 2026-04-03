@@ -25,9 +25,9 @@ export interface ProgramWorkout {
 }
 
 const BLOCK_LABELS: Record<string, string> = {
-  accumulation: "ACUMULACIÓN",
-  intensification: "INTENSIFICACIÓN",
-  peaking: "PEAKING",
+  accumulation: "BASE",
+  intensification: "ACUMULACIÓN",
+  peaking: "PEAK",
   deload: "DELOAD",
 };
 
