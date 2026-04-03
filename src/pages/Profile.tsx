@@ -8,7 +8,7 @@ import { es } from "date-fns/locale";
 import {
   Camera, LogOut, Trash2, Crown,
   AlertTriangle, Clock, Edit2, Check, X, Dumbbell, Target,
-  Calendar, MapPin, Shield, BookOpen, ChevronRight,
+  Calendar, MapPin, Shield, BookOpen, ChevronRight, Award, Lock,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -31,6 +31,7 @@ export default function Profile() {
   const [onboarding, setOnboarding] = useState<OnboardingData | null>(null);
   const [uploading, setUploading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [earnedBadges, setEarnedBadges] = useState<{ name: string; tier: string; tier_label: string; color: string; earned_at: string }[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -41,6 +42,24 @@ export default function Profile() {
       .maybeSingle()
       .then(({ data }) => {
         if (data) setOnboarding(data as OnboardingData);
+      });
+    // Fetch earned badges
+    (supabase as any)
+      .from("user_badges")
+      .select("earned_at, badge_tier_id, badge_tiers(tier, tier_label, color, badge_definitions(name))")
+      .eq("user_id", user.id)
+      .eq("status", "approved")
+      .order("earned_at", { ascending: false })
+      .then(({ data }: any) => {
+        if (data) {
+          setEarnedBadges(data.map((b: any) => ({
+            name: b.badge_tiers?.badge_definitions?.name || "Badge",
+            tier: b.badge_tiers?.tier || "",
+            tier_label: b.badge_tiers?.tier_label || "",
+            color: b.badge_tiers?.color || "#C75B39",
+            earned_at: b.earned_at || "",
+          })));
+        }
       });
   }, [user]);
 
@@ -280,6 +299,65 @@ export default function Profile() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* ═══ BADGES ═══ */}
+        <div className="mt-8">
+          <div className="flex items-center justify-between">
+            <span className="eyebrow-label">TUS BADGES</span>
+            <button
+              onClick={() => navigate("/badges")}
+              className="text-xs font-body font-medium text-primary press-scale"
+            >
+              Ver todos
+            </button>
+          </div>
+          {earnedBadges.length > 0 ? (
+            <div className="mt-3 flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
+              {earnedBadges.slice(0, 6).map((b, i) => (
+                <div
+                  key={i}
+                  className="shrink-0 flex flex-col items-center gap-1.5 rounded-xl p-3"
+                  style={{
+                    background: `${b.color}10`,
+                    border: `1px solid ${b.color}30`,
+                    minWidth: 88,
+                  }}
+                >
+                  <div
+                    className="flex h-10 w-10 items-center justify-center rounded-full"
+                    style={{ background: `${b.color}20` }}
+                  >
+                    <Award className="h-5 w-5" style={{ color: b.color }} />
+                  </div>
+                  <span className="font-mono text-[8px] uppercase tracking-wider text-center" style={{ color: b.color }}>
+                    {b.tier_label}
+                  </span>
+                  <span className="font-body text-[10px] text-center text-muted-foreground leading-tight" style={{ maxWidth: 76 }}>
+                    {b.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <button
+              onClick={() => navigate("/badges")}
+              className="mt-3 flex w-full items-center gap-4 rounded-xl bg-card p-4 text-left press-scale"
+              style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+            >
+              <div
+                className="flex h-9 w-9 items-center justify-center rounded-lg"
+                style={{ background: "rgba(201,169,110,0.1)" }}
+              >
+                <Lock className="h-4 w-4" style={{ color: "#C9A96E" }} />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-body font-medium text-foreground">Desbloquea tu primer badge</p>
+                <p className="text-xs text-muted-foreground font-body">Demuestra tu fuerza y gana insignias verificadas</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </button>
+          )}
         </div>
 
         {/* ═══ BIBLIOTECA DE EJERCICIOS ═══ */}

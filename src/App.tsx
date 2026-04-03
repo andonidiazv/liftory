@@ -32,6 +32,9 @@ import AdminAuditLog from "./pages/admin/AdminAuditLog";
 import AdminPrograms from "./pages/admin/AdminPrograms";
 import AdminProgramDetail from "./pages/admin/AdminProgramDetail";
 import AdminFeedback from "./pages/admin/AdminFeedback";
+import AdminBadges from "./pages/admin/AdminBadges";
+import Badges from "./pages/Badges";
+import BadgeClaim from "./pages/BadgeClaim";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +63,8 @@ const App = () => (
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/paywall" element={<ProtectedRoute><Paywall /></ProtectedRoute>} />
               <Route path="/program" element={<ProtectedRoute><Program /></ProtectedRoute>} />
+              <Route path="/badges" element={<ProtectedRoute><Badges /></ProtectedRoute>} />
+              <Route path="/badges/claim/:slug/:tier" element={<ProtectedRoute><BadgeClaim /></ProtectedRoute>} />
 
               {/* Admin routes — role-validated */}
               <Route path="/admin" element={<AdminRoute><AdminLayout><AdminDashboard /></AdminLayout></AdminRoute>} />
@@ -68,6 +73,7 @@ const App = () => (
               <Route path="/admin/programs/:id" element={<AdminRoute><AdminLayout><AdminProgramDetail /></AdminLayout></AdminRoute>} />
               <Route path="/admin/exercises" element={<AdminRoute><AdminLayout><AdminExercises /></AdminLayout></AdminRoute>} />
               <Route path="/admin/feedback" element={<AdminRoute><AdminLayout><AdminFeedback /></AdminLayout></AdminRoute>} />
+              <Route path="/admin/badges" element={<AdminRoute><AdminLayout><AdminBadges /></AdminLayout></AdminRoute>} />
               <Route path="/admin/insights" element={<AdminRoute><AdminLayout><AdminInsights /></AdminLayout></AdminRoute>} />
               <Route path="/admin/ai-rules" element={<AdminRoute><AdminLayout><AdminAIRules /></AdminLayout></AdminRoute>} />
               <Route path="/admin/audit" element={<AdminRoute><AdminLayout><AdminAuditLog /></AdminLayout></AdminRoute>} />
