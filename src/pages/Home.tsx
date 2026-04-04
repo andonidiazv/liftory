@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Leaf, ChevronRight, ChevronLeft, Flame, Dumbbell, Trophy, Check, Rocket, Loader2, Target } from "lucide-react";
+import { Leaf, ChevronRight, ChevronLeft, Flame, Dumbbell, Trophy, Check, Rocket, Loader2 } from "lucide-react";
 import Layout from "@/components/Layout";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigableHome } from "@/hooks/useNavigableHome";
@@ -32,30 +32,6 @@ function getPhaseDescription(week: number): string {
   if (week === 4) return "Subiendo intensidad, bajando repeticiones. Preparando el cuerpo para cargas máximas.";
   if (week === 5) return "Semana de máximo rendimiento. Pocas reps, máxima intensidad. Demuestra tu progreso.";
   return "Semana de recuperación activa. Volumen bajo para que tu cuerpo se regenere y sobrecompense.";
-}
-
-function getWeeklyMessage(done: number, goal: number): string {
-  if (goal <= 0) return "";
-  if (done === 0) return "Nueva semana.\nArranca con todo.";
-  const pct = done / goal;
-  if (done >= goal) return "Semana completa.\nDescansa y recupera.";
-  const remaining = goal - done;
-  if (remaining === 1) return "Una mas y cierras\nla semana perfecta.";
-  if (pct >= 0.5) return `Vas muy bien.\nSolo faltan ${remaining}.`;
-  if (done === 1) return "Primer paso dado.\nSigue el momentum.";
-  return `Vas agarrando ritmo.\nNo pares.`;
-}
-
-function getWeekBounds(todayStr: string): { start: string; end: string } {
-  const d = new Date(todayStr + "T12:00:00");
-  const dayOfWeek = d.getDay(); // 0=Sun
-  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-  const monday = new Date(d);
-  monday.setDate(d.getDate() + mondayOffset);
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  const fmt = (dt: Date) => dt.toISOString().split("T")[0];
-  return { start: fmt(monday), end: fmt(sunday) };
 }
 
 function HomeSkeleton() {
@@ -175,25 +151,45 @@ export default function Home() {
           </div>
         )}
 
-        {/* 2. Workout Card / PRIME Weekly Reset */}
+        {/* 2. Fused Workout + Weekly Progress Card */}
         {programInfo ? (
           isSunday ? (
             <PrimeWeeklyReset selectedDate={selectedDate} />
-          ) : workout ? (
-            <div
-              className="rounded-2xl p-5 cursor-pointer"
-              style={{
-                background: "hsl(var(--card))",
-                borderTop: "1px solid hsl(var(--border))",
-                borderRight: "1px solid hsl(var(--border))",
-                borderBottom: "1px solid hsl(var(--border))",
-                borderLeft: `4px solid ${workout.is_rest_day ? "#7A8B5C" : "hsl(var(--primary))"}`,
-                opacity: workout.is_completed ? 0.8 : 1,
-              }}
-              onClick={() => !workout.is_completed && navigate(`/workout/${workout.id}`)}
-            >
-              {workout.is_rest_day ? (
-                <>
+          ) : (() => {
+            // Build this week's training days (non-rest) from weekDays
+            const weekTrainingDays = weekDays.filter(d => d.hasWorkout && !d.isRestDay);
+            const totalTraining = weekTrainingDays.length;
+            const completedCount = weekTrainingDays.filter(d => d.isCompleted).length;
+
+            // Find which training day number the selected workout is (1-indexed)
+            const selectedTrainingIndex = workout && !workout.is_rest_day
+              ? weekTrainingDays.findIndex(d => d.date === selectedDate)
+              : -1;
+            const trainingDayNumber = selectedTrainingIndex >= 0 ? selectedTrainingIndex + 1 : null;
+
+            // Ring progress: completed / total training days
+            const allDone = completedCount >= totalTraining && totalTraining > 0;
+            const pct = totalTraining > 0 ? Math.min(Math.round((completedCount / totalTraining) * 100), 100) : 0;
+            const rSize = 72;
+            const rStroke = 5;
+            const rRadius = (rSize - rStroke) / 2;
+            const rCirc = 2 * Math.PI * rRadius;
+            const rOffset = rCirc - (pct / 100) * rCirc;
+            const ringColor = allDone ? "#7A8B5C" : "hsl(var(--primary))";
+
+            // Rest day card
+            if (workout?.is_rest_day) {
+              return (
+                <div
+                  className="rounded-2xl p-5"
+                  style={{
+                    background: "hsl(var(--card))",
+                    borderTop: "1px solid hsl(var(--border))",
+                    borderRight: "1px solid hsl(var(--border))",
+                    borderBottom: "1px solid hsl(var(--border))",
+                    borderLeft: "4px solid #7A8B5C",
+                  }}
+                >
                   <div className="flex items-center gap-2">
                     <Leaf className="h-4 w-4" style={{ color: "#7A8B5C" }} />
                     <span className="font-display text-[20px] font-semibold text-foreground">
@@ -203,40 +199,120 @@ export default function Home() {
                   <p className="mt-1 text-[13px] text-muted-foreground font-body">
                     Movilidad + Recovery
                   </p>
-                </>
-              ) : workout.is_completed ? (
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full" style={{ background: "rgba(122,139,92,0.2)" }}>
-                    <Check className="h-4 w-4" style={{ color: "#7A8B5C" }} />
+                </div>
+              );
+            }
+
+            // No workout for this day
+            if (!workout) {
+              return (
+                <div className="rounded-2xl p-5" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
+                  <p className="font-display text-[16px] font-semibold text-foreground">Sin workout {isSelectedToday ? "hoy" : "este día"}</p>
+                  <p className="mt-1 text-[13px] text-muted-foreground font-body">Descansa o consulta tu programa.</p>
+                </div>
+              );
+            }
+
+            // Training day card (fused: ring + workout info + progress bars)
+            return (
+              <div
+                className="rounded-2xl overflow-hidden"
+                style={{
+                  background: "hsl(var(--card))",
+                  border: `1px solid ${allDone ? "rgba(122,139,92,0.3)" : workout.is_completed ? "rgba(122,139,92,0.2)" : "hsl(var(--border))"}`,
+                }}
+              >
+                <div className="p-5 flex items-center gap-5">
+                  {/* Progress Ring */}
+                  <div className="relative shrink-0" style={{ width: rSize, height: rSize }}>
+                    <svg width={rSize} height={rSize} className="-rotate-90">
+                      <circle
+                        cx={rSize / 2} cy={rSize / 2} r={rRadius}
+                        fill="none" stroke="hsl(var(--secondary))" strokeWidth={rStroke}
+                      />
+                      <circle
+                        cx={rSize / 2} cy={rSize / 2} r={rRadius}
+                        fill="none" stroke={ringColor} strokeWidth={rStroke}
+                        strokeLinecap="round"
+                        strokeDasharray={rCirc} strokeDashoffset={rOffset}
+                        className="transition-all duration-700 ease-out"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      {workout.is_completed ? (
+                        <Check className="h-5 w-5" style={{ color: "#7A8B5C" }} strokeWidth={3} />
+                      ) : (
+                        <span className="font-display text-[20px] font-[800] text-foreground" style={{ letterSpacing: "-0.03em", lineHeight: 1 }}>
+                          {completedCount}
+                        </span>
+                      )}
+                      <span className="font-mono text-[8px] uppercase tracking-wider text-muted-foreground">
+                        de {totalTraining}
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-display text-[20px] font-semibold text-foreground">{workout.day_label}</p>
-                    <p className="text-[13px] text-muted-foreground font-body">Sesión completada</p>
+
+                  {/* Workout info */}
+                  <div className="flex-1 min-w-0">
+                    {trainingDayNumber && (
+                      <p className="font-mono text-[9px] uppercase tracking-[2px] text-muted-foreground mb-1">
+                        {workout.is_completed ? "Completado" : "Esta semana"} · Día {trainingDayNumber}/{totalTraining}
+                      </p>
+                    )}
+                    <h2 className="font-display text-[18px] font-[700] text-foreground" style={{ letterSpacing: "-0.02em" }}>
+                      {workout.day_label}
+                    </h2>
+                    {!workout.is_completed && (
+                      <p className="mt-0.5 text-[12px] text-muted-foreground font-body">
+                        {dateDisplay} · ~{workout.estimated_duration ?? "—"} min · {workout.setCount} sets
+                      </p>
+                    )}
+                    {workout.is_completed && (
+                      <p className="mt-0.5 text-[12px] font-body" style={{ color: "#7A8B5C" }}>
+                        Sesión completada
+                      </p>
+                    )}
+
+                    {/* Training day progress bars */}
+                    <div className="flex gap-1 mt-2.5">
+                      {weekTrainingDays.map((td, i) => {
+                        const isCurrent = td.date === selectedDate;
+                        return (
+                          <div
+                            key={i}
+                            className="h-[4px] rounded-full transition-all duration-300"
+                            style={{
+                              width: 18,
+                              background: td.isCompleted
+                                ? ringColor
+                                : isCurrent && !td.isCompleted
+                                ? `color-mix(in srgb, hsl(var(--primary)) 30%, transparent)`
+                                : "hsl(var(--secondary))",
+                              border: isCurrent && !td.isCompleted
+                                ? "1px solid color-mix(in srgb, hsl(var(--primary)) 50%, transparent)"
+                                : "none",
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
-              ) : (
-                <>
-                  <h2 className="font-display text-[20px] font-semibold text-foreground">
-                    {workout.day_label}
-                  </h2>
-                  <p className="mt-1 text-[13px] text-muted-foreground font-body">
-                    {dateDisplay} · ~{workout.estimated_duration ?? "—"} min · {workout.setCount} sets
-                  </p>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); navigate(`/workout/${workout.id}`); }}
-                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 font-display text-[14px] font-semibold text-primary-foreground"
-                  >
-                    {isSelectedToday ? "EMPEZAR SESIÓN" : "VER SESIÓN"} <ChevronRight className="h-4 w-4" />
-                  </button>
-                </>
-              )}
-            </div>
-          ) : (
-            <div className="rounded-2xl p-5" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-              <p className="font-display text-[16px] font-semibold text-foreground">Sin workout {isSelectedToday ? "hoy" : "este día"}</p>
-              <p className="mt-1 text-[13px] text-muted-foreground font-body">Descansa o consulta tu programa.</p>
-            </div>
-          )
+
+                {/* Action button — only if not completed */}
+                {!workout.is_completed && (
+                  <div className="px-5 pb-5">
+                    <button
+                      onClick={() => navigate(`/workout/${workout.id}`)}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 font-display text-[14px] font-semibold text-primary-foreground"
+                    >
+                      {isSelectedToday ? "EMPEZAR SESIÓN" : "VER SESIÓN"} <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })()
         ) : (
           <div className="rounded-2xl p-6 text-center" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
             <p className="font-display text-[18px] font-semibold text-foreground">Comienza tu programa</p>
@@ -376,102 +452,7 @@ export default function Home() {
           ))}
         </div>
 
-        {/* 5. Weekly Goal Card (Option B — Ring + Message) */}
-        {(() => {
-          const weekGoal = profile?.training_days_per_week || 0;
-          if (!weekGoal || !allWorkouts.length) return null;
-
-          const { start, end } = getWeekBounds(todayStr);
-          const thisWeekWorkouts = allWorkouts.filter(
-            w => !w.isRestDay && w.date >= start && w.date <= end
-          );
-          const completedThisWeek = thisWeekWorkouts.filter(w => w.isCompleted).length;
-          const pct = Math.min(Math.round((completedThisWeek / weekGoal) * 100), 100);
-          const isComplete = completedThisWeek >= weekGoal;
-
-          // Ring SVG
-          const rSize = 76;
-          const rStroke = 5.5;
-          const rRadius = (rSize - rStroke) / 2;
-          const rCirc = 2 * Math.PI * rRadius;
-          const rOffset = rCirc - (pct / 100) * rCirc;
-
-          const message = getWeeklyMessage(completedThisWeek, weekGoal);
-          const accentColor = isComplete ? "#7A8B5C" : "hsl(var(--primary))";
-
-          // Day indicator bars
-          const bars = Array.from({ length: weekGoal }, (_, i) => {
-            if (i < completedThisWeek) return "filled";
-            if (i === completedThisWeek) return "current";
-            return "empty";
-          });
-
-          return (
-            <div
-              className="rounded-2xl p-5 flex items-center gap-5"
-              style={{
-                background: "hsl(var(--card))",
-                border: `1px solid ${isComplete ? "rgba(122,139,92,0.3)" : "hsl(var(--border))"}`,
-              }}
-            >
-              {/* Progress Ring */}
-              <div className="relative shrink-0" style={{ width: rSize, height: rSize }}>
-                <svg width={rSize} height={rSize} className="-rotate-90">
-                  <circle
-                    cx={rSize / 2} cy={rSize / 2} r={rRadius}
-                    fill="none" stroke="hsl(var(--secondary))" strokeWidth={rStroke}
-                  />
-                  <circle
-                    cx={rSize / 2} cy={rSize / 2} r={rRadius}
-                    fill="none" stroke={accentColor} strokeWidth={rStroke}
-                    strokeLinecap="round"
-                    strokeDasharray={rCirc} strokeDashoffset={rOffset}
-                    className="transition-all duration-700 ease-out"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="font-display text-[22px] font-[800] text-foreground" style={{ letterSpacing: "-0.03em", lineHeight: 1 }}>
-                    {completedThisWeek}
-                  </span>
-                  <span className="font-mono text-[8px] uppercase tracking-wider text-muted-foreground">
-                    de {weekGoal}
-                  </span>
-                </div>
-              </div>
-
-              {/* Text + bars */}
-              <div className="flex-1 min-w-0">
-                <p className="font-mono text-[9px] uppercase tracking-[2px] text-muted-foreground mb-1.5">
-                  Esta semana
-                </p>
-                <p className="font-display text-[16px] font-[700] text-foreground leading-tight whitespace-pre-line" style={{ letterSpacing: "-0.02em" }}>
-                  {message}
-                </p>
-                {/* Mini day bars */}
-                <div className="flex gap-1 mt-3">
-                  {bars.map((status, i) => (
-                    <div
-                      key={i}
-                      className="h-[4px] rounded-full transition-all duration-300"
-                      style={{
-                        width: 20,
-                        background:
-                          status === "filled"
-                            ? accentColor
-                            : status === "current"
-                            ? `color-mix(in srgb, ${isComplete ? "#7A8B5C" : "hsl(var(--primary))"} 30%, transparent)`
-                            : "hsl(var(--secondary))",
-                        border: status === "current" ? `1px solid color-mix(in srgb, hsl(var(--primary)) 40%, transparent)` : "none",
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-          );
-        })()}
-
-        {/* 6. Mesocycle Workout Tracker */}
+        {/* 5. Mesocycle Workout Tracker */}
         {programInfo && (() => {
           const trainingDays = allWorkouts.filter(w => !w.isRestDay);
           const totalCount = trainingDays.length;
