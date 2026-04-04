@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  ChevronLeft, Send, Link as LinkIcon, FileText, Award,
-  CheckCircle, Loader2, Info, Lock, Check, Zap, Crown, ChevronsUp,
-  ArrowUpCircle, Flame, Anchor, Rocket, Target, Shield, TrendingUp, Star,
+  ChevronLeft, Send, FileText, Award, Upload,
+  CheckCircle, Loader2, Info, Check, Zap, Crown, ChevronsUp,
+  ArrowUpCircle, Flame, Anchor, Rocket, Target, Shield, TrendingUp, Star, X,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import TabBar from "@/components/TabBar";
@@ -40,6 +40,7 @@ interface UserBadgeStatus {
   status: string;
 }
 
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 const TIER_ORDER = ["longevity", "excelente", "elite"] as const;
 const TIER_COLORS: Record<string, string> = { longevity: "#7A8B5C", excelente: "#C75B39", elite: "#C9A96E" };
 const TIER_DESCS: Record<string, string> = {
@@ -58,6 +59,7 @@ export default function BadgeClaim() {
   const { slug, tier: urlTier } = useParams<{ slug: string; tier: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [badge, setBadge] = useState<BadgeData | null>(null);
   const [userStatuses, setUserStatuses] = useState<UserBadgeStatus[]>([]);
@@ -65,8 +67,12 @@ export default function BadgeClaim() {
   const [selectedTier, setSelectedTier] = useState<string>(urlTier || "longevity");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [proofUrl, setProofUrl] = useState("");
   const [proofNotes, setProofNotes] = useState("");
+
+  // Video upload state
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   // ── Fetch badge + user statuses ──
   useEffect(() => {
@@ -91,7 +97,6 @@ export default function BadgeClaim() {
       const sorted = { ...data, badge_tiers: (data.badge_tiers || []).sort((a: TierData, b: TierData) => a.sort_order - b.sort_order) };
       setBadge(sorted);
 
-      // Get user's existing claims for this badge's tiers
       const tierIds = sorted.badge_tiers.map((t: TierData) => t.id);
       if (tierIds.length) {
         const { data: statuses } = await (supabase as any)
@@ -106,6 +111,13 @@ export default function BadgeClaim() {
     })();
   }, [slug, user, navigate]);
 
+  // Cleanup video preview URL
+  useEffect(() => {
+    return () => {
+      if (videoPreview) URL.revokeObjectURL(videoPreview);
+    };
+  }, [videoPreview]);
+
   // ── Helpers ──
   function getIcon(n: string | null) { return n ? (ICON_MAP[n.toLowerCase()] ?? Award) : Award; }
 
@@ -115,35 +127,113 @@ export default function BadgeClaim() {
     return s.status as "pending" | "approved";
   }
 
+  function formatFileSize(bytes: number): string {
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
   const selectedTierData = badge?.badge_tiers.find(t => t.tier === selectedTier);
   const selectedColor = TIER_COLORS[selectedTier] || "#C75B39";
   const selectedStatus = selectedTierData ? tierStatusFor(selectedTierData.id) : "locked";
   const canClaim = selectedStatus === "locked";
 
+  // ── Handle video selection ──
+  const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast({ title: "Video demasiado grande", description: "El video no puede pesar más de 50MB." });
+      return;
+    }
+
+    if (!file.type.startsWith("video/")) {
+      toast({ title: "Formato no soportado", description: "Solo se aceptan archivos de video." });
+      return;
+    }
+
+    // Clean up previous preview
+    if (videoPreview) URL.revokeObjectURL(videoPreview);
+
+    setVideoFile(file);
+    setVideoPreview(URL.createObjectURL(file));
+  };
+
+  const clearVideo = () => {
+    if (videoPreview) URL.revokeObjectURL(videoPreview);
+    setVideoFile(null);
+    setVideoPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   // ── Submit ──
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !badge || !selectedTierData || !proofUrl.trim()) return;
+    if (!user || !badge || !selectedTierData || !videoFile) return;
     setSubmitting(true);
+    setUploadProgress(0);
 
-    const { error } = await (supabase as any).from("user_badges").insert({
-      user_id: user.id,
-      badge_tier_id: selectedTierData.id,
-      proof_url: proofUrl.trim(),
-      proof_notes: proofNotes.trim() || null,
-      status: "pending",
-    });
+    try {
+      // 1. Upload video to Supabase Storage
+      const ext = videoFile.name.split(".").pop()?.toLowerCase() || "mp4";
+      const storagePath = `${user.id}/${selectedTierData.id}.${ext}`;
 
-    setSubmitting(false);
-    if (error) {
-      if (error.code === "23505") {
-        toast({ title: "Ya enviaste este tier", description: "Revisa tu perfil para ver el estado." });
-      } else {
-        toast({ title: "Error", description: "No se pudo enviar. Intenta de nuevo." });
+      // Simulate progress since supabase-js doesn't expose upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => Math.min(prev + 8, 85));
+      }, 300);
+
+      const { error: uploadError } = await supabase.storage
+        .from("badge-videos")
+        .upload(storagePath, videoFile, {
+          upsert: true,
+          contentType: videoFile.type,
+        });
+
+      clearInterval(progressInterval);
+
+      if (uploadError) {
+        toast({ title: "Error al subir video", description: uploadError.message });
+        setSubmitting(false);
+        setUploadProgress(0);
+        return;
       }
-      return;
+
+      setUploadProgress(90);
+
+      // 2. Get the public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from("badge-videos")
+        .getPublicUrl(storagePath);
+
+      // 3. Insert badge claim with video URL
+      const { error } = await (supabase as any).from("user_badges").insert({
+        user_id: user.id,
+        badge_tier_id: selectedTierData.id,
+        proof_url: publicUrl,
+        proof_notes: proofNotes.trim() || null,
+        status: "pending",
+      });
+
+      setUploadProgress(100);
+
+      if (error) {
+        if (error.code === "23505") {
+          toast({ title: "Ya enviaste este tier", description: "Revisa tu perfil para ver el estado." });
+        } else {
+          toast({ title: "Error", description: "No se pudo enviar. Intenta de nuevo." });
+        }
+        setSubmitting(false);
+        setUploadProgress(0);
+        return;
+      }
+
+      setSubmitted(true);
+    } catch {
+      toast({ title: "Error", description: "Algo salió mal. Intenta de nuevo." });
+      setSubmitting(false);
+      setUploadProgress(0);
     }
-    setSubmitted(true);
   };
 
   if (loading) {
@@ -169,7 +259,7 @@ export default function BadgeClaim() {
           Badge en revisión
         </h1>
         <p className="font-body text-[14px] text-center mt-2 max-w-xs leading-relaxed" style={{ color: "#8A8A8E" }}>
-          Vamos a revisar tu video. Te notificaremos cuando sea aprobado.
+          Tu video fue subido correctamente. Lo revisaremos y te notificaremos cuando sea aprobado.
         </p>
         <button
           onClick={() => navigate("/badges")}
@@ -250,7 +340,6 @@ export default function BadgeClaim() {
 
                 {/* Card body */}
                 <div className="flex flex-col items-center text-center px-3 pt-4 pb-4 flex-1">
-                  {/* Icon */}
                   <div
                     className="flex h-11 w-11 items-center justify-center rounded-full mb-3"
                     style={{ background: isSelected ? `${color}20` : "rgba(255,255,255,0.06)" }}
@@ -264,12 +353,10 @@ export default function BadgeClaim() {
                     )}
                   </div>
 
-                  {/* Label */}
                   <span className="font-display text-[13px] font-[800]" style={{ color: isSelected ? color : "#8A8A8E", letterSpacing: "-0.02em" }}>
                     {tierData.tier_label}
                   </span>
 
-                  {/* Status tag */}
                   {status === "approved" && (
                     <span className="font-mono text-[8px] px-2 py-0.5 rounded-full mt-1.5" style={{ background: `${color}20`, color }}>GANADO</span>
                   )}
@@ -282,10 +369,8 @@ export default function BadgeClaim() {
                     </span>
                   )}
 
-                  {/* Divider */}
                   <div className="w-full h-px my-3" style={{ background: "rgba(255,255,255,0.06)" }} />
 
-                  {/* Weight/reps */}
                   {isBodyweight ? (
                     <div className="w-full space-y-1.5">
                       <div className="flex justify-between items-baseline px-1">
@@ -341,29 +426,79 @@ export default function BadgeClaim() {
         <form onSubmit={handleSubmit} className="px-5 space-y-5">
           <div className="h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
 
-          <p className="font-mono text-[9px] uppercase tracking-[2px]" style={{ color: "#8A8A8E" }}>Envía tu prueba</p>
+          <p className="font-mono text-[9px] uppercase tracking-[2px]" style={{ color: "#8A8A8E" }}>Sube tu video</p>
 
-          {/* Video link */}
+          {/* Video upload area */}
           <div className="space-y-2">
-            <label className="flex items-center gap-2 font-body text-[13px] font-medium" style={{ color: "#FAF8F5" }}>
-              <LinkIcon className="w-4 h-4" style={{ color: "#8A8A8E" }} />
-              Link del video
-            </label>
             <input
-              type="url"
-              required
-              value={proofUrl}
-              onChange={e => setProofUrl(e.target.value)}
-              placeholder="https://www.instagram.com/reel/..."
-              className="w-full font-body text-[13px] rounded-xl px-4 py-3 focus:outline-none transition-all"
-              style={{
-                background: "rgba(255,255,255,0.05)",
-                border: `1px solid rgba(255,255,255,0.1)`,
-                color: "#FAF8F5",
-              }}
+              ref={fileInputRef}
+              type="file"
+              accept="video/mp4,video/quicktime,video/webm,video/mov,.mp4,.mov,.webm"
+              className="hidden"
+              onChange={handleVideoSelect}
             />
+
+            {!videoFile ? (
+              /* Upload dropzone */
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full flex flex-col items-center justify-center gap-3 rounded-2xl py-10 transition-all active:scale-[0.98]"
+                style={{
+                  background: "rgba(255,255,255,0.03)",
+                  border: "2px dashed rgba(255,255,255,0.12)",
+                }}
+              >
+                <div
+                  className="h-14 w-14 rounded-full flex items-center justify-center"
+                  style={{ background: `${selectedColor}15` }}
+                >
+                  <Upload className="h-6 w-6" style={{ color: selectedColor }} />
+                </div>
+                <div className="text-center">
+                  <p className="font-body text-[14px] font-medium" style={{ color: "#FAF8F5" }}>
+                    Toca para grabar o elegir video
+                  </p>
+                  <p className="font-body text-[11px] mt-1" style={{ color: "#666" }}>
+                    MP4, MOV o WebM — máx. 50MB
+                  </p>
+                </div>
+              </button>
+            ) : (
+              /* Video preview */
+              <div className="relative rounded-2xl overflow-hidden" style={{ background: "#161614" }}>
+                <video
+                  src={videoPreview || undefined}
+                  className="w-full rounded-2xl"
+                  style={{ maxHeight: 280 }}
+                  controls
+                  playsInline
+                  muted
+                />
+                {/* File info bar */}
+                <div className="flex items-center justify-between px-3 py-2" style={{ background: "rgba(255,255,255,0.03)" }}>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-mono text-[10px] truncate" style={{ color: "#B0ACA7" }}>
+                      {videoFile.name}
+                    </p>
+                    <p className="font-mono text-[9px]" style={{ color: "#666" }}>
+                      {formatFileSize(videoFile.size)}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={clearVideo}
+                    className="ml-2 h-7 w-7 rounded-full flex items-center justify-center"
+                    style={{ background: "rgba(255,255,255,0.06)" }}
+                  >
+                    <X className="h-3.5 w-3.5" style={{ color: "#8A8A8E" }} />
+                  </button>
+                </div>
+              </div>
+            )}
+
             <p className="font-body text-[11px] leading-relaxed" style={{ color: "#666" }}>
-              Sube tu video a Instagram taggeando @liftory.app o pega un link de YouTube/Google Drive
+              Graba tu lift completo mostrando el peso en la barra. El video será revisado antes de publicarse.
             </p>
           </div>
 
@@ -376,8 +511,8 @@ export default function BadgeClaim() {
             <textarea
               value={proofNotes}
               onChange={e => setProofNotes(e.target.value)}
-              rows={3}
-              placeholder="Cualquier detalle que quieras agregar..."
+              rows={2}
+              placeholder="Peso usado, contexto del lift..."
               className="w-full font-body text-[13px] rounded-xl px-4 py-3 focus:outline-none resize-none transition-all"
               style={{
                 background: "rgba(255,255,255,0.05)",
@@ -387,10 +522,26 @@ export default function BadgeClaim() {
             />
           </div>
 
+          {/* Upload progress */}
+          {submitting && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[10px]" style={{ color: "#8A8A8E" }}>Subiendo video...</span>
+                <span className="font-mono text-[10px]" style={{ color: selectedColor }}>{uploadProgress}%</span>
+              </div>
+              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                <div
+                  className="h-full rounded-full transition-all duration-300"
+                  style={{ width: `${uploadProgress}%`, background: selectedColor }}
+                />
+              </div>
+            </div>
+          )}
+
           {/* Submit */}
           <button
             type="submit"
-            disabled={submitting || !proofUrl.trim()}
+            disabled={submitting || !videoFile}
             className="w-full flex items-center justify-center gap-2 font-display text-[13px] font-[700] py-4 rounded-xl transition-all disabled:opacity-40 active:scale-[0.98]"
             style={{ background: selectedColor, color: "#FAF8F5" }}
           >

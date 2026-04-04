@@ -454,19 +454,31 @@ export default function AdminBadges() {
                       </span>
                     </td>
 
-                    {/* Proof */}
+                    {/* Proof — inline video player */}
                     <td className="px-4 py-3">
                       {claim.proof_url ? (
-                        <a
-                          href={claim.proof_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 font-body text-xs transition-colors"
-                          style={{ color: "#C75B39" }}
-                        >
-                          Ver prueba
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
+                        claim.proof_url.includes("badge-videos") ? (
+                          <video
+                            src={claim.proof_url}
+                            className="rounded-lg"
+                            style={{ width: 160, maxHeight: 120, background: "#0D0C0A" }}
+                            controls
+                            playsInline
+                            muted
+                            preload="metadata"
+                          />
+                        ) : (
+                          <a
+                            href={claim.proof_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 font-body text-xs transition-colors"
+                            style={{ color: "#C75B39" }}
+                          >
+                            Ver prueba
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )
                       ) : (
                         <span
                           className="font-body text-xs"

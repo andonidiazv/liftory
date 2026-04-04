@@ -37,6 +37,7 @@ export default function Profile() {
     earned_at: string; proof_url: string | null; icon_name: string | null;
     category: string | null;
   }[]>([]);
+  const [videoModal, setVideoModal] = useState<{ url: string; name: string; tier_label: string; color: string } | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -324,20 +325,27 @@ export default function Profile() {
             <div className="mt-3 grid grid-cols-3 gap-1 rounded-xl overflow-hidden">
               {earnedBadges.map((b, i) => {
                 const BadgeIcon = getBadgeIcon(b.icon_name);
-                const ytThumb = getYouTubeThumbnail(b.proof_url);
+                const isVideo = b.proof_url?.includes("badge-videos");
                 return (
                   <button
                     key={i}
-                    onClick={() => b.proof_url && window.open(b.proof_url, "_blank")}
+                    onClick={() => {
+                      if (b.proof_url) setVideoModal({ url: b.proof_url, name: b.name, tier_label: b.tier_label, color: b.color });
+                    }}
                     className="relative aspect-square overflow-hidden group"
                     style={{ background: "#1A1A1A" }}
                   >
-                    {/* Thumbnail or aesthetic placeholder */}
-                    {ytThumb ? (
+                    {/* Video thumbnail or aesthetic placeholder */}
+                    {isVideo ? (
                       <>
-                        <img src={ytThumb} alt={b.name} className="absolute inset-0 w-full h-full object-cover" />
-                        {/* Subtle dark overlay for readability */}
-                        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%)" }} />
+                        <video
+                          src={b.proof_url!}
+                          className="absolute inset-0 w-full h-full object-cover"
+                          muted
+                          playsInline
+                          preload="metadata"
+                        />
+                        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 40%)" }} />
                       </>
                     ) : (
                       <div className="absolute inset-0" style={{
@@ -347,28 +355,21 @@ export default function Profile() {
                           linear-gradient(145deg, #1A1917 0%, #0D0C0A 50%, ${b.color}08 100%)
                         `,
                       }}>
-                        {/* Decorative ring */}
                         <div className="absolute inset-0 flex items-center justify-center">
                           <div className="h-16 w-16 rounded-full flex items-center justify-center" style={{
-                            border: `1.5px solid ${b.color}20`,
-                            background: `${b.color}08`,
+                            border: `1.5px solid ${b.color}20`, background: `${b.color}08`,
                           }}>
                             <div className="h-10 w-10 rounded-full flex items-center justify-center" style={{
-                              border: `1px solid ${b.color}15`,
-                              background: `${b.color}10`,
+                              border: `1px solid ${b.color}15`, background: `${b.color}10`,
                             }}>
                               <BadgeIcon className="h-5 w-5" style={{ color: `${b.color}90` }} />
                             </div>
                           </div>
                         </div>
-                        {/* Subtle noise texture dots */}
-                        <div className="absolute top-3 left-3 h-1 w-1 rounded-full" style={{ background: `${b.color}20` }} />
-                        <div className="absolute top-5 right-4 h-0.5 w-0.5 rounded-full" style={{ background: `${b.color}15` }} />
-                        <div className="absolute bottom-8 left-5 h-0.5 w-0.5 rounded-full" style={{ background: `${b.color}12` }} />
                       </div>
                     )}
 
-                    {/* Play button — always visible on mobile (no hover) */}
+                    {/* Play button — top left */}
                     {b.proof_url && (
                       <div className="absolute top-1.5 left-1.5">
                         <div className="h-5 w-5 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
@@ -464,6 +465,53 @@ export default function Profile() {
         </div>
       </div>
 
+      {/* Video Player Modal */}
+      {videoModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4"
+          onClick={() => setVideoModal(null)}
+        >
+          <div className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            {/* Close button */}
+            <button
+              onClick={() => setVideoModal(null)}
+              className="absolute top-12 right-4 h-9 w-9 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center z-10"
+            >
+              <X className="h-5 w-5 text-white" />
+            </button>
+
+            {/* Video */}
+            <div className="rounded-2xl overflow-hidden" style={{ background: "#0D0C0A" }}>
+              <video
+                src={videoModal.url}
+                className="w-full"
+                style={{ maxHeight: "70vh" }}
+                controls
+                autoPlay
+                playsInline
+              />
+              {/* Badge info bar */}
+              <div className="px-4 py-3 flex items-center gap-3">
+                <div
+                  className="h-8 w-8 rounded-full flex items-center justify-center shrink-0"
+                  style={{ background: `${videoModal.color}20` }}
+                >
+                  <Award className="h-4 w-4" style={{ color: videoModal.color }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-display text-[13px] font-[800] text-white truncate" style={{ letterSpacing: "-0.02em" }}>
+                    {videoModal.name}
+                  </p>
+                  <p className="font-mono text-[8px] uppercase tracking-wider" style={{ color: videoModal.color }}>
+                    {videoModal.tier_label}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete Account Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 px-6" onClick={() => setShowDeleteModal(false)}>
@@ -506,19 +554,6 @@ const BADGE_ICON_MAP: Record<string, React.ComponentType<{ className?: string; s
 function getBadgeIcon(iconName: string | null) {
   if (!iconName) return Award;
   return BADGE_ICON_MAP[iconName.toLowerCase()] ?? Award;
-}
-
-function getYouTubeThumbnail(url: string | null): string | null {
-  if (!url) return null;
-  // youtube.com/watch?v=ID or youtu.be/ID or youtube.com/shorts/ID
-  const patterns = [
-    /(?:youtube\.com\/watch\?.*v=|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
-  ];
-  for (const p of patterns) {
-    const m = url.match(p);
-    if (m) return `https://img.youtube.com/vi/${m[1]}/mqdefault.jpg`;
-  }
-  return null;
 }
 
 function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
