@@ -9,6 +9,7 @@ import {
   Camera, LogOut, Trash2, Crown,
   AlertTriangle, Clock, Edit2, Check, X, Dumbbell, Target,
   Calendar, MapPin, Shield, BookOpen, ChevronRight, Award, Lock,
+  Play, Zap, Flame, Anchor, Rocket, Star, TrendingUp,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -31,7 +32,11 @@ export default function Profile() {
   const [onboarding, setOnboarding] = useState<OnboardingData | null>(null);
   const [uploading, setUploading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [earnedBadges, setEarnedBadges] = useState<{ name: string; tier: string; tier_label: string; color: string; earned_at: string }[]>([]);
+  const [earnedBadges, setEarnedBadges] = useState<{
+    name: string; tier: string; tier_label: string; color: string;
+    earned_at: string; proof_url: string | null; icon_name: string | null;
+    category: string | null;
+  }[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -43,10 +48,10 @@ export default function Profile() {
       .then(({ data }) => {
         if (data) setOnboarding(data as OnboardingData);
       });
-    // Fetch earned badges
+    // Fetch earned badges with proof_url and icon
     (supabase as any)
       .from("user_badges")
-      .select("earned_at, badge_tier_id, badge_tiers(tier, tier_label, color, badge_definitions(name))")
+      .select("earned_at, proof_url, badge_tier_id, badge_tiers(tier, tier_label, color, badge_definitions(name, icon_name, category))")
       .eq("user_id", user.id)
       .eq("status", "approved")
       .order("earned_at", { ascending: false })
@@ -58,6 +63,9 @@ export default function Profile() {
             tier_label: b.badge_tiers?.tier_label || "",
             color: b.badge_tiers?.color || "#C75B39",
             earned_at: b.earned_at || "",
+            proof_url: b.proof_url || null,
+            icon_name: b.badge_tiers?.badge_definitions?.icon_name || null,
+            category: b.badge_tiers?.badge_definitions?.category || null,
           })));
         }
       });
@@ -301,7 +309,7 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* ═══ BADGES ═══ */}
+        {/* ═══ BADGES — Instagram-style grid ═══ */}
         <div className="mt-8">
           <div className="flex items-center justify-between">
             <span className="eyebrow-label">TUS BADGES</span>
@@ -313,31 +321,55 @@ export default function Profile() {
             </button>
           </div>
           {earnedBadges.length > 0 ? (
-            <div className="mt-3 flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
-              {earnedBadges.slice(0, 6).map((b, i) => (
-                <div
-                  key={i}
-                  className="shrink-0 flex flex-col items-center gap-1.5 rounded-xl p-3"
-                  style={{
-                    background: `${b.color}10`,
-                    border: `1px solid ${b.color}30`,
-                    minWidth: 88,
-                  }}
-                >
-                  <div
-                    className="flex h-10 w-10 items-center justify-center rounded-full"
-                    style={{ background: `${b.color}20` }}
+            <div className="mt-3 grid grid-cols-3 gap-1 rounded-xl overflow-hidden">
+              {earnedBadges.map((b, i) => {
+                const BadgeIcon = getBadgeIcon(b.icon_name);
+                const ytThumb = getYouTubeThumbnail(b.proof_url);
+                return (
+                  <button
+                    key={i}
+                    onClick={() => b.proof_url && window.open(b.proof_url, "_blank")}
+                    className="relative aspect-square overflow-hidden group"
+                    style={{ background: "#1A1A1A" }}
                   >
-                    <Award className="h-5 w-5" style={{ color: b.color }} />
-                  </div>
-                  <span className="font-mono text-[8px] uppercase tracking-wider text-center" style={{ color: b.color }}>
-                    {b.tier_label}
-                  </span>
-                  <span className="font-body text-[10px] text-center text-muted-foreground leading-tight" style={{ maxWidth: 76 }}>
-                    {b.name}
-                  </span>
-                </div>
-              ))}
+                    {/* Thumbnail or placeholder */}
+                    {ytThumb ? (
+                      <img src={ytThumb} alt={b.name} className="absolute inset-0 w-full h-full object-cover" />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${b.color}15, ${b.color}05)` }}>
+                        <BadgeIcon className="h-8 w-8" style={{ color: `${b.color}40` }} />
+                      </div>
+                    )}
+
+                    {/* Play button overlay */}
+                    {b.proof_url && (
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity bg-black/30">
+                        <div className="h-10 w-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                          <Play className="h-4 w-4 text-white ml-0.5" fill="white" />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Badge icon — top right */}
+                    <div
+                      className="absolute top-1.5 right-1.5 h-6 w-6 rounded-full flex items-center justify-center shadow-lg"
+                      style={{ background: b.color, boxShadow: `0 2px 8px ${b.color}60` }}
+                    >
+                      <BadgeIcon className="h-3 w-3 text-white" />
+                    </div>
+
+                    {/* Tier ribbon — bottom */}
+                    <div className="absolute bottom-0 left-0 right-0 px-2 py-1.5" style={{ background: "linear-gradient(transparent, rgba(0,0,0,0.7))" }}>
+                      <p className="font-display text-[9px] font-[800] text-white truncate" style={{ letterSpacing: "-0.02em" }}>
+                        {b.name}
+                      </p>
+                      <p className="font-mono text-[7px] uppercase tracking-wider" style={{ color: b.color }}>
+                        {b.tier_label}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           ) : (
             <button
@@ -435,6 +467,31 @@ export default function Profile() {
       )}
     </Layout>
   );
+}
+
+// ── Helpers for badge grid ──
+const BADGE_ICON_MAP: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
+  zap: Zap, flame: Flame, anchor: Anchor, rocket: Rocket, star: Star,
+  "trending-up": TrendingUp, bolt: Zap, target: Target, shield: Shield,
+  crown: Crown, award: Award,
+};
+
+function getBadgeIcon(iconName: string | null) {
+  if (!iconName) return Award;
+  return BADGE_ICON_MAP[iconName.toLowerCase()] ?? Award;
+}
+
+function getYouTubeThumbnail(url: string | null): string | null {
+  if (!url) return null;
+  // youtube.com/watch?v=ID or youtu.be/ID or youtube.com/shorts/ID
+  const patterns = [
+    /(?:youtube\.com\/watch\?.*v=|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+  ];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m) return `https://img.youtube.com/vi/${m[1]}/mqdefault.jpg`;
+  }
+  return null;
 }
 
 function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
