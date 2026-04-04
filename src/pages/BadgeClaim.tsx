@@ -219,10 +219,10 @@ export default function BadgeClaim() {
         </div>
       </div>
 
-      {/* ── Tier selector ── */}
+      {/* ── Tier cards (horizontal scroll) ── */}
       <div className="px-5 mb-6">
-        <p className="font-mono text-[9px] uppercase tracking-[2px] mb-3" style={{ color: "#8A8A8E" }}>Selecciona el nivel</p>
-        <div className="space-y-3">
+        <p className="font-mono text-[9px] uppercase tracking-[2px] mb-4" style={{ color: "#8A8A8E" }}>Selecciona el nivel</p>
+        <div className="flex gap-3 overflow-x-auto pb-2 -mx-5 px-5" style={{ scrollbarWidth: "none" }}>
           {TIER_ORDER.map(t => {
             const tierData = badge.badge_tiers.find(bt => bt.tier === t);
             if (!tierData) return null;
@@ -235,76 +235,87 @@ export default function BadgeClaim() {
               <button
                 key={t}
                 onClick={() => { if (status !== "approved") setSelectedTier(t); }}
-                className="w-full text-left rounded-xl px-4 py-4 transition-all"
+                className="shrink-0 flex flex-col rounded-2xl overflow-hidden transition-all active:scale-[0.97]"
                 style={{
-                  background: isSelected ? `${color}12` : "rgba(255,255,255,0.03)",
-                  border: isSelected ? `2px solid ${color}50` : "2px solid rgba(255,255,255,0.06)",
-                  boxShadow: isSelected ? `0 0 24px ${color}15` : "none",
+                  width: "calc(33.333% - 8px)",
+                  minWidth: 140,
+                  background: "#161614",
+                  border: isSelected ? `2px solid ${color}60` : "2px solid rgba(255,255,255,0.06)",
+                  boxShadow: isSelected ? `0 4px 30px ${color}20` : "none",
                   opacity: status === "approved" ? 0.5 : 1,
                 }}
               >
-                <div className="flex items-center gap-3">
-                  {/* Status indicator */}
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full" style={{
-                    background: status === "approved" ? `${color}25` : status === "pending" ? "rgba(234,179,8,0.15)" : isSelected ? `${color}20` : "rgba(255,255,255,0.06)",
-                  }}>
+                {/* Top accent */}
+                <div className="h-[3px]" style={{ background: isSelected ? color : `${color}30` }} />
+
+                {/* Card body */}
+                <div className="flex flex-col items-center text-center px-3 pt-4 pb-4 flex-1">
+                  {/* Icon */}
+                  <div
+                    className="flex h-11 w-11 items-center justify-center rounded-full mb-3"
+                    style={{ background: isSelected ? `${color}20` : "rgba(255,255,255,0.06)" }}
+                  >
                     {status === "approved" ? (
-                      <Check className="h-4 w-4" style={{ color }} strokeWidth={3} />
+                      <Check className="h-5 w-5" style={{ color }} strokeWidth={3} />
                     ) : status === "pending" ? (
-                      <div className="h-3 w-3 rounded-full animate-pulse" style={{ background: "#EAB308" }} />
+                      <div className="h-3.5 w-3.5 rounded-full animate-pulse" style={{ background: "#EAB308" }} />
                     ) : (
-                      <Award className="h-4 w-4" style={{ color: isSelected ? color : "#8A8A8E" }} />
+                      <Award className="h-5 w-5" style={{ color: isSelected ? color : "#8A8A8E" }} />
                     )}
                   </div>
 
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-display text-[15px] font-[700]" style={{ color: isSelected ? color : "#8A8A8E" }}>
-                        {tierData.tier_label}
-                      </span>
-                      {status === "approved" && (
-                        <span className="font-mono text-[9px] px-2 py-0.5 rounded-full" style={{ background: `${color}20`, color }}>GANADO</span>
-                      )}
-                      {status === "pending" && (
-                        <span className="font-mono text-[9px] px-2 py-0.5 rounded-full" style={{ background: "rgba(234,179,8,0.15)", color: "#EAB308" }}>EN REVISIÓN</span>
-                      )}
-                    </div>
-                    <p className="font-body text-[11px] mt-0.5" style={{ color: "#666" }}>{TIER_DESCS[t]}</p>
-                  </div>
-                </div>
+                  {/* Label */}
+                  <span className="font-display text-[13px] font-[800]" style={{ color: isSelected ? color : "#8A8A8E", letterSpacing: "-0.02em" }}>
+                    {tierData.tier_label}
+                  </span>
 
-                {/* Weight/reps detail */}
-                <div className="mt-3 grid grid-cols-2 gap-2">
+                  {/* Status tag */}
+                  {status === "approved" && (
+                    <span className="font-mono text-[8px] px-2 py-0.5 rounded-full mt-1.5" style={{ background: `${color}20`, color }}>GANADO</span>
+                  )}
+                  {status === "pending" && (
+                    <span className="font-mono text-[8px] px-2 py-0.5 rounded-full mt-1.5" style={{ background: "rgba(234,179,8,0.15)", color: "#EAB308" }}>EN REVISIÓN</span>
+                  )}
+                  {status === "locked" && (
+                    <span className="font-body text-[9px] mt-1.5 leading-tight" style={{ color: "#666" }}>
+                      {TIER_DESCS[t]?.split(".")[0]}
+                    </span>
+                  )}
+
+                  {/* Divider */}
+                  <div className="w-full h-px my-3" style={{ background: "rgba(255,255,255,0.06)" }} />
+
+                  {/* Weight/reps */}
                   {isBodyweight ? (
-                    <>
-                      <div className="rounded-lg py-2 px-3" style={{ background: "rgba(255,255,255,0.04)" }}>
-                        <p className="font-mono text-[8px] uppercase tracking-wider" style={{ color: "#8A8A8E" }}>Hombres</p>
-                        <p className="font-mono text-[14px] font-bold mt-0.5" style={{ color: isSelected ? "#FAF8F5" : "#8A8A8E" }}>
-                          {tierData.reps_male} rep{tierData.reps_male > 1 ? "s" : ""}
-                        </p>
+                    <div className="w-full space-y-1.5">
+                      <div className="flex justify-between items-baseline px-1">
+                        <span className="font-mono text-[8px] uppercase" style={{ color: "#8A8A8E" }}>H</span>
+                        <span className="font-mono text-[15px] font-bold" style={{ color: isSelected ? "#FAF8F5" : "#8A8A8E" }}>
+                          {tierData.reps_male} <span className="text-[10px] font-normal">rep{tierData.reps_male > 1 ? "s" : ""}</span>
+                        </span>
                       </div>
-                      <div className="rounded-lg py-2 px-3" style={{ background: "rgba(255,255,255,0.04)" }}>
-                        <p className="font-mono text-[8px] uppercase tracking-wider" style={{ color: "#8A8A8E" }}>Mujeres</p>
-                        <p className="font-mono text-[14px] font-bold mt-0.5" style={{ color: isSelected ? "#B0ACA7" : "#666" }}>
-                          {tierData.reps_female} rep{tierData.reps_female > 1 ? "s" : ""}
-                        </p>
+                      <div className="flex justify-between items-baseline px-1">
+                        <span className="font-mono text-[8px] uppercase" style={{ color: "#8A8A8E" }}>M</span>
+                        <span className="font-mono text-[15px] font-bold" style={{ color: isSelected ? "#B0ACA7" : "#666" }}>
+                          {tierData.reps_female} <span className="text-[10px] font-normal">rep{tierData.reps_female > 1 ? "s" : ""}</span>
+                        </span>
                       </div>
-                    </>
+                    </div>
                   ) : (
-                    <>
-                      <div className="rounded-lg py-2 px-3" style={{ background: "rgba(255,255,255,0.04)" }}>
-                        <p className="font-mono text-[8px] uppercase tracking-wider" style={{ color: "#8A8A8E" }}>Hombres</p>
-                        <p className="font-mono text-[14px] font-bold mt-0.5" style={{ color: isSelected ? "#FAF8F5" : "#8A8A8E" }}>
-                          {tierData.weight_male} kg <span className="text-[10px] font-normal" style={{ color: "#666" }}>x{tierData.reps_male}</span>
-                        </p>
+                    <div className="w-full space-y-1.5">
+                      <div className="flex justify-between items-baseline px-1">
+                        <span className="font-mono text-[8px] uppercase" style={{ color: "#8A8A8E" }}>H</span>
+                        <span className="font-mono text-[15px] font-bold" style={{ color: isSelected ? "#FAF8F5" : "#8A8A8E" }}>
+                          {tierData.weight_male} <span className="text-[10px] font-normal">kg x{tierData.reps_male}</span>
+                        </span>
                       </div>
-                      <div className="rounded-lg py-2 px-3" style={{ background: "rgba(255,255,255,0.04)" }}>
-                        <p className="font-mono text-[8px] uppercase tracking-wider" style={{ color: "#8A8A8E" }}>Mujeres</p>
-                        <p className="font-mono text-[14px] font-bold mt-0.5" style={{ color: isSelected ? "#B0ACA7" : "#666" }}>
-                          {tierData.weight_female} kg <span className="text-[10px] font-normal" style={{ color: "#666" }}>x{tierData.reps_female}</span>
-                        </p>
+                      <div className="flex justify-between items-baseline px-1">
+                        <span className="font-mono text-[8px] uppercase" style={{ color: "#8A8A8E" }}>M</span>
+                        <span className="font-mono text-[15px] font-bold" style={{ color: isSelected ? "#B0ACA7" : "#666" }}>
+                          {tierData.weight_female} <span className="text-[10px] font-normal">kg x{tierData.reps_female}</span>
+                        </span>
                       </div>
-                    </>
+                    </div>
                   )}
                 </div>
               </button>
