@@ -207,9 +207,9 @@ export default function WorkoutOverview({
         </div>
       </div>
 
-      {/* Coach Note */}
+      {/* Coach Note — with dynamic phase context */}
       {workout.coach_note && (
-        <CoachNote note={workout.coach_note} shortOnTimeNote={workout.short_on_time_note} />
+        <CoachNote note={workout.coach_note} shortOnTimeNote={workout.short_on_time_note} weekNumber={workout.week_number} totalWeeks={programTotalWeeks} />
       )}
 
       {/* Blocks */}
@@ -442,10 +442,48 @@ export default function WorkoutOverview({
   );
 }
 
-function CoachNote({ note, shortOnTimeNote }: { note: string; shortOnTimeNote: string | null }) {
+// ── Phase context for coach notes ──
+const PHASE_CONFIG: Record<number, { label: string; prefix: string }> = {
+  1: { label: "BASE", prefix: "Semana base." },
+  2: { label: "BASE +", prefix: "Semana base+." },
+  3: { label: "ACUMULACIÓN", prefix: "Semana de acumulación." },
+  4: { label: "INTENSIFICACIÓN", prefix: "Semana de intensificación." },
+  5: { label: "PEAK", prefix: "Semana peak." },
+  6: { label: "DELOAD", prefix: "Semana deload." },
+};
+
+// Patterns to strip from hardcoded coach_notes (case-insensitive)
+const PHASE_STRIP_PATTERNS = [
+  /^semana\s+(base\+?|de\s+acumulaci[oó]n|de\s+intensificaci[oó]n|peak|deload|de\s+recuperaci[oó]n)[.,:;\s—\-]*/i,
+  /^fase\s+(base|acumulaci[oó]n|intensificaci[oó]n|peak|deload)[.,:;\s—\-]*/i,
+];
+
+function cleanCoachNote(raw: string, weekNumber: number, totalWeeks: number): string {
+  // 1. Strip any existing phase prefix from the hardcoded note
+  let cleaned = raw.trim();
+  for (const pattern of PHASE_STRIP_PATTERNS) {
+    cleaned = cleaned.replace(pattern, "").trim();
+  }
+
+  // 2. Get the correct phase for this week
+  const phase = PHASE_CONFIG[weekNumber] || PHASE_CONFIG[Math.min(weekNumber, 6)];
+  if (!phase) return cleaned;
+
+  // 3. Prepend correct phase context
+  if (cleaned) {
+    // Capitalize first letter of remaining text
+    cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+    return `${phase.prefix} ${cleaned}`;
+  }
+
+  return phase.prefix;
+}
+
+function CoachNote({ note, shortOnTimeNote, weekNumber, totalWeeks }: { note: string; shortOnTimeNote: string | null; weekNumber: number; totalWeeks: number }) {
   const [expanded, setExpanded] = useState(false);
   const [showShortNote, setShowShortNote] = useState(false);
-  const isLong = note.length > 120;
+  const displayNote = cleanCoachNote(note, weekNumber, totalWeeks);
+  const isLong = displayNote.length > 120;
 
   return (
     <div className="px-5 mb-4 space-y-3">
@@ -470,7 +508,7 @@ function CoachNote({ note, shortOnTimeNote }: { note: string; shortOnTimeNote: s
             overflow: expanded ? undefined : "hidden",
           }}
         >
-          {note}
+          {displayNote}
         </p>
         {isLong && !expanded && (
           <button onClick={() => setExpanded(true)} className="mt-1 font-body text-sm font-medium text-primary">
