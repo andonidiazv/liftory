@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Leaf, ChevronRight, ChevronLeft, Flame, Dumbbell, Trophy, Check, Rocket, Loader2 } from "lucide-react";
+import { Leaf, ChevronRight, ChevronLeft, Flame, Dumbbell, Trophy, Check, Rocket, Loader2, Target } from "lucide-react";
 import Layout from "@/components/Layout";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigableHome } from "@/hooks/useNavigableHome";
@@ -32,6 +32,30 @@ function getPhaseDescription(week: number): string {
   if (week === 4) return "Subiendo intensidad, bajando repeticiones. Preparando el cuerpo para cargas máximas.";
   if (week === 5) return "Semana de máximo rendimiento. Pocas reps, máxima intensidad. Demuestra tu progreso.";
   return "Semana de recuperación activa. Volumen bajo para que tu cuerpo se regenere y sobrecompense.";
+}
+
+function getWeeklyMessage(done: number, goal: number): string {
+  if (goal <= 0) return "";
+  if (done === 0) return "Nueva semana.\nArranca con todo.";
+  const pct = done / goal;
+  if (done >= goal) return "Semana completa.\nDescansa y recupera.";
+  const remaining = goal - done;
+  if (remaining === 1) return "Una mas y cierras\nla semana perfecta.";
+  if (pct >= 0.5) return `Vas muy bien.\nSolo faltan ${remaining}.`;
+  if (done === 1) return "Primer paso dado.\nSigue el momentum.";
+  return `Vas agarrando ritmo.\nNo pares.`;
+}
+
+function getWeekBounds(todayStr: string): { start: string; end: string } {
+  const d = new Date(todayStr + "T12:00:00");
+  const dayOfWeek = d.getDay(); // 0=Sun
+  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const monday = new Date(d);
+  monday.setDate(d.getDate() + mondayOffset);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  const fmt = (dt: Date) => dt.toISOString().split("T")[0];
+  return { start: fmt(monday), end: fmt(sunday) };
 }
 
 function HomeSkeleton() {
@@ -352,7 +376,102 @@ export default function Home() {
           ))}
         </div>
 
-        {/* 5. Mesocycle Workout Tracker */}
+        {/* 5. Weekly Goal Card (Option B — Ring + Message) */}
+        {(() => {
+          const weekGoal = profile?.training_days_per_week || 0;
+          if (!weekGoal || !allWorkouts.length) return null;
+
+          const { start, end } = getWeekBounds(todayStr);
+          const thisWeekWorkouts = allWorkouts.filter(
+            w => !w.isRestDay && w.date >= start && w.date <= end
+          );
+          const completedThisWeek = thisWeekWorkouts.filter(w => w.isCompleted).length;
+          const pct = Math.min(Math.round((completedThisWeek / weekGoal) * 100), 100);
+          const isComplete = completedThisWeek >= weekGoal;
+
+          // Ring SVG
+          const rSize = 76;
+          const rStroke = 5.5;
+          const rRadius = (rSize - rStroke) / 2;
+          const rCirc = 2 * Math.PI * rRadius;
+          const rOffset = rCirc - (pct / 100) * rCirc;
+
+          const message = getWeeklyMessage(completedThisWeek, weekGoal);
+          const accentColor = isComplete ? "#7A8B5C" : "hsl(var(--primary))";
+
+          // Day indicator bars
+          const bars = Array.from({ length: weekGoal }, (_, i) => {
+            if (i < completedThisWeek) return "filled";
+            if (i === completedThisWeek) return "current";
+            return "empty";
+          });
+
+          return (
+            <div
+              className="rounded-2xl p-5 flex items-center gap-5"
+              style={{
+                background: "hsl(var(--card))",
+                border: `1px solid ${isComplete ? "rgba(122,139,92,0.3)" : "hsl(var(--border))"}`,
+              }}
+            >
+              {/* Progress Ring */}
+              <div className="relative shrink-0" style={{ width: rSize, height: rSize }}>
+                <svg width={rSize} height={rSize} className="-rotate-90">
+                  <circle
+                    cx={rSize / 2} cy={rSize / 2} r={rRadius}
+                    fill="none" stroke="hsl(var(--secondary))" strokeWidth={rStroke}
+                  />
+                  <circle
+                    cx={rSize / 2} cy={rSize / 2} r={rRadius}
+                    fill="none" stroke={accentColor} strokeWidth={rStroke}
+                    strokeLinecap="round"
+                    strokeDasharray={rCirc} strokeDashoffset={rOffset}
+                    className="transition-all duration-700 ease-out"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="font-display text-[22px] font-[800] text-foreground" style={{ letterSpacing: "-0.03em", lineHeight: 1 }}>
+                    {completedThisWeek}
+                  </span>
+                  <span className="font-mono text-[8px] uppercase tracking-wider text-muted-foreground">
+                    de {weekGoal}
+                  </span>
+                </div>
+              </div>
+
+              {/* Text + bars */}
+              <div className="flex-1 min-w-0">
+                <p className="font-mono text-[9px] uppercase tracking-[2px] text-muted-foreground mb-1.5">
+                  Esta semana
+                </p>
+                <p className="font-display text-[16px] font-[700] text-foreground leading-tight whitespace-pre-line" style={{ letterSpacing: "-0.02em" }}>
+                  {message}
+                </p>
+                {/* Mini day bars */}
+                <div className="flex gap-1 mt-3">
+                  {bars.map((status, i) => (
+                    <div
+                      key={i}
+                      className="h-[4px] rounded-full transition-all duration-300"
+                      style={{
+                        width: 20,
+                        background:
+                          status === "filled"
+                            ? accentColor
+                            : status === "current"
+                            ? `color-mix(in srgb, ${isComplete ? "#7A8B5C" : "hsl(var(--primary))"} 30%, transparent)`
+                            : "hsl(var(--secondary))",
+                        border: status === "current" ? `1px solid color-mix(in srgb, hsl(var(--primary)) 40%, transparent)` : "none",
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* 6. Mesocycle Workout Tracker */}
         {programInfo && (() => {
           const trainingDays = allWorkouts.filter(w => !w.isRestDay);
           const totalCount = trainingDays.length;
