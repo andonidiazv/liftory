@@ -1,12 +1,12 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Leaf, ChevronRight, ChevronLeft, Flame, Dumbbell, Trophy, Check, Rocket, Loader2 } from "lucide-react";
+import { Leaf, ChevronRight, ChevronLeft, Flame, Dumbbell, Trophy, Check, Rocket, Loader2, Wind } from "lucide-react";
 import Layout from "@/components/Layout";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigableHome } from "@/hooks/useNavigableHome";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Progress } from "@/components/ui/progress"; // kept for potential future use
-import MonthCalendarSheet from "@/components/home/MonthCalendarSheet";
 import PrimeWeeklyReset from "@/components/home/PrimeWeeklyReset";
+import FirstDayExperience from "@/components/onboarding/FirstDayExperience";
 
 const BLOCK_LABELS: Record<string, string> = {
   accumulation: "BASE",
@@ -79,6 +79,69 @@ export default function Home() {
 
   const displayName = profile?.full_name || "Atleta";
 
+  // First Day Experience onboarding
+  const onboardingKey = programInfo ? `liftory_onboarding_seen_${programInfo.id}` : null;
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (!loading && programInfo && onboardingKey) {
+      const seen = localStorage.getItem(onboardingKey);
+      if (!seen) {
+        // Mark as seen immediately so navigating away won't re-trigger
+        localStorage.setItem(onboardingKey, "true");
+        setShowOnboarding(true);
+      }
+    }
+  }, [loading, programInfo, onboardingKey]);
+
+  const handleOnboardingComplete = () => {
+    if (onboardingKey) {
+      localStorage.setItem(onboardingKey, "true");
+    }
+    setShowOnboarding(false);
+  };
+
+  // Build week schedule for FirstDayExperience from weekDays
+  const buildWeekSchedule = () => {
+    const DAY_LABELS_FULL = ["D", "L", "M", "M", "J", "V", "S"];
+    return weekDays.map((day) => {
+      let workoutType: string;
+      if (day.isRestDay) {
+        workoutType = "rest";
+      } else if (day.workoutType === "mobility") {
+        workoutType = "mobility";
+      } else {
+        workoutType = "strength";
+      }
+
+      // Derive workout name and muscle groups from workoutLabel
+      const workoutName = day.workoutLabel || (day.isRestDay ? "DESCANSO" : "ENTRENAMIENTO");
+      let muscleGroups = "";
+      if (day.isRestDay) {
+        muscleGroups = "Recuperacion completa";
+      } else if (day.workoutType === "mobility") {
+        muscleGroups = "Movilidad, respiracion, recovery";
+      } else {
+        // Use workout label to infer muscle groups
+        const label = (day.workoutLabel || "").toUpperCase();
+        if (label.includes("PULL")) muscleGroups = "Espalda, biceps, trapecios";
+        else if (label.includes("QUAD") || label.includes("LOWER")) muscleGroups = "Cuadriceps, core, estabilidad";
+        else if (label.includes("PUSH")) muscleGroups = "Pecho, hombros, triceps";
+        else if (label.includes("SHOULDER") || label.includes("ARM")) muscleGroups = "Hombros, biceps, triceps";
+        else if (label.includes("HINGE")) muscleGroups = "Cadena posterior, gluteos, isquios";
+        else if (label.includes("FULL") || label.includes("TOTAL")) muscleGroups = "Cuerpo completo";
+        else muscleGroups = "Fuerza y acondicionamiento";
+      }
+
+      return {
+        dayLabel: day.dayLabel,
+        workoutName,
+        workoutType,
+        muscleGroups,
+      };
+    });
+  };
+
   if (loading) {
     return <Layout><HomeSkeleton /></Layout>;
   }
@@ -95,6 +158,14 @@ export default function Home() {
     : selectedDateObj.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "short" });
 
   return (
+    <>
+      {showOnboarding && programInfo && (
+        <FirstDayExperience
+          programName={programInfo.name}
+          weekSchedule={buildWeekSchedule()}
+          onComplete={handleOnboardingComplete}
+        />
+      )}
     <Layout>
       <div className="px-5 pt-14 pb-20 space-y-8">
         {/* 1. Header */}
@@ -157,7 +228,7 @@ export default function Home() {
             <PrimeWeeklyReset selectedDate={selectedDate} />
           ) : (() => {
             // Build this week's training days (non-rest) from weekDays
-            const weekTrainingDays = weekDays.filter(d => d.hasWorkout && !d.isRestDay);
+            const weekTrainingDays = weekDays.filter(d => d.hasWorkout && !d.isRestDay && d.workoutType === "strength");
             const totalTraining = weekTrainingDays.length;
             const completedCount = weekTrainingDays.filter(d => d.isCompleted).length;
 
@@ -177,8 +248,24 @@ export default function Home() {
             const rOffset = rCirc - (pct / 100) * rCirc;
             const ringColor = allDone ? "#7A8B5C" : "hsl(var(--primary))";
 
-            // Rest day card
+            // Rest day card (fallback for non-Sunday rest days)
             if (workout?.is_rest_day) {
+              return (
+                <div
+                  className="rounded-2xl p-5"
+                  style={{
+                    background: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                  }}
+                >
+                  <p className="font-display text-[16px] font-semibold text-foreground">Dia de descanso</p>
+                  <p className="mt-1 text-[13px] text-muted-foreground font-body">Recuperate bien.</p>
+                </div>
+              );
+            }
+
+            // Active recovery card (LIFTORY FLOW / mobility)
+            if (workout?.workout_type === "mobility") {
               return (
                 <div
                   className="rounded-2xl p-5"
@@ -191,14 +278,32 @@ export default function Home() {
                   }}
                 >
                   <div className="flex items-center gap-2">
-                    <Leaf className="h-4 w-4" style={{ color: "#7A8B5C" }} />
+                    <Wind className="h-4 w-4" style={{ color: "#7A8B5C" }} />
                     <span className="font-display text-[20px] font-semibold text-foreground">
-                      LIFTORY FLOW
+                      {workout.day_label}
                     </span>
                   </div>
                   <p className="mt-1 text-[13px] text-muted-foreground font-body">
-                    Movilidad + Recovery
+                    Recuperacion activa · Opcional
                   </p>
+                  {!workout.is_completed && (
+                    <button
+                      onClick={() => navigate(`/workout/${workout.id}`)}
+                      className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-3 font-display text-[13px] font-semibold"
+                      style={{
+                        background: "rgba(122, 139, 92, 0.1)",
+                        color: "#7A8B5C",
+                        border: "1px solid rgba(122, 139, 92, 0.25)",
+                      }}
+                    >
+                      VER SESION <ChevronRight className="h-4 w-4" />
+                    </button>
+                  )}
+                  {workout.is_completed && (
+                    <p className="mt-2 text-[12px] font-body flex items-center gap-1.5" style={{ color: "#7A8B5C" }}>
+                      <Check className="h-3.5 w-3.5" strokeWidth={3} /> Completada
+                    </p>
+                  )}
                 </div>
               );
             }
@@ -254,11 +359,9 @@ export default function Home() {
 
                   {/* Workout info */}
                   <div className="flex-1 min-w-0">
-                    {trainingDayNumber && (
-                      <p className="font-mono text-[9px] uppercase tracking-[2px] text-muted-foreground mb-1">
-                        {workout.is_completed ? "Completado" : "Esta semana"} · Día {trainingDayNumber}/{totalTraining}
-                      </p>
-                    )}
+                    <p className="font-mono text-[9px] uppercase tracking-[2px] text-muted-foreground mb-1">
+                      {workout.is_completed ? "Completado" : "Esta semana"}
+                    </p>
                     <h2 className="font-display text-[18px] font-[700] text-foreground" style={{ letterSpacing: "-0.02em" }}>
                       {workout.day_label}
                     </h2>
@@ -299,17 +402,25 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Action button — only if not completed */}
-                {!workout.is_completed && (
-                  <div className="px-5 pb-5">
+                {/* Action button */}
+                <div className="px-5 pb-5">
+                  {workout.is_completed ? (
+                    <button
+                      onClick={() => navigate(`/workout/${workout.id}`)}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl py-3 font-display text-[13px] font-semibold text-muted-foreground"
+                      style={{ border: "1px solid hsl(var(--border))" }}
+                    >
+                      VER RESUMEN <ChevronRight className="h-4 w-4" />
+                    </button>
+                  ) : (
                     <button
                       onClick={() => navigate(`/workout/${workout.id}`)}
                       className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 font-display text-[14px] font-semibold text-primary-foreground"
                     >
                       {isSelectedToday ? "EMPEZAR SESIÓN" : "VER SESIÓN"} <ChevronRight className="h-4 w-4" />
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             );
           })()
@@ -404,6 +515,12 @@ export default function Home() {
                         <Check className="h-3.5 w-3.5 text-primary-foreground" strokeWidth={3} />
                       ) : day.isRestDay ? (
                         <Leaf className="h-3.5 w-3.5 text-muted-foreground" />
+                      ) : day.workoutType === "mobility" ? (
+                        <Wind className="h-3.5 w-3.5" style={{ color: "rgba(122, 139, 92, 0.55)" }} />
+                      ) : day.workoutType === "strength" ? (
+                        <Dumbbell className={`h-3.5 w-3.5 ${
+                          day.isToday ? "text-primary" : isSelected ? "text-accent" : "text-muted-foreground"
+                        }`} />
                       ) : (
                         <span className={`text-xs font-body ${
                           day.isToday ? "text-primary font-semibold" : isSelected ? "text-accent font-semibold" : "text-muted-foreground"
@@ -420,15 +537,7 @@ export default function Home() {
               })}
             </div>
 
-            {/* Calendar button */}
-            <MonthCalendarSheet
-              allWorkouts={allWorkouts}
-              selectedDate={selectedDate}
-              todayStr={todayStr}
-              minDate={minDate}
-              maxDate={maxDate}
-              onSelectDay={selectDay}
-            />
+            {/* Calendar button removed — accessible via Programa tab */}
           </div>
         </div>
 
@@ -454,7 +563,7 @@ export default function Home() {
 
         {/* 5. Mesocycle Workout Tracker */}
         {programInfo && (() => {
-          const trainingDays = allWorkouts.filter(w => !w.isRestDay);
+          const trainingDays = allWorkouts.filter(w => !w.isRestDay && w.workoutType === "strength");
           const totalCount = trainingDays.length;
           const currentDayNumber = trainingDays.filter(w => w.date <= todayStr).length;
           const pct = totalCount > 0 ? Math.round((currentDayNumber / totalCount) * 100) : 0;
@@ -592,5 +701,6 @@ export default function Home() {
         })()}
       </div>
     </Layout>
+    </>
   );
 }

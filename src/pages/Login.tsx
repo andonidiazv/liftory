@@ -60,10 +60,9 @@ export default function Login() {
 
       const { data, error } = await Promise.race([profilePromise, timeoutPromise]) as { data: { onboarding_completed: boolean; subscription_status: string; role: string } | null; error: unknown };
 
-      fetchProfile(userId).catch(console.error);
+      fetchProfile(userId).catch(() => {});
 
       if (error) {
-        console.error("Profile fetch error:", error);
         navigate("/home", { replace: true });
         return;
       }
@@ -77,8 +76,7 @@ export default function Login() {
       } else {
         navigate("/home", { replace: true });
       }
-    } catch (err) {
-      console.error("redirectByProfile error:", err);
+    } catch {
       navigate("/home", { replace: true });
     }
   };
@@ -110,8 +108,7 @@ export default function Login() {
       if (data.user) {
         await redirectByProfile(data.user.id);
       }
-    } catch (err: unknown) {
-      console.error("Login redirect error:", err);
+    } catch {
       setGeneralError("Error al iniciar sesión. Intenta de nuevo.");
     } finally {
       setLoading(false);

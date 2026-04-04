@@ -54,7 +54,7 @@ export default function AdminPrograms() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Error fetching programs:", error);
+      // Fetch failed
       toast.error("Error al cargar programas");
     }
 
@@ -344,8 +344,8 @@ export default function AdminPrograms() {
         p_from_week: 1,
         p_to_week: prog.total_weeks,
       });
-    } catch (e) {
-      console.warn("Propagation RPC not available or failed:", e);
+    } catch {
+      // Propagation RPC not available — non-critical
     }
 
     setLaunching(false);

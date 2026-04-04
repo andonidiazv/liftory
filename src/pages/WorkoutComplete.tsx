@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Trophy, TrendingUp, Clock, Dumbbell, Star, Leaf, Send, Share2, Download, ChevronLeft, Instagram } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMemo, useState, useEffect, useCallback, useRef } from "react";
+import { useMilestoneDetection } from "@/hooks/useMilestoneDetection";
+import MilestoneCelebration from "@/components/celebrations/MilestoneCelebration";
 
 // ── Question pool ──────────────────────────────────────────────
 interface FeedbackQuestion {
@@ -141,6 +143,8 @@ export default function WorkoutComplete() {
   const { user } = useAuth();
   const { workout, sets, loading, weightUnit, cooldownCompleted } = useWorkoutData(id);
   const scoreCardRef = useRef<HTMLDivElement>(null);
+  const { activeMilestone, checkMilestones, dismissMilestone } = useMilestoneDetection();
+  const milestoneCheckedRef = useRef(false);
 
   const [feedbackDone, setFeedbackDone] = useState(false);
   const [feedbackSkipped, setFeedbackSkipped] = useState(false);
@@ -305,6 +309,77 @@ export default function WorkoutComplete() {
     return () => clearInterval(interval);
   }, [loading, primeScore, stats, sets.length]);
 
+  // Milestone detection — runs once after score animation completes
+  useEffect(() => {
+    if (loading || milestoneCheckedRef.current || !user || !workout) return;
+    if (sets.length === 0) return;
+    milestoneCheckedRef.current = true;
+
+    const checkAsync = async () => {
+      try {
+        // Fetch lifetime stats for milestone detection
+        const [completedRes, streakRes, weekRes] = await Promise.all([
+          supabase
+            .from("workouts")
+            .select("*", { count: "exact", head: true })
+            .eq("user_id", user.id)
+            .eq("is_completed", true),
+          supabase
+            .from("workouts")
+            .select("scheduled_date")
+            .eq("user_id", user.id)
+            .eq("is_completed", true)
+            .lte("scheduled_date", workout.scheduled_date)
+            .order("scheduled_date", { ascending: false })
+            .limit(30),
+          supabase
+            .from("workouts")
+            .select("id, is_completed, is_rest_day, workout_type")
+            .eq("user_id", user.id)
+            .eq("week_number", workout.week_number)
+            .eq("is_completed", true),
+        ]);
+
+        const totalCompleted = completedRes.count ?? 0;
+
+        // Calculate streak
+        let streak = 0;
+        if (streakRes.data?.length) {
+          const today = new Date(workout.scheduled_date + "T12:00:00");
+          const check = new Date(today);
+          const completedDates = new Set(streakRes.data.map((w) => w.scheduled_date));
+          for (let i = 0; i < 30; i++) {
+            const ds = check.toISOString().split("T")[0];
+            if (completedDates.has(ds)) {
+              streak++;
+              check.setDate(check.getDate() - 1);
+            } else break;
+          }
+        }
+
+        // Count strength workouts completed this week
+        const weekStrengthCompleted = (weekRes.data ?? []).filter(
+          (w) => !w.is_rest_day && w.workout_type !== "mobility"
+        ).length;
+
+        // Delay milestone popup so score animations finish first
+        setTimeout(() => {
+          checkMilestones({
+            totalCompleted,
+            weekStrengthCompleted,
+            streak,
+            prsThisWorkout: stats.prs,
+            weekNumber: workout.week_number,
+            primeScore,
+          });
+        }, 4500); // After score animation (2.8s) + sticker slam (2s)
+      } catch {
+        // Silent — milestones are non-critical
+      }
+    };
+    checkAsync();
+  }, [loading, user, workout, sets.length, stats.prs, primeScore, checkMilestones]);
+
   const formatAnimDuration = (totalSec: number) => {
     if (stats.duration === "—") return "—";
     const m = Math.floor(totalSec / 60);
@@ -350,7 +425,7 @@ export default function WorkoutComplete() {
         URL.revokeObjectURL(url);
       }
     } catch (e) {
-      console.error(e);
+      // Share failed — silent
     }
     setSharing(false);
   };
@@ -846,6 +921,12 @@ export default function WorkoutComplete() {
           </div>
         </div>
       </div>
+
+      {/* Milestone celebration overlay */}
+      <MilestoneCelebration
+        milestone={activeMilestone}
+        onDismiss={dismissMilestone}
+      />
     </div>
   );
 }

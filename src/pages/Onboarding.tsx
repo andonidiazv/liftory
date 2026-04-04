@@ -250,7 +250,7 @@ export default function Onboarding() {
       const result = await assignProgram(userId, g, level, joinMode);
       if (!result.success) throw new Error("assign failed");
       clearAnswers(); setAssignDone(true);
-    } catch (err) { console.error("Onboarding error:", err); setAssignError(true); }
+    } catch { setAssignError(true); }
   };
 
   useEffect(() => {

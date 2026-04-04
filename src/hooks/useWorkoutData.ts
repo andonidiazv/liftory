@@ -279,6 +279,8 @@ export function useWorkoutData(workoutId: string | undefined) {
         .eq("id", setId)
         .maybeSingle();
 
+      const serverLoggedAt = updated?.logged_at ?? new Date().toISOString();
+
       setSets((prev) =>
         prev.map((s) =>
           s.id === setId
@@ -290,7 +292,7 @@ export function useWorkoutData(workoutId: string | undefined) {
                 actual_rir: null,
                 is_completed: true,
                 is_pr: updated?.is_pr ?? false,
-                logged_at: new Date().toISOString(),
+                logged_at: serverLoggedAt,
               }
             : s
         )
@@ -309,7 +311,7 @@ export function useWorkoutData(workoutId: string | undefined) {
                   actual_rir: null,
                   is_completed: true,
                   is_pr: updated?.is_pr ?? false,
-                  logged_at: new Date().toISOString(),
+                  logged_at: serverLoggedAt,
                 }
               : s
           ),
@@ -319,7 +321,7 @@ export function useWorkoutData(workoutId: string | undefined) {
       setSaving(false);
       return updated;
     },
-    []
+    [setSets, setExerciseGroups, setSaving]
   );
 
   const finishWorkout = useCallback(

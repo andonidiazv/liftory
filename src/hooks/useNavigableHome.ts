@@ -106,6 +106,7 @@ export function useNavigableHome() {
     if (!user) return;
     setLoading(true);
 
+    try {
     const today = new Date();
     const firstOfMonth = formatDate(new Date(today.getFullYear(), today.getMonth(), 1));
 
@@ -254,8 +255,11 @@ export function useNavigableHome() {
         setNextCycleInfo(null);
       }
     }
-
-    setLoading(false);
+    } catch {
+      // Network error — UI stays in loading state briefly, then recovers on retry
+    } finally {
+      setLoading(false);
+    }
   }, [user]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
@@ -321,37 +325,45 @@ export function useNavigableHome() {
 
   // Fetch selected day's workout detail
   useEffect(() => {
+    let cancelled = false;
     const fetchDayWorkout = async () => {
       if (!user) return;
-      const { data } = await supabase
-        .from("workouts")
-        .select("id, day_label, workout_type, estimated_duration, is_rest_day, is_completed, coach_note, short_on_time_note, scheduled_date, week_number, workout_sets(id, exercise_id)")
-        .eq("user_id", user.id)
-        .eq("scheduled_date", selectedDate)
-        .maybeSingle();
+      try {
+        const { data } = await supabase
+          .from("workouts")
+          .select("id, day_label, workout_type, estimated_duration, is_rest_day, is_completed, coach_note, short_on_time_note, scheduled_date, week_number, workout_sets(id, exercise_id)")
+          .eq("user_id", user.id)
+          .eq("scheduled_date", selectedDate)
+          .maybeSingle();
 
-      if (data) {
-        const sets = (data.workout_sets as Array<{ id: string; exercise_id: string }>) ?? [];
-        const uniqueExercises = new Set(sets.map((s) => s.exercise_id));
-        setSelectedWorkout({
-          id: data.id,
-          day_label: data.day_label,
-          workout_type: data.workout_type,
-          estimated_duration: data.estimated_duration,
-          is_rest_day: data.is_rest_day,
-          is_completed: data.is_completed,
-          exerciseCount: uniqueExercises.size,
-          setCount: sets.length,
-          coach_note: data.coach_note,
-          short_on_time_note: data.short_on_time_note,
-          scheduled_date: data.scheduled_date,
-          week_number: data.week_number,
-        });
-      } else {
-        setSelectedWorkout(null);
+        if (cancelled) return;
+
+        if (data) {
+          const sets = (data.workout_sets as Array<{ id: string; exercise_id: string }>) ?? [];
+          const uniqueExercises = new Set(sets.map((s) => s.exercise_id));
+          setSelectedWorkout({
+            id: data.id,
+            day_label: data.day_label,
+            workout_type: data.workout_type,
+            estimated_duration: data.estimated_duration,
+            is_rest_day: data.is_rest_day,
+            is_completed: data.is_completed,
+            exerciseCount: uniqueExercises.size,
+            setCount: sets.length,
+            coach_note: data.coach_note,
+            short_on_time_note: data.short_on_time_note,
+            scheduled_date: data.scheduled_date,
+            week_number: data.week_number,
+          });
+        } else {
+          setSelectedWorkout(null);
+        }
+      } catch {
+        // Network error — don't update state if cancelled
       }
     };
     fetchDayWorkout();
+    return () => { cancelled = true; };
   }, [selectedDate, user]);
 
   const selectDay = useCallback((dateStr: string) => {
@@ -541,7 +553,7 @@ export function useNavigableHome() {
       setSelectedDate(formatDate(today));
       setViewingWeekMonday(getMonday(today));
     } catch (err) {
-      console.error("Cycle transition error:", err);
+      // Cycle transition failed — silent
     } finally {
       setTransitioning(false);
     }

@@ -593,11 +593,6 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
     async (scope: SaveScope) => {
       if (!draft.program) return;
       setSaving(true);
-      console.log("[SAVE] Starting save with scope:", scope);
-      console.log("[SAVE] Draft program:", draft.program.id, draft.program.name);
-      console.log("[SAVE] Draft workouts count:", draft.workouts.length);
-      console.log("[SAVE] Draft sets count:", draft.sets.length);
-      console.log("[SAVE] Original sets count:", original.sets.length);
 
       try {
         /* ----------------------------------------------------------
@@ -671,9 +666,6 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
         const sourceWorkouts = draft.workouts.filter(
           (w) => w.week_number === sourceWeek,
         );
-        console.log("[SAVE] sourceWeek:", sourceWeek, "targetWeeks:", targetWeeks);
-        console.log("[SAVE] sourceWorkouts:", sourceWorkouts.map(w => ({ id: w.id, day_label: w.day_label })));
-
         // Track newly created workout ID mappings (draft id -> real id)
         const workoutIdMap = new Map<string, string>();
 
@@ -762,7 +754,6 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
             };
 
             if (s._isNew) {
-              console.log("[SAVE] Inserting NEW set:", s.exercise_id, "block:", s.block_label);
               const { error } = await supabase
                 .from("workout_sets")
                 .insert({ ...dbPayload, user_id: draft.program?.user_id ?? null });
@@ -787,18 +778,13 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
                 };
                 const changed = JSON.stringify(origPayload) !== JSON.stringify(dbPayload);
                 if (changed) {
-                  console.log("[SAVE] Updating set:", s.id, "exercise changed:", orig.exercise_id, "→", s.exercise_id);
-                  const { data, error, count } = await supabase
+                  const { error } = await supabase
                     .from("workout_sets")
                     .update(dbPayload)
-                    .eq("id", s.id)
-                    .select();
-                  console.log("[SAVE] Update result:", { data, error, count });
+                    .eq("id", s.id);
                   if (error)
                     throw new Error(`Set update failed: ${error.message}`);
                 }
-              } else {
-                console.log("[SAVE] WARNING: Set", s.id, "not found in origSetsMap!");
               }
             }
           }
@@ -807,7 +793,6 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
         /* ----------------------------------------------------------
          *  PHASE 3: Propagate to target weeks
          * ---------------------------------------------------------- */
-        console.log("[SAVE] Phase 3: targetWeeks =", targetWeeks);
         if (targetWeeks.length > 0) {
           for (const targetWeek of targetWeeks) {
             // For each source workout, find the matching target workout by day_label
@@ -898,7 +883,6 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
          *  propagate changes to ALL user copies of this program.
          * ---------------------------------------------------------- */
         if (!draft.program.user_id) {
-          console.log("[SAVE] Phase 4: Template detected — propagating to user copies");
 
           // Find all user copies of this program (same name, user_id != null)
           const { data: userCopies, error: ucErr } = await supabase
@@ -908,11 +892,10 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
             .not("user_id", "is", null);
 
           if (ucErr) {
-            console.error("[SAVE] Error fetching user copies:", ucErr);
+            // Silent — non-critical propagation
           }
 
           if (userCopies && userCopies.length > 0) {
-            console.log(`[SAVE] Found ${userCopies.length} user copies to update`);
 
             // Sync the same weeks that the admin chose in the scope
             const allWeeksToSync = [sourceWeek, ...targetWeeks];
@@ -1008,19 +991,15 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
                       .from("workout_sets")
                       .insert(userSets);
                     if (insErr) {
-                      console.error(`[SAVE] Error syncing sets for user ${userProg.user_id}, week ${weekNum}:`, insErr);
+                      // Silent — non-critical per-user sync error
                     }
                   }
                 }
               }
-              console.log(`[SAVE] ✅ Synced user copy ${userProg.id} (${userProg.user_id})`);
             }
-          } else {
-            console.log("[SAVE] No user copies found to propagate");
           }
         }
 
-        console.log("[SAVE] ✅ All phases completed successfully");
         toast.success("Cambios guardados");
 
         // Refetch everything to sync with DB
@@ -1028,7 +1007,6 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Error desconocido";
         toast.error(`Error al guardar: ${msg}`);
-        console.error("Save error:", err);
       } finally {
         setSaving(false);
       }

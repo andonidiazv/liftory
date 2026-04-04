@@ -43,6 +43,7 @@ export function usePrimeWeeklyReset(selectedDate: string) {
     if (!user) return;
     setLoading(true);
 
+    try {
     const selected = new Date(selectedDate + "T12:00:00");
     const monday = getMonday(selected);
     const saturday = addDays(monday, 5);
@@ -69,11 +70,11 @@ export function usePrimeWeeklyReset(selectedDate: string) {
     const completedIds = completedNonRest.map((w) => w.id);
 
     // 2. Get this week's completed workout sets
-    let sets: Array<{ exercise_id: string; reps_actual: number | null; weight_actual: number | null; is_pr: boolean }> = [];
+    let sets: Array<{ exercise_id: string; actual_reps: number | null; actual_weight: number | null; is_pr: boolean }> = [];
     if (completedIds.length > 0) {
       const { data: setsData } = await supabase
         .from("workout_sets")
-        .select("exercise_id, reps_actual, weight_actual, is_pr")
+        .select("exercise_id, actual_reps, actual_weight, is_pr")
         .eq("user_id", user.id)
         .in("workout_id", completedIds)
         .eq("is_completed", true);
@@ -95,13 +96,13 @@ export function usePrimeWeeklyReset(selectedDate: string) {
       const prevIds = prevWorkouts.map((w) => w.id);
       const { data: prevSets } = await supabase
         .from("workout_sets")
-        .select("reps_actual, weight_actual")
+        .select("actual_reps, actual_weight")
         .eq("user_id", user.id)
         .in("workout_id", prevIds)
         .eq("is_completed", true);
       if (prevSets) {
         prevVolume = prevSets.reduce(
-          (sum, s) => sum + (s.weight_actual ?? 0) * (s.reps_actual ?? 0),
+          (sum, s) => sum + (s.actual_weight ?? 0) * (s.actual_reps ?? 0),
           0
         );
       }
@@ -109,10 +110,10 @@ export function usePrimeWeeklyReset(selectedDate: string) {
 
     // 4. Best PR exercise name
     let bestPR: { exerciseName: string; weight: number } | null = null;
-    const prSets = sets.filter((s) => s.is_pr && s.weight_actual > 0);
+    const prSets = sets.filter((s) => s.is_pr && s.actual_weight > 0);
     if (prSets.length > 0) {
       const best = prSets.reduce((a, b) =>
-        (b.weight_actual ?? 0) > (a.weight_actual ?? 0) ? b : a
+        (b.actual_weight ?? 0) > (a.actual_weight ?? 0) ? b : a
       );
       const { data: exercise } = await supabase
         .from("exercises")
@@ -121,16 +122,16 @@ export function usePrimeWeeklyReset(selectedDate: string) {
         .maybeSingle();
       bestPR = {
         exerciseName: exercise?.name_es || exercise?.name || "Ejercicio",
-        weight: best.weight_actual,
+        weight: best.actual_weight,
       };
     }
 
     // If no PR sets, find best weight this week
     if (!bestPR && sets.length > 0) {
       const heaviest = sets.reduce((a, b) =>
-        (b.weight_actual ?? 0) > (a.weight_actual ?? 0) ? b : a
+        (b.actual_weight ?? 0) > (a.actual_weight ?? 0) ? b : a
       );
-      if (heaviest.weight_actual > 0) {
+      if (heaviest.actual_weight > 0) {
         const { data: exercise } = await supabase
           .from("exercises")
           .select("name_es, name")
@@ -138,7 +139,7 @@ export function usePrimeWeeklyReset(selectedDate: string) {
           .maybeSingle();
         bestPR = {
           exerciseName: exercise?.name_es || exercise?.name || "Ejercicio",
-          weight: heaviest.weight_actual,
+          weight: heaviest.actual_weight,
         };
       }
     }
@@ -186,9 +187,9 @@ export function usePrimeWeeklyReset(selectedDate: string) {
     // Calculate metrics
     const distinctExercises = new Set(sets.map((s) => s.exercise_id)).size;
     const totalSets = sets.length;
-    const totalReps = sets.reduce((sum, s) => sum + (s.reps_actual ?? 0), 0);
+    const totalReps = sets.reduce((sum, s) => sum + (s.actual_reps ?? 0), 0);
     const totalVolume = sets.reduce(
-      (sum, s) => sum + (s.weight_actual ?? 0) * (s.reps_actual ?? 0),
+      (sum, s) => sum + (s.actual_weight ?? 0) * (s.actual_reps ?? 0),
       0
     );
     const consistency =
@@ -231,8 +232,11 @@ export function usePrimeWeeklyReset(selectedDate: string) {
       hasWorkoutsThisWeek: completedNonRest.length > 0,
       isFirstWeek,
     });
-
-    setLoading(false);
+    } catch (err) {
+      // Silently handle — metrics will stay null and UI shows loading/empty state
+    } finally {
+      setLoading(false);
+    }
   }, [user, selectedDate]);
 
   useEffect(() => {

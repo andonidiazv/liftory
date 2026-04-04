@@ -90,7 +90,7 @@ export default function AdminBadges() {
       .limit(1000);
 
     if (error || !data) {
-      console.error("Error fetching badge claims:", error);
+      // Fetch failed — will show empty state
       setLoadingClaims(false);
       return;
     }
@@ -149,7 +149,7 @@ export default function AdminBadges() {
       .order("created_at", { ascending: false });
 
     if (error || !defs) {
-      console.error("Error fetching badge definitions:", error);
+      // Fetch failed — will show empty state
       setLoadingDefs(false);
       return;
     }
@@ -207,7 +207,7 @@ export default function AdminBadges() {
       .eq("id", claimId);
 
     if (error) {
-      console.error("Error updating badge claim:", error);
+      // Update failed — silent
     } else {
       // Update local state
       setClaims((prev) =>

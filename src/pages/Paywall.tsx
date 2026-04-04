@@ -91,8 +91,8 @@ export default function Paywall() {
       try {
         await supabase.functions.invoke("check-subscription");
         await refreshProfile();
-      } catch (e) {
-        console.error("Error checking subscription:", e);
+      } catch {
+        // Silent — will retry on next visit
       }
       setCheckingPayment(false);
     };
@@ -124,8 +124,7 @@ export default function Paywall() {
       } else {
         throw new Error("No checkout URL");
       }
-    } catch (e) {
-      console.error("Founder checkout error:", e);
+    } catch {
       toast.error("Suscripción no disponible en este momento. Contacta soporte.");
     }
     setLoading(false);
@@ -149,8 +148,7 @@ export default function Paywall() {
       } else {
         throw new Error("No checkout URL");
       }
-    } catch (e) {
-      console.error("Checkout error:", e);
+    } catch {
       toast.error("Suscripción no disponible en este momento. Contacta soporte.");
     }
     setLoading(false);

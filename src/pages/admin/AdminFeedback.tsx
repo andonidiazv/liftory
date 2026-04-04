@@ -72,7 +72,7 @@ export default function AdminFeedback() {
       .limit(500);
 
     if (error || !data) {
-      console.error("Error fetching feedback:", error);
+      // Fetch failed — will show empty state
       setLoading(false);
       return;
     }

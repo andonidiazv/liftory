@@ -223,7 +223,7 @@ export default function AdminExercises() {
         successCount++;
       } catch (err) {
         failCount++;
-        console.warn(`Thumbnail failed for ${ex.name}:`, err);
+        // Thumbnail generation failed for this exercise
       }
     }
 
