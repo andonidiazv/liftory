@@ -332,20 +332,47 @@ export default function Profile() {
                     className="relative aspect-square overflow-hidden group"
                     style={{ background: "#1A1A1A" }}
                   >
-                    {/* Thumbnail or placeholder */}
+                    {/* Thumbnail or aesthetic placeholder */}
                     {ytThumb ? (
-                      <img src={ytThumb} alt={b.name} className="absolute inset-0 w-full h-full object-cover" />
+                      <>
+                        <img src={ytThumb} alt={b.name} className="absolute inset-0 w-full h-full object-cover" />
+                        {/* Subtle dark overlay for readability */}
+                        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%)" }} />
+                      </>
                     ) : (
-                      <div className="absolute inset-0 flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${b.color}15, ${b.color}05)` }}>
-                        <BadgeIcon className="h-8 w-8" style={{ color: `${b.color}40` }} />
+                      <div className="absolute inset-0" style={{
+                        background: `
+                          radial-gradient(circle at 30% 20%, ${b.color}25 0%, transparent 50%),
+                          radial-gradient(circle at 70% 80%, ${b.color}15 0%, transparent 50%),
+                          linear-gradient(145deg, #1A1917 0%, #0D0C0A 50%, ${b.color}08 100%)
+                        `,
+                      }}>
+                        {/* Decorative ring */}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="h-16 w-16 rounded-full flex items-center justify-center" style={{
+                            border: `1.5px solid ${b.color}20`,
+                            background: `${b.color}08`,
+                          }}>
+                            <div className="h-10 w-10 rounded-full flex items-center justify-center" style={{
+                              border: `1px solid ${b.color}15`,
+                              background: `${b.color}10`,
+                            }}>
+                              <BadgeIcon className="h-5 w-5" style={{ color: `${b.color}90` }} />
+                            </div>
+                          </div>
+                        </div>
+                        {/* Subtle noise texture dots */}
+                        <div className="absolute top-3 left-3 h-1 w-1 rounded-full" style={{ background: `${b.color}20` }} />
+                        <div className="absolute top-5 right-4 h-0.5 w-0.5 rounded-full" style={{ background: `${b.color}15` }} />
+                        <div className="absolute bottom-8 left-5 h-0.5 w-0.5 rounded-full" style={{ background: `${b.color}12` }} />
                       </div>
                     )}
 
-                    {/* Play button overlay */}
+                    {/* Play button — always visible on mobile (no hover) */}
                     {b.proof_url && (
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity bg-black/30">
-                        <div className="h-10 w-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                          <Play className="h-4 w-4 text-white ml-0.5" fill="white" />
+                      <div className="absolute top-1.5 left-1.5">
+                        <div className="h-5 w-5 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
+                          <Play className="h-2.5 w-2.5 text-white/80 ml-px" fill="currentColor" />
                         </div>
                       </div>
                     )}
