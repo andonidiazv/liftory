@@ -79,20 +79,29 @@ export default function Home() {
 
   const displayName = profile?.full_name || "Atleta";
 
-  // First Day Experience onboarding
-  const onboardingKey = programInfo ? `liftory_onboarding_seen_${programInfo.id}` : null;
+  // First Day Experience onboarding — keyed to user, not program
+  // Uses localStorage as fast cache + completed workouts as DB-backed fallback
+  const onboardingKey = user ? `liftory_onboarding_seen_${user.id}` : null;
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     if (!loading && programInfo && onboardingKey) {
+      // Fast check: localStorage says already seen
       const seen = localStorage.getItem(onboardingKey);
-      if (!seen) {
-        // Mark as seen immediately so navigating away won't re-trigger
+      if (seen) return;
+
+      // Fallback check: if user has completed workouts, they've used the app before
+      // (handles cache clearing / new device without needing a DB column)
+      if (quickStats && quickStats.totalCompleted > 0) {
         localStorage.setItem(onboardingKey, "true");
-        setShowOnboarding(true);
+        return;
       }
+
+      // Truly new user: show FDE and mark as seen
+      localStorage.setItem(onboardingKey, "true");
+      setShowOnboarding(true);
     }
-  }, [loading, programInfo, onboardingKey]);
+  }, [loading, programInfo, onboardingKey, quickStats]);
 
   const handleOnboardingComplete = () => {
     if (onboardingKey) {
