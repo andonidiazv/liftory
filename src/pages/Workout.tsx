@@ -52,6 +52,7 @@ export default function Workout() {
     weightUnit,
     allSetsCompleted,
     completeSet,
+    updateSetField,
     finishWorkout,
     getSuggestedWeight,
     refetch,
@@ -294,6 +295,7 @@ export default function Workout() {
           }}
           onCompleteSet={handleCompleteSet}
           onUncompleteSet={handleUncompleteSet}
+          onUpdateSetField={updateSetField}
           getSuggestedWeight={getSuggestedWeight}
           onRestStart={handleRestStart}
           onSwapExercise={() => {

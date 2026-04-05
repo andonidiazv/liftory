@@ -324,6 +324,40 @@ export function useWorkoutData(workoutId: string | undefined) {
     [setSets, setExerciseGroups, setSaving]
   );
 
+  const updateSetField = useCallback(
+    async (
+      setId: string,
+      field: "actual_weight" | "actual_reps",
+      value: number
+    ): Promise<boolean> => {
+      const { error } = await supabase
+        .from("workout_sets")
+        .update({ [field]: value })
+        .eq("id", setId);
+
+      if (error) {
+        toast({
+          title: "Error al guardar",
+          description: error.message,
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      // Update local state so UI stays in sync
+      const updater = (s: WorkoutSetData) =>
+        s.id === setId ? { ...s, [field]: value } : s;
+
+      setSets((prev) => prev.map(updater));
+      setExerciseGroups((prev) =>
+        prev.map((g) => ({ ...g, sets: g.sets.map(updater) }))
+      );
+
+      return true;
+    },
+    [setSets, setExerciseGroups]
+  );
+
   const finishWorkout = useCallback(
     async (notes?: string) => {
       if (!workoutId) return;
@@ -426,6 +460,7 @@ export function useWorkoutData(workoutId: string | undefined) {
     weightUnit,
     allSetsCompleted,
     completeSet,
+    updateSetField,
     finishWorkout,
     refetch: fetchWorkout,
     getLastBestWeight,

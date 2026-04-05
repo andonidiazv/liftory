@@ -68,6 +68,7 @@ interface Props {
   onBack: () => void;
   onCompleteSet: (set: WorkoutSetData, data: { actual_weight: number; actual_reps: number }) => Promise<unknown>;
   onUncompleteSet: (setId: string) => Promise<boolean>;
+  onUpdateSetField: (setId: string, field: "actual_weight" | "actual_reps", value: number) => Promise<boolean>;
   getSuggestedWeight: (exerciseId: string, plannedReps: number | null) => { weight: number | null; hint: string | null };
   onRestStart: (seconds: number) => void;
   onSwapExercise?: () => void;
@@ -108,6 +109,7 @@ export default function BlockDetail({
   onBack,
   onCompleteSet,
   onUncompleteSet,
+  onUpdateSetField,
   getSuggestedWeight,
   onRestStart,
   onSwapExercise,
@@ -160,19 +162,28 @@ export default function BlockDetail({
   const updateInput = (setId: string, field: keyof SetInputs, value: string) => {
     const existing = setInputs[setId] || getInputs(block.groups.flatMap(g => g.sets).find(s => s.id === setId)!);
     setSetInputs((prev) => ({ ...prev, [setId]: { ...existing, [field]: value } }));
+
+    // Always persist to DB immediately
+    if (field === "weight") {
+      const w = parseFloat(value);
+      if (!isNaN(w)) onUpdateSetField(setId, "actual_weight", w);
+    } else if (field === "reps") {
+      const r = parseInt(value);
+      if (!isNaN(r)) onUpdateSetField(setId, "actual_reps", r);
+    }
   };
 
   const updateCompletedWeight = useCallback(async (setId: string, newWeight: string) => {
     const w = parseFloat(newWeight);
     if (isNaN(w)) return;
-    await supabase.from("workout_sets").update({ actual_weight: w }).eq("id", setId);
-  }, []);
+    await onUpdateSetField(setId, "actual_weight", w);
+  }, [onUpdateSetField]);
 
   const updateCompletedReps = useCallback(async (setId: string, newReps: string) => {
     const r = parseInt(newReps);
     if (isNaN(r)) return;
-    await supabase.from("workout_sets").update({ actual_reps: r }).eq("id", setId);
-  }, []);
+    await onUpdateSetField(setId, "actual_reps", r);
+  }, [onUpdateSetField]);
 
   const handleComplete = async (set: WorkoutSetData, groupIndex: number, isLastInSuperset: boolean) => {
     const inputs = getInputs(set);
@@ -746,11 +757,6 @@ function ExerciseCard({
   const handlePickerConfirm = (value: number) => {
     if (!pickerSetId) return;
     updateInput(pickerSetId, "weight", String(value));
-    // If set is already completed, also update in DB
-    const set = sets.find(s => s.id === pickerSetId);
-    if (set && isCompleted(set)) {
-      updateCompletedWeight(pickerSetId, String(value));
-    }
   };
 
   // Check if this exercise has substitutions — either directly or via a swap record
@@ -867,10 +873,6 @@ function ExerciseCard({
           const targetSetId = pickerSetId;
           if (!targetSetId) return;
           updateInput(targetSetId, "weight", String(value));
-          const set = sets.find(s => s.id === targetSetId);
-          if (set && isCompleted(set)) {
-            updateCompletedWeight(targetSetId, String(value));
-          }
         }}
         onClose={() => setPickerSetId(null)}
       />
@@ -883,10 +885,6 @@ function ExerciseCard({
           const targetSetId = repsPickerSetId;
           if (!targetSetId) return;
           updateInput(targetSetId, "reps", String(value));
-          const set = sets.find(s => s.id === targetSetId);
-          if (set && isCompleted(set)) {
-            updateCompletedReps(targetSetId, String(value));
-          }
         }}
         onClose={() => setRepsPickerSetId(null)}
       />
