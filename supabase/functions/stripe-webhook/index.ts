@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { sendEmail, buildPaymentConfirmationEmail } from "../_shared/email.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -80,6 +81,30 @@ serve(async (req) => {
           .eq("user_id", supabaseUserId);
 
         console.log(`[stripe-webhook] checkout.session.completed for user ${supabaseUserId}, tier: ${tier}`);
+
+        // Send payment confirmation email (non-blocking)
+        try {
+          const { data: paidUser } = await supabaseAdmin.auth.admin.getUserById(supabaseUserId);
+          const { data: paidProfile } = await supabaseAdmin
+            .from("user_profiles")
+            .select("display_name")
+            .eq("user_id", supabaseUserId)
+            .single();
+
+          const userEmail = paidUser?.user?.email;
+          if (userEmail) {
+            const displayName = paidProfile?.display_name || paidUser?.user?.user_metadata?.full_name || "Atleta";
+            const amountTotal = session.amount_total ? (session.amount_total / 100).toFixed(2) : "";
+            const endDate = new Date(currentPeriodEnd).toLocaleDateString("es-ES", {
+              day: "numeric", month: "long", year: "numeric",
+            });
+            const { subject, html } = buildPaymentConfirmationEmail(displayName, tier, amountTotal, endDate);
+            await sendEmail({ to: userEmail, subject, html });
+          }
+        } catch (emailErr) {
+          console.warn("[stripe-webhook] Email send failed (non-blocking):", emailErr);
+        }
+
         break;
       }
 

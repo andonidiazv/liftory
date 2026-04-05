@@ -3,21 +3,24 @@
 //
 // Called from the admin client (AdminBadges.tsx) after a badge
 // is approved or rejected. Sends push notifications to all of
-// the athlete's registered devices.
+// the athlete's registered devices AND an email notification.
 //
 // Supports:
 //   type = "web"    → Web Push API with VAPID (current)
 //   type = "native" → FCM HTTP v1 (future, when Capacitor is added)
+//   email           → SMTP via IONOS (always)
 //
 // Required Supabase secrets:
 //   VAPID_PRIVATE_KEY  — base64url-encoded ECDSA P-256 private key
 //   VAPID_PUBLIC_KEY   — base64url-encoded ECDSA P-256 public key
 //   VAPID_EMAIL        — contact email for VAPID (e.g. mailto:hello@liftory.com)
+//   SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS — for email
 // ══════════════════════════════════════════════════════════════
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 import webpush from "npm:web-push@3.6.7";
+import { sendEmail, buildBadgeReviewEmail } from "../_shared/email.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -88,6 +91,36 @@ serve(async (req) => {
       badge: "/icon-192.png",
     });
 
+    // ── Send email notification (non-blocking) ──
+    let emailSent = false;
+    try {
+      // Get user email and display name
+      const { data: targetUser } = await supabaseAdmin.auth.admin.getUserById(userId);
+      const { data: targetProfile } = await supabaseAdmin
+        .from("user_profiles")
+        .select("display_name")
+        .eq("user_id", userId)
+        .single();
+
+      const userEmail = targetUser?.user?.email;
+      const displayName =
+        targetProfile?.display_name ||
+        targetUser?.user?.user_metadata?.full_name ||
+        "Atleta";
+
+      if (userEmail) {
+        const { subject, html } = buildBadgeReviewEmail(
+          displayName,
+          badgeName || "",
+          tierLabel || "",
+          isApproved,
+        );
+        emailSent = await sendEmail({ to: userEmail, subject, html });
+      }
+    } catch (emailErr) {
+      console.warn("[push] Email send failed (non-blocking):", emailErr);
+    }
+
     // ── Get all push subscriptions for this user ──
     const { data: subscriptions, error: subError } = await supabaseAdmin
       .from("push_subscriptions")
@@ -151,7 +184,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, sent, failed, cleaned: staleIds.length }),
+      JSON.stringify({ success: true, sent, failed, cleaned: staleIds.length, emailSent }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 },
     );
   } catch (error) {
