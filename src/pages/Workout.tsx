@@ -10,6 +10,8 @@ import BlockDetail from "@/components/workout/BlockDetail";
 import RestTimerSheet from "@/components/workout/RestTimerSheet";
 import TimerBlockDetail from "@/components/workout/TimerBlockDetail";
 import ExerciseVideoOverlay from "@/components/workout/ExerciseVideoOverlay";
+import BadgeQualificationToast from "@/components/workout/BadgeQualificationToast";
+import { useBadgeDetection, type BadgeMatch } from "@/hooks/useBadgeDetection";
 import { BLOCK_ORDER, BLOCK_LABEL_COLORS } from "@/constants/blocks";
 
 function getBlockType(label: string): WorkoutBlock["type"] {
@@ -74,6 +76,8 @@ export default function Workout() {
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [finishNotes, setFinishNotes] = useState("");
   const [programTotalWeeks, setProgramTotalWeeks] = useState(6);
+  const [badgeMatch, setBadgeMatch] = useState<BadgeMatch | null>(null);
+  const { checkForBadge } = useBadgeDetection();
 
   // Fetch program total weeks
   useEffect(() => {
@@ -182,9 +186,17 @@ export default function Workout() {
         actual_rir: null,
       });
       // Don't refetch - let optimistic UI handle it
+
+      // Check badge qualification (fire-and-forget, doesn't block UI)
+      if (result && set.exercise) {
+        checkForBadge(set.exercise.name, data.actual_weight, data.actual_reps).then((match) => {
+          if (match) setBadgeMatch(match);
+        });
+      }
+
       return result;
     },
-    [completeSet]
+    [completeSet, checkForBadge]
   );
 
   const handleUncompleteSet = useCallback(
@@ -272,6 +284,7 @@ export default function Workout() {
           visible={!!videoOverlay}
           onClose={() => setVideoOverlay(null)}
         />
+        <BadgeQualificationToast match={badgeMatch} onDismiss={() => setBadgeMatch(null)} />
       </>
     );
   }
@@ -354,6 +367,7 @@ export default function Workout() {
           visible={restTimerVisible}
           onDismiss={() => setRestTimerVisible(false)}
         />
+        <BadgeQualificationToast match={badgeMatch} onDismiss={() => setBadgeMatch(null)} />
 
         {/* Finish modal inside block detail */}
         {showFinishModal && (
