@@ -1,14 +1,16 @@
 import { useState, useEffect, useRef } from "react";
-import { usePrimeWeeklyReset } from "@/hooks/usePrimeWeeklyReset";
+import { usePrimeWeeklyReset, PrevWeekMetrics } from "@/hooks/usePrimeWeeklyReset";
 import {
   Loader2,
-  Dumbbell,
   Repeat,
   Hash,
   Weight,
   Target,
   Flame,
   Trophy,
+  TrendingUp,
+  TrendingDown,
+  Minus,
 } from "lucide-react";
 
 interface PrimeWeeklyResetProps {
@@ -47,13 +49,58 @@ function AnimatedScore({ target }: { target: number }) {
 }
 
 const metricCards = [
-  { key: "exercises", icon: <Dumbbell className="h-4 w-4" />, label: "Ejercicios" },
-  { key: "sets", icon: <Repeat className="h-4 w-4" />, label: "Sets" },
-  { key: "reps", icon: <Hash className="h-4 w-4" />, label: "Repeticiones" },
-  { key: "volume", icon: <Weight className="h-4 w-4" />, label: "Volumen (kg)" },
-  { key: "consistency", icon: <Target className="h-4 w-4" />, label: "Consistencia" },
-  { key: "streak", icon: <Flame className="h-4 w-4" />, label: "Racha" },
+  { key: "sets", icon: <Repeat className="h-4 w-4" />, label: "Sets", comparable: true },
+  { key: "reps", icon: <Hash className="h-4 w-4" />, label: "Repeticiones", comparable: true },
+  { key: "volume", icon: <Weight className="h-4 w-4" />, label: "Volumen (kg)", comparable: true },
+  { key: "consistency", icon: <Target className="h-4 w-4" />, label: "Consistencia", comparable: true },
+  { key: "streak", icon: <Flame className="h-4 w-4" />, label: "Racha", comparable: false },
 ] as const;
+
+type ComparableKey = "sets" | "reps" | "volume" | "consistency";
+
+const prevKeyMap: Record<ComparableKey, keyof PrevWeekMetrics> = {
+  sets: "totalSets",
+  reps: "totalReps",
+  volume: "totalVolume",
+  consistency: "consistency",
+};
+
+function ComparisonBadge({ current, previous }: { current: number; previous: number }) {
+  if (previous === 0 && current === 0) return null;
+  if (previous === 0) {
+    return (
+      <span className="mt-1 inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-mono text-[8px] font-bold"
+        style={{ background: "rgba(122, 139, 92, 0.15)", color: "#7A8B5C" }}>
+        NUEVO
+      </span>
+    );
+  }
+
+  const pct = Math.round(((current - previous) / previous) * 100);
+
+  if (pct === 0) {
+    return (
+      <span className="mt-1 inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-mono text-[8px] font-bold text-muted-foreground"
+        style={{ background: "rgba(128, 128, 128, 0.1)" }}>
+        <Minus className="h-2.5 w-2.5" /> =
+      </span>
+    );
+  }
+
+  const isUp = pct > 0;
+  return (
+    <span
+      className="mt-1 inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-mono text-[8px] font-bold"
+      style={{
+        background: isUp ? "rgba(122, 139, 92, 0.15)" : "rgba(199, 91, 57, 0.15)",
+        color: isUp ? "#7A8B5C" : "#C75B39",
+      }}
+    >
+      {isUp ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
+      {isUp ? "+" : ""}{pct}%
+    </span>
+  );
+}
 
 /* Shared card wrapper */
 function CardShell({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -148,7 +195,6 @@ export default function PrimeWeeklyReset({ selectedDate }: PrimeWeeklyResetProps
 
   // ── Full PRIME Weekly Reset with metrics ──
   const metricValues: Record<string, string> = {
-    exercises: String(metrics.distinctExercises),
     sets: String(metrics.totalSets),
     reps: String(metrics.totalReps),
     volume: metrics.totalVolume.toLocaleString("es-MX"),
@@ -218,24 +264,55 @@ export default function PrimeWeeklyReset({ selectedDate }: PrimeWeeklyResetProps
       {/* Separator */}
       <div className="w-full mt-6 mb-5" style={{ height: 1, background: "hsl(var(--border))" }} />
 
-      {/* Metric cards — 3×2 grid */}
-      <div className="grid w-full grid-cols-3 gap-2">
-        {metricCards.map((card) => (
-          <div
-            key={card.key}
-            className="flex flex-col items-center rounded-xl px-2 py-3 text-center"
-            style={{ background: "hsl(var(--secondary))" }}
-          >
-            <span className="text-primary">{card.icon}</span>
-            <span className="mt-1.5 font-display text-[15px] font-bold tabular-nums text-foreground">
-              {metricValues[card.key]}
-            </span>
-            <span className="mt-0.5 font-mono text-[8px] uppercase tracking-wider text-muted-foreground">
-              {card.label}
-            </span>
-          </div>
-        ))}
-      </div>
+      {/* Metric cards — top row 3, bottom row 2 centered */}
+      {(() => {
+        const topRow = metricCards.slice(0, 3);
+        const bottomRow = metricCards.slice(3);
+
+        const renderCard = (card: typeof metricCards[number]) => {
+          const numericCurrent = card.key === "volume" ? metrics.totalVolume
+            : card.key === "sets" ? metrics.totalSets
+            : card.key === "reps" ? metrics.totalReps
+            : card.key === "consistency" ? metrics.consistency
+            : 0;
+
+          const showComparison = card.comparable && metrics.prevWeek && !metrics.isFirstWeek;
+          const prevValue = showComparison
+            ? metrics.prevWeek![prevKeyMap[card.key as ComparableKey]]
+            : 0;
+
+          return (
+            <div
+              key={card.key}
+              className="flex flex-col items-center rounded-xl px-2 py-3 text-center"
+              style={{ background: "hsl(var(--secondary))" }}
+            >
+              <span className="text-primary">{card.icon}</span>
+              <span className="mt-1.5 font-display text-[15px] font-bold tabular-nums text-foreground">
+                {metricValues[card.key]}
+              </span>
+              <span className="mt-0.5 font-mono text-[8px] uppercase tracking-wider text-muted-foreground">
+                {card.label}
+              </span>
+              {showComparison && (
+                <ComparisonBadge current={numericCurrent} previous={prevValue} />
+              )}
+            </div>
+          );
+        };
+
+        return (
+          <>
+            <div className="grid w-full grid-cols-3 gap-2">
+              {topRow.map(renderCard)}
+            </div>
+            <div className="flex w-full justify-center gap-2 mt-2">
+              <div className="flex-1 max-w-[calc((100%-16px)/3)]">{renderCard(bottomRow[0])}</div>
+              <div className="flex-1 max-w-[calc((100%-16px)/3)]">{renderCard(bottomRow[1])}</div>
+            </div>
+          </>
+        );
+      })()}
 
       {/* Best PR card */}
       {metrics.bestPR && (

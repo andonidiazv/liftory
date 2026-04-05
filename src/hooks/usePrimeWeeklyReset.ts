@@ -2,6 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 
+export interface PrevWeekMetrics {
+  totalSets: number;
+  totalReps: number;
+  totalVolume: number;
+  consistency: number;
+}
+
 export interface WeeklyMetrics {
   distinctExercises: number;
   totalSets: number;
@@ -13,6 +20,7 @@ export interface WeeklyMetrics {
   primeScore: number; // 0-100
   hasWorkoutsThisWeek: boolean;
   isFirstWeek: boolean;
+  prevWeek: PrevWeekMetrics | null;
 }
 
 function getMonday(d: Date): Date {
@@ -39,22 +47,22 @@ export function usePrimeWeeklyReset(selectedDate: string) {
   const [metrics, setMetrics] = useState<WeeklyMetrics | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchMetrics = useCallback(async () => {
+  const fetchMetrics = useCallback(async (signal: { cancelled: boolean }) => {
     if (!user) return;
     setLoading(true);
 
     try {
     const selected = new Date(selectedDate + "T12:00:00");
     const monday = getMonday(selected);
-    const saturday = addDays(monday, 5);
+    const sunday = addDays(monday, 6);
     const mondayStr = formatDate(monday);
-    const saturdayStr = formatDate(saturday);
+    const sundayStr = formatDate(sunday);
 
     // Previous week range
     const prevMonday = addDays(monday, -7);
-    const prevSaturday = addDays(prevMonday, 5);
+    const prevSunday = addDays(prevMonday, 6);
     const prevMondayStr = formatDate(prevMonday);
-    const prevSaturdayStr = formatDate(prevSaturday);
+    const prevSundayStr = formatDate(prevSunday);
 
     // 1. Get this week's workouts
     const { data: weekWorkouts } = await supabase
@@ -62,7 +70,7 @@ export function usePrimeWeeklyReset(selectedDate: string) {
       .select("id, is_completed, is_rest_day")
       .eq("user_id", user.id)
       .gte("scheduled_date", mondayStr)
-      .lte("scheduled_date", saturdayStr);
+      .lte("scheduled_date", sundayStr);
 
     const workouts = weekWorkouts ?? [];
     const scheduledNonRest = workouts.filter((w) => !w.is_rest_day);
@@ -81,31 +89,52 @@ export function usePrimeWeeklyReset(selectedDate: string) {
       sets = setsData ?? [];
     }
 
-    // 3. Get previous week's volume for comparison
+    // 3. Get previous week's metrics for comparison
     let prevVolume = 0;
-    const { data: prevWorkouts } = await supabase
-      .from("workouts")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("is_completed", true)
-      .eq("is_rest_day", false)
-      .gte("scheduled_date", prevMondayStr)
-      .lte("scheduled_date", prevSaturdayStr);
+    let prevWeekData: PrevWeekMetrics | null = null;
 
-    if (prevWorkouts && prevWorkouts.length > 0) {
-      const prevIds = prevWorkouts.map((w) => w.id);
-      const { data: prevSets } = await supabase
-        .from("workout_sets")
-        .select("actual_reps, actual_weight")
-        .eq("user_id", user.id)
-        .in("workout_id", prevIds)
-        .eq("is_completed", true);
-      if (prevSets) {
-        prevVolume = prevSets.reduce(
-          (sum, s) => sum + (s.actual_weight ?? 0) * (s.actual_reps ?? 0),
-          0
-        );
+    const { data: prevAllWorkouts } = await supabase
+      .from("workouts")
+      .select("id, is_completed, is_rest_day")
+      .eq("user_id", user.id)
+      .gte("scheduled_date", prevMondayStr)
+      .lte("scheduled_date", prevSundayStr);
+
+    if (prevAllWorkouts && prevAllWorkouts.length > 0) {
+      const prevScheduledNonRest = prevAllWorkouts.filter((w) => !w.is_rest_day);
+      const prevCompletedNonRest = prevScheduledNonRest.filter((w) => w.is_completed);
+      const prevIds = prevCompletedNonRest.map((w) => w.id);
+
+      let prevTotalSets = 0;
+      let prevTotalReps = 0;
+
+      if (prevIds.length > 0) {
+        const { data: prevSets } = await supabase
+          .from("workout_sets")
+          .select("actual_reps, actual_weight")
+          .eq("user_id", user.id)
+          .in("workout_id", prevIds)
+          .eq("is_completed", true);
+        if (prevSets) {
+          prevTotalSets = prevSets.length;
+          prevTotalReps = prevSets.reduce((sum, s) => sum + (s.actual_reps ?? 0), 0);
+          prevVolume = prevSets.reduce(
+            (sum, s) => sum + (s.actual_weight ?? 0) * (s.actual_reps ?? 0),
+            0
+          );
+        }
       }
+
+      const prevConsistency = prevScheduledNonRest.length > 0
+        ? Math.round((prevCompletedNonRest.length / prevScheduledNonRest.length) * 100)
+        : 0;
+
+      prevWeekData = {
+        totalSets: prevTotalSets,
+        totalReps: prevTotalReps,
+        totalVolume: Math.round(prevVolume),
+        consistency: prevConsistency,
+      };
     }
 
     // 4. Best PR exercise name
@@ -151,7 +180,7 @@ export function usePrimeWeeklyReset(selectedDate: string) {
       .select("scheduled_date")
       .eq("user_id", user.id)
       .eq("is_completed", true)
-      .lte("scheduled_date", saturdayStr)
+      .lte("scheduled_date", sundayStr)
       .order("scheduled_date", { ascending: false });
 
     if (allCompletedWorkouts && allCompletedWorkouts.length > 0) {
@@ -183,6 +212,8 @@ export function usePrimeWeeklyReset(selectedDate: string) {
       .lt("scheduled_date", mondayStr);
 
     const isFirstWeek = (historicalCount ?? 0) === 0;
+
+    if (signal.cancelled) return;
 
     // Calculate metrics
     const distinctExercises = new Set(sets.map((s) => s.exercise_id)).size;
@@ -231,6 +262,7 @@ export function usePrimeWeeklyReset(selectedDate: string) {
       primeScore,
       hasWorkoutsThisWeek: completedNonRest.length > 0,
       isFirstWeek,
+      prevWeek: prevWeekData,
     });
     } catch (err) {
       // Silently handle — metrics will stay null and UI shows loading/empty state
@@ -240,7 +272,9 @@ export function usePrimeWeeklyReset(selectedDate: string) {
   }, [user, selectedDate]);
 
   useEffect(() => {
-    fetchMetrics();
+    const signal = { cancelled: false };
+    fetchMetrics(signal);
+    return () => { signal.cancelled = true; };
   }, [fetchMetrics]);
 
   return { metrics, loading };
