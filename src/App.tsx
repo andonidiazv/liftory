@@ -33,6 +33,7 @@ import AdminPrograms from "./pages/admin/AdminPrograms";
 import AdminProgramDetail from "./pages/admin/AdminProgramDetail";
 import AdminFeedback from "./pages/admin/AdminFeedback";
 import AdminBadges from "./pages/admin/AdminBadges";
+import AdminPayments from "./pages/admin/AdminPayments";
 import Badges from "./pages/Badges";
 import BadgeClaim from "./pages/BadgeClaim";
 
@@ -74,6 +75,7 @@ const App = () => (
               <Route path="/admin/exercises" element={<AdminRoute><AdminLayout><AdminExercises /></AdminLayout></AdminRoute>} />
               <Route path="/admin/feedback" element={<AdminRoute><AdminLayout><AdminFeedback /></AdminLayout></AdminRoute>} />
               <Route path="/admin/badges" element={<AdminRoute><AdminLayout><AdminBadges /></AdminLayout></AdminRoute>} />
+              <Route path="/admin/payments" element={<AdminRoute><AdminLayout><AdminPayments /></AdminLayout></AdminRoute>} />
               <Route path="/admin/insights" element={<AdminRoute><AdminLayout><AdminInsights /></AdminLayout></AdminRoute>} />
               <Route path="/admin/ai-rules" element={<AdminRoute><AdminLayout><AdminAIRules /></AdminLayout></AdminRoute>} />
               <Route path="/admin/audit" element={<AdminRoute><AdminLayout><AdminAuditLog /></AdminLayout></AdminRoute>} />

@@ -1,7 +1,12 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { sendEmail, buildPaymentConfirmationEmail } from "../_shared/email.ts";
+import {
+  sendEmail,
+  buildPaymentConfirmationEmail,
+  buildPaymentFailedEmail,
+  buildAdminPaymentAlertEmail,
+} from "../_shared/email.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -161,14 +166,54 @@ serve(async (req) => {
         const invoice = event.data.object as Stripe.Invoice;
         const customerId = invoice.customer as string;
 
+        // Update status + set dunning tracking fields
+        const { data: failedProfile } = await supabaseAdmin
+          .from("user_profiles")
+          .select("user_id, subscription_tier, payment_failed_at")
+          .eq("stripe_customer_id", customerId)
+          .single();
+
+        // Only set payment_failed_at on the FIRST failure (don't reset on retries)
+        const updateFields: Record<string, unknown> = {
+          subscription_status: "past_due",
+        };
+        if (!failedProfile?.payment_failed_at) {
+          updateFields.payment_failed_at = new Date().toISOString();
+          updateFields.dunning_step = 1;
+        }
+
         await supabaseAdmin
           .from("user_profiles")
-          .update({
-            subscription_status: "past_due",
-          })
+          .update(updateFields)
           .eq("stripe_customer_id", customerId);
 
         console.log(`[stripe-webhook] invoice.payment_failed for customer ${customerId}`);
+
+        // Send Day 1 email to athlete + admin alert (non-blocking)
+        if (failedProfile?.user_id && !failedProfile.payment_failed_at) {
+          try {
+            const { data: failedUser } = await supabaseAdmin.auth.admin.getUserById(failedProfile.user_id);
+            const userEmail = failedUser?.user?.email;
+            const displayName = failedUser?.user?.user_metadata?.full_name || "Atleta";
+            const tier = failedProfile.subscription_tier || "monthly";
+
+            if (userEmail) {
+              // Day 1 email to athlete
+              const athleteEmail = buildPaymentFailedEmail(displayName, 1);
+              await sendEmail({ to: userEmail, subject: athleteEmail.subject, html: athleteEmail.html });
+
+              // Admin alert
+              const now = new Date().toLocaleDateString("es-ES", {
+                day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
+              });
+              const adminEmail = buildAdminPaymentAlertEmail(displayName, userEmail, tier, now);
+              await sendEmail({ to: "team@liftory.app", subject: adminEmail.subject, html: adminEmail.html });
+            }
+          } catch (emailErr) {
+            console.warn("[stripe-webhook] Payment failed email error (non-blocking):", emailErr);
+          }
+        }
+
         break;
       }
 
@@ -194,6 +239,8 @@ serve(async (req) => {
               subscription_status: "active",
               subscription_tier: tier,
               current_period_end: currentPeriodEnd,
+              payment_failed_at: null,
+              dunning_step: 0,
             })
             .eq("stripe_customer_id", customerId);
 

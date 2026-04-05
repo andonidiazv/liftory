@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { BarChart3, Users, Dumbbell, Sparkles, Brain, ScrollText, LogOut, Home, ClipboardList, MessageSquare, Award } from "lucide-react";
+import { BarChart3, Users, Dumbbell, Sparkles, Brain, ScrollText, LogOut, Home, ClipboardList, MessageSquare, Award, CreditCard } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 const navItems = [
@@ -9,6 +9,7 @@ const navItems = [
   { label: "Ejercicios", icon: Dumbbell, to: "/admin/exercises" },
   { label: "Feedback", icon: MessageSquare, to: "/admin/feedback" },
   { label: "Badges", icon: Award, to: "/admin/badges" },
+  { label: "Pagos", icon: CreditCard, to: "/admin/payments" },
   { label: "Insights", icon: Sparkles, to: "/admin/insights" },
   { label: "Reglas de IA", icon: Brain, to: "/admin/ai-rules" },
   { label: "Audit Log", icon: ScrollText, to: "/admin/audit" },
