@@ -16,11 +16,20 @@ export interface BadgeMatch {
 /**
  * Detects if a just-completed set qualifies for an unclaimed badge tier.
  * Does NOT grant the badge — only returns match info for notification.
+ *
+ * Gender-aware: uses weight_male/reps_male for male athletes,
+ * weight_female/reps_female for female athletes.
+ * If profile has no gender set, detection is skipped entirely.
  */
 export function useBadgeDetection() {
   const { user, profile } = useAuth();
-  // Prevent duplicate notifications for the same badge in one session
+
+  // Prevent duplicate notifications for the same badge in one session.
+  // Uses a synchronous Set so concurrent calls still see each other's additions.
   const notifiedRef = useRef<Set<string>>(new Set());
+
+  // Mutex to prevent concurrent checks from producing duplicate notifications
+  const checkingRef = useRef(false);
 
   const checkForBadge = useCallback(
     async (
@@ -33,72 +42,105 @@ export function useBadgeDetection() {
       const gender = profile.gender; // "male" | "female" | null
       if (!gender) return null;
 
-      // 1. Find badge definitions that match this exercise
-      const { data: badges } = await supabase
-        .from("badge_definitions")
-        .select("id, name, slug, exercise_name")
-        .eq("exercise_name", exerciseName)
-        .eq("is_active", true);
+      // Validate inputs — weight can be 0 for bodyweight exercises
+      if (!exerciseName || isNaN(weight) || isNaN(reps)) return null;
+      if (reps <= 0) return null;
 
-      if (!badges || badges.length === 0) return null;
+      // Mutex: wait if another check is in flight
+      if (checkingRef.current) return null;
+      checkingRef.current = true;
 
-      const badgeIds = badges.map((b) => b.id);
+      try {
+        // 1. Find badge definitions that match this exercise
+        const { data: badges, error: badgeErr } = await (supabase as any)
+          .from("badge_definitions")
+          .select("id, name, slug, exercise_name")
+          .eq("exercise_name", exerciseName)
+          .eq("is_active", true);
 
-      // 2. Get all tiers for matching badges
-      const { data: tiers } = await supabase
-        .from("badge_tiers")
-        .select("id, badge_id, tier, tier_label, weight_male, weight_female, reps_male, reps_female, color, sort_order")
-        .in("badge_id", badgeIds)
-        .order("sort_order", { ascending: false }); // elite first
+        if (badgeErr || !badges || badges.length === 0) return null;
 
-      if (!tiers || tiers.length === 0) return null;
+        const badgeIds = badges.map((b: any) => b.id);
 
-      // 3. Get user's existing claims for these tiers
-      const tierIds = tiers.map((t) => t.id);
-      const { data: existingClaims } = await supabase
-        .from("user_badges")
-        .select("badge_tier_id, status")
-        .eq("user_id", user.id)
-        .in("badge_tier_id", tierIds);
+        // 2. Get all tiers for matching badges (elite first = highest sort_order first)
+        const { data: tiers, error: tierErr } = await (supabase as any)
+          .from("badge_tiers")
+          .select(
+            "id, badge_id, tier, tier_label, weight_male, weight_female, reps_male, reps_female, color, sort_order"
+          )
+          .in("badge_id", badgeIds)
+          .order("sort_order", { ascending: false });
 
-      const claimedTierIds = new Set(
-        (existingClaims ?? []).map((c) => c.badge_tier_id)
-      );
+        if (tierErr || !tiers || tiers.length === 0) return null;
 
-      // 4. Check from highest tier down — find the best qualifying unclaimed tier
-      for (const tier of tiers) {
-        const reqWeight = gender === "male" ? tier.weight_male : tier.weight_female;
-        const reqReps = gender === "male" ? tier.reps_male : tier.reps_female;
+        // 3. Get user's existing claims for these tiers (any status — pending, approved, rejected)
+        const tierIds = tiers.map((t: any) => t.id);
+        const { data: existingClaims } = await (supabase as any)
+          .from("user_badges")
+          .select("badge_tier_id, status")
+          .eq("user_id", user.id)
+          .in("badge_tier_id", tierIds);
 
-        // Skip if already claimed
-        if (claimedTierIds.has(tier.id)) continue;
+        const claimedTierIds = new Set(
+          (existingClaims ?? []).map((c: any) => c.badge_tier_id)
+        );
 
-        // Skip if already notified this session
-        const notifKey = `${tier.badge_id}_${tier.tier}`;
-        if (notifiedRef.current.has(notifKey)) continue;
+        // 4. Check from highest tier down — find the best qualifying unclaimed tier
+        for (const tier of tiers) {
+          const reqWeight =
+            gender === "male"
+              ? Number(tier.weight_male)
+              : Number(tier.weight_female);
+          const reqReps =
+            gender === "male"
+              ? Number(tier.reps_male)
+              : Number(tier.reps_female);
 
-        // Check qualification
-        const weightOk = reqWeight == null || weight >= reqWeight;
-        const repsOk = reqReps == null || reps >= reqReps;
+          // Skip if already claimed (any status)
+          if (claimedTierIds.has(tier.id)) continue;
 
-        if (weightOk && repsOk) {
-          const badge = badges.find((b) => b.id === tier.badge_id)!;
-          notifiedRef.current.add(notifKey);
+          // Skip if already notified this session
+          const notifKey = `${tier.badge_id}_${tier.tier}`;
+          if (notifiedRef.current.has(notifKey)) continue;
 
-          return {
-            badgeName: badge.name,
-            badgeSlug: badge.slug,
-            tier: tier.tier,
-            tierLabel: tier.tier_label,
-            tierColor: tier.color,
-            requiredWeight: reqWeight,
-            requiredReps: reqReps,
-            exerciseName: badge.exercise_name,
-          };
+          // Check qualification
+          // For bodyweight exercises weight_male/weight_female is NULL → weightOk = true
+          const weightOk =
+            tier.weight_male == null && tier.weight_female == null
+              ? true
+              : weight >= reqWeight;
+          const repsOk = reps >= reqReps;
+
+          if (weightOk && repsOk) {
+            const badge = badges.find((b: any) => b.id === tier.badge_id);
+            if (!badge) continue;
+
+            // Mark as notified BEFORE returning to prevent race conditions
+            notifiedRef.current.add(notifKey);
+
+            return {
+              badgeName: badge.name,
+              badgeSlug: badge.slug,
+              tier: tier.tier,
+              tierLabel: tier.tier_label,
+              tierColor: tier.color,
+              requiredWeight:
+                tier.weight_male == null && tier.weight_female == null
+                  ? null
+                  : reqWeight,
+              requiredReps: reqReps,
+              exerciseName: badge.exercise_name,
+            };
+          }
         }
-      }
 
-      return null;
+        return null;
+      } catch {
+        // Silently fail — badge detection is non-critical
+        return null;
+      } finally {
+        checkingRef.current = false;
+      }
     },
     [user, profile]
   );

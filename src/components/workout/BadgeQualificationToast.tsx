@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Trophy, X, ChevronRight } from "lucide-react";
 import type { BadgeMatch } from "@/hooks/useBadgeDetection";
@@ -12,9 +12,24 @@ export default function BadgeQualificationToast({ match, onDismiss }: Props) {
   const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
   const [exiting, setExiting] = useState(false);
+  const dismissRef = useRef(onDismiss);
+  dismissRef.current = onDismiss;
 
+  const dismiss = useCallback(() => {
+    setExiting(true);
+    setTimeout(() => {
+      setVisible(false);
+      setExiting(false);
+      dismissRef.current();
+    }, 300);
+  }, []);
+
+  // Show animation when match arrives
   useEffect(() => {
     if (match) {
+      // Reset state for new match
+      setExiting(false);
+      setVisible(false);
       // Slight delay so animation triggers after mount
       const t = setTimeout(() => setVisible(true), 100);
       return () => clearTimeout(t);
@@ -29,16 +44,7 @@ export default function BadgeQualificationToast({ match, onDismiss }: Props) {
     if (!match) return;
     const t = setTimeout(() => dismiss(), 8000);
     return () => clearTimeout(t);
-  }, [match]);
-
-  const dismiss = () => {
-    setExiting(true);
-    setTimeout(() => {
-      setVisible(false);
-      setExiting(false);
-      onDismiss();
-    }, 300);
-  };
+  }, [match, dismiss]);
 
   if (!match) return null;
 
@@ -46,6 +52,13 @@ export default function BadgeQualificationToast({ match, onDismiss }: Props) {
     dismiss();
     navigate(`/badges/claim/${match.badgeSlug}/${match.tier}`);
   };
+
+  // Build description text
+  const weightText =
+    match.requiredWeight != null ? `${match.requiredWeight} kg` : "";
+  const repsText = match.requiredReps ? `${match.requiredReps} reps` : "";
+  const separator = weightText && repsText ? " x " : "";
+  const description = `${weightText}${separator}${repsText} en ${match.exerciseName}`;
 
   return (
     <div
@@ -59,7 +72,7 @@ export default function BadgeQualificationToast({ match, onDismiss }: Props) {
       }}
     >
       <div
-        className="w-full max-w-md rounded-2xl border p-4 shadow-xl"
+        className="relative w-full max-w-md rounded-2xl border p-4 shadow-xl"
         style={{
           background: "#1a1a1a",
           borderColor: match.tierColor + "40",
@@ -74,7 +87,7 @@ export default function BadgeQualificationToast({ match, onDismiss }: Props) {
           <X className="h-3 w-3 text-white/60" />
         </button>
 
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-3 pr-6">
           {/* Trophy icon */}
           <div
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
@@ -88,7 +101,7 @@ export default function BadgeQualificationToast({ match, onDismiss }: Props) {
               Calificaste para un badge
             </p>
             <p className="mt-0.5 font-body text-[12px] text-white/50 leading-tight">
-              {match.requiredWeight != null ? `${match.requiredWeight} kg` : ""}{match.requiredWeight != null && match.requiredReps ? " x " : ""}{match.requiredReps ? `${match.requiredReps} reps` : ""} en {match.exerciseName} — nivel{" "}
+              {description} — nivel{" "}
               <span style={{ color: match.tierColor }} className="font-medium">
                 {match.tierLabel}
               </span>
