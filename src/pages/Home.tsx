@@ -7,6 +7,9 @@ import { useNavigableHome } from "@/hooks/useNavigableHome";
 import { Skeleton } from "@/components/ui/skeleton";
 import PrimeWeeklyReset from "@/components/home/PrimeWeeklyReset";
 import FirstDayExperience from "@/components/onboarding/FirstDayExperience";
+import { useBadgeReviewNotification } from "@/hooks/useBadgeReviewNotification";
+import BadgeReviewCelebration from "@/components/celebrations/BadgeReviewCelebration";
+import PushPermissionPrompt from "@/components/notifications/PushPermissionPrompt";
 
 const BLOCK_LABELS: Record<string, string> = {
   accumulation: "BASE",
@@ -51,7 +54,8 @@ function HomeSkeleton() {
 
 export default function Home() {
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
+  const { notification: badgeReview, dismiss: dismissBadgeReview, checkNext: checkNextBadgeReview } = useBadgeReviewNotification();
   const {
     programInfo,
     selectedDate,
@@ -175,6 +179,12 @@ export default function Home() {
           onComplete={handleOnboardingComplete}
         />
       )}
+      <BadgeReviewCelebration
+        notification={badgeReview}
+        onDismiss={dismissBadgeReview}
+        onCheckNext={checkNextBadgeReview}
+      />
+      <PushPermissionPrompt />
     <Layout>
       <div className="px-5 pt-14 pb-20 space-y-8">
         {/* 1. Header */}

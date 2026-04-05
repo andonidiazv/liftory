@@ -99,7 +99,7 @@ export function AddExerciseModal({
         (data ?? []).map((d) => ({
           id: d.id,
           name: d.name,
-          name_es: d.name_es ?? d.name,
+          name_es: d.name_es || "",
         }))
       );
       setSearching(false);
@@ -180,9 +180,11 @@ export function AddExerciseModal({
                   style={{ color: "#FAF8F5" }}
                 >
                   <span className="font-body text-sm block">{ex.name}</span>
-                  <span className="font-body text-xs block" style={{ color: "#8A8A8E" }}>
-                    {ex.name_es}
-                  </span>
+                  {ex.name_es && ex.name_es !== ex.name && (
+                    <span className="font-body text-xs block" style={{ color: "#666" }}>
+                      {ex.name_es}
+                    </span>
+                  )}
                 </button>
               ))}
               {query.length >= 2 && !searching && results.length === 0 && (
@@ -202,9 +204,11 @@ export function AddExerciseModal({
               <span className="font-body text-sm" style={{ color: "#FAF8F5" }}>
                 {selected.name}
               </span>
-              <span className="font-body text-xs block" style={{ color: "#8A8A8E" }}>
-                {selected.name_es}
-              </span>
+              {selected.name_es && selected.name_es !== selected.name && (
+                <span className="font-body text-xs block" style={{ color: "#666" }}>
+                  {selected.name_es}
+                </span>
+              )}
               <button
                 onClick={() => setSelected(null)}
                 className="font-body text-xs mt-1"

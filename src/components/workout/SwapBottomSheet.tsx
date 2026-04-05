@@ -267,9 +267,11 @@ export default function SwapBottomSheet({
                   <p className="font-body text-[15px] font-semibold text-foreground truncate">
                     {selected.name}
                   </p>
-                  <p className="font-body text-xs text-muted-foreground truncate">
-                    {selected.name_es}
-                  </p>
+                  {selected.name_es && selected.name_es !== selected.name && (
+                    <p className="font-body text-xs text-muted-foreground/60 truncate">
+                      {selected.name_es}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -367,9 +369,11 @@ export default function SwapBottomSheet({
                           <p className="font-body text-[14px] font-semibold text-foreground truncate">
                             {opt.name}
                           </p>
-                          <p className="font-body text-xs text-muted-foreground truncate">
-                            {opt.name_es}
-                          </p>
+                          {opt.name_es && opt.name_es !== opt.name && (
+                            <p className="font-body text-xs text-muted-foreground/60 truncate">
+                              {opt.name_es}
+                            </p>
+                          )}
 
                           {/* Badges row */}
                           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">

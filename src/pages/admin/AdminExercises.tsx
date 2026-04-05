@@ -611,7 +611,7 @@ export default function AdminExercises() {
   );
 
   /* ─── Substitutions state ─── */
-  const [substitutions, setSubstitutions] = useState<{ id: string; substitute_exercise_id: string; priority: number; name_es: string }[]>([]);
+  const [substitutions, setSubstitutions] = useState<{ id: string; substitute_exercise_id: string; priority: number; name_es: string; name: string }[]>([]);
   const [subsLoading, setSubsLoading] = useState(false);
   const [subsSearch, setSubsSearch] = useState("");
   const [subsResults, setSubsResults] = useState<{ id: string; name_es: string; name: string; category: string }[]>([]);
@@ -621,7 +621,7 @@ export default function AdminExercises() {
     setSubsLoading(true);
     const { data } = await supabase
       .from("exercise_substitutions")
-      .select("id, substitute_exercise_id, priority, exercises!exercise_substitutions_substitute_exercise_id_fkey(name_es)")
+      .select("id, substitute_exercise_id, priority, exercises!exercise_substitutions_substitute_exercise_id_fkey(name_es, name)")
       .eq("exercise_id", exerciseId)
       .order("priority");
     setSubstitutions(
@@ -630,6 +630,7 @@ export default function AdminExercises() {
         substitute_exercise_id: d.substitute_exercise_id,
         priority: d.priority,
         name_es: d.exercises?.name_es || "—",
+        name: d.exercises?.name || "—",
       }))
     );
     setSubsLoading(false);
@@ -906,7 +907,12 @@ export default function AdminExercises() {
                           style={{ accentColor: "#B8622F" }}
                         />
                       </td>
-                      <td className="px-4 py-3 text-[13px] font-body" style={{ color: "#FAF8F5" }}>{ex.name}</td>
+                      <td className="px-4 py-3">
+                        <span className="block text-[13px] font-body" style={{ color: "#FAF8F5" }}>{ex.name}</span>
+                        {ex.name_es && ex.name_es !== ex.name && (
+                          <span className="block text-[10px]" style={{ color: "#666" }}>{ex.name_es}</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-[13px] capitalize" style={{ color: "#8A8A8E" }}>{ex.category}</td>
                       <td className="px-4 py-3">
                         <span
@@ -1245,8 +1251,13 @@ export default function AdminExercises() {
                               style={{ color: "#FAF8F5" }}
                             >
                               <Plus className="h-3.5 w-3.5 shrink-0" style={{ color: "#7A8B5C" }} />
-                              <span>{r.name_es}</span>
-                              <span className="ml-auto text-xs" style={{ color: "#8A8A8E" }}>{r.category}</span>
+                              <div className="flex-1 min-w-0">
+                                <span className="block truncate">{r.name}</span>
+                                {r.name_es && r.name_es !== r.name && (
+                                  <span className="block text-[10px] truncate" style={{ color: "#666" }}>{r.name_es}</span>
+                                )}
+                              </div>
+                              <span className="shrink-0 text-xs" style={{ color: "#8A8A8E" }}>{r.category}</span>
                             </button>
                           ))}
                         </div>
@@ -1280,9 +1291,14 @@ export default function AdminExercises() {
                               >
                                 {idx + 1}
                               </span>
-                              <span className="flex-1 text-sm font-body" style={{ color: "#FAF8F5" }}>
-                                {sub.name_es}
-                              </span>
+                              <div className="flex-1 min-w-0">
+                                <span className="block text-sm font-body truncate" style={{ color: "#FAF8F5" }}>
+                                  {sub.name}
+                                </span>
+                                {sub.name_es && sub.name_es !== sub.name && (
+                                  <span className="block text-[10px] truncate" style={{ color: "#666" }}>{sub.name_es}</span>
+                                )}
+                              </div>
                               <button
                                 onClick={() => removeSubstitution(sub.id, form.id!)}
                                 className="rounded p-1 transition-colors hover:bg-white/10"
@@ -1344,8 +1360,8 @@ export default function AdminExercises() {
             </div>
             <p className="text-sm font-body mb-6" style={{ color: "#8A8A8E" }}>
               {confirmDeactivate.is_active
-                ? `"${confirmDeactivate.name_es}" dejará de aparecer en la biblioteca y la IA no lo programará.`
-                : `"${confirmDeactivate.name_es}" volverá a estar disponible en la biblioteca.`}
+                ? `"${confirmDeactivate.name}" dejará de aparecer en la biblioteca y la IA no lo programará.`
+                : `"${confirmDeactivate.name}" volverá a estar disponible en la biblioteca.`}
             </p>
             <div className="flex gap-3">
               <button

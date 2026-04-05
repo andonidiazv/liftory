@@ -52,7 +52,7 @@ export function SwapExerciseModal({
         (data ?? []).map((d) => ({
           id: d.id,
           name: d.name,
-          name_es: d.name_es ?? d.name,
+          name_es: d.name_es || "",
         }))
       );
       setSearching(false);
@@ -117,9 +117,11 @@ export function SwapExerciseModal({
                 style={{ color: "#FAF8F5" }}
               >
                 <span className="font-body text-sm block">{ex.name}</span>
-                <span className="font-body text-xs block" style={{ color: "#8A8A8E" }}>
-                  {ex.name_es}
-                </span>
+                {ex.name_es && ex.name_es !== ex.name && (
+                  <span className="font-body text-xs block" style={{ color: "#666" }}>
+                    {ex.name_es}
+                  </span>
+                )}
               </button>
             ))}
             {query.length >= 2 && !searching && results.length === 0 && (

@@ -69,7 +69,7 @@ export default function Exercises() {
       .from("exercises")
       .select("*")
       .eq("is_active", true)
-      .order("name_es", { ascending: true });
+      .order("name", { ascending: true });
 
     if (muscleFilter !== "All") {
       const muscles = muscleGroups[muscleFilter] ?? [];
@@ -184,7 +184,7 @@ export default function Exercises() {
                 {ex.thumbnail_url ? (
                   <img
                     src={ex.thumbnail_url}
-                    alt={ex.name_es}
+                    alt={ex.name}
                     className="w-full object-cover bg-secondary"
                     style={{ aspectRatio: "9/10" }}
                     loading="lazy"
@@ -192,7 +192,7 @@ export default function Exercises() {
                 ) : (
                   <div className="flex items-center justify-center bg-secondary" style={{ aspectRatio: "9/10" }}>
                     <span className="font-display text-3xl font-bold text-muted-foreground/30">
-                      {ex.name_es.charAt(0).toUpperCase()}
+                      {ex.name.charAt(0).toUpperCase()}
                     </span>
                   </div>
                 )}
@@ -212,8 +212,11 @@ export default function Exercises() {
                 </button>
                 <div className="p-3">
                   <p className="font-display text-sm font-semibold text-foreground leading-tight" style={{ letterSpacing: "-0.02em" }}>
-                    {ex.name_es}
+                    {ex.name}
                   </p>
+                  {ex.name_es && ex.name_es !== ex.name && (
+                    <p className="font-body text-[10px] text-muted-foreground/60 mt-0.5 leading-tight">{ex.name_es}</p>
+                  )}
                   {/* Difficulty badge */}
                   <span className={`mt-1.5 inline-block rounded px-1.5 py-0.5 font-mono ${difficultyColors[ex.difficulty] ?? "bg-secondary text-secondary-foreground"}`} style={{ fontSize: 9, letterSpacing: "0.05em" }}>
                     {difficultyLabels[ex.difficulty] ?? ex.difficulty}
@@ -248,7 +251,7 @@ export default function Exercises() {
           ) : (
             <div className="flex items-center justify-center bg-secondary" style={{ aspectRatio: "9/7" }}>
               {selectedExercise.thumbnail_url ? (
-                <img src={selectedExercise.thumbnail_url} alt={selectedExercise.name_es} className="h-full w-full object-cover" />
+                <img src={selectedExercise.thumbnail_url} alt={selectedExercise.name} className="h-full w-full object-cover" />
               ) : (
                 <Play className="h-12 w-12 text-muted-foreground/40" />
               )}
@@ -262,11 +265,13 @@ export default function Exercises() {
           </button>
           <div className="flex-1 px-5 py-5">
             <h2 className="font-display text-[22px] font-bold text-foreground" style={{ letterSpacing: "-0.03em" }}>
-              {selectedExercise.name_es}
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground font-body font-light">
               {selectedExercise.name}
-            </p>
+            </h2>
+            {selectedExercise.name_es && selectedExercise.name_es !== selectedExercise.name && (
+              <p className="mt-1 text-sm text-muted-foreground/60 font-body font-light">
+                {selectedExercise.name_es}
+              </p>
+            )}
 
             {/* Badges */}
             <div className="mt-3 flex flex-wrap gap-2">

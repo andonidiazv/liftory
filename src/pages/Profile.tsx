@@ -35,7 +35,7 @@ export default function Profile() {
   const [earnedBadges, setEarnedBadges] = useState<{
     name: string; tier: string; tier_label: string; color: string;
     earned_at: string; proof_url: string | null; icon_name: string | null;
-    category: string | null;
+    category: string | null; status: string; slug: string;
   }[]>([]);
   const [videoModal, setVideoModal] = useState<{ url: string; name: string; tier_label: string; color: string } | null>(null);
 
@@ -49,17 +49,18 @@ export default function Profile() {
       .then(({ data }) => {
         if (data) setOnboarding(data as OnboardingData);
       });
-    // Fetch earned badges with proof_url and icon
+    // Fetch earned + pending badges with proof_url and icon
     (supabase as any)
       .from("user_badges")
-      .select("earned_at, proof_url, badge_tier_id, badge_tiers(tier, tier_label, color, badge_definitions(name, icon_name, category))")
+      .select("status, earned_at, proof_url, badge_tier_id, badge_tiers(tier, tier_label, color, badge_definitions(name, slug, icon_name, category))")
       .eq("user_id", user.id)
-      .eq("status", "approved")
+      .in("status", ["approved", "pending"])
       .order("earned_at", { ascending: false })
       .then(({ data }: any) => {
         if (data) {
           setEarnedBadges(data.map((b: any) => ({
             name: b.badge_tiers?.badge_definitions?.name || "Badge",
+            slug: b.badge_tiers?.badge_definitions?.slug || "",
             tier: b.badge_tiers?.tier || "",
             tier_label: b.badge_tiers?.tier_label || "",
             color: b.badge_tiers?.color || "#C75B39",
@@ -67,6 +68,7 @@ export default function Profile() {
             proof_url: b.proof_url || null,
             icon_name: b.badge_tiers?.badge_definitions?.icon_name || null,
             category: b.badge_tiers?.badge_definitions?.category || null,
+            status: b.status || "pending",
           })));
         }
       });
@@ -326,17 +328,22 @@ export default function Profile() {
               {earnedBadges.map((b, i) => {
                 const BadgeIcon = getBadgeIcon(b.icon_name);
                 const isVideo = b.proof_url?.includes("badge-videos");
+                const isPending = b.status === "pending";
                 return (
                   <button
                     key={i}
                     onClick={() => {
-                      if (b.proof_url) setVideoModal({ url: b.proof_url, name: b.name, tier_label: b.tier_label, color: b.color });
+                      if (isPending) {
+                        navigate(`/badges/claim/${b.slug}/${b.tier}`);
+                      } else if (b.proof_url) {
+                        setVideoModal({ url: b.proof_url, name: b.name, tier_label: b.tier_label, color: b.color });
+                      }
                     }}
                     className="relative aspect-square overflow-hidden group"
                     style={{ background: "#1A1A1A" }}
                   >
                     {/* Video thumbnail or aesthetic placeholder */}
-                    {isVideo ? (
+                    {isVideo && !isPending ? (
                       <>
                         <video
                           src={b.proof_url!}
@@ -369,8 +376,8 @@ export default function Profile() {
                       </div>
                     )}
 
-                    {/* Play button — top left */}
-                    {b.proof_url && (
+                    {/* Play button — top left (approved with video only) */}
+                    {b.proof_url && !isPending && (
                       <div className="absolute top-1.5 left-1.5">
                         <div className="h-5 w-5 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
                           <Play className="h-2.5 w-2.5 text-white/80 ml-px" fill="currentColor" />
@@ -378,10 +385,23 @@ export default function Profile() {
                       </div>
                     )}
 
+                    {/* Pending indicator — top left */}
+                    {isPending && (
+                      <div className="absolute top-1.5 left-1.5">
+                        <div className="flex items-center gap-1 rounded-full px-1.5 py-0.5" style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}>
+                          <div className="h-2 w-2 rounded-full animate-pulse" style={{ background: "#EAB308" }} />
+                          <span className="font-mono text-[7px] uppercase tracking-wider" style={{ color: "#EAB308" }}>En revision</span>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Badge icon — top right */}
                     <div
                       className="absolute top-1.5 right-1.5 h-6 w-6 rounded-full flex items-center justify-center shadow-lg"
-                      style={{ background: b.color, boxShadow: `0 2px 8px ${b.color}60` }}
+                      style={{
+                        background: isPending ? "rgba(234,179,8,0.9)" : b.color,
+                        boxShadow: isPending ? "0 2px 8px rgba(234,179,8,0.4)" : `0 2px 8px ${b.color}60`,
+                      }}
                     >
                       <BadgeIcon className="h-3 w-3 text-white" />
                     </div>
@@ -391,7 +411,7 @@ export default function Profile() {
                       <p className="font-display text-[9px] font-[800] text-white truncate" style={{ letterSpacing: "-0.02em" }}>
                         {b.name}
                       </p>
-                      <p className="font-mono text-[7px] uppercase tracking-wider" style={{ color: b.color }}>
+                      <p className="font-mono text-[7px] uppercase tracking-wider" style={{ color: isPending ? "#EAB308" : b.color }}>
                         {b.tier_label}
                       </p>
                     </div>

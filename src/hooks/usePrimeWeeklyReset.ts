@@ -150,7 +150,7 @@ export function usePrimeWeeklyReset(selectedDate: string) {
         .eq("id", best.exercise_id)
         .maybeSingle();
       bestPR = {
-        exerciseName: exercise?.name_es || exercise?.name || "Ejercicio",
+        exerciseName: exercise?.name || exercise?.name_es || "Ejercicio",
         weight: best.actual_weight,
       };
     }
@@ -167,7 +167,7 @@ export function usePrimeWeeklyReset(selectedDate: string) {
           .eq("id", heaviest.exercise_id)
           .maybeSingle();
         bestPR = {
-          exerciseName: exercise?.name_es || exercise?.name || "Ejercicio",
+          exerciseName: exercise?.name || exercise?.name_es || "Ejercicio",
           weight: heaviest.actual_weight,
         };
       }

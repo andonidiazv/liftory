@@ -877,6 +877,9 @@ export default function AdminBadges() {
       .eq("id", claimId);
 
     if (!error) {
+      // Find claim data for push notification
+      const claim = claims.find((c) => c.id === claimId);
+
       setClaims((prev) =>
         prev.map((c) =>
           c.id === claimId
@@ -896,6 +899,30 @@ export default function AdminBadges() {
         delete next[claimId];
         return next;
       });
+
+      // Send push notification (non-blocking — don't await)
+      if (claim) {
+        const session = await supabase.auth.getSession();
+        const accessToken = session.data.session?.access_token;
+        if (accessToken) {
+          fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-push-notification`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${accessToken}`,
+              },
+              body: JSON.stringify({
+                userId: claim.user_id,
+                status: action,
+                badgeName: claim.badge_name,
+                tierLabel: claim.tier_name,
+              }),
+            },
+          ).catch((err) => console.warn("[push] Failed to send:", err));
+        }
+      }
     }
 
     setProcessingId(null);

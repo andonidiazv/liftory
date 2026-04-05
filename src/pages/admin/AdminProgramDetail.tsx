@@ -172,7 +172,7 @@ export default function AdminProgramDetail() {
         s.block_label === swapTarget.blockLabel &&
         s.exercise_id === swapTarget.exerciseId,
     );
-    return s?.exercise_name_es ?? s?.exercise_name ?? "";
+    return s?.exercise_name ?? s?.exercise_name_es ?? "";
   }, [swapTarget, sets]);
 
   /* ---- Callbacks ---- */

@@ -1,20 +1,17 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Zap, Crown, ChevronsUp, ArrowUpCircle, Flame, Anchor, Rocket,
-  Target, Shield, TrendingUp, Star, Award, Lock, Check, Share2,
-  Filter, ChevronLeft, Info,
+  Award, Crown, Lock, Check, Share2, Filter, ChevronLeft, Info, Loader2,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import TabBar from "@/components/TabBar";
+import { BADGE_ICON_MAP, getBadgeIcon } from "@/lib/badgeIcons";
+import { useShareBadgeCard } from "@/hooks/useShareBadgeCard";
+import BadgeShareCard from "@/components/share/BadgeShareCard";
 
-// ── Icon map ──
-const ICON_MAP: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
-  zap: Zap, crown: Crown, "chevrons-up": ChevronsUp, "arrow-up-circle": ArrowUpCircle,
-  flame: Flame, anchor: Anchor, rocket: Rocket, bolt: Zap, target: Target,
-  shield: Shield, "trending-up": TrendingUp, star: Star, award: Award,
-};
+// Re-export for backward compat within this file
+const ICON_MAP = BADGE_ICON_MAP;
 
 // ── Constants ──
 const TIER_COLORS: Record<string, string> = { longevity: "#7A8B5C", excelente: "#C75B39", elite: "#C9A96E" };
@@ -58,47 +55,6 @@ function BadgesSkeleton() {
   );
 }
 
-// ── Weight bar chart component ──
-function WeightBars({ tier, eliteM, eliteF }: { tier: BadgeTier; eliteM: number; eliteF: number }) {
-  const maleW = tier.weight_male ?? 0;
-  const femaleW = tier.weight_female ?? 0;
-  const maxW = Math.max(eliteM, eliteF, 1);
-  const malePct = (maleW / maxW) * 100;
-  const femalePct = (femaleW / maxW) * 100;
-  const color = TIER_COLORS[tier.tier] || "#888";
-
-  if (maleW === 0 && femaleW === 0) return null;
-
-  return (
-    <div className="mt-2 space-y-1.5">
-      {/* Male */}
-      <div className="flex items-center gap-2">
-        <span className="font-mono text-[9px] uppercase tracking-wider w-5 shrink-0" style={{ color: "#FAF8F5" }}>H</span>
-        <div className="flex-1 h-5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-          <div
-            className="h-full rounded-full flex items-center justify-end pr-2 transition-all duration-700"
-            style={{ width: `${Math.max(malePct, 12)}%`, background: `${color}90` }}
-          >
-            <span className="font-mono text-[10px] font-bold" style={{ color: "#FAF8F5" }}>{maleW} kg</span>
-          </div>
-        </div>
-      </div>
-      {/* Female */}
-      <div className="flex items-center gap-2">
-        <span className="font-mono text-[9px] uppercase tracking-wider w-5 shrink-0" style={{ color: "#8A8A8E" }}>M</span>
-        <div className="flex-1 h-5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-          <div
-            className="h-full rounded-full flex items-center justify-end pr-2 transition-all duration-700"
-            style={{ width: `${Math.max(femalePct, 12)}%`, background: `${color}50` }}
-          >
-            <span className="font-mono text-[10px]" style={{ color: "#B0ACA7" }}>{femaleW} kg</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ══════════════════════════════════════════════════════════════
 // MAIN
 // ══════════════════════════════════════════════════════════════
@@ -109,6 +65,7 @@ export default function Badges() {
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const { cardRef, sharing, share, cardData, athleteName, avatarUrl } = useShareBadgeCard();
 
   // ── Fetch ──
   useEffect(() => {
@@ -158,7 +115,7 @@ export default function Badges() {
   }, [badges]);
 
   // ── Helpers ──
-  function getIcon(n: string | null) { return n ? (ICON_MAP[n.toLowerCase()] ?? Award) : Award; }
+  function getIcon(n: string | null) { return getBadgeIcon(n); }
   function tierStatus(b: BadgeDefinition, t: string) {
     const ub = b.user_badges?.find(u => u.tier === t);
     if (!ub) return "locked";
@@ -345,39 +302,131 @@ export default function Badges() {
                             <span className="font-mono text-[9px]" style={{ color: "#666" }}>{desc}</span>
                           </div>
 
-                          {isBodyweight ? (
-                            <div className="flex gap-4 mt-1">
-                              <span className="font-mono text-[11px]" style={{ color: "#FAF8F5", opacity: status === "locked" ? 0.4 : 1 }}>
-                                H: {tier.reps_male} rep{tier.reps_male > 1 ? "s" : ""}
-                              </span>
-                              <span className="font-mono text-[11px]" style={{ color: "#8A8A8E", opacity: status === "locked" ? 0.4 : 1 }}>
-                                M: {tier.reps_female} rep{tier.reps_female > 1 ? "s" : ""}
-                              </span>
-                            </div>
-                          ) : (
-                            <p className="font-mono text-[10px] mt-0.5" style={{ color: "#8A8A8E", opacity: status === "locked" ? 0.4 : 1 }}>
-                              x{tier.reps_male} reps
-                            </p>
-                          )}
+                          {(() => {
+                            const gender = profile?.gender as "male" | "female" | null;
+                            const isMale = gender === "male";
+                            const isFemale = gender === "female";
+                            const lockedOpacity = status === "locked" ? 0.4 : 1;
+                            return isBodyweight ? (
+                              <div className="flex gap-3 mt-0.5">
+                                <span className="font-mono text-[11px]" style={{
+                                  color: isMale ? "#FAF8F5" : "#666",
+                                  fontWeight: isMale ? 700 : 400,
+                                  opacity: lockedOpacity,
+                                }}>
+                                  H: {tier.reps_male} rep{tier.reps_male > 1 ? "s" : ""}
+                                </span>
+                                <span className="font-mono text-[11px]" style={{
+                                  color: isFemale ? "#FAF8F5" : "#666",
+                                  fontWeight: isFemale ? 700 : 400,
+                                  opacity: lockedOpacity,
+                                }}>
+                                  M: {tier.reps_female} rep{tier.reps_female > 1 ? "s" : ""}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex gap-3 mt-0.5">
+                                <span className="font-mono text-[11px]" style={{
+                                  color: isMale ? "#FAF8F5" : "#666",
+                                  fontWeight: isMale ? 700 : 400,
+                                  opacity: lockedOpacity,
+                                }}>
+                                  H: {tier.weight_male} kg x{tier.reps_male}
+                                </span>
+                                <span className="font-mono text-[11px]" style={{
+                                  color: isFemale ? "#FAF8F5" : "#666",
+                                  fontWeight: isFemale ? 700 : 400,
+                                  opacity: lockedOpacity,
+                                }}>
+                                  M: {tier.weight_female} kg x{tier.reps_female}
+                                </span>
+                              </div>
+                            );
+                          })()}
                         </div>
 
-                        {/* Earned share */}
+                        {/* Earned share — image card */}
                         {status === "earned" && (
                           <button
                             className="flex h-8 w-8 items-center justify-center rounded-full"
                             style={{ background: `${color}18` }}
+                            disabled={sharing}
                             onClick={e => {
                               e.stopPropagation();
-                              navigator.share?.({ title: `LIFTORY Badge: ${badge.name} - ${label}`, text: `Gane el badge ${badge.name} nivel ${label} en LIFTORY!` });
+                              share({
+                                badgeName: badge.name,
+                                tierLabel: label,
+                                tierColor: color,
+                                exerciseName: badge.exercise_name,
+                                iconName: badge.icon_name,
+                              });
                             }}
                           >
-                            <Share2 className="h-3.5 w-3.5" style={{ color }} />
+                            {sharing ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" style={{ color }} />
+                            ) : (
+                              <Share2 className="h-3.5 w-3.5" style={{ color }} />
+                            )}
                           </button>
                         )}
                       </div>
 
-                      {/* Weight bars — compound/olympic only */}
-                      {!isBodyweight && <WeightBars tier={tier} eliteM={eliteM} eliteF={eliteF} />}
+                      {/* Weight bars — compound/olympic only, both genders with highlight */}
+                      {!isBodyweight && (() => {
+                        const gender = profile?.gender as "male" | "female" | null;
+                        const maleW = tier.weight_male ?? 0;
+                        const femaleW = tier.weight_female ?? 0;
+                        const maxW = Math.max(eliteM, eliteF, 1);
+                        const malePct = (maleW / maxW) * 100;
+                        const femalePct = (femaleW / maxW) * 100;
+                        const tierColor = TIER_COLORS[tier.tier] || "#888";
+                        const isMale = gender === "male";
+                        const isFemale = gender === "female";
+                        return (
+                          <div className="mt-2 space-y-1.5">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-[9px] uppercase tracking-wider w-4 shrink-0" style={{
+                                color: isMale ? "#FAF8F5" : "#555",
+                                fontWeight: isMale ? 700 : 400,
+                              }}>H</span>
+                              <div className="flex-1 h-5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                                <div
+                                  className="h-full rounded-full flex items-center justify-end pr-2 transition-all duration-700"
+                                  style={{
+                                    width: `${Math.max(malePct, 12)}%`,
+                                    background: isMale ? `${tierColor}` : `${tierColor}30`,
+                                  }}
+                                >
+                                  <span className="font-mono text-[10px]" style={{
+                                    color: isMale ? "#FAF8F5" : "#999",
+                                    fontWeight: isMale ? 700 : 400,
+                                  }}>{maleW} kg</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-[9px] uppercase tracking-wider w-4 shrink-0" style={{
+                                color: isFemale ? "#FAF8F5" : "#555",
+                                fontWeight: isFemale ? 700 : 400,
+                              }}>M</span>
+                              <div className="flex-1 h-5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                                <div
+                                  className="h-full rounded-full flex items-center justify-end pr-2 transition-all duration-700"
+                                  style={{
+                                    width: `${Math.max(femalePct, 12)}%`,
+                                    background: isFemale ? `${tierColor}` : `${tierColor}30`,
+                                  }}
+                                >
+                                  <span className="font-mono text-[10px]" style={{
+                                    color: isFemale ? "#FAF8F5" : "#999",
+                                    fontWeight: isFemale ? 700 : 400,
+                                  }}>{femaleW} kg</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   );
                 })}
@@ -454,7 +503,7 @@ export default function Badges() {
         </div>
         <div className="mt-4 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
           <p className="font-body text-[11px] leading-relaxed" style={{ color: "#666" }}>
-            Datos basados en StrengthLevel.com (millones de lifts), ExRx.net, y estudios del NSCA. Barras muestran peso para hombres (H) y mujeres (M).
+            Datos basados en StrengthLevel.com (millones de lifts), ExRx.net, y estudios del NSCA. Tu metrica esta resaltada. H = hombres, M = mujeres.
           </p>
         </div>
       </div>
@@ -465,6 +514,20 @@ export default function Badges() {
       </div>
 
       <TabBar />
+
+      {/* ═══ HIDDEN SHARE CARD (captured by html2canvas) ═══ */}
+      <div style={{ position: "fixed", left: "-9999px", top: 0, pointerEvents: "none" }}>
+        <BadgeShareCard
+          ref={cardRef}
+          badgeName={cardData?.badgeName || ""}
+          tierLabel={cardData?.tierLabel || ""}
+          tierColor={cardData?.tierColor || "#C75B39"}
+          exerciseName={cardData?.exerciseName || ""}
+          iconName={cardData?.iconName ?? null}
+          athleteName={athleteName}
+          avatarUrl={avatarUrl}
+        />
+      </div>
     </div>
   );
 }
