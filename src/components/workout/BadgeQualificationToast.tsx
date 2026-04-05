@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Trophy, X, ChevronRight } from "lucide-react";
 import type { BadgeMatch } from "@/hooks/useBadgeDetection";
+import { dismissBadgeNotification } from "@/hooks/useBadgeDetection";
 
 interface Props {
   match: BadgeMatch | null;
@@ -27,10 +28,8 @@ export default function BadgeQualificationToast({ match, onDismiss }: Props) {
   // Show animation when match arrives
   useEffect(() => {
     if (match) {
-      // Reset state for new match
       setExiting(false);
       setVisible(false);
-      // Slight delay so animation triggers after mount
       const t = setTimeout(() => setVisible(true), 100);
       return () => clearTimeout(t);
     } else {
@@ -51,6 +50,11 @@ export default function BadgeQualificationToast({ match, onDismiss }: Props) {
   const handleClaim = () => {
     dismiss();
     navigate(`/badges/claim/${match.badgeSlug}/${match.tier}`);
+  };
+
+  const handleDismissPermanently = () => {
+    dismissBadgeNotification(match.badgeId, match.tier);
+    dismiss();
   };
 
   // Build description text
@@ -107,18 +111,30 @@ export default function BadgeQualificationToast({ match, onDismiss }: Props) {
               </span>
             </p>
 
-            {/* CTA */}
-            <button
-              onClick={handleClaim}
-              className="mt-2.5 flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-body text-[12px] font-medium transition-all active:scale-[0.97]"
-              style={{
-                background: match.tierColor + "20",
-                color: match.tierColor,
-              }}
-            >
-              Sube tu video para reclamar
-              <ChevronRight className="h-3.5 w-3.5" />
-            </button>
+            {/* Actions row */}
+            <div className="mt-2.5 flex items-center gap-3">
+              {/* CTA */}
+              <button
+                onClick={handleClaim}
+                className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-body text-[12px] font-medium transition-all active:scale-[0.97]"
+                style={{
+                  background: match.tierColor + "20",
+                  color: match.tierColor,
+                }}
+              >
+                Sube tu video
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+
+              {/* Permanent dismiss */}
+              <button
+                onClick={handleDismissPermanently}
+                className="font-body text-[11px] transition-colors"
+                style={{ color: "rgba(255,255,255,0.3)" }}
+              >
+                No me interesa
+              </button>
+            </div>
           </div>
         </div>
       </div>

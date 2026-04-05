@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 
 export interface BadgeMatch {
+  badgeId: string;
   badgeName: string;
   badgeSlug: string;
   tier: string;
@@ -13,9 +14,77 @@ export interface BadgeMatch {
   exerciseName: string;
 }
 
+/* ------------------------------------------------------------------ */
+/*  localStorage helpers for notification cooldown & permanent dismiss */
+/* ------------------------------------------------------------------ */
+
+const STORAGE_PREFIX = "liftory_badge_notif_";
+const COOLDOWN_DAYS = 30;
+
+/** Key format: liftory_badge_notif_{badgeId}_{tier} */
+function storageKey(badgeId: string, tier: string): string {
+  return `${STORAGE_PREFIX}${badgeId}_${tier}`;
+}
+
+interface NotifState {
+  /** ISO date of last notification shown */
+  lastShown: string | null;
+  /** If true, user clicked "No me interesa" — never show again */
+  dismissed: boolean;
+}
+
+function getNotifState(badgeId: string, tier: string): NotifState {
+  try {
+    const raw = localStorage.getItem(storageKey(badgeId, tier));
+    if (!raw) return { lastShown: null, dismissed: false };
+    return JSON.parse(raw) as NotifState;
+  } catch {
+    return { lastShown: null, dismissed: false };
+  }
+}
+
+function setNotifShown(badgeId: string, tier: string): void {
+  const state = getNotifState(badgeId, tier);
+  state.lastShown = new Date().toISOString();
+  localStorage.setItem(storageKey(badgeId, tier), JSON.stringify(state));
+}
+
+/** Permanently dismiss notifications for this badge tier */
+export function dismissBadgeNotification(badgeId: string, tier: string): void {
+  const state = getNotifState(badgeId, tier);
+  state.dismissed = true;
+  localStorage.setItem(storageKey(badgeId, tier), JSON.stringify(state));
+}
+
+function shouldShowNotification(badgeId: string, tier: string): boolean {
+  const state = getNotifState(badgeId, tier);
+
+  // Permanently dismissed
+  if (state.dismissed) return false;
+
+  // Never shown before → show
+  if (!state.lastShown) return true;
+
+  // Check cooldown
+  const lastShown = new Date(state.lastShown);
+  const now = new Date();
+  const daysSince = (now.getTime() - lastShown.getTime()) / (1000 * 60 * 60 * 24);
+  return daysSince >= COOLDOWN_DAYS;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Hook                                                               */
+/* ------------------------------------------------------------------ */
+
 /**
  * Detects if a just-completed set qualifies for an unclaimed badge tier.
  * Does NOT grant the badge — only returns match info for notification.
+ *
+ * Notification frequency:
+ * - First qualification → shows toast
+ * - Dismissed (X or auto) → cooldown of 30 days before showing again
+ * - "No me interesa" → never shows again for that tier
+ * - Already claimed (pending/approved/rejected) → never shows
  *
  * Gender-aware: uses weight_male/reps_male for male athletes,
  * weight_female/reps_female for female athletes.
@@ -24,8 +93,7 @@ export interface BadgeMatch {
 export function useBadgeDetection() {
   const { user, profile } = useAuth();
 
-  // Prevent duplicate notifications for the same badge in one session.
-  // Uses a synchronous Set so concurrent calls still see each other's additions.
+  // Prevent duplicate notifications for the same badge in one session
   const notifiedRef = useRef<Set<string>>(new Set());
 
   // Mutex to prevent concurrent checks from producing duplicate notifications
@@ -103,6 +171,9 @@ export function useBadgeDetection() {
           const notifKey = `${tier.badge_id}_${tier.tier}`;
           if (notifiedRef.current.has(notifKey)) continue;
 
+          // Skip if in cooldown or permanently dismissed
+          if (!shouldShowNotification(tier.badge_id, tier.tier)) continue;
+
           // Check qualification
           // For bodyweight exercises weight_male/weight_female is NULL → weightOk = true
           const weightOk =
@@ -115,10 +186,12 @@ export function useBadgeDetection() {
             const badge = badges.find((b: any) => b.id === tier.badge_id);
             if (!badge) continue;
 
-            // Mark as notified BEFORE returning to prevent race conditions
+            // Mark as notified this session + record in localStorage
             notifiedRef.current.add(notifKey);
+            setNotifShown(tier.badge_id, tier.tier);
 
             return {
+              badgeId: tier.badge_id,
               badgeName: badge.name,
               badgeSlug: badge.slug,
               tier: tier.tier,
