@@ -239,7 +239,7 @@ export default function IntervalTimerBlock({
   const progress = totalSecs > 0 ? ((totalSecs - secondsLeft) / totalSecs) * 100 : 100;
   const completedCount = sets.filter((s) => isCompleted(s)).length;
 
-  const phaseColor = phase === "rest" ? "#7A8B5C" : "#D45555";
+  const phaseColor = phase === "rest" ? "#8A8A8E" : "#C75B39";
   const phaseLabel = phase === "rest" ? "DESCANSO" : phase === "work" ? ex.name.toUpperCase() : "";
 
   return (
