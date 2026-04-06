@@ -7,6 +7,7 @@ import RepsPickerSheet from "./RepsPickerSheet";
 import type { WorkoutBlock } from "./WorkoutOverview";
 import ExerciseVideoOverlay from "./ExerciseVideoOverlay";
 import type { WorkoutSetData, ExerciseGroup } from "@/hooks/useWorkoutData";
+import { toDisplayWeight, toStorageWeight } from "@/utils/weightConversion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
@@ -69,7 +70,7 @@ interface Props {
   onCompleteSet: (set: WorkoutSetData, data: { actual_weight: number; actual_reps: number }) => Promise<unknown>;
   onUncompleteSet: (setId: string) => Promise<boolean>;
   onUpdateSetField: (setId: string, field: "actual_weight" | "actual_reps", value: number) => Promise<boolean>;
-  getSuggestedWeight: (exerciseId: string, plannedReps: number | null) => { weight: number | null; hint: string | null };
+  getSuggestedWeight: (exerciseId: string, plannedReps: number | null) => { weightKg: number | null; hint: string | null };
   onRestStart: (seconds: number) => void;
   onSwapExercise?: () => void;
   onNextBlock?: () => void;
@@ -126,8 +127,28 @@ export default function BlockDetail({
   const weightUnit = localUnit;
 
   const handleToggleUnit = async () => {
-    const newUnit = localUnit === "kg" ? "lb" : "kg";
+    const oldUnit = localUnit;
+    const newUnit = oldUnit === "kg" ? "lb" : "kg";
+
+    // 1. Reconvert all cached input weights synchronously (same React batch = no flash)
+    setSetInputs((prev) => {
+      const converted: Record<string, SetInputs> = {};
+      for (const [id, inp] of Object.entries(prev)) {
+        const w = parseFloat(inp.weight);
+        if (!isNaN(w) && w > 0) {
+          const kg = toStorageWeight(w, oldUnit);
+          converted[id] = { ...inp, weight: String(toDisplayWeight(kg, newUnit)) };
+        } else {
+          converted[id] = inp;
+        }
+      }
+      return converted;
+    });
+
+    // 2. Flip unit (batched with setSetInputs above — single render, zero flash)
     setLocalUnit(newUnit);
+
+    // 3. Persist to profile (async, doesn't affect display)
     if (user) {
       await supabase.from("user_profiles").update({ weight_unit: newUnit }).eq("user_id", user.id);
       refreshProfile();
@@ -145,14 +166,62 @@ export default function BlockDetail({
     return initial;
   });
 
+  // ─── FIX 3: Sync optimistic state when block data actually changes (after refetch) ───
+  const blockSyncKey = block.groups
+    .flatMap((g) => g.sets.map((s) => `${s.id}:${s.is_completed}:${s.actual_weight}:${s.actual_reps}`))
+    .join(",");
+
+  useEffect(() => {
+    const freshCompleted = new Set<string>();
+    for (const g of block.groups) {
+      for (const s of g.sets) {
+        if (s.is_completed) freshCompleted.add(s.id);
+      }
+    }
+    setOptimisticCompleted((prev) => {
+      const merged = new Set(prev);
+      for (const id of freshCompleted) merged.add(id);
+      for (const id of prev) {
+        if (!freshCompleted.has(id)) {
+          const existsInBlock = block.groups.some((g) => g.sets.some((s) => s.id === id));
+          if (existsInBlock) merged.delete(id);
+        }
+      }
+      return merged;
+    });
+
+    setSetInputs((prev) => {
+      const updated = { ...prev };
+      for (const g of block.groups) {
+        for (const s of g.sets) {
+          if (!prev[s.id] || s.is_completed) {
+            if (s.actual_weight != null || s.actual_reps != null) {
+              updated[s.id] = {
+                weight: s.actual_weight != null ? String(toDisplayWeight(s.actual_weight, localUnit)) : prev[s.id]?.weight ?? "",
+                reps: s.actual_reps != null ? String(s.actual_reps) : prev[s.id]?.reps ?? "",
+              };
+            }
+          }
+        }
+      }
+      return updated;
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blockSyncKey]);
+
   const blockMode = getBlockMode(block);
 
   const getInputs = useCallback(
     (set: WorkoutSetData): SetInputs => {
       if (setInputs[set.id]) return setInputs[set.id];
       const suggestion = getSuggestedWeight(set.exercise_id, set.planned_reps);
+      // DB stores kg — convert to display unit using localUnit
+      const displayWeight = set.actual_weight != null ? String(toDisplayWeight(set.actual_weight, localUnit))
+        : set.planned_weight ? String(toDisplayWeight(set.planned_weight, localUnit))
+        : suggestion.weightKg != null ? String(toDisplayWeight(suggestion.weightKg, localUnit))
+        : "";
       return {
-        weight: set.actual_weight != null ? String(set.actual_weight) : set.planned_weight ? String(set.planned_weight) : suggestion.weight != null ? String(suggestion.weight) : "",
+        weight: displayWeight,
         reps: set.actual_reps != null ? String(set.actual_reps) : String(set.planned_reps ?? ""),
       };
     },
@@ -163,10 +232,10 @@ export default function BlockDetail({
     const existing = setInputs[setId] || getInputs(block.groups.flatMap(g => g.sets).find(s => s.id === setId)!);
     setSetInputs((prev) => ({ ...prev, [setId]: { ...existing, [field]: value } }));
 
-    // Always persist to DB immediately
+    // Always persist to DB immediately (convert display unit → kg for storage)
     if (field === "weight") {
       const w = parseFloat(value);
-      if (!isNaN(w)) onUpdateSetField(setId, "actual_weight", w);
+      if (!isNaN(w)) onUpdateSetField(setId, "actual_weight", toStorageWeight(w, localUnit));
     } else if (field === "reps") {
       const r = parseInt(value);
       if (!isNaN(r)) onUpdateSetField(setId, "actual_reps", r);
@@ -176,8 +245,8 @@ export default function BlockDetail({
   const updateCompletedWeight = useCallback(async (setId: string, newWeight: string) => {
     const w = parseFloat(newWeight);
     if (isNaN(w)) return;
-    await onUpdateSetField(setId, "actual_weight", w);
-  }, [onUpdateSetField]);
+    await onUpdateSetField(setId, "actual_weight", toStorageWeight(w, localUnit));
+  }, [onUpdateSetField, localUnit]);
 
   const updateCompletedReps = useCallback(async (setId: string, newReps: string) => {
     const r = parseInt(newReps);
@@ -197,7 +266,7 @@ export default function BlockDetail({
     }
 
     const result = await onCompleteSet(set, {
-      actual_weight: parseFloat(inputs.weight) || 0,
+      actual_weight: toStorageWeight(parseFloat(inputs.weight) || 0, localUnit),
       actual_reps: parseInt(inputs.reps) || 0,
     });
 
@@ -974,7 +1043,7 @@ function ExerciseCard({
                 style={{ background: "hsl(var(--border))", border: "none", fontSize: 14, minHeight: 34 }}
               >
                 {(() => {
-                  const displayVal = inputs.weight || (set.actual_weight != null ? String(set.actual_weight) : "");
+                  const displayVal = inputs.weight || (set.actual_weight != null ? String(toDisplayWeight(set.actual_weight, localUnit)) : "");
                   return displayVal ? (
                     <span>{displayVal}</span>
                   ) : (
@@ -1132,9 +1201,10 @@ function CooldownCard({
     >
       <button
         onClick={() => onOpenVideo({ name: ex.name, videoUrl: ex.video_url, coachingCue: cueOverride })}
-        className="shrink-0"
+        className="shrink-0 overflow-hidden rounded-lg"
+        style={{ width: 36, height: 28 }}
       >
-        <Dumbbell className="h-4 w-4 text-muted-foreground" />
+        <ExerciseThumbnail thumbnailUrl={ex.thumbnail_url} videoUrl={ex.video_url} name={ex.name} width={36} height={28} />
       </button>
       <div className="flex-1 min-w-0">
         <p className="font-body text-[13px] font-medium text-foreground">{ex.name}</p>

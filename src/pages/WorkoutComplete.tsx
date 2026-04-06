@@ -2,7 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useWorkoutData } from "@/hooks/useWorkoutData";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Trophy, TrendingUp, Clock, Dumbbell, Star, Leaf, Send, Share2, Download, ChevronLeft, Instagram } from "lucide-react";
+import { Trophy, TrendingUp, Clock, Dumbbell, Star, Send, Share2, Download, ChevronLeft, Instagram } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { useMilestoneDetection } from "@/hooks/useMilestoneDetection";
@@ -387,24 +387,55 @@ export default function WorkoutComplete() {
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  const storyCardRef = useRef<HTMLDivElement>(null);
-
-  // Share functionality
+  // Share functionality — both modes use the SAME scoreCard to guarantee identical visuals
   const handleShare = async (mode: "story" | "card" = "card") => {
-    const ref = mode === "story" ? storyCardRef.current : scoreCardRef.current;
+    const ref = scoreCardRef.current;
     if (!ref) return;
     setSharing(true);
     try {
       const html2canvas = (await import("html2canvas")).default;
-      // For stories: render at exact 1080x1920 (scale handles pixel density)
-      const canvas = await html2canvas(ref, {
+
+      // Capture the real scoreCard at 3x resolution
+      const cardCanvas = await html2canvas(ref, {
         backgroundColor: null,
-        scale: mode === "story" ? 2 : 3,
+        scale: 3,
         useCORS: true,
-        width: mode === "story" ? 360 : undefined,
-        height: mode === "story" ? 640 : undefined,
       });
-      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
+
+      let finalCanvas: HTMLCanvasElement;
+
+      if (mode === "story") {
+        // For Stories: center the card on a 1080×1920 dark canvas (9:16)
+        const storyW = 1080;
+        const storyH = 1920;
+        finalCanvas = document.createElement("canvas");
+        finalCanvas.width = storyW;
+        finalCanvas.height = storyH;
+        const ctx = finalCanvas.getContext("2d")!;
+
+        // Dark gradient background matching the card
+        const grad = ctx.createLinearGradient(0, 0, storyW * 0.15, storyH);
+        grad.addColorStop(0, "#1C1C1E");
+        grad.addColorStop(0.5, "#0D0D0F");
+        grad.addColorStop(1, "#1A1614");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, storyW, storyH);
+
+        // Scale card to fit width with padding (48px each side at 3x = 144px)
+        const padding = 144;
+        const availW = storyW - padding * 2;
+        const scale = availW / cardCanvas.width;
+        const drawW = cardCanvas.width * scale;
+        const drawH = cardCanvas.height * scale;
+        const x = (storyW - drawW) / 2;
+        const y = (storyH - drawH) / 2;
+
+        ctx.drawImage(cardCanvas, x, y, drawW, drawH);
+      } else {
+        finalCanvas = cardCanvas;
+      }
+
+      const blob = await new Promise<Blob | null>((resolve) => finalCanvas.toBlob(resolve, "image/png"));
       if (!blob) { setSharing(false); return; }
 
       const fileName = mode === "story" ? "prime-score-story.png" : "prime-score.png";
@@ -585,14 +616,6 @@ export default function WorkoutComplete() {
                 <Star className="h-3 w-3" style={{ color: "#C9A96E" }} />
                 <span className="font-mono uppercase" style={{ fontSize: 9, color: "#C9A96E", fontWeight: 600, letterSpacing: "0.1em" }}>
                   {stats.prs} PR{stats.prs > 1 ? "s" : ""}
-                </span>
-              </span>
-            )}
-            {cooldownCompleted && (
-              <span className="flex items-center gap-1 rounded-full px-3 py-1" style={{ background: "rgba(122,139,92,0.15)", border: "1px solid rgba(122,139,92,0.3)" }}>
-                <Leaf className="h-3 w-3" style={{ color: "#7A8B5C" }} />
-                <span className="font-mono uppercase" style={{ fontSize: 9, color: "#7A8B5C", fontWeight: 600, letterSpacing: "0.1em" }}>
-                  RECOVERY
                 </span>
               </span>
             )}
@@ -795,132 +818,6 @@ export default function WorkoutComplete() {
         </div>
       </div>
 
-      {/* ═══ HIDDEN STORY CARD (9:16 ratio for Instagram Stories) ═══ */}
-      <div style={{ position: "fixed", left: "-9999px", top: 0, pointerEvents: "none" }}>
-        <div
-          ref={storyCardRef}
-          style={{
-            width: 360,
-            height: 640,
-            background: "linear-gradient(170deg, #1C1C1E 0%, #0D0D0F 40%, #1A1614 100%)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "40px 28px",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          {/* Ambient glow */}
-          <div style={{
-            position: "absolute",
-            width: 300, height: 300,
-            borderRadius: "50%",
-            background: `radial-gradient(circle, ${scoreColor}15 0%, transparent 70%)`,
-            filter: "blur(60px)",
-            top: "50%", left: "50%",
-            transform: "translate(-50%, -60%)",
-          }} />
-
-          {/* Top: PRIME SCORE */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", zIndex: 1 }}>
-            <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 26, color: "#FAF8F5", fontWeight: 800, letterSpacing: "-0.03em" }}>
-              PRIME SCORE
-            </span>
-            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: "rgba(250,248,245,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 4 }}>
-              {dateStr}
-            </span>
-          </div>
-
-          {/* Score ring */}
-          <div style={{ position: "relative", width: 180, height: 180, display: "flex", alignItems: "center", justifyContent: "center", marginTop: 28, zIndex: 1 }}>
-            <div style={{
-              position: "absolute", width: 160, height: 160, borderRadius: "50%",
-              background: `radial-gradient(circle, ${scoreColor}25 0%, transparent 70%)`,
-              filter: "blur(16px)",
-            }} />
-            <svg width="180" height="180" style={{ position: "absolute" }}>
-              <circle cx="90" cy="90" r="74" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5" />
-              <circle
-                cx="90" cy="90" r="74"
-                fill="none" stroke={scoreColor} strokeWidth="5" strokeLinecap="round"
-                strokeDasharray={`${(primeScore / 100) * 465} 465`}
-                strokeDashoffset="0"
-                transform="rotate(-90 90 90)"
-                style={{ filter: `drop-shadow(0 0 8px ${scoreColor}88) drop-shadow(0 0 18px ${scoreColor}44)` }}
-              />
-            </svg>
-            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", zIndex: 1 }}>
-              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 56, color: "#FAF8F5", fontWeight: 700, letterSpacing: "-0.03em", lineHeight: 1 }}>
-                {primeScore}
-              </span>
-              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 16, color: "rgba(250,248,245,0.3)", marginLeft: 2 }}>
-                /100
-              </span>
-            </div>
-          </div>
-
-          {/* Sticker label */}
-          <span style={{
-            fontFamily: "'Syne', sans-serif", fontSize: 14, color: scoreColor, fontWeight: 800,
-            letterSpacing: "0.08em", textTransform: "uppercase", marginTop: 10,
-            textShadow: `0 0 20px ${scoreColor}66, 0 0 40px ${scoreColor}33`, zIndex: 1,
-          }}>
-            {scoreLabel}
-          </span>
-
-          {/* Workout name + phase */}
-          <p style={{ fontFamily: "'Syne', sans-serif", fontSize: 17, color: "rgba(250,248,245,0.85)", fontWeight: 600, letterSpacing: "-0.01em", marginTop: 12, textAlign: "center", zIndex: 1 }}>
-            {workout?.day_label ?? "Workout"}
-          </p>
-          <span style={{
-            fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.12em", fontWeight: 700,
-            color: "#C75B39", background: "rgba(199,91,57,0.15)", border: "1px solid rgba(199,91,57,0.25)",
-            borderRadius: 999, padding: "3px 10px", textTransform: "uppercase", marginTop: 8, zIndex: 1,
-          }}>
-            SEMANA {weekNumber} · {phaseLabel}
-          </span>
-
-          {/* Stats grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, width: "100%", marginTop: 24, zIndex: 1 }}>
-            {[
-              { label: "DURACIÓN", value: stats.durationMinutes > 0 ? `${Math.floor(stats.durationMinutes)}:${String(Math.round((stats.durationMinutes % 1) * 60)).padStart(2, "0")}` : "—" },
-              { label: "SETS", value: `${stats.completedSets}/${stats.totalSets}` },
-              { label: "VOLUMEN", value: `${stats.volume.toLocaleString()} ${weightUnit}` },
-              { label: "PRs", value: String(stats.prs) },
-            ].map((stat) => (
-              <div
-                key={stat.label}
-                style={{
-                  background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)",
-                  borderRadius: 12, textAlign: "center", padding: "10px 6px",
-                }}
-              >
-                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 20, color: "#FAF8F5", fontWeight: 600, letterSpacing: "0.02em" }}>
-                  {stat.value}
-                </p>
-                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 8, color: "rgba(250,248,245,0.35)", letterSpacing: "0.15em", textTransform: "uppercase", marginTop: 2 }}>
-                  {stat.label}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          {/* Bottom branding */}
-          <div style={{
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-            marginTop: "auto", paddingTop: 20, zIndex: 1,
-          }}>
-            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 8, color: "rgba(250,248,245,0.65)", letterSpacing: "0.2em", textTransform: "uppercase" }}>
-              POWERED BY
-            </span>
-            <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 11, color: "#FAF8F5", fontWeight: 800, letterSpacing: "-0.02em" }}>
-              LIFTORY
-            </span>
-          </div>
-        </div>
-      </div>
 
       {/* Milestone celebration overlay */}
       <MilestoneCelebration

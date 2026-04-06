@@ -57,6 +57,7 @@ export default function Workout() {
     updateSetField,
     finishWorkout,
     getSuggestedWeight,
+    exerciseE1RM,
     refetch,
   } = useWorkoutData(id);
 
@@ -77,7 +78,54 @@ export default function Workout() {
   const [finishNotes, setFinishNotes] = useState("");
   const [programTotalWeeks, setProgramTotalWeeks] = useState(6);
   const [badgeMatch, setBadgeMatch] = useState<BadgeMatch | null>(null);
-  const { checkForBadge } = useBadgeDetection();
+  const { checkForBadge, checkBlockForBadges } = useBadgeDetection();
+
+  // ─── FIX 1: Refetch from DB when user returns from another app ───
+  useEffect(() => {
+    let lastHidden = 0;
+    const handler = () => {
+      if (document.visibilityState === "hidden") {
+        lastHidden = Date.now();
+      }
+      if (document.visibilityState === "visible" && lastHidden > 0) {
+        const elapsed = Date.now() - lastHidden;
+        // Only refetch if user was away for at least 3 seconds (real app switch, not tab flicker)
+        if (elapsed > 3000) {
+          refetch()
+            .then(() => {
+              // After refetch, blocks will recompute via useMemo.
+              // We need to update activeBlock/timerBlock with fresh data.
+              // We use refs because this closure would capture stale state.
+              // The blocks update happens on next render — we use a microtask to read fresh blocks.
+              // This is handled automatically since blocks is derived from sets.
+            })
+            .catch(() => {});
+        }
+        lastHidden = 0;
+      }
+    };
+    document.addEventListener("visibilitychange", handler);
+    return () => document.removeEventListener("visibilitychange", handler);
+  }, [refetch]);
+
+  // ─── FIX 2: Sync activeBlock/timerBlock with fresh blocks after refetch ───
+  // Uses a stable data key to avoid infinite loop (only updates when set data actually changes)
+  const blocksDataKey = useMemo(
+    () => sets.map((s) => `${s.id}:${s.is_completed}:${s.actual_weight}:${s.actual_reps}`).join(","),
+    [sets]
+  );
+
+  useEffect(() => {
+    if (activeBlock) {
+      const fresh = blocks.find((b) => b.id === activeBlock.id);
+      if (fresh && fresh !== activeBlock) setActiveBlock(fresh);
+    }
+    if (timerBlock) {
+      const fresh = blocks.find((b) => b.id === timerBlock.id);
+      if (fresh && fresh !== timerBlock) setTimerBlock(fresh);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blocksDataKey]);
 
   // Fetch program total weeks
   useEffect(() => {
@@ -234,7 +282,15 @@ export default function Workout() {
     } else {
       setActiveBlock(block);
     }
-  }, []);
+
+    // Proactive badge detection: only for blocks that could have badges (strength/sculpt)
+    const blockType = getBlockType(block.name);
+    if (blockType === 'strength' || blockType === 'sculpt') {
+      checkBlockForBadges(block.groups, exerciseE1RM).then((match) => {
+        if (match) setBadgeMatch(match);
+      });
+    }
+  }, [checkBlockForBadges, exerciseE1RM]);
 
   const handleFinish = async () => {
     const ok = await finishWorkout(finishNotes);
@@ -352,6 +408,10 @@ export default function Workout() {
               } else {
                 setActiveBlock(nextBlock);
               }
+              // Proactive badge detection for next block
+              checkBlockForBadges(nextBlock.groups, exerciseE1RM).then((match) => {
+                if (match) setBadgeMatch(match);
+              });
             });
           } : undefined}
           onFinishWorkout={!nextBlock ? () => {
@@ -430,6 +490,10 @@ export default function Workout() {
                       } else {
                         setActiveBlock(next);
                       }
+                      // Proactive badge detection for next block
+                      checkBlockForBadges(next.groups, exerciseE1RM).then((m) => {
+                        if (m) setBadgeMatch(m);
+                      });
                     });
                   }}
                   className="flex-1 rounded-xl bg-secondary py-3 font-body text-sm font-medium text-foreground"

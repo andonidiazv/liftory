@@ -78,7 +78,7 @@ export function useWorkoutData(workoutId: string | undefined) {
   const [supersetGroups, setSupersetGroups] = useState<SupersetGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [lastBestWeights, setLastBestWeights] = useState<Record<string, number>>({});
+  const [exerciseE1RM, setExerciseE1RM] = useState<Record<string, number>>({});
   const [avgRirByExercise, setAvgRirByExercise] = useState<Record<string, number>>({});
 
   const weightUnit = profile?.weight_unit || "kg";
@@ -88,7 +88,7 @@ export function useWorkoutData(workoutId: string | undefined) {
       setWorkout(null);
       setSets([]);
       setExerciseGroups([]);
-      setLastBestWeights({});
+      setExerciseE1RM({});
       setLoading(false);
       return;
     }
@@ -192,26 +192,30 @@ export function useWorkoutData(workoutId: string | undefined) {
       }
       setSupersetGroups(ssGroups);
 
-      // Fetch last best weights for all exercises in this workout
+      // Fetch historical performance and compute e1RM per exercise
       const exerciseIds = [...new Set(rawSets.map((s) => s.exercise_id))];
       if (exerciseIds.length > 0) {
         const { data: pastSets } = await supabase
           .from("workout_sets")
-          .select("exercise_id, planned_reps, actual_weight, actual_rir, logged_at")
+          .select("exercise_id, actual_weight, actual_reps, actual_rir, logged_at")
           .eq("user_id", user.id)
           .eq("is_completed", true)
           .in("exercise_id", exerciseIds)
           .not("actual_weight", "is", null)
+          .gt("actual_weight", 0)
+          .not("actual_reps", "is", null)
+          .gt("actual_reps", 0)
           .order("logged_at", { ascending: false });
 
         if (pastSets && pastSets.length > 0) {
-          const bestWeights: Record<string, number> = {};
+          // Compute max e1RM per exercise (Epley formula: weight × (1 + reps / 30))
+          const maxE1RM: Record<string, number> = {};
           const rirAccum: Record<string, number[]> = {};
 
           for (const ps of pastSets) {
-            const key = `${ps.exercise_id}_${ps.planned_reps}`;
-            if (!(key in bestWeights) && ps.actual_weight != null) {
-              bestWeights[key] = ps.actual_weight;
+            const e1rm = ps.actual_weight * (1 + ps.actual_reps / 30);
+            if (!maxE1RM[ps.exercise_id] || e1rm > maxE1RM[ps.exercise_id]) {
+              maxE1RM[ps.exercise_id] = Math.round(e1rm * 10) / 10;
             }
             if (ps.actual_rir != null) {
               if (!rirAccum[ps.exercise_id]) rirAccum[ps.exercise_id] = [];
@@ -220,7 +224,7 @@ export function useWorkoutData(workoutId: string | undefined) {
               }
             }
           }
-          setLastBestWeights(bestWeights);
+          setExerciseE1RM(maxE1RM);
 
           const avgRir: Record<string, number> = {};
           for (const [exId, rirs] of Object.entries(rirAccum)) {
@@ -228,13 +232,16 @@ export function useWorkoutData(workoutId: string | undefined) {
           }
           setAvgRirByExercise(avgRir);
         } else {
-          setLastBestWeights({});
+          setExerciseE1RM({});
           setAvgRirByExercise({});
         }
       } else {
-        setLastBestWeights({});
+        setExerciseE1RM({});
         setAvgRirByExercise({});
       }
+    } catch (err) {
+      // Network error or auth refresh failure — don't crash, just stop loading
+      console.warn("fetchWorkout error:", err);
     } finally {
       setLoading(false);
     }
@@ -395,54 +402,46 @@ export function useWorkoutData(workoutId: string | undefined) {
   const allSetsCompleted = mainSets.length > 0 && mainSets.every((s) => s.is_completed);
   const cooldownCompleted = cooldownSets.length > 0 && cooldownSets.every((s) => s.is_completed);
 
-  const getLastBestWeight = useCallback(
-    (exerciseId: string, plannedReps: number | null): number | null => {
-      const key = `${exerciseId}_${plannedReps}`;
-      return lastBestWeights[key] ?? null;
+  /** Project weight from e1RM for a given rep count using Epley inverse */
+  const getProjectedWeight = useCallback(
+    (exerciseId: string, reps: number): number | null => {
+      const e1rm = exerciseE1RM[exerciseId];
+      if (!e1rm || reps <= 0) return null;
+      // Epley inverse: weight = e1RM / (1 + reps / 30)
+      return Math.round((e1rm / (1 + reps / 30)) * 2) / 2; // round to nearest 0.5
     },
-    [lastBestWeights]
+    [exerciseE1RM]
   );
 
+  /** Returns suggested weight in KG (caller converts to display unit) */
   const getSuggestedWeight = useCallback(
-    (exerciseId: string, plannedReps: number | null): { weight: number | null; hint: string | null } => {
-      const lastWeight = getLastBestWeight(exerciseId, plannedReps);
-      if (lastWeight == null || lastWeight === 0) {
-        return { weight: null, hint: null };
-      }
+    (exerciseId: string, plannedReps: number | null): { weightKg: number | null; hint: string | null } => {
+      if (!plannedReps || plannedReps <= 0) return { weightKg: null, hint: null };
 
-      const weekInCycle = ((workout?.week_number ?? 1) - 1) % 6 + 1;
-      const isKg = weightUnit === "kg";
-      const smallIncrement = isKg ? 2.5 : 5;
-      const bigIncrement = isKg ? 5 : 10;
+      const projectedKg = getProjectedWeight(exerciseId, plannedReps);
+      if (projectedKg == null || projectedKg === 0) return { weightKg: null, hint: null };
 
-      let waveWeight = lastWeight;
-      if (weekInCycle <= 2) {
-        waveWeight = lastWeight;
-      } else if (weekInCycle <= 4) {
-        waveWeight = lastWeight + smallIncrement;
-      } else if (weekInCycle === 5) {
-        waveWeight = lastWeight + bigIncrement;
-      } else {
-        waveWeight = lastWeight + bigIncrement;
-      }
+      // RIR-based adjustment (in kg)
+      const smallIncrementKg = 2.5;
+      let suggestedKg = projectedKg;
 
       const avgRir = avgRirByExercise[exerciseId];
       let hint: string | null = null;
       if (avgRir != null) {
         if (avgRir > 3) {
-          waveWeight = Math.max(waveWeight, lastWeight + smallIncrement);
+          suggestedKg = projectedKg + smallIncrementKg;
           hint = "RIR alto — sube peso";
         } else if (avgRir < 1) {
-          waveWeight = lastWeight;
-          hint = "RIR bajo — mantén peso";
+          suggestedKg = projectedKg - smallIncrementKg;
+          hint = "RIR bajo — baja peso";
         }
       }
 
-      waveWeight = Math.round(waveWeight * 2) / 2;
+      suggestedKg = Math.max(0, suggestedKg);
 
-      return { weight: waveWeight, hint };
+      return { weightKg: suggestedKg, hint };
     },
-    [getLastBestWeight, workout?.week_number, weightUnit, avgRirByExercise]
+    [getProjectedWeight, avgRirByExercise]
   );
 
   return {
@@ -463,7 +462,8 @@ export function useWorkoutData(workoutId: string | undefined) {
     updateSetField,
     finishWorkout,
     refetch: fetchWorkout,
-    getLastBestWeight,
+    exerciseE1RM,
+    getProjectedWeight,
     getSuggestedWeight,
   };
 }

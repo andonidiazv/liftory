@@ -38,12 +38,7 @@ export default function BadgeQualificationToast({ match, onDismiss }: Props) {
     }
   }, [match]);
 
-  // Auto-dismiss after 8 seconds
-  useEffect(() => {
-    if (!match) return;
-    const t = setTimeout(() => dismiss(), 8000);
-    return () => clearTimeout(t);
-  }, [match, dismiss]);
+  // No auto-dismiss — athlete controls when to interact or close
 
   if (!match) return null;
 
@@ -57,12 +52,14 @@ export default function BadgeQualificationToast({ match, onDismiss }: Props) {
     dismiss();
   };
 
-  // Build description text
+  // Build description text based on mode
   const weightText =
     match.requiredWeight != null ? `${match.requiredWeight} kg` : "";
   const repsText = match.requiredReps ? `${match.requiredReps} reps` : "";
   const separator = weightText && repsText ? " x " : "";
-  const description = `${weightText}${separator}${repsText} en ${match.exerciseName}`;
+  const requirement = `${weightText}${separator}${repsText}`;
+
+  const isProactive = match.proactive;
 
   return (
     <div
@@ -102,10 +99,12 @@ export default function BadgeQualificationToast({ match, onDismiss }: Props) {
 
           <div className="flex-1 min-w-0">
             <p className="font-display text-[13px] font-[700] tracking-[-0.03em] text-white/90">
-              Calificaste para un badge
+              {isProactive
+                ? "Hoy puedes ganar un badge"
+                : "Calificaste para un badge"}
             </p>
             <p className="mt-0.5 font-body text-[12px] text-white/50 leading-tight">
-              {description} — nivel{" "}
+              {requirement} en {match.exerciseName} — nivel{" "}
               <span style={{ color: match.tierColor }} className="font-medium">
                 {match.tierLabel}
               </span>
@@ -113,18 +112,32 @@ export default function BadgeQualificationToast({ match, onDismiss }: Props) {
 
             {/* Actions row */}
             <div className="mt-2.5 flex items-center gap-3">
-              {/* CTA */}
-              <button
-                onClick={handleClaim}
-                className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-body text-[12px] font-medium transition-all active:scale-[0.97]"
-                style={{
-                  background: match.tierColor + "20",
-                  color: match.tierColor,
-                }}
-              >
-                Sube tu video
-                <ChevronRight className="h-3.5 w-3.5" />
-              </button>
+              {isProactive ? (
+                /* Proactive: just dismiss, no claim CTA */
+                <button
+                  onClick={dismiss}
+                  className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-body text-[12px] font-medium transition-all active:scale-[0.97]"
+                  style={{
+                    background: match.tierColor + "20",
+                    color: match.tierColor,
+                  }}
+                >
+                  Entendido
+                </button>
+              ) : (
+                /* Reactive: CTA to claim */
+                <button
+                  onClick={handleClaim}
+                  className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-body text-[12px] font-medium transition-all active:scale-[0.97]"
+                  style={{
+                    background: match.tierColor + "20",
+                    color: match.tierColor,
+                  }}
+                >
+                  Sube tu video
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              )}
 
               {/* Permanent dismiss */}
               <button
