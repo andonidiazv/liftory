@@ -154,44 +154,78 @@ export default function IntervalTimerBlock({
     setSecondsLeft(workSeconds);
   }, [clearTimer, sets, isCompleted, onUncompleteSet, workSeconds]);
 
-  const handleSkipRound = useCallback(() => {
+  const handleSkip = useCallback(() => {
     clearTimer();
-    const set = sets[currentRound];
-    if (set && !isCompleted(set)) onCompleteSet(set);
-    const nextRound = currentRound + 1;
-    if (nextRound >= totalRounds) {
-      setPhase("done");
-      setRunning(false);
-    } else {
-      setCurrentRound(nextRound);
-      setPhase("work");
-      setSecondsLeft(workSeconds);
-      if (running) startTicking();
-    }
-  }, [clearTimer, sets, currentRound, isCompleted, onCompleteSet, totalRounds, workSeconds, running, startTicking]);
+    if (phase === "work") {
+      // Complete the set, then go to rest (or next round if no rest)
+      const set = sets[currentRound];
+      if (set && !isCompleted(set)) onCompleteSet(set);
 
-  const handlePrevRound = useCallback(() => {
+      if (restSeconds > 0) {
+        setPhase("rest");
+        setSecondsLeft(restSeconds);
+        if (running) startTicking();
+      } else {
+        // No rest — advance to next round or done
+        const nextRound = currentRound + 1;
+        if (nextRound >= totalRounds) {
+          setPhase("done");
+          setRunning(false);
+        } else {
+          setCurrentRound(nextRound);
+          setPhase("work");
+          setSecondsLeft(workSeconds);
+          if (running) startTicking();
+        }
+      }
+    } else if (phase === "rest") {
+      // Skip rest → go to next round work or done
+      const nextRound = currentRound + 1;
+      if (nextRound >= totalRounds) {
+        setPhase("done");
+        setRunning(false);
+      } else {
+        setCurrentRound(nextRound);
+        setPhase("work");
+        setSecondsLeft(workSeconds);
+        if (running) startTicking();
+      }
+    }
+  }, [clearTimer, phase, sets, currentRound, isCompleted, onCompleteSet, restSeconds, totalRounds, workSeconds, running, startTicking]);
+
+  const handleBack = useCallback(() => {
     clearTimer();
-    // Uncomplete current round if completed
-    const currentSet = sets[currentRound];
-    if (currentSet && isCompleted(currentSet)) onUncompleteSet(currentSet.id);
+    if (phase === "rest") {
+      // Go back to work phase of same round, uncomplete the set
+      const set = sets[currentRound];
+      if (set && isCompleted(set)) onUncompleteSet(set.id);
+      setPhase("work");
+      setSecondsLeft(workSeconds);
+      if (running) startTicking();
+    } else if (phase === "work") {
+      if (currentRound > 0) {
+        // Go back to rest of previous round (or work if no rest)
+        const prevSet = sets[currentRound - 1];
+        if (prevSet && isCompleted(prevSet)) onUncompleteSet(prevSet.id);
 
-    if (currentRound > 0) {
-      const prevRound = currentRound - 1;
-      // Uncomplete previous round too so it can be redone
-      const prevSet = sets[prevRound];
-      if (prevSet && isCompleted(prevSet)) onUncompleteSet(prevSet.id);
-      setCurrentRound(prevRound);
-      setPhase("work");
-      setSecondsLeft(workSeconds);
-      if (running) startTicking();
-    } else {
-      // Already at round 0, just reset this round
-      setPhase("work");
-      setSecondsLeft(workSeconds);
-      if (running) startTicking();
+        if (restSeconds > 0) {
+          setCurrentRound(currentRound - 1);
+          setPhase("rest");
+          setSecondsLeft(restSeconds);
+          if (running) startTicking();
+        } else {
+          setCurrentRound(currentRound - 1);
+          setPhase("work");
+          setSecondsLeft(workSeconds);
+          if (running) startTicking();
+        }
+      } else {
+        // Already at round 0 work — just reset timer
+        setSecondsLeft(workSeconds);
+        if (running) startTicking();
+      }
     }
-  }, [clearTimer, sets, currentRound, isCompleted, onUncompleteSet, workSeconds, running, startTicking]);
+  }, [clearTimer, phase, sets, currentRound, isCompleted, onUncompleteSet, restSeconds, workSeconds, running, startTicking]);
 
   // Format MM:SS
   const formatTime = (s: number) => {
@@ -326,7 +360,7 @@ export default function IntervalTimerBlock({
             {/* Back round */}
             {phase !== "idle" && (
               <button
-                onClick={handlePrevRound}
+                onClick={handleBack}
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors"
                 title="Ronda anterior"
               >
@@ -361,7 +395,7 @@ export default function IntervalTimerBlock({
             {/* Skip round */}
             {phase !== "idle" && (
               <button
-                onClick={handleSkipRound}
+                onClick={handleSkip}
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors"
                 title="Saltar ronda"
               >
