@@ -93,11 +93,11 @@ export function DayCard({
 
   return (
     <div
-      className="rounded-lg overflow-hidden"
+      className="rounded-lg"
       style={{ backgroundColor: "#1C1C1E", border: "1px solid #2A2A2A" }}
     >
       {/* Top colored bar */}
-      <div className="h-1" style={{ backgroundColor: workoutTypeColor }} />
+      <div className="h-1 rounded-t-lg" style={{ backgroundColor: workoutTypeColor }} />
 
       {/* Header */}
       <div className="px-3 py-2 flex items-center gap-2 flex-wrap">
