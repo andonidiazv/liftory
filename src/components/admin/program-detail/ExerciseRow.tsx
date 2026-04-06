@@ -33,6 +33,7 @@ export function ExerciseRow({
     warmup: "WU",
     amrap: "AMRAP",
     emom: "EMOM",
+    interval: "INT",
     backoff: "BO",
     superset: "SS",
     cooldown: "CD",

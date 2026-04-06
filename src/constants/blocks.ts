@@ -27,7 +27,7 @@ export const BLOCK_LABEL_COLORS: Record<string, string> = {
 
 export const WORKOUT_TYPES = ['strength', 'hypertrophy', 'conditioning', 'mobility', 'deload', 'rest'] as const;
 
-export const SET_TYPES = ['working', 'warmup', 'amrap', 'emom', 'backoff', 'superset', 'cooldown', 'dropset'] as const;
+export const SET_TYPES = ['working', 'warmup', 'amrap', 'emom', 'interval', 'backoff', 'superset', 'cooldown', 'dropset'] as const;
 
 export const DAY_NAMES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'] as const;
 
