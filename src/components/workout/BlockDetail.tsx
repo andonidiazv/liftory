@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import IntervalTimerBlock from "./IntervalTimerBlock";
+import EmomTimerBlock from "./EmomTimerBlock";
 
 /** Block types by render mode */
 const CARDIO_BLOCKS = ['ENGINE BLOCK'];
@@ -338,7 +339,7 @@ export default function BlockDetail({
       {/* Content */}
       <div className="flex-1 px-5 pb-8">
         {blockMode === 'emom' ? (
-          <EmomCard
+          <EmomTimerBlock
             block={block}
             saving={saving}
             isCompleted={isCompleted}
@@ -362,9 +363,6 @@ export default function BlockDetail({
               }
             }}
             onOpenVideo={(v) => setVideoOverlay(v)}
-            workoutId={workoutId}
-            userId={user?.id}
-            onSwapExercise={onSwapExercise}
           />
         ) : blockMode === 'cardio' ? (
           <div className="flex flex-col gap-4">
