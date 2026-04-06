@@ -961,7 +961,7 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
             const freshTemplateWorkoutIds = (freshTemplateWorkouts ?? []).map((w) => w.id);
             const { data: freshTemplateSets } = await supabase
               .from("workout_sets")
-              .select("workout_id, exercise_id, set_order, set_type, block_label, planned_reps, planned_weight, planned_rpe, planned_rir, planned_tempo, planned_rest_seconds, coaching_cue_override")
+              .select("workout_id, exercise_id, set_order, set_type, block_label, planned_reps, planned_weight, planned_rpe, planned_rir, planned_tempo, planned_duration_seconds, planned_rest_seconds, coaching_cue_override")
               .in("workout_id", freshTemplateWorkoutIds);
 
             for (const userProg of userCopies) {
