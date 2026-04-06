@@ -11,7 +11,7 @@ import { toDisplayWeight, toStorageWeight } from "@/utils/weightConversion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
-import SetCountdownTimer from "./SetCountdownTimer";
+import IntervalTimerBlock from "./IntervalTimerBlock";
 
 /** Block types by render mode */
 const CARDIO_BLOCKS = ['ENGINE BLOCK'];
@@ -373,41 +373,16 @@ export default function BlockDetail({
 
               if (hasTimedSets) {
                 return (
-                  <div key={group.exercise.id} className="flex flex-col gap-3">
-                    {/* Exercise header */}
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => setVideoOverlay({ name: group.exercise.name, videoUrl: group.exercise.video_url, coachingCue: group.sets[0]?.coaching_cue_override })}
-                        className="shrink-0 overflow-hidden rounded-lg"
-                        style={{ width: 48, height: 36 }}
-                      >
-                        <ExerciseThumbnail thumbnailUrl={group.exercise.thumbnail_url} videoUrl={group.exercise.video_url} name={group.exercise.name} width={48} height={36} />
-                      </button>
-                      <div>
-                        <p className="font-body text-sm font-semibold text-foreground">{group.exercise.name}</p>
-                        <span className="font-mono text-[10px] text-muted-foreground">
-                          {group.sets.length} intervalos · {group.sets[0]?.planned_duration_seconds}s trabajo
-                          {group.sets[0]?.planned_rest_seconds ? ` / ${group.sets[0].planned_rest_seconds}s descanso` : ""}
-                        </span>
-                      </div>
-                    </div>
-                    {/* Per-set countdown timers */}
-                    {group.sets.map((set, idx) => (
-                      <SetCountdownTimer
-                        key={set.id}
-                        durationSeconds={set.planned_duration_seconds!}
-                        restSeconds={set.planned_rest_seconds}
-                        label={group.exercise.name}
-                        intervalNumber={idx + 1}
-                        totalIntervals={group.sets.length}
-                        isCompleted={isCompleted(set)}
-                        onComplete={async () => {
-                          setOptimisticCompleted((prev) => new Set(prev).add(set.id));
-                          await onCompleteSet(set, { actual_weight: 0, actual_reps: 1 });
-                        }}
-                      />
-                    ))}
-                  </div>
+                  <IntervalTimerBlock
+                    key={group.exercise.id}
+                    group={group}
+                    isCompleted={isCompleted}
+                    onCompleteSet={async (set) => {
+                      setOptimisticCompleted((prev) => new Set(prev).add(set.id));
+                      await onCompleteSet(set, { actual_weight: 0, actual_reps: 1 });
+                    }}
+                    onOpenVideo={(v) => setVideoOverlay(v)}
+                  />
                 );
               }
 
