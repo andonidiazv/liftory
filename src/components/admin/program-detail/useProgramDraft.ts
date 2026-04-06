@@ -144,11 +144,22 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
       let draftSets: DraftSet[] = [];
       if (draftWorkouts.length > 0) {
         const wIds = draftWorkouts.map((w) => w.id);
-        const { data: allSets, error: setsErr } = await supabase
-          .from("workout_sets")
-          .select("*, exercises(name, name_es)")
-          .in("workout_id", wIds)
-          .order("set_order");
+        // Supabase default limit is 1000 rows — large programs can exceed this
+        // Fetch in chunks of workout IDs to ensure we get ALL sets
+        let allSets: Record<string, unknown>[] = [];
+        let setsErr: unknown = null;
+        const CHUNK = 6; // fetch per-week chunks to stay well under 1000 per query
+        for (let i = 0; i < wIds.length; i += CHUNK) {
+          const chunk = wIds.slice(i, i + CHUNK);
+          const { data, error } = await supabase
+            .from("workout_sets")
+            .select("*, exercises(name, name_es)")
+            .in("workout_id", chunk)
+            .order("set_order")
+            .limit(5000);
+          if (error) { setsErr = error; break; }
+          if (data) allSets = allSets.concat(data);
+        }
 
         if (setsErr) {
           toast.error("Error al cargar sets");
