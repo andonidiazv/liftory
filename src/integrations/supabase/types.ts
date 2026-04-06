@@ -663,6 +663,7 @@ export type Database = {
           is_pr: boolean
           logged_at: string | null
           planned_reps: number | null
+          planned_duration_seconds: number | null
           planned_rest_seconds: number | null
           planned_rir: number | null
           planned_rpe: number | null

@@ -93,13 +93,15 @@ export function ExerciseRow({
 
         {/* Row 2: Params */}
         <div className="flex items-center gap-3 mt-2 ml-5 flex-wrap">
-          {/* Sets × Reps */}
+          {/* Sets × Reps or Duration */}
           <span className="font-mono text-xs" style={{ color: "#C9A96E" }}>
-            {setCount} × {firstSet.planned_reps ?? "—"}
+            {firstSet.planned_duration_seconds
+              ? `${setCount} × ${firstSet.planned_duration_seconds}s`
+              : `${setCount} × ${firstSet.planned_reps ?? "—"}`}
           </span>
 
           {/* Weight */}
-          {firstSet.planned_weight != null && (
+          {firstSet.planned_weight != null && !firstSet.planned_duration_seconds && (
             <span className="font-mono text-xs" style={{ color: "#FAF8F5" }}>
               {firstSet.planned_weight}kg
             </span>
@@ -167,13 +169,15 @@ export function ExerciseRow({
         {exerciseGroup.exerciseName}
       </span>
 
-      {/* Set count */}
+      {/* Set count × Reps or Duration */}
       <span className="font-mono text-xs flex-shrink-0" style={{ color: "#C9A96E" }}>
-        {setCount}&times;
+        {firstSet.planned_duration_seconds
+          ? `${setCount}× ${firstSet.planned_duration_seconds}s`
+          : `${setCount}×`}
       </span>
 
-      {/* Reps */}
-      {firstSet.planned_reps != null && (
+      {/* Reps (only for rep-based) */}
+      {!firstSet.planned_duration_seconds && firstSet.planned_reps != null && (
         <span className="font-mono text-xs flex-shrink-0" style={{ color: "#FAF8F5" }}>
           {firstSet.planned_reps}r
         </span>

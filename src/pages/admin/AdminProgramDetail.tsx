@@ -91,6 +91,7 @@ export default function AdminProgramDetail() {
     program,
     workouts,
     sets,
+    emptyBlocks,
     loading,
     saving,
     hasChanges,
@@ -524,6 +525,7 @@ export default function AdminProgramDetail() {
                           exerciseId: oldExerciseId,
                         })
                       }
+                      emptyBlocks={emptyBlocks[workout.id] ?? []}
                     />
                   );
                 })}

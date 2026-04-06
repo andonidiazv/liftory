@@ -93,9 +93,30 @@ export function ExerciseEditPanel({
           </h4>
 
           <div className="grid grid-cols-2 gap-3">
-            {/* Reps */}
+            {/* Duration (s) */}
             <div>
               <Label className="font-mono text-[10px]" style={{ color: "#8A8A8E" }}>
+                Duracion (s)
+              </Label>
+              <Input
+                type="number"
+                value={firstSet.planned_duration_seconds ?? ""}
+                onChange={(e) => {
+                  const val = e.target.value ? parseInt(e.target.value) : null;
+                  updateAllSets({
+                    planned_duration_seconds: val,
+                    ...(val ? { planned_reps: null, planned_weight: null } : {}),
+                  });
+                }}
+                placeholder="ej. 50"
+                className="font-body text-sm"
+                style={inputStyle}
+              />
+            </div>
+
+            {/* Reps */}
+            <div>
+              <Label className="font-mono text-[10px]" style={{ color: firstSet.planned_duration_seconds ? "#3A3A3A" : "#8A8A8E" }}>
                 Reps
               </Label>
               <Input
@@ -104,16 +125,18 @@ export function ExerciseEditPanel({
                 onChange={(e) =>
                   updateAllSets({
                     planned_reps: e.target.value ? parseInt(e.target.value) : null,
+                    planned_duration_seconds: null,
                   })
                 }
+                disabled={!!firstSet.planned_duration_seconds}
                 className="font-body text-sm"
-                style={inputStyle}
+                style={{ ...inputStyle, opacity: firstSet.planned_duration_seconds ? 0.4 : 1 }}
               />
             </div>
 
             {/* Weight */}
             <div>
-              <Label className="font-mono text-[10px]" style={{ color: "#8A8A8E" }}>
+              <Label className="font-mono text-[10px]" style={{ color: firstSet.planned_duration_seconds ? "#3A3A3A" : "#8A8A8E" }}>
                 Peso (kg)
               </Label>
               <Input
@@ -125,8 +148,9 @@ export function ExerciseEditPanel({
                     planned_weight: e.target.value ? parseFloat(e.target.value) : null,
                   })
                 }
+                disabled={!!firstSet.planned_duration_seconds}
                 className="font-body text-sm"
-                style={inputStyle}
+                style={{ ...inputStyle, opacity: firstSet.planned_duration_seconds ? 0.4 : 1 }}
               />
             </div>
 

@@ -29,6 +29,7 @@ export interface WorkoutSetData {
   planned_tempo: string | null;
   planned_rpe: number | null;
   planned_rir: number | null;
+  planned_duration_seconds: number | null;
   planned_rest_seconds: number | null;
   actual_reps: number | null;
   actual_weight: number | null;

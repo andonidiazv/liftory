@@ -17,10 +17,11 @@ import {
 } from "@/components/ui/collapsible";
 import { Plus, MessageSquare, Clock, Maximize2, Minimize2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { WORKOUT_TYPES, WORKOUT_TYPE_COLORS } from "@/constants/blocks";
+import { WORKOUT_TYPES, WORKOUT_TYPE_COLORS, BLOCK_LABEL_COLORS } from "@/constants/blocks";
 import type { DraftWorkout, DraftSet, DerivedBlock } from "./types";
 import { BlockContainer } from "./BlockContainer";
 import { AddBlockButton } from "./AddBlockButton";
+import { Trash2 } from "lucide-react";
 
 interface DayCardProps {
   workout: DraftWorkout | null;
@@ -38,6 +39,7 @@ interface DayCardProps {
   onEditExercise: (set: DraftSet) => void;
   onDeleteExercise: (blockLabel: string, exerciseId: string) => void;
   onSwapExercise: (blockLabel: string, oldExerciseId: string) => void;
+  emptyBlocks?: string[];
 }
 
 export function DayCard({
@@ -56,6 +58,7 @@ export function DayCard({
   onEditExercise,
   onDeleteExercise,
   onSwapExercise,
+  emptyBlocks = [],
 }: DayCardProps) {
   const [coachNoteOpen, setCoachNoteOpen] = useState(false);
   const [shortNoteOpen, setShortNoteOpen] = useState(false);
@@ -86,7 +89,7 @@ export function DayCard({
 
   const workoutTypeColor = WORKOUT_TYPE_COLORS[workout.workout_type] ?? "#8A8A8E";
   const totalSets = blocks.reduce((acc, b) => acc + b.sets.length, 0);
-  const existingBlockLabels = blocks.map((b) => b.label);
+  const existingBlockLabels = [...blocks.map((b) => b.label), ...emptyBlocks];
 
   return (
     <div
@@ -296,6 +299,49 @@ export function DayCard({
               <AddBlockButton
                 existingBlockLabels={existingBlockLabels}
                 onInsert={(label) => onInsertBlock(label, block.label)}
+              />
+            </div>
+          ))}
+
+          {/* Empty blocks (just inserted, no exercises yet) */}
+          {emptyBlocks.map((label) => (
+            <div key={label}>
+              <div
+                className="rounded-lg p-3 flex flex-col gap-2"
+                style={{
+                  border: `1px dashed ${BLOCK_LABEL_COLORS[label] ?? "#8A8A8E"}`,
+                  backgroundColor: "#0D0C0A",
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <span
+                    className="font-display text-[11px] tracking-widest"
+                    style={{ color: BLOCK_LABEL_COLORS[label] ?? "#8A8A8E" }}
+                  >
+                    {label}
+                  </span>
+                  <button
+                    onClick={() => onDeleteBlock(label)}
+                    className="p-1 rounded hover:opacity-80"
+                    style={{ color: "#8A8A8E" }}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onAddExercise(label)}
+                  className="w-full font-body text-xs"
+                  style={{ color: "#C75B39", border: "1px dashed #3A3A3A" }}
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  Agregar ejercicio
+                </Button>
+              </div>
+              <AddBlockButton
+                existingBlockLabels={existingBlockLabels}
+                onInsert={(label2) => onInsertBlock(label2, label)}
               />
             </div>
           ))}

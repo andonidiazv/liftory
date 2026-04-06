@@ -34,6 +34,7 @@ interface AddExerciseModalProps {
       planned_rpe: number | null;
       planned_rir: number | null;
       planned_weight: number | null;
+      planned_duration_seconds: number | null;
       planned_rest_seconds: number | null;
       planned_tempo: string | null;
       coaching_cue_override: string | null;
@@ -60,6 +61,7 @@ export function AddExerciseModal({
   const [rpe, setRpe] = useState<string>("");
   const [rir, setRir] = useState<string>("");
   const [weight, setWeight] = useState<string>("");
+  const [duration, setDuration] = useState<string>("");
   const [rest, setRest] = useState<string>("");
   const [tempo, setTempo] = useState("");
   const [cue, setCue] = useState("");
@@ -76,6 +78,7 @@ export function AddExerciseModal({
       setRpe("");
       setRir("");
       setWeight("");
+      setDuration("");
       setRest("");
       setTempo("");
       setCue("");
@@ -109,14 +112,16 @@ export function AddExerciseModal({
 
   const handleAdd = () => {
     if (!selected) return;
+    const isTimeBased = !!duration;
     onAdd(
       selected,
       {
         set_type: setType,
-        planned_reps: reps ? parseInt(reps) : null,
+        planned_reps: isTimeBased ? null : (reps ? parseInt(reps) : null),
         planned_rpe: rpe ? parseFloat(rpe) : null,
         planned_rir: rir ? parseInt(rir) : null,
-        planned_weight: weight ? parseFloat(weight) : null,
+        planned_weight: isTimeBased ? null : (weight ? parseFloat(weight) : null),
+        planned_duration_seconds: duration ? parseInt(duration) : null,
         planned_rest_seconds: rest ? parseInt(rest) : null,
         planned_tempo: tempo || null,
         coaching_cue_override: cue || null,
@@ -253,23 +258,45 @@ export function AddExerciseModal({
                 />
               </div>
 
-              {/* Reps */}
+              {/* Duration (s) — mutually exclusive with Reps */}
               <div>
                 <Label className="font-mono text-[10px]" style={{ color: "#8A8A8E" }}>
-                  Reps
+                  Duracion (s)
                 </Label>
                 <Input
                   type="number"
-                  value={reps}
-                  onChange={(e) => setReps(e.target.value)}
+                  value={duration}
+                  onChange={(e) => {
+                    setDuration(e.target.value);
+                    if (e.target.value) { setReps(""); setWeight(""); }
+                  }}
+                  placeholder="ej. 50"
                   className="font-body text-sm"
                   style={inputStyle}
                 />
               </div>
 
+              {/* Reps */}
+              <div>
+                <Label className="font-mono text-[10px]" style={{ color: duration ? "#3A3A3A" : "#8A8A8E" }}>
+                  Reps
+                </Label>
+                <Input
+                  type="number"
+                  value={reps}
+                  onChange={(e) => {
+                    setReps(e.target.value);
+                    if (e.target.value) setDuration("");
+                  }}
+                  disabled={!!duration}
+                  className="font-body text-sm"
+                  style={{ ...inputStyle, opacity: duration ? 0.4 : 1 }}
+                />
+              </div>
+
               {/* Weight */}
               <div>
-                <Label className="font-mono text-[10px]" style={{ color: "#8A8A8E" }}>
+                <Label className="font-mono text-[10px]" style={{ color: duration ? "#3A3A3A" : "#8A8A8E" }}>
                   Peso (kg)
                 </Label>
                 <Input
@@ -277,8 +304,9 @@ export function AddExerciseModal({
                   step="0.5"
                   value={weight}
                   onChange={(e) => setWeight(e.target.value)}
+                  disabled={!!duration}
                   className="font-body text-sm"
-                  style={inputStyle}
+                  style={{ ...inputStyle, opacity: duration ? 0.4 : 1 }}
                 />
               </div>
 

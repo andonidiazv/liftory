@@ -46,6 +46,7 @@ export interface DraftSet {
   planned_rpe: number | null;
   planned_rir: number | null;
   planned_tempo: string | null;
+  planned_duration_seconds: number | null;
   planned_rest_seconds: number | null;
   coaching_cue_override: string | null;
 }

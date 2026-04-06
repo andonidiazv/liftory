@@ -13,10 +13,14 @@ import type {
 /*  Draft snapshot — the entire state we track                        */
 /* ------------------------------------------------------------------ */
 
+/** workoutId → list of block labels that were inserted but have no sets yet */
+export type EmptyBlocks = Record<string, string[]>;
+
 interface DraftState {
   program: DraftProgram | null;
   workouts: DraftWorkout[];
   sets: DraftSet[];
+  emptyBlocks: EmptyBlocks;
 }
 
 function deepClone<T>(obj: T): T {
@@ -32,11 +36,13 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
     program: null,
     workouts: [],
     sets: [],
+    emptyBlocks: {},
   });
   const [draft, setDraft] = useState<DraftState>({
     program: null,
     workouts: [],
     sets: [],
+    emptyBlocks: {},
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -182,6 +188,7 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
             planned_rpe: s.planned_rpe as number | null,
             planned_rir: s.planned_rir as number | null,
             planned_tempo: s.planned_tempo as string | null,
+            planned_duration_seconds: s.planned_duration_seconds as number | null,
             planned_rest_seconds: s.planned_rest_seconds as number | null,
             coaching_cue_override: s.coaching_cue_override as string | null,
           }),
@@ -192,6 +199,7 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
         program: draftProgram,
         workouts: draftWorkouts,
         sets: draftSets,
+        emptyBlocks: {},
       };
 
       setOriginal(deepClone(snapshot));
@@ -362,7 +370,15 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
           (s) => !(s.workout_id === workoutId && s.block_label === blockLabel),
         );
         newSets = _resequenceWorkout(newSets, workoutId);
-        return { ...prev, sets: newSets };
+
+        // Also remove from emptyBlocks if it was an empty block
+        const emptyBlocks = { ...prev.emptyBlocks };
+        if (emptyBlocks[workoutId]) {
+          emptyBlocks[workoutId] = emptyBlocks[workoutId].filter((b) => b !== blockLabel);
+          if (emptyBlocks[workoutId].length === 0) delete emptyBlocks[workoutId];
+        }
+
+        return { ...prev, sets: newSets, emptyBlocks };
       });
     },
     [],
@@ -371,18 +387,23 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
   const insertBlock = useCallback(
     (workoutId: string, newBlockLabel: string, afterBlockLabel: string | null) => {
       setDraftWithUndo((prev) => {
-        // We insert an empty block — no sets are created yet.
-        // Adjust set_order of blocks that come after `afterBlockLabel` to leave a gap.
+        // Track the empty block so DayCard can render it
+        const existing = prev.emptyBlocks[workoutId] ?? [];
+        if (existing.includes(newBlockLabel)) return prev; // already tracked
+        const emptyBlocks = {
+          ...prev.emptyBlocks,
+          [workoutId]: [...existing, newBlockLabel],
+        };
+
         if (afterBlockLabel === null) {
-          // Insert at the beginning — nothing to do, block is empty
-          return prev;
+          return { ...prev, emptyBlocks };
         }
 
         // Find the max set_order of afterBlockLabel
         const afterSets = prev.sets.filter(
           (s) => s.workout_id === workoutId && s.block_label === afterBlockLabel,
         );
-        if (afterSets.length === 0) return prev;
+        if (afterSets.length === 0) return { ...prev, emptyBlocks };
 
         const maxOrderAfter = Math.max(...afterSets.map((s) => s.set_order));
 
@@ -394,7 +415,7 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
           return s;
         });
 
-        return { ...prev, sets: newSets };
+        return { ...prev, sets: newSets, emptyBlocks };
       });
     },
     [],
@@ -428,6 +449,7 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
         planned_rpe?: number | null;
         planned_rir?: number | null;
         planned_tempo?: string | null;
+        planned_duration_seconds?: number | null;
         planned_rest_seconds?: number | null;
         coaching_cue_override?: string | null;
       },
@@ -461,6 +483,7 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
           planned_rpe: params.planned_rpe ?? null,
           planned_rir: params.planned_rir ?? null,
           planned_tempo: params.planned_tempo ?? null,
+          planned_duration_seconds: params.planned_duration_seconds ?? null,
           planned_rest_seconds: params.planned_rest_seconds ?? null,
           coaching_cue_override: params.coaching_cue_override ?? null,
         }));
@@ -489,7 +512,14 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
           });
         }
 
-        return { ...prev, sets: allSets };
+        // Remove from emptyBlocks since it now has real sets
+        const emptyBlocks = { ...prev.emptyBlocks };
+        if (emptyBlocks[workoutId]) {
+          emptyBlocks[workoutId] = emptyBlocks[workoutId].filter((b) => b !== blockLabel);
+          if (emptyBlocks[workoutId].length === 0) delete emptyBlocks[workoutId];
+        }
+
+        return { ...prev, sets: allSets, emptyBlocks };
       });
     },
     [],
@@ -760,6 +790,7 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
               planned_rpe: s.planned_rpe,
               planned_rir: s.planned_rir,
               planned_tempo: s.planned_tempo,
+              planned_duration_seconds: s.planned_duration_seconds,
               planned_rest_seconds: s.planned_rest_seconds,
               coaching_cue_override: s.coaching_cue_override,
             };
@@ -784,6 +815,7 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
                   planned_rpe: orig.planned_rpe,
                   planned_rir: orig.planned_rir,
                   planned_tempo: orig.planned_tempo,
+                  planned_duration_seconds: orig.planned_duration_seconds,
                   planned_rest_seconds: orig.planned_rest_seconds,
                   coaching_cue_override: orig.coaching_cue_override,
                 };
@@ -872,6 +904,7 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
                   planned_rpe: s.planned_rpe,
                   planned_rir: s.planned_rir,
                   planned_tempo: s.planned_tempo,
+                  planned_duration_seconds: s.planned_duration_seconds,
                   planned_rest_seconds: s.planned_rest_seconds,
                   coaching_cue_override: s.coaching_cue_override,
                   user_id: programUserId,
@@ -993,6 +1026,7 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
                       planned_rpe: s.planned_rpe,
                       planned_rir: s.planned_rir,
                       planned_tempo: s.planned_tempo,
+                      planned_duration_seconds: s.planned_duration_seconds,
                       planned_rest_seconds: s.planned_rest_seconds,
                       coaching_cue_override: s.coaching_cue_override,
                       user_id: userProg.user_id,
@@ -1053,6 +1087,7 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
     program: draft.program,
     workouts: draft.workouts,
     sets: draft.sets,
+    emptyBlocks: draft.emptyBlocks,
     loading,
     saving,
     hasChanges,
