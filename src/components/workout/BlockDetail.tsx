@@ -381,6 +381,10 @@ export default function BlockDetail({
                       setOptimisticCompleted((prev) => new Set(prev).add(set.id));
                       await onCompleteSet(set, { actual_weight: 0, actual_reps: 1 });
                     }}
+                    onUncompleteSet={async (setId) => {
+                      setOptimisticCompleted((prev) => { const n = new Set(prev); n.delete(setId); return n; });
+                      await onUncompleteSet(setId);
+                    }}
                     onOpenVideo={(v) => setVideoOverlay(v)}
                   />
                 );

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Play, Pause, RotateCcw, Check, SkipForward } from "lucide-react";
+import { Play, Pause, RotateCcw, Check, SkipForward, SkipBack } from "lucide-react";
 import ExerciseThumbnail from "./ExerciseThumbnail";
 import type { WorkoutSetData, ExerciseGroup } from "@/hooks/useWorkoutData";
 
@@ -7,6 +7,7 @@ interface IntervalTimerBlockProps {
   group: ExerciseGroup;
   isCompleted: (s: WorkoutSetData) => boolean;
   onCompleteSet: (set: WorkoutSetData) => Promise<void>;
+  onUncompleteSet: (setId: string) => Promise<void>;
   onOpenVideo: (v: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
 }
 
@@ -16,6 +17,7 @@ export default function IntervalTimerBlock({
   group,
   isCompleted,
   onCompleteSet,
+  onUncompleteSet,
   onOpenVideo,
 }: IntervalTimerBlockProps) {
   const sets = group.sets;
@@ -143,11 +145,14 @@ export default function IntervalTimerBlock({
   const handleReset = useCallback(() => {
     clearTimer();
     setRunning(false);
-    const first = getFirstIncomplete();
-    setCurrentRound(first);
-    setPhase(first >= totalRounds ? "done" : "idle");
+    // Uncomplete all completed sets
+    for (const s of sets) {
+      if (isCompleted(s)) onUncompleteSet(s.id);
+    }
+    setCurrentRound(0);
+    setPhase("idle");
     setSecondsLeft(workSeconds);
-  }, [clearTimer, getFirstIncomplete, totalRounds, workSeconds]);
+  }, [clearTimer, sets, isCompleted, onUncompleteSet, workSeconds]);
 
   const handleSkipRound = useCallback(() => {
     clearTimer();
@@ -164,6 +169,29 @@ export default function IntervalTimerBlock({
       if (running) startTicking();
     }
   }, [clearTimer, sets, currentRound, isCompleted, onCompleteSet, totalRounds, workSeconds, running, startTicking]);
+
+  const handlePrevRound = useCallback(() => {
+    clearTimer();
+    // Uncomplete current round if completed
+    const currentSet = sets[currentRound];
+    if (currentSet && isCompleted(currentSet)) onUncompleteSet(currentSet.id);
+
+    if (currentRound > 0) {
+      const prevRound = currentRound - 1;
+      // Uncomplete previous round too so it can be redone
+      const prevSet = sets[prevRound];
+      if (prevSet && isCompleted(prevSet)) onUncompleteSet(prevSet.id);
+      setCurrentRound(prevRound);
+      setPhase("work");
+      setSecondsLeft(workSeconds);
+      if (running) startTicking();
+    } else {
+      // Already at round 0, just reset this round
+      setPhase("work");
+      setSecondsLeft(workSeconds);
+      if (running) startTicking();
+    }
+  }, [clearTimer, sets, currentRound, isCompleted, onUncompleteSet, workSeconds, running, startTicking]);
 
   // Format MM:SS
   const formatTime = (s: number) => {
@@ -211,8 +239,8 @@ export default function IntervalTimerBlock({
         )}
       </div>
 
-      {/* Coaching cue */}
-      {cue && phase === "idle" && (
+      {/* Coaching cue — always visible when present */}
+      {cue && phase !== "done" && (
         <div className="px-4 pb-3">
           <p className="font-body text-[13px] text-muted-foreground leading-relaxed">{cue}</p>
         </div>
@@ -237,10 +265,18 @@ export default function IntervalTimerBlock({
 
       {phase === "done" ? (
         /* All done */
-        <div className="px-4 pb-4 text-center">
+        <div className="px-4 pb-4 flex flex-col items-center gap-3">
           <p className="font-body text-sm text-muted-foreground">
             {completedCount}/{totalRounds} intervalos completados
           </p>
+          {/* Reset button in done state */}
+          <button
+            onClick={handleReset}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <RotateCcw className="w-4 h-4" />
+            <span className="font-body text-xs">Reiniciar</span>
+          </button>
         </div>
       ) : (
         /* Timer area */
@@ -286,16 +322,30 @@ export default function IntervalTimerBlock({
           </div>
 
           {/* Controls */}
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex items-center justify-center gap-3">
+            {/* Back round */}
+            {phase !== "idle" && (
+              <button
+                onClick={handlePrevRound}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+                title="Ronda anterior"
+              >
+                <SkipBack className="w-4 h-4" />
+              </button>
+            )}
+
+            {/* Reset all */}
             {phase !== "idle" && (
               <button
                 onClick={handleReset}
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+                title="Reiniciar todo"
               >
                 <RotateCcw className="w-4 h-4" />
               </button>
             )}
 
+            {/* Play / Pause */}
             <button
               onClick={running ? handlePause : handleStart}
               className="flex h-14 w-14 items-center justify-center rounded-full transition-colors"
@@ -308,10 +358,12 @@ export default function IntervalTimerBlock({
               )}
             </button>
 
+            {/* Skip round */}
             {phase !== "idle" && (
               <button
                 onClick={handleSkipRound}
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+                title="Saltar ronda"
               >
                 <SkipForward className="w-4 h-4" />
               </button>
