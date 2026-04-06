@@ -675,6 +675,8 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
             break;
         }
 
+        console.log("[save] scope:", scope.type, "source:", sourceWeek, "targets:", targetWeeks);
+
         /* ----------------------------------------------------------
          *  PHASE 1: Save program-level changes
          * ---------------------------------------------------------- */
@@ -709,6 +711,8 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
         );
         // Track newly created workout ID mappings (draft id -> real id)
         const workoutIdMap = new Map<string, string>();
+
+        console.log("[save] Phase 2: saving", sourceWorkouts.length, "source workouts for week", sourceWeek);
 
         for (const w of sourceWorkouts) {
           if (w._isNew) {
@@ -833,35 +837,111 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
           }
         }
 
+        console.log("[save] Phase 2 complete");
+
         /* ----------------------------------------------------------
-         *  PHASE 3: Propagate to target weeks
+         *  PHASE 3: Propagate to target weeks within same program.
+         *  Query target workouts FRESH from DB to ensure accuracy.
          * ---------------------------------------------------------- */
         if (targetWeeks.length > 0) {
+          console.log("[save] Phase 3: propagating to target weeks", targetWeeks);
+
+          // Query ALL target week workouts fresh from DB for this program
+          let targetQuery = supabase
+            .from("workouts")
+            .select("id, week_number, day_label, is_completed")
+            .eq("program_id", draft.program!.id)
+            .in("week_number", targetWeeks);
+
+          if (mesocycleId) {
+            targetQuery = targetQuery.eq("mesocycle_id", mesocycleId);
+          }
+
+          const { data: dbTargetWorkouts, error: twErr } = await targetQuery;
+          if (twErr) throw new Error(`Failed to fetch target workouts: ${twErr.message}`);
+
+          const targetWorkoutList = dbTargetWorkouts ?? [];
+          console.log("[save] Phase 3: found", targetWorkoutList.length, "target workouts in DB");
+
           for (const targetWeek of targetWeeks) {
-            // For each source workout, find the matching target workout by day_label
             for (const srcWorkout of sourceWorkouts) {
-              const realSrcId = workoutIdMap.get(srcWorkout.id)!;
               const srcSets = draft.sets.filter(
                 (s) => s.workout_id === srcWorkout.id,
               );
 
-              // Find target workout with same day_label in target week
-              // Use the ORIGINAL workouts from DB (they were refetched or are in original)
-              // Actually we need to look at existing DB workouts for the target week.
-              // We'll query the ones we know about from draft/original.
-              const targetWorkout = draft.workouts.find(
+              // Find target workout with same day_label in target week (from fresh DB data)
+              const targetWorkout = targetWorkoutList.find(
                 (w) =>
                   w.week_number === targetWeek &&
                   w.day_label === srcWorkout.day_label,
               );
 
-              if (!targetWorkout) continue;
+              if (!targetWorkout) {
+                console.log("[save] Phase 3: no target workout for week", targetWeek, "day", srcWorkout.day_label, "— creating one");
+                // Create the missing workout in the target week
+                const DAY_LABELS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+                const dayIdx = DAY_LABELS.indexOf(srcWorkout.day_label);
+                const baseDate = new Date("2025-01-06");
+                baseDate.setDate(baseDate.getDate() + (targetWeek - 1) * 7 + (dayIdx >= 0 ? dayIdx : 0));
+                const dateStr = baseDate.toISOString().split("T")[0];
+
+                const newWorkoutData: Record<string, unknown> = {
+                  program_id: draft.program!.id,
+                  week_number: targetWeek,
+                  day_label: srcWorkout.day_label,
+                  workout_type: srcWorkout.workout_type,
+                  estimated_duration: srcWorkout.estimated_duration,
+                  is_rest_day: srcWorkout.is_rest_day,
+                  is_completed: false,
+                  coach_note: srcWorkout.coach_note,
+                  short_on_time_note: srcWorkout.short_on_time_note,
+                  scheduled_date: dateStr,
+                  user_id: draft.program!.user_id ?? null,
+                };
+                if (mesocycleId) newWorkoutData.mesocycle_id = mesocycleId;
+
+                const { data: createdWorkout, error: cwErr } = await supabase
+                  .from("workouts")
+                  .insert(newWorkoutData)
+                  .select("id")
+                  .single();
+
+                if (cwErr) {
+                  console.error("[save] Phase 3: failed to create workout:", cwErr.message);
+                  continue;
+                }
+
+                // Insert cloned sets into the new workout
+                if (srcSets.length > 0) {
+                  const clonedSets = srcSets.map((s) => ({
+                    workout_id: createdWorkout.id,
+                    exercise_id: s.exercise_id,
+                    set_order: s.set_order,
+                    set_type: s.set_type,
+                    block_label: s.block_label || null,
+                    planned_reps: s.planned_reps,
+                    planned_weight: s.planned_weight,
+                    planned_rpe: s.planned_rpe,
+                    planned_rir: s.planned_rir,
+                    planned_tempo: s.planned_tempo,
+                    planned_duration_seconds: s.planned_duration_seconds,
+                    planned_rest_seconds: s.planned_rest_seconds,
+                    coaching_cue_override: s.coaching_cue_override,
+                    user_id: draft.program?.user_id ?? null,
+                  }));
+                  const { error: insErr } = await supabase
+                    .from("workout_sets")
+                    .insert(clonedSets);
+                  if (insErr) throw new Error(`Phase 3 new workout sets insert failed: ${insErr.message}`);
+                }
+                continue;
+              }
 
               // Skip completed workouts
-              if (targetWorkout.is_completed) continue;
-
-              // Skip new workouts that haven't been saved yet
-              if (targetWorkout._isNew) continue;
+              if (targetWorkout.is_completed) {
+                console.log("[save] Phase 3: skipping completed workout", targetWorkout.id);
+                continue;
+              }
 
               // Update workout fields (except week_number, scheduled_date, id)
               const { error: wUpErr } = await supabase
@@ -918,15 +998,20 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
                     `Propagation set insert failed: ${insErr.message}`,
                   );
               }
+
+              console.log("[save] Phase 3: propagated", srcSets.length, "sets to week", targetWeek, "workout", targetWorkout.id);
             }
           }
         }
+
+        console.log("[save] Phase 3 complete");
 
         /* ----------------------------------------------------------
          *  PHASE 4: If this is a TEMPLATE (user_id = null),
          *  propagate changes to ALL user copies of this program.
          * ---------------------------------------------------------- */
         if (!draft.program.user_id) {
+          console.log("[save] Phase 4: propagating to athlete copies");
 
           // Find all user copies of this program (same name, user_id != null)
           const { data: userCopies, error: ucErr } = await supabase
@@ -936,45 +1021,57 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
             .not("user_id", "is", null);
 
           if (ucErr) {
-            // Silent — non-critical propagation
+            console.error("[save] Phase 4: failed to find user copies:", ucErr.message);
           }
 
           if (userCopies && userCopies.length > 0) {
+            console.log("[save] Phase 4: found", userCopies.length, "athlete copies");
 
             // Sync the same weeks that the admin chose in the scope
             const allWeeksToSync = [sourceWeek, ...targetWeeks];
 
-            // Fetch the FRESH template workouts + sets from DB
-            // (Phase 2 & 3 may have changed them since the draft was loaded)
-            // Filter by mesocycle_id to avoid mixing cycles
+            // Fetch the FRESH template workouts from DB
             let freshQuery = supabase
               .from("workouts")
               .select("id, week_number, day_label, workout_type, estimated_duration, is_rest_day, coach_note, short_on_time_note")
-              .eq("program_id", draft.program!.id);
+              .eq("program_id", draft.program!.id)
+              .in("week_number", allWeeksToSync)
+              .limit(500);
 
             if (mesocycleId) {
               freshQuery = freshQuery.eq("mesocycle_id", mesocycleId);
             }
 
             const { data: freshTemplateWorkouts } = await freshQuery;
+            console.log("[save] Phase 4: fresh template workouts:", freshTemplateWorkouts?.length ?? 0);
 
+            // Fetch fresh template sets in chunks to avoid 1000-row limit
             const freshTemplateWorkoutIds = (freshTemplateWorkouts ?? []).map((w) => w.id);
-            const { data: freshTemplateSets } = await supabase
-              .from("workout_sets")
-              .select("workout_id, exercise_id, set_order, set_type, block_label, planned_reps, planned_weight, planned_rpe, planned_rir, planned_tempo, planned_duration_seconds, planned_rest_seconds, coaching_cue_override")
-              .in("workout_id", freshTemplateWorkoutIds);
+            let freshTemplateSets: Record<string, unknown>[] = [];
+            const SET_CHUNK = 10;
+            for (let i = 0; i < freshTemplateWorkoutIds.length; i += SET_CHUNK) {
+              const chunk = freshTemplateWorkoutIds.slice(i, i + SET_CHUNK);
+              const { data } = await supabase
+                .from("workout_sets")
+                .select("workout_id, exercise_id, set_order, set_type, block_label, planned_reps, planned_weight, planned_rpe, planned_rir, planned_tempo, planned_duration_seconds, planned_rest_seconds, coaching_cue_override")
+                .in("workout_id", chunk)
+                .limit(5000);
+              if (data) freshTemplateSets = freshTemplateSets.concat(data);
+            }
+            console.log("[save] Phase 4: fresh template sets:", freshTemplateSets.length);
 
             for (const userProg of userCopies) {
-              // Get all workouts for this user's program
+              // Get all workouts for this user's program in the relevant weeks
               const { data: userWorkouts } = await supabase
                 .from("workouts")
                 .select("id, week_number, day_label, is_completed")
-                .eq("program_id", userProg.id);
+                .eq("program_id", userProg.id)
+                .in("week_number", allWeeksToSync)
+                .limit(500);
 
               if (!userWorkouts) continue;
 
               for (const weekNum of allWeeksToSync) {
-                // Get the FRESH template workouts for this week from DB
                 const templateWorkouts = (freshTemplateWorkouts ?? []).filter(
                   (w) => w.week_number === weekNum,
                 );
@@ -987,7 +1084,64 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
                       uw.day_label === tmplWorkout.day_label,
                   );
 
-                  if (!userWorkout) continue;
+                  if (!userWorkout) {
+                    console.log("[save] Phase 4: no user workout for", userProg.user_id, "week", weekNum, "day", tmplWorkout.day_label, "— creating one");
+                    // Create missing workout for athlete
+                    const DAY_LABELS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+                    const dayIdx = DAY_LABELS.indexOf(tmplWorkout.day_label);
+                    const baseDate = new Date("2025-01-06");
+                    baseDate.setDate(baseDate.getDate() + (weekNum - 1) * 7 + (dayIdx >= 0 ? dayIdx : 0));
+                    const dateStr = baseDate.toISOString().split("T")[0];
+
+                    const { data: createdUW, error: cuwErr } = await supabase
+                      .from("workouts")
+                      .insert({
+                        program_id: userProg.id,
+                        week_number: weekNum,
+                        day_label: tmplWorkout.day_label,
+                        workout_type: tmplWorkout.workout_type,
+                        estimated_duration: tmplWorkout.estimated_duration,
+                        is_rest_day: tmplWorkout.is_rest_day,
+                        is_completed: false,
+                        coach_note: tmplWorkout.coach_note,
+                        short_on_time_note: tmplWorkout.short_on_time_note,
+                        scheduled_date: dateStr,
+                        user_id: userProg.user_id,
+                      })
+                      .select("id")
+                      .single();
+
+                    if (cuwErr || !createdUW) {
+                      console.error("[save] Phase 4: failed to create user workout:", cuwErr?.message);
+                      continue;
+                    }
+
+                    // Insert template sets into the new user workout
+                    const templateSets = freshTemplateSets.filter(
+                      (s) => (s as { workout_id: string }).workout_id === tmplWorkout.id,
+                    );
+                    if (templateSets.length > 0) {
+                      const userSets = templateSets.map((s: Record<string, unknown>) => ({
+                        workout_id: createdUW.id,
+                        exercise_id: s.exercise_id,
+                        set_order: s.set_order,
+                        set_type: s.set_type,
+                        block_label: s.block_label || null,
+                        planned_reps: s.planned_reps,
+                        planned_weight: s.planned_weight,
+                        planned_rpe: s.planned_rpe,
+                        planned_rir: s.planned_rir,
+                        planned_tempo: s.planned_tempo,
+                        planned_duration_seconds: s.planned_duration_seconds,
+                        planned_rest_seconds: s.planned_rest_seconds,
+                        coaching_cue_override: s.coaching_cue_override,
+                        user_id: userProg.user_id,
+                      }));
+                      await supabase.from("workout_sets").insert(userSets);
+                    }
+                    continue;
+                  }
+
                   // Skip completed workouts — don't overwrite user's logged data
                   if (userWorkout.is_completed) continue;
 
@@ -1009,13 +1163,13 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
                     .delete()
                     .eq("workout_id", userWorkout.id);
 
-                  // Get FRESH template sets from DB for this workout
-                  const templateSets = (freshTemplateSets ?? []).filter(
-                    (s) => s.workout_id === tmplWorkout.id,
+                  // Get FRESH template sets for this workout
+                  const templateSets = freshTemplateSets.filter(
+                    (s) => (s as { workout_id: string }).workout_id === tmplWorkout.id,
                   );
 
                   if (templateSets.length > 0) {
-                    const userSets = templateSets.map((s) => ({
+                    const userSets = templateSets.map((s: Record<string, unknown>) => ({
                       workout_id: userWorkout.id,
                       exercise_id: s.exercise_id,
                       set_order: s.set_order,
@@ -1036,27 +1190,31 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
                       .from("workout_sets")
                       .insert(userSets);
                     if (insErr) {
-                      // Silent — non-critical per-user sync error
+                      console.error("[save] Phase 4: set insert failed for user", userProg.user_id, ":", insErr.message);
                     }
                   }
                 }
               }
+
+              console.log("[save] Phase 4: synced athlete", userProg.user_id);
             }
           }
         }
 
+        console.log("[save] All phases complete");
         toast.success("Cambios guardados");
 
         // Refetch everything to sync with DB
         await fetchData();
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Error desconocido";
+        console.error("[save] ERROR:", msg);
         toast.error(`Error al guardar: ${msg}`);
       } finally {
         setSaving(false);
       }
     },
-    [draft, original, fetchData],
+    [draft, original, fetchData, mesocycleId],
   );
 
   /* ---- Undo ---- */
