@@ -67,7 +67,16 @@ export function BlockContainer({
             className="font-mono text-[10px]"
             style={{ color: "#8A8A8E" }}
           >
-            {block.sets.length} sets
+            {(() => {
+              const firstSet = block.sets[0];
+              if (firstSet?.set_type === "emom") {
+                const cue = firstSet.coaching_cue_override ?? "";
+                const m = cue.match(/(\d+)\s*rounds?/i);
+                const rounds = m ? parseInt(m[1], 10) : block.sets.length;
+                return `${rounds} rounds`;
+              }
+              return `${block.sets.length} sets`;
+            })()}
           </span>
 
           {/* Exercise count when collapsed */}

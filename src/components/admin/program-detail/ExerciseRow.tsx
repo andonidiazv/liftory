@@ -82,13 +82,15 @@ export function ExerciseRow({
                 </button>
               </div>
             </div>
-            {/* Spanish name */}
-            <span
-              className="font-body text-xs block mt-0.5"
-              style={{ color: "#8A8A8E" }}
-            >
-              {exerciseGroup.exerciseNameEs}
-            </span>
+            {/* Spanish name — only for non-EMOM */}
+            {firstSet.set_type !== "emom" && exerciseGroup.exerciseNameEs && (
+              <span
+                className="font-body text-xs block mt-0.5"
+                style={{ color: "#8A8A8E" }}
+              >
+                {exerciseGroup.exerciseNameEs}
+              </span>
+            )}
           </div>
         </div>
 
@@ -96,9 +98,11 @@ export function ExerciseRow({
         <div className="flex items-center gap-3 mt-2 ml-5 flex-wrap">
           {/* Sets × Reps or Duration */}
           <span className="font-mono text-xs" style={{ color: "#C9A96E" }}>
-            {firstSet.planned_duration_seconds
-              ? `${setCount} × ${firstSet.planned_duration_seconds}s`
-              : `${setCount} × ${firstSet.planned_reps ?? "—"}`}
+            {firstSet.set_type === "emom"
+              ? `${firstSet.planned_reps ?? "—"} reps`
+              : firstSet.planned_duration_seconds
+                ? `${setCount} × ${firstSet.planned_duration_seconds}s`
+                : `${setCount} × ${firstSet.planned_reps ?? "—"}`}
           </span>
 
           {/* Weight */}
@@ -137,8 +141,8 @@ export function ExerciseRow({
             </span>
           )}
 
-          {/* Rest */}
-          {firstSet.planned_rest_seconds != null && firstSet.planned_rest_seconds > 0 && (
+          {/* Rest — hide for EMOM since planned_rest_seconds = window time */}
+          {firstSet.set_type !== "emom" && firstSet.planned_rest_seconds != null && firstSet.planned_rest_seconds > 0 && (
             <span className="font-mono text-xs" style={{ color: "#8A8A8E" }}>
               {firstSet.planned_rest_seconds}s rest
             </span>
@@ -172,13 +176,15 @@ export function ExerciseRow({
 
       {/* Set count × Reps or Duration */}
       <span className="font-mono text-xs flex-shrink-0" style={{ color: "#C9A96E" }}>
-        {firstSet.planned_duration_seconds
-          ? `${setCount}× ${firstSet.planned_duration_seconds}s`
-          : `${setCount}×`}
+        {firstSet.set_type === "emom"
+          ? `${firstSet.planned_reps ?? "—"}r`
+          : firstSet.planned_duration_seconds
+            ? `${setCount}× ${firstSet.planned_duration_seconds}s`
+            : `${setCount}×`}
       </span>
 
-      {/* Reps (only for rep-based) */}
-      {!firstSet.planned_duration_seconds && firstSet.planned_reps != null && (
+      {/* Reps (only for rep-based, non-EMOM) */}
+      {firstSet.set_type !== "emom" && !firstSet.planned_duration_seconds && firstSet.planned_reps != null && (
         <span className="font-mono text-xs flex-shrink-0" style={{ color: "#FAF8F5" }}>
           {firstSet.planned_reps}r
         </span>
@@ -199,8 +205,8 @@ export function ExerciseRow({
         </span>
       )}
 
-      {/* Rest */}
-      {firstSet.planned_rest_seconds != null && firstSet.planned_rest_seconds > 0 && (
+      {/* Rest — hide for EMOM since planned_rest_seconds = window time */}
+      {firstSet.set_type !== "emom" && firstSet.planned_rest_seconds != null && firstSet.planned_rest_seconds > 0 && (
         <span className="font-mono text-xs flex-shrink-0" style={{ color: "#8A8A8E" }}>
           {firstSet.planned_rest_seconds}s
         </span>
