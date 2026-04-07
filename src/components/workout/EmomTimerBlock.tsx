@@ -232,6 +232,9 @@ export default function EmomTimerBlock({
   getSuggestedWeight,
   onOpenVideo,
 }: EmomTimerBlockProps) {
+  // Defensive: if block has no groups or no sets, show a minimal fallback
+  const hasData = block.groups.length > 0 && block.groups.some((g) => g.sets.length > 0);
+
   const { windowSeconds, totalRondas, ventanasPerRonda, totalVentanas } = useMemo(
     () => parseEmomConfig(block),
     [block],
@@ -244,7 +247,7 @@ export default function EmomTimerBlock({
   const bilateral = useMemo(() => isBilateral(block), [block]);
   const allSets = useMemo(() => block.groups.flatMap((g) => g.sets), [block]);
   const firstCue = allSets[0]?.coaching_cue_override;
-  const allDone = allSets.every((s) => isCompleted(s));
+  const allDone = allSets.length > 0 && allSets.every((s) => isCompleted(s));
 
   const [phase, setPhase] = useState<Phase>(allDone ? "done" : "idle");
   // currentWindow = global ventana index (0 to totalVentanas-1)
@@ -426,6 +429,15 @@ export default function EmomTimerBlock({
     }
   }, []);
 
+  // Refs for stable access inside tick without re-creating the callback
+  const windowSecondsRef = useRef(windowSeconds);
+  windowSecondsRef.current = windowSeconds;
+  const totalVentanasRef = useRef(totalVentanas);
+  totalVentanasRef.current = totalVentanas;
+  const ventanasPerRondaRef = useRef(ventanasPerRonda);
+  ventanasPerRondaRef.current = ventanasPerRonda;
+  const startTickingRef = useRef<() => void>(() => {});
+
   const tick = useCallback(() => {
     setSecondsLeft((prev) => {
       const next = prev - 1;
@@ -436,49 +448,54 @@ export default function EmomTimerBlock({
       }
 
       if (next <= 0) {
+        // Timer hit zero — schedule phase transition as microtask so we
+        // never nest setState calls inside this functional updater.
         clearTimer();
+        queueMicrotask(() => {
+          const _windowSeconds = windowSecondsRef.current;
+          const _totalVentanas = totalVentanasRef.current;
+          const _ventanasPerRonda = ventanasPerRondaRef.current;
 
-        if (phaseRef.current === "countdown") {
-          playBeep("ronda");
-          setPhase("active");
-          phaseRef.current = "active";
-          setCurrentWindow(0);
-          currentWindowRef.current = 0;
-          setSecondsLeft(windowSeconds);
-          setVentanaFlash(true);
-          setTimeout(() => setVentanaFlash(false), 500);
-          startTicking();
-          return windowSeconds;
-        }
-
-        if (phaseRef.current === "active") {
-          const nextWindow = currentWindowRef.current + 1;
-          if (nextWindow >= totalVentanas) {
-            // All done
-            playBeep("finish");
-            setPhase("done");
-            phaseRef.current = "done";
-            setRunning(false);
-            onCompleteAllRef.current();
-            return 0;
+          if (phaseRef.current === "countdown") {
+            playBeep("ronda");
+            setPhase("active");
+            phaseRef.current = "active";
+            setCurrentWindow(0);
+            currentWindowRef.current = 0;
+            setSecondsLeft(_windowSeconds);
+            setVentanaFlash(true);
+            setTimeout(() => setVentanaFlash(false), 500);
+            startTickingRef.current();
+            return;
           }
-          // Determine if we're crossing into a new ronda
-          const isNewRonda = nextWindow % ventanasPerRonda === 0;
-          playBeep(isNewRonda ? "ronda" : "transition");
-          setCurrentWindow(nextWindow);
-          currentWindowRef.current = nextWindow;
-          setSecondsLeft(windowSeconds);
-          setVentanaFlash(true);
-          setTimeout(() => setVentanaFlash(false), 500);
-          startTicking();
-          return windowSeconds;
-        }
 
+          if (phaseRef.current === "active") {
+            const nextWin = currentWindowRef.current + 1;
+            if (nextWin >= _totalVentanas) {
+              // All done
+              playBeep("finish");
+              setPhase("done");
+              phaseRef.current = "done";
+              setRunning(false);
+              onCompleteAllRef.current();
+              return;
+            }
+            // Determine if we're crossing into a new ronda
+            const isNewRonda = nextWin % _ventanasPerRonda === 0;
+            playBeep(isNewRonda ? "ronda" : "transition");
+            setCurrentWindow(nextWin);
+            currentWindowRef.current = nextWin;
+            setSecondsLeft(_windowSeconds);
+            setVentanaFlash(true);
+            setTimeout(() => setVentanaFlash(false), 500);
+            startTickingRef.current();
+          }
+        });
         return 0;
       }
       return next;
     });
-  }, [windowSeconds, totalVentanas, ventanasPerRonda, clearTimer, playBeep]);
+  }, [clearTimer, playBeep]);
 
   const tickRef = useRef(tick);
   tickRef.current = tick;
@@ -487,6 +504,9 @@ export default function EmomTimerBlock({
     clearTimer();
     intervalRef.current = setInterval(() => tickRef.current(), 1000);
   }, [clearTimer]);
+
+  // Keep startTickingRef current
+  startTickingRef.current = startTicking;
 
   /* ─── handlers ─── */
 
@@ -608,6 +628,16 @@ export default function EmomTimerBlock({
   const strokeDash = CIRCUMFERENCE * (1 - progress / 100);
 
   /* ─── render ─── */
+
+  if (!hasData) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-6 text-center">
+        <p className="font-body text-sm text-muted-foreground">
+          No se encontraron ejercicios para este bloque EMOM.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-2xl border border-border bg-card overflow-hidden">
