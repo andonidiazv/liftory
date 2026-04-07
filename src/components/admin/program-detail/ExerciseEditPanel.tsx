@@ -118,9 +118,6 @@ export function ExerciseEditPanel({
           <DialogTitle className="font-display text-lg" style={{ color: "#FAF8F5" }}>
             {exerciseGroup.exerciseName}
           </DialogTitle>
-          <p className="font-body text-xs" style={{ color: "#8A8A8E" }}>
-            {exerciseGroup.exerciseNameEs}
-          </p>
         </DialogHeader>
 
         {/* Parameters section */}
