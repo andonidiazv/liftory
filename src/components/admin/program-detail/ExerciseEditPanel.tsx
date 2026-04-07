@@ -23,19 +23,101 @@ import { useState, useMemo } from "react";
 
 /* ─── EMOM cue helpers ─── */
 
-function parseEmomFromCue(cue: string | null): { windowSeconds: number; rounds: number; extraText: string } {
-  if (!cue) return { windowSeconds: 90, rounds: 6, extraText: "" };
-  const match = cue.match(/^EMOM\s+(\d+)s?\s*x\s*(\d+)\s*rounds?\.?\s*/i);
-  if (!match) return { windowSeconds: 90, rounds: 6, extraText: cue };
-  const windowSeconds = parseInt(match[1], 10);
-  const rounds = parseInt(match[2], 10);
-  const extraText = cue.slice(match[0].length).trim();
-  return { windowSeconds, rounds, extraText };
+interface EmomCueParsed {
+  windowSeconds: number;
+  totalRondas: number;
+  ventanasPerRonda: number;
+  alternaItems: string[];
+  rpeRanges: { from: number; to: number; rpe: string }[];
+  extraNotes: string;
 }
 
-function buildEmomCue(windowSeconds: number, rounds: number, extraText: string): string {
-  const prefix = `EMOM ${windowSeconds}s x ${rounds} rounds.`;
-  return extraText ? `${prefix} ${extraText}` : prefix;
+function parseEmomFromCue(cue: string | null): EmomCueParsed {
+  const defaults: EmomCueParsed = {
+    windowSeconds: 90,
+    totalRondas: 3,
+    ventanasPerRonda: 4,
+    alternaItems: [],
+    rpeRanges: [],
+    extraNotes: "",
+  };
+  if (!cue) return defaults;
+
+  // New format: "EMOM 75s | 3R x 4V. Alterna: Shrimp R, Shrimp L, Plyo BSS R, Plyo BSS L. R1-2: RPE 8.5, R3: RPE 9"
+  const newMatch = cue.match(/EMOM\s+(\d+)s?\s*\|\s*(\d+)R\s*x\s*(\d+)V/i);
+  if (newMatch) {
+    const windowSeconds = parseInt(newMatch[1], 10);
+    const totalRondas = parseInt(newMatch[2], 10);
+    const ventanasPerRonda = parseInt(newMatch[3], 10);
+
+    // Parse Alterna
+    const alternaMatch = cue.match(/Alterna:\s*(.+?)(?:\.\s|$)/i);
+    const alternaItems = alternaMatch
+      ? alternaMatch[1].split(",").map((s) => s.trim()).filter(Boolean)
+      : [];
+
+    // Parse RPE ranges: "R1-2: RPE 8.5, R3: RPE 9"
+    const rpeRanges: { from: number; to: number; rpe: string }[] = [];
+    const rpeRegex = /R(\d+)(?:-(\d+))?\s*:\s*RPE\s+([\d.]+(?:-[\d.]+)?)/gi;
+    let m;
+    while ((m = rpeRegex.exec(cue)) !== null) {
+      rpeRanges.push({
+        from: parseInt(m[1], 10),
+        to: m[2] ? parseInt(m[2], 10) : parseInt(m[1], 10),
+        rpe: m[3],
+      });
+    }
+
+    // Extra notes: anything after last RPE block or after Alterna block
+    let extraNotes = "";
+    const afterRpe = cue.replace(/EMOM\s+\d+s?\s*\|\s*\d+R\s*x\s*\d+V\.?\s*/i, "")
+      .replace(/Alterna:\s*.+?(?:\.\s|$)/i, "")
+      .replace(/R\d+(?:-\d+)?\s*:\s*RPE\s+[\d.]+(?:-[\d.]+)?[,.\s]*/gi, "")
+      .trim();
+    if (afterRpe) extraNotes = afterRpe;
+
+    return { windowSeconds, totalRondas, ventanasPerRonda, alternaItems, rpeRanges, extraNotes };
+  }
+
+  // Legacy format: "EMOM 75s x 8 rounds"
+  const legacyMatch = cue.match(/^EMOM\s+(\d+)s?\s*x\s*(\d+)\s*rounds?\.?\s*/i);
+  if (legacyMatch) {
+    const windowSeconds = parseInt(legacyMatch[1], 10);
+    const totalWindows = parseInt(legacyMatch[2], 10);
+    const extraText = cue.slice(legacyMatch[0].length).trim();
+
+    const alternaMatch = extraText.match(/Alterna:\s*(.+?)(?:\s*\(x\d+\))?(?:\.\s|$)/i);
+    const alternaItems = alternaMatch
+      ? alternaMatch[1].split(",").map((s) => s.trim()).filter(Boolean)
+      : [];
+    const ventanasPerRonda = alternaItems.length || 1;
+    const totalRondas = Math.max(1, Math.round(totalWindows / ventanasPerRonda));
+
+    return { windowSeconds, totalRondas, ventanasPerRonda, alternaItems, rpeRanges: [], extraNotes: extraText };
+  }
+
+  return { ...defaults, extraNotes: cue };
+}
+
+function buildEmomCue(parsed: EmomCueParsed): string {
+  let cue = `EMOM ${parsed.windowSeconds}s | ${parsed.totalRondas}R x ${parsed.ventanasPerRonda}V.`;
+
+  if (parsed.alternaItems.length > 0) {
+    cue += ` Alterna: ${parsed.alternaItems.join(", ")}.`;
+  }
+
+  if (parsed.rpeRanges.length > 0) {
+    const rpeParts = parsed.rpeRanges.map((r) =>
+      r.from === r.to ? `R${r.from}: RPE ${r.rpe}` : `R${r.from}-${r.to}: RPE ${r.rpe}`
+    );
+    cue += ` ${rpeParts.join(", ")}`;
+  }
+
+  if (parsed.extraNotes) {
+    cue += ` ${parsed.extraNotes}`;
+  }
+
+  return cue.trim();
 }
 
 interface ExerciseEditPanelProps {
@@ -83,6 +165,22 @@ export function ExerciseEditPanel({
     [isEmom, firstSet?.coaching_cue_override],
   );
 
+  // Local editable state for EMOM RPE ranges
+  const [localRpeRanges, setLocalRpeRanges] = useState<{ from: string; to: string; rpe: string }[]>([]);
+  const [localAlterna, setLocalAlterna] = useState("");
+
+  // Sync local state when emomParsed changes
+  useMemo(() => {
+    if (emomParsed) {
+      setLocalRpeRanges(
+        emomParsed.rpeRanges.length > 0
+          ? emomParsed.rpeRanges.map((r) => ({ from: String(r.from), to: String(r.to), rpe: r.rpe }))
+          : [{ from: "1", to: String(emomParsed.totalRondas), rpe: "" }],
+      );
+      setLocalAlterna(emomParsed.alternaItems.join(", "));
+    }
+  }, [emomParsed?.alternaItems.join(","), emomParsed?.rpeRanges.map((r) => `${r.from}-${r.to}:${r.rpe}`).join(",")]);
+
   if (!exerciseGroup || !firstSet) return null;
 
   const setCount = exerciseGroup.sets.length;
@@ -103,15 +201,33 @@ export function ExerciseEditPanel({
 
   const otherBlocks = availableBlocks.filter((b) => b !== blockLabel);
 
-  const updateEmomField = (field: "windowSeconds" | "rounds" | "extraText", value: number | string) => {
+  const updateEmomCue = (overrides: Partial<EmomCueParsed>) => {
     if (!emomParsed) return;
-    const updated = { ...emomParsed, [field]: value };
-    const newCue = buildEmomCue(updated.windowSeconds, updated.rounds, updated.extraText);
+    const updated = { ...emomParsed, ...overrides };
+    const newCue = buildEmomCue(updated);
     const fields: Partial<DraftSet> = { coaching_cue_override: newCue };
-    if (field === "windowSeconds") {
-      fields.planned_rest_seconds = value as number;
+    if (overrides.windowSeconds !== undefined) {
+      fields.planned_rest_seconds = overrides.windowSeconds;
     }
     updateAllSets(fields);
+  };
+
+  const commitRpeRanges = (ranges: { from: string; to: string; rpe: string }[]) => {
+    if (!emomParsed) return;
+    const parsed = ranges
+      .filter((r) => r.rpe.trim() !== "")
+      .map((r) => ({
+        from: parseInt(r.from) || 1,
+        to: parseInt(r.to) || parseInt(r.from) || 1,
+        rpe: r.rpe.trim(),
+      }));
+    updateEmomCue({ rpeRanges: parsed });
+  };
+
+  const commitAlterna = (text: string) => {
+    if (!emomParsed) return;
+    const items = text.split(",").map((s) => s.trim()).filter(Boolean);
+    updateEmomCue({ alternaItems: items });
   };
 
   // Check if sets have different values (for showing per-set indicator)
@@ -207,29 +323,29 @@ export function ExerciseEditPanel({
                 Configuracion EMOM
               </h4>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 {/* Window (seconds) */}
                 <div>
                   <Label className="font-mono text-[10px]" style={{ color: "#8A8A8E" }}>
-                    Ventana EMOM (s)
+                    Ventana (s)
                   </Label>
                   <Input
                     type="number"
                     value={emomParsed.windowSeconds}
                     onChange={(e) => {
                       const val = e.target.value ? parseInt(e.target.value) : 60;
-                      updateEmomField("windowSeconds", val);
+                      updateEmomCue({ windowSeconds: val });
                     }}
-                    placeholder="90"
+                    placeholder="75"
                     className="font-body text-sm"
                     style={inputStyle}
                   />
                   <span className="font-mono text-[9px] mt-0.5 block" style={{ color: "#8A8A8E" }}>
-                    = {Math.floor(emomParsed.windowSeconds / 60)}:{(emomParsed.windowSeconds % 60).toString().padStart(2, "0")} por ronda
+                    = {Math.floor(emomParsed.windowSeconds / 60)}:{(emomParsed.windowSeconds % 60).toString().padStart(2, "0")}
                   </span>
                 </div>
 
-                {/* Rounds */}
+                {/* Rondas */}
                 <div>
                   <Label className="font-mono text-[10px]" style={{ color: "#8A8A8E" }}>
                     Rondas
@@ -237,19 +353,43 @@ export function ExerciseEditPanel({
                   <Input
                     type="number"
                     min={1}
-                    value={emomParsed.rounds}
+                    value={emomParsed.totalRondas}
                     onChange={(e) => {
                       const val = e.target.value ? parseInt(e.target.value) : 1;
-                      updateEmomField("rounds", val);
+                      updateEmomCue({ totalRondas: val });
                     }}
                     className="font-body text-sm"
                     style={inputStyle}
                   />
-                  <span className="font-mono text-[9px] mt-0.5 block" style={{ color: "#8A8A8E" }}>
-                    Total: {Math.floor((emomParsed.windowSeconds * emomParsed.rounds) / 60)}:{((emomParsed.windowSeconds * emomParsed.rounds) % 60).toString().padStart(2, "0")} min
-                  </span>
                 </div>
 
+                {/* Ventanas per ronda */}
+                <div>
+                  <Label className="font-mono text-[10px]" style={{ color: "#8A8A8E" }}>
+                    Ventanas/ronda
+                  </Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={emomParsed.ventanasPerRonda}
+                    onChange={(e) => {
+                      const val = e.target.value ? parseInt(e.target.value) : 1;
+                      updateEmomCue({ ventanasPerRonda: val });
+                    }}
+                    className="font-body text-sm"
+                    style={inputStyle}
+                  />
+                </div>
+              </div>
+
+              {/* Time summary */}
+              <div className="rounded-lg px-3 py-2" style={{ backgroundColor: "rgba(201,169,110,0.08)", border: "1px solid rgba(201,169,110,0.15)" }}>
+                <span className="font-mono text-[10px]" style={{ color: "#C9A96E" }}>
+                  {emomParsed.totalRondas}R x {emomParsed.ventanasPerRonda}V = {emomParsed.totalRondas * emomParsed.ventanasPerRonda} ventanas totales · {Math.floor((emomParsed.windowSeconds * emomParsed.totalRondas * emomParsed.ventanasPerRonda) / 60)}:{((emomParsed.windowSeconds * emomParsed.totalRondas * emomParsed.ventanasPerRonda) % 60).toString().padStart(2, "0")} min
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
                 {/* Reps per exercise */}
                 <div>
                   <Label className="font-mono text-[10px]" style={{ color: "#8A8A8E" }}>
@@ -268,20 +408,18 @@ export function ExerciseEditPanel({
                   />
                 </div>
 
-                {/* RPE (headline) */}
+                {/* Peso planeado */}
                 <div>
                   <Label className="font-mono text-[10px]" style={{ color: "#8A8A8E" }}>
-                    RPE (headline)
+                    Peso planeado (kg)
                   </Label>
                   <Input
                     type="number"
-                    min={1}
-                    max={10}
                     step="0.5"
-                    value={firstSet.planned_rpe ?? ""}
+                    value={firstSet.planned_weight ?? ""}
                     onChange={(e) =>
                       updateAllSets({
-                        planned_rpe: e.target.value ? parseFloat(e.target.value) : null,
+                        planned_weight: e.target.value ? parseFloat(e.target.value) : null,
                       })
                     }
                     className="font-body text-sm"
@@ -290,23 +428,214 @@ export function ExerciseEditPanel({
                 </div>
               </div>
 
-              {/* EMOM coaching cue — extra text after the auto-prefix */}
+              {/* Alterna sequence */}
               <div>
                 <Label className="font-mono text-[10px]" style={{ color: "#8A8A8E" }}>
-                  Instrucciones adicionales
+                  Secuencia Alterna
                 </Label>
-                <p className="font-mono text-[9px] mb-1" style={{ color: "#C9A96E" }}>
-                  Prefijo auto: EMOM {emomParsed.windowSeconds}s x {emomParsed.rounds} rounds.
+                <p className="font-mono text-[9px] mb-1" style={{ color: "#5A5A5A" }}>
+                  Separar con comas. Ej: Shrimp R, Shrimp L, Plyo BSS R, Plyo BSS L
                 </p>
-                <Textarea
-                  value={emomParsed.extraText}
-                  onChange={(e) => updateEmomField("extraText", e.target.value)}
-                  rows={3}
-                  placeholder="ej. Rounds 1-2: RPE 7. Rounds 3-5: RPE 8.5. Round 6: RPE 9."
+                <Input
+                  value={localAlterna}
+                  onChange={(e) => setLocalAlterna(e.target.value)}
+                  onBlur={() => commitAlterna(localAlterna)}
+                  placeholder="Ejercicio R, Ejercicio L, ..."
                   className="font-body text-sm"
                   style={inputStyle}
                 />
               </div>
+
+              {/* Per-ronda RPE */}
+              <div>
+                <Label className="font-mono text-[10px]" style={{ color: "#8A8A8E" }}>
+                  RPE por ronda
+                </Label>
+                <div className="space-y-1.5 mt-1">
+                  {localRpeRanges.map((range, idx) => (
+                    <div key={idx} className="flex items-center gap-1.5">
+                      <span className="font-mono text-[10px] shrink-0" style={{ color: "#8A8A8E" }}>R</span>
+                      <Input
+                        type="text"
+                        value={range.from}
+                        onChange={(e) => {
+                          const updated = [...localRpeRanges];
+                          updated[idx] = { ...updated[idx], from: e.target.value };
+                          setLocalRpeRanges(updated);
+                        }}
+                        onBlur={() => commitRpeRanges(localRpeRanges)}
+                        className="font-mono text-xs h-7 w-10 text-center px-1"
+                        style={inputStyle}
+                      />
+                      <span className="font-mono text-[10px]" style={{ color: "#5A5A5A" }}>-</span>
+                      <Input
+                        type="text"
+                        value={range.to}
+                        onChange={(e) => {
+                          const updated = [...localRpeRanges];
+                          updated[idx] = { ...updated[idx], to: e.target.value };
+                          setLocalRpeRanges(updated);
+                        }}
+                        onBlur={() => commitRpeRanges(localRpeRanges)}
+                        className="font-mono text-xs h-7 w-10 text-center px-1"
+                        style={inputStyle}
+                      />
+                      <span className="font-mono text-[10px] shrink-0" style={{ color: "#8A8A8E" }}>RPE</span>
+                      <Input
+                        type="text"
+                        value={range.rpe}
+                        onChange={(e) => {
+                          const updated = [...localRpeRanges];
+                          updated[idx] = { ...updated[idx], rpe: e.target.value };
+                          setLocalRpeRanges(updated);
+                        }}
+                        onBlur={() => commitRpeRanges(localRpeRanges)}
+                        placeholder="8.5"
+                        className="font-mono text-xs h-7 w-14 text-center px-1"
+                        style={inputStyle}
+                      />
+                      <button
+                        onClick={() => {
+                          const updated = localRpeRanges.filter((_, i) => i !== idx);
+                          setLocalRpeRanges(updated);
+                          commitRpeRanges(updated);
+                        }}
+                        className="shrink-0 w-6 h-6 flex items-center justify-center rounded"
+                        style={{ color: "#D45555" }}
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => {
+                      const lastTo = localRpeRanges.length > 0
+                        ? parseInt(localRpeRanges[localRpeRanges.length - 1].to) + 1
+                        : 1;
+                      setLocalRpeRanges([...localRpeRanges, {
+                        from: String(lastTo),
+                        to: String(emomParsed.totalRondas),
+                        rpe: "",
+                      }]);
+                    }}
+                    className="flex items-center gap-1 font-mono text-[10px] py-1"
+                    style={{ color: "#C9A96E" }}
+                  >
+                    <Plus className="w-3 h-3" />
+                    Agregar rango RPE
+                  </button>
+                </div>
+              </div>
+
+              {/* Extra notes */}
+              <div>
+                <Label className="font-mono text-[10px]" style={{ color: "#8A8A8E" }}>
+                  Notas adicionales
+                </Label>
+                <p className="font-mono text-[9px] mb-1" style={{ color: "#C9A96E" }}>
+                  Cue auto: EMOM {emomParsed.windowSeconds}s | {emomParsed.totalRondas}R x {emomParsed.ventanasPerRonda}V
+                </p>
+                <Textarea
+                  value={emomParsed.extraNotes}
+                  onChange={(e) => updateEmomCue({ extraNotes: e.target.value })}
+                  rows={2}
+                  placeholder="Notas adicionales para el atleta..."
+                  className="font-body text-sm"
+                  style={inputStyle}
+                />
+              </div>
+
+              {/* ─── Per-ronda editing grid (EMOM) ─── */}
+              {setCount > 1 && (
+                <div>
+                  <button
+                    onClick={() => setPerSetOpen(!perSetOpen)}
+                    className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider py-1"
+                    style={{ color: setsVary ? "#C9A96E" : "#8A8A8E" }}
+                  >
+                    {perSetOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                    Editar por ronda {setsVary && "(valores distintos)"}
+                  </button>
+
+                  {perSetOpen && (
+                    <div className="mt-2 space-y-2">
+                      {/* Header row */}
+                      <div className="grid gap-2" style={{ gridTemplateColumns: "2.5rem 1fr 1fr 1fr 1fr" }}>
+                        <span className="font-mono text-[9px]" style={{ color: "#5A5A5A" }}>Ronda</span>
+                        <span className="font-mono text-[9px]" style={{ color: "#5A5A5A" }}>Reps</span>
+                        <span className="font-mono text-[9px]" style={{ color: "#5A5A5A" }}>Peso</span>
+                        <span className="font-mono text-[9px]" style={{ color: "#5A5A5A" }}>RPE</span>
+                        <span className="font-mono text-[9px]" style={{ color: "#5A5A5A" }}>RIR</span>
+                      </div>
+
+                      {exerciseGroup.sets
+                        .slice()
+                        .sort((a, b) => a.set_order - b.set_order)
+                        .map((s, i) => (
+                        <div
+                          key={s.id}
+                          className="grid gap-2 items-center"
+                          style={{ gridTemplateColumns: "2.5rem 1fr 1fr 1fr 1fr" }}
+                        >
+                          <span className="font-mono text-xs font-semibold" style={{ color: "#C9A96E" }}>
+                            R{i + 1}
+                          </span>
+                          <Input
+                            type="number"
+                            value={s.planned_reps ?? ""}
+                            onChange={(e) =>
+                              onUpdateSets(s.id, {
+                                planned_reps: e.target.value ? parseInt(e.target.value) : null,
+                              })
+                            }
+                            className="font-mono text-xs h-8"
+                            style={inputStyle}
+                          />
+                          <Input
+                            type="number"
+                            step="0.5"
+                            value={s.planned_weight ?? ""}
+                            onChange={(e) =>
+                              onUpdateSets(s.id, {
+                                planned_weight: e.target.value ? parseFloat(e.target.value) : null,
+                              })
+                            }
+                            className="font-mono text-xs h-8"
+                            style={inputStyle}
+                          />
+                          <Input
+                            type="number"
+                            min={1}
+                            max={10}
+                            step="0.5"
+                            value={s.planned_rpe ?? ""}
+                            onChange={(e) =>
+                              onUpdateSets(s.id, {
+                                planned_rpe: e.target.value ? parseFloat(e.target.value) : null,
+                              })
+                            }
+                            className="font-mono text-xs h-8"
+                            style={inputStyle}
+                          />
+                          <Input
+                            type="number"
+                            min={0}
+                            max={10}
+                            value={s.planned_rir ?? ""}
+                            onChange={(e) =>
+                              onUpdateSets(s.id, {
+                                planned_rir: e.target.value ? parseInt(e.target.value) : null,
+                              })
+                            }
+                            className="font-mono text-xs h-8"
+                            style={inputStyle}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </>
           ) : (
             /* ═══════ Standard fields (non-EMOM) ═══════ */

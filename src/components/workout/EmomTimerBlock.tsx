@@ -695,9 +695,14 @@ export default function EmomTimerBlock({
                     }}
                   >
                     {hasWeight ? (
-                      <span className="font-mono text-sm font-medium" style={{ color: "#C75B39" }}>
-                        {mainWeight}
-                      </span>
+                      <>
+                        <span className="font-mono text-sm font-medium" style={{ color: "#C75B39" }}>
+                          {mainWeight}
+                        </span>
+                        <span className="font-mono text-[10px]" style={{ color: "#C75B39", opacity: 0.7 }}>
+                          {weightUnit}
+                        </span>
+                      </>
                     ) : (
                       <>
                         <Dumbbell className="w-3.5 h-3.5 text-muted-foreground" />
@@ -766,7 +771,7 @@ export default function EmomTimerBlock({
                                   className="font-mono text-xs font-medium"
                                   style={{ color: hasRondaWeight ? "#C75B39" : "#8A8A8E" }}
                                 >
-                                  {hasRondaWeight ? rondaWeight : "—"}
+                                  {hasRondaWeight ? `${rondaWeight} ${weightUnit}` : `— ${weightUnit}`}
                                 </span>
                               </button>
                             );

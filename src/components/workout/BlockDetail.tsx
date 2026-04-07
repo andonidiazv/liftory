@@ -342,13 +342,16 @@ export default function BlockDetail({
           <EmomTimerBlock
             block={block}
             saving={saving}
+            weightUnit={weightUnit}
             isCompleted={isCompleted}
             onCompleteAll={async () => {
               for (const g of block.groups) {
                 for (const set of g.sets) {
                   if (!isCompleted(set)) {
                     setOptimisticCompleted((prev) => new Set(prev).add(set.id));
-                    await onCompleteSet(set, { actual_weight: 0, actual_reps: set.planned_reps || 1 });
+                    // Use existing actual_weight if user already logged it, otherwise 0
+                    const existingWeight = set.actual_weight ?? 0;
+                    await onCompleteSet(set, { actual_weight: existingWeight, actual_reps: set.planned_reps || 1 });
                   }
                 }
               }
@@ -362,6 +365,10 @@ export default function BlockDetail({
                 }
               }
             }}
+            onUpdateSetWeight={async (setId, weightKg) => {
+              await onUpdateSetField(setId, "actual_weight", weightKg);
+            }}
+            getSuggestedWeight={getSuggestedWeight}
             onOpenVideo={(v) => setVideoOverlay(v)}
           />
         ) : blockMode === 'cardio' ? (
@@ -546,188 +553,6 @@ export default function BlockDetail({
         visible={!!videoOverlay}
         onClose={() => setVideoOverlay(null)}
       />
-    </div>
-  );
-}
-
-/* ═══════ EMOM CARD (instruction mode) ═══════ */
-function EmomCard({
-  block, saving, isCompleted, onCompleteAll, onUncompleteAll, onOpenVideo,
-  workoutId, userId, onSwapExercise,
-}: {
-  block: WorkoutBlock; saving: boolean;
-  isCompleted: (s: WorkoutSetData) => boolean;
-  onCompleteAll: () => Promise<void>;
-  onUncompleteAll: () => Promise<void>;
-  onOpenVideo: (v: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
-  workoutId?: string; userId?: string; onSwapExercise?: () => void;
-}) {
-  const [notes, setNotes] = useState("");
-  const [completing, setCompleting] = useState(false);
-  const [swapTarget, setSwapTarget] = useState<{ exerciseId: string; exerciseName: string; blockLabel: string; originalExerciseId?: string | null } | null>(null);
-  const [exercisesWithSubs, setExercisesWithSubs] = useState<Set<string>>(new Set());
-  const [originalExerciseMap, setOriginalExerciseMap] = useState<Map<string, string>>(new Map());
-  const allSets = block.groups.flatMap(g => g.sets);
-  const allDone = allSets.every(s => isCompleted(s));
-  const firstCue = allSets[0]?.coaching_cue_override;
-
-  // Check which exercises in this EMOM have substitutions (directly or via swap)
-  useEffect(() => {
-    if (!workoutId || !userId) return;
-    const exerciseIds = block.groups.map(g => g.exercise.id);
-
-    const check = async () => {
-      const subsSet = new Set<string>();
-      const origMap = new Map<string, string>();
-
-      // 1. Direct subs
-      const { data: directSubs } = await supabase
-        .from("exercise_substitutions")
-        .select("exercise_id")
-        .in("exercise_id", exerciseIds);
-      (directSubs || []).forEach((d: any) => subsSet.add(d.exercise_id));
-
-      // 2. Check swap records — exercises that are replacements
-      const { data: swapRecords } = await supabase
-        .from("workout_exercise_swaps")
-        .select("original_exercise_id, replacement_exercise_id")
-        .eq("user_id", userId)
-        .eq("workout_id", workoutId)
-        .in("replacement_exercise_id", exerciseIds);
-
-      if (swapRecords?.length) {
-        const origIds = swapRecords.map((s: any) => s.original_exercise_id);
-        const { data: origSubs } = await supabase
-          .from("exercise_substitutions")
-          .select("exercise_id")
-          .in("exercise_id", origIds);
-        const origWithSubs = new Set((origSubs || []).map((d: any) => d.exercise_id));
-
-        for (const sr of swapRecords) {
-          if (origWithSubs.has(sr.original_exercise_id)) {
-            subsSet.add(sr.replacement_exercise_id);
-            origMap.set(sr.replacement_exercise_id, sr.original_exercise_id);
-          }
-        }
-      }
-
-      setExercisesWithSubs(subsSet);
-      setOriginalExerciseMap(origMap);
-    };
-
-    check();
-  }, [block.groups, workoutId, userId]);
-
-  const handleDone = async () => {
-    setCompleting(true);
-    await onCompleteAll();
-    setCompleting(false);
-  };
-
-  return (
-    <div className="rounded-2xl border border-border bg-card p-4">
-      {/* Instructions */}
-      {firstCue && (
-        <p className="font-body text-[14px] text-foreground leading-relaxed mb-4">
-          {firstCue}
-        </p>
-      )}
-
-      {/* Exercise list */}
-      <p className="font-mono uppercase text-muted-foreground mb-2" style={{ fontSize: 9, letterSpacing: "2px" }}>
-        EJERCICIOS
-      </p>
-      <div className="flex flex-col gap-2 mb-4">
-        {block.groups.map((group) => {
-          const ex = group.exercise;
-          const reps = group.sets[0]?.planned_reps;
-          const cue = group.sets[0]?.coaching_cue_override;
-          return (
-            <div key={ex.id} className="flex items-center gap-3 rounded-xl bg-secondary/50 p-3">
-              <button
-                onClick={() => onOpenVideo({ name: ex.name, videoUrl: ex.video_url, coachingCue: cue })}
-                className="shrink-0 overflow-hidden rounded-lg"
-                style={{ width: 48, height: 36 }}
-              >
-                <ExerciseThumbnail thumbnailUrl={ex.thumbnail_url} videoUrl={ex.video_url} name={ex.name} width={48} height={36} />
-              </button>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <p className="font-body text-sm font-semibold text-foreground truncate">{ex.name}</p>
-                  {exercisesWithSubs.has(ex.id) && (
-                    <button
-                      onClick={() => setSwapTarget({
-                        exerciseId: ex.id,
-                        exerciseName: ex.name,
-                        blockLabel: group.sets[0]?.block_label || "",
-                        originalExerciseId: originalExerciseMap.get(ex.id) || null,
-                      })}
-                      className="shrink-0 flex items-center justify-center rounded-full"
-                      style={{ width: 24, height: 24, background: "hsl(var(--border))" }}
-                    >
-                      <Shuffle className="h-3 w-3 text-muted-foreground" />
-                    </button>
-                  )}
-                </div>
-              </div>
-              {reps && (
-                <span className="font-mono text-muted-foreground shrink-0" style={{ fontSize: 12 }}>
-                  {formatReps(reps, cue)}
-                </span>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {allDone ? (
-        <button
-          onClick={async () => { setCompleting(true); await onUncompleteAll(); setCompleting(false); }}
-          disabled={saving || completing}
-          className="flex items-center justify-center gap-2 py-3 w-full"
-        >
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary">
-            <Check className="h-4 w-4 text-primary-foreground" />
-          </div>
-          <span className="font-body text-sm font-medium text-foreground">Completado</span>
-        </button>
-      ) : (
-        <>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Pesos usados, notas..."
-            className="w-full rounded-xl bg-secondary p-3 text-sm text-foreground font-body placeholder:text-muted-foreground outline-none resize-none"
-            rows={2}
-          />
-          <button
-            onClick={handleDone}
-            disabled={saving || completing}
-            className="press-scale mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 font-body text-sm font-medium text-primary-foreground disabled:opacity-50"
-          >
-            {completing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-            Completado
-          </button>
-        </>
-      )}
-
-      {/* Swap bottom sheet for EMOM exercises */}
-      {swapTarget && workoutId && userId && (
-        <SwapBottomSheet
-          visible={!!swapTarget}
-          exerciseId={swapTarget.exerciseId}
-          exerciseName={swapTarget.exerciseName}
-          blockLabel={swapTarget.blockLabel}
-          workoutId={workoutId}
-          userId={userId}
-          originalExerciseId={swapTarget.originalExerciseId}
-          onClose={() => setSwapTarget(null)}
-          onSwapComplete={() => {
-            setSwapTarget(null);
-            onSwapExercise?.();
-          }}
-        />
-      )}
     </div>
   );
 }

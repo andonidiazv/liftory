@@ -66,14 +66,6 @@ function getBlockWarnings(block: WorkoutBlock): { unloggedSets: number; missingW
   return { unloggedSets, missingWeights };
 }
 
-function getInstructionSummary(block: WorkoutBlock): string {
-  const cues = block.groups
-    .map(g => g.sets[0]?.coaching_cue_override)
-    .filter(Boolean);
-  if (cues.length > 0) return cues.join(" · ");
-  return block.exerciseNames.join(" · ");
-}
-
 /** Render block name with bold main part and normal suffix */
 function BlockNameDisplay({ name }: { name: string }) {
   const dashIdx = name.indexOf(' — ');
@@ -298,19 +290,13 @@ export default function WorkoutOverview({
                     {isRecovery && (
                       <p className="mt-0.5 font-mono text-muted-foreground" style={{ fontSize: 10 }}>2 rondas</p>
                     )}
-                    {isInstructionBlock(block) ? (
-                      <p className="mt-0.5 font-body text-muted-foreground" style={{ fontSize: 12, display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                        {getInstructionSummary(block)}
+                    <p className="mt-0.5 font-body text-muted-foreground truncate" style={{ fontSize: 12 }}>
+                      {block.exerciseNames.join(" · ")}
+                    </p>
+                    {!isInstructionBlock(block) && (
+                      <p className="mt-1 font-mono text-muted-foreground" style={{ fontSize: 11 }}>
+                        {block.totalSets} sets · ~{block.estimatedMinutes} min
                       </p>
-                    ) : (
-                      <>
-                        <p className="mt-0.5 font-body text-muted-foreground truncate" style={{ fontSize: 12 }}>
-                          {block.exerciseNames.join(" · ")}
-                        </p>
-                        <p className="mt-1 font-mono text-muted-foreground" style={{ fontSize: 11 }}>
-                          {block.totalSets} sets · ~{block.estimatedMinutes} min
-                        </p>
-                      </>
                     )}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
