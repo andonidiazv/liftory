@@ -38,6 +38,7 @@ interface DayCardProps {
   onAddExercise: (blockLabel: string) => void;
   onEditExercise: (set: DraftSet) => void;
   onDeleteExercise: (blockLabel: string, exerciseId: string) => void;
+  onMoveExercise: (blockLabel: string, exerciseId: string, direction: "up" | "down") => void;
   onSwapExercise: (blockLabel: string, oldExerciseId: string) => void;
   emptyBlocks?: string[];
 }
@@ -57,6 +58,7 @@ export function DayCard({
   onAddExercise,
   onEditExercise,
   onDeleteExercise,
+  onMoveExercise,
   onSwapExercise,
   emptyBlocks = [],
 }: DayCardProps) {
@@ -292,6 +294,7 @@ export function DayCard({
                 onAddExercise={() => onAddExercise(block.label)}
                 onEditExercise={onEditExercise}
                 onDeleteExercise={(exerciseId) => onDeleteExercise(block.label, exerciseId)}
+                onMoveExercise={(exerciseId, direction) => onMoveExercise(block.label, exerciseId, direction)}
                 onSwapExercise={(oldExerciseId) => onSwapExercise(block.label, oldExerciseId)}
               />
 

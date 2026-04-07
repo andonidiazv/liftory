@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ChevronDown, ChevronRight, ArrowUp, ArrowDown, Trash2, Plus } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { ChevronDown, ChevronRight, ArrowUp, ArrowDown, Trash2, Plus, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { DerivedBlock, DraftSet } from "./types";
 import { ExerciseRow } from "./ExerciseRow";
@@ -15,6 +15,7 @@ interface BlockContainerProps {
   onAddExercise: () => void;
   onEditExercise: (set: DraftSet) => void;
   onDeleteExercise: (exerciseId: string) => void;
+  onMoveExercise: (exerciseId: string, direction: "up" | "down") => void;
   onSwapExercise: (oldExerciseId: string) => void;
 }
 
@@ -25,13 +26,35 @@ export function BlockContainer({
   dayExpanded = false,
   onMove,
   onDelete,
+  onRename,
   onAddExercise,
   onEditExercise,
   onDeleteExercise,
+  onMoveExercise,
   onSwapExercise,
 }: BlockContainerProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState(block.label);
+  const renameRef = useRef<HTMLInputElement>(null);
   const isOpen = !collapsed;
+
+  useEffect(() => {
+    if (renaming && renameRef.current) {
+      renameRef.current.focus();
+      renameRef.current.select();
+    }
+  }, [renaming]);
+
+  const commitRename = () => {
+    const trimmed = renameValue.trim().toUpperCase();
+    if (trimmed && trimmed !== block.label) {
+      onRename(trimmed);
+    } else {
+      setRenameValue(block.label);
+    }
+    setRenaming(false);
+  };
 
   return (
     <div className="rounded-lg overflow-hidden" style={{ backgroundColor: "#1C1C1E" }}>
@@ -55,13 +78,31 @@ export function BlockContainer({
             )}
           </button>
 
-          {/* Block label */}
-          <span
-            className="font-mono text-xs uppercase font-semibold"
-            style={{ color: block.color }}
-          >
-            {block.label}
-          </span>
+          {/* Block label — inline editable */}
+          {renaming ? (
+            <input
+              ref={renameRef}
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value.toUpperCase())}
+              onBlur={commitRename}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") commitRename();
+                if (e.key === "Escape") { setRenameValue(block.label); setRenaming(false); }
+              }}
+              className="font-mono text-xs uppercase font-semibold bg-transparent outline-none border-b"
+              style={{ color: block.color, borderColor: block.color, width: `${Math.max(renameValue.length, 6)}ch` }}
+            />
+          ) : (
+            <button
+              className="group/label flex items-center gap-1 font-mono text-xs uppercase font-semibold"
+              style={{ color: block.color }}
+              onClick={() => { setRenameValue(block.label); setRenaming(true); }}
+              title="Renombrar bloque"
+            >
+              {block.label}
+              <Pencil className="w-2.5 h-2.5 opacity-0 group-hover/label:opacity-60 transition-opacity" />
+            </button>
+          )}
 
           <span
             className="font-mono text-[10px]"
@@ -123,14 +164,17 @@ export function BlockContainer({
         {/* Body */}
         {isOpen && (
           <div className={dayExpanded ? "px-3 pb-3 space-y-1" : "px-2 pb-2 space-y-0.5"}>
-            {block.exerciseGroups.map((eg) => (
+            {block.exerciseGroups.map((eg, idx) => (
               <ExerciseRow
                 key={eg.exerciseId}
                 exerciseGroup={eg}
                 blockColor={block.color}
                 expanded={dayExpanded}
+                isFirst={idx === 0}
+                isLast={idx === block.exerciseGroups.length - 1}
                 onEdit={onEditExercise}
                 onDelete={() => onDeleteExercise(eg.exerciseId)}
+                onMove={(dir) => onMoveExercise(eg.exerciseId, dir)}
                 onSwap={() => onSwapExercise(eg.exerciseId)}
               />
             ))}

@@ -108,6 +108,9 @@ export default function AdminProgramDetail() {
     deleteExerciseFromBlock,
     swapExercise,
     moveExerciseBetweenBlocks,
+    addSetToExercise,
+    removeSetFromExercise,
+    moveExerciseInBlock,
     save,
     discard,
     undo,
@@ -518,6 +521,9 @@ export default function AdminProgramDetail() {
                           exerciseId,
                         )
                       }
+                      onMoveExercise={(blockLabel, exerciseId, direction) =>
+                        moveExerciseInBlock(workout.id, blockLabel, exerciseId, direction)
+                      }
                       onSwapExercise={(blockLabel, oldExerciseId) =>
                         setSwapTarget({
                           workoutId: workout.id,
@@ -577,8 +583,15 @@ export default function AdminProgramDetail() {
         onClose={() => setEditTarget(null)}
         exerciseGroup={editExerciseGroup}
         blockLabel={editTarget?.blockLabel ?? ""}
+        workoutId={editTarget?.workoutId ?? ""}
         availableBlocks={editAvailableBlocks}
         onUpdateSets={(setId, fields) => updateSet(setId, fields)}
+        onAddSet={() => {
+          if (editTarget) addSetToExercise(editTarget.workoutId, editTarget.blockLabel, editTarget.set.exercise_id);
+        }}
+        onRemoveSet={() => {
+          if (editTarget) removeSetFromExercise(editTarget.workoutId, editTarget.blockLabel, editTarget.set.exercise_id);
+        }}
         onDeleteExercise={handleEditDelete}
         onSwapExercise={handleEditSwap}
         onMoveToBlock={handleMoveToBlock}

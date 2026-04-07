@@ -49,6 +49,10 @@ export interface DraftSet {
   planned_duration_seconds: number | null;
   planned_rest_seconds: number | null;
   coaching_cue_override: string | null;
+  /** Read-only — populated from exercises join, not persisted */
+  video_url?: string | null;
+  /** Read-only — populated from exercises join, not persisted */
+  thumbnail_url?: string | null;
 }
 
 /* ------------------------------------------------------------------ */

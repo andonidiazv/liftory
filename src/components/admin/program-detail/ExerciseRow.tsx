@@ -1,4 +1,4 @@
-import { Shuffle, X } from "lucide-react";
+import { Shuffle, X, ArrowUp, ArrowDown, Video } from "lucide-react";
 import type { DraftSet } from "./types";
 
 interface ExerciseRowProps {
@@ -10,8 +10,11 @@ interface ExerciseRowProps {
   };
   blockColor: string;
   expanded?: boolean;
+  isFirst?: boolean;
+  isLast?: boolean;
   onEdit: (set: DraftSet) => void;
   onDelete: () => void;
+  onMove: (direction: "up" | "down") => void;
   onSwap: () => void;
 }
 
@@ -19,14 +22,18 @@ export function ExerciseRow({
   exerciseGroup,
   blockColor,
   expanded = false,
+  isFirst = false,
+  isLast = false,
   onEdit,
   onDelete,
+  onMove,
   onSwap,
 }: ExerciseRowProps) {
   const firstSet = exerciseGroup.sets[0];
   if (!firstSet) return null;
 
   const setCount = exerciseGroup.sets.length;
+  const hasVideo = !!firstSet.video_url;
 
   const setTypeAbbr: Record<string, string> = {
     working: "WRK",
@@ -62,8 +69,30 @@ export function ExerciseRow({
               >
                 {exerciseGroup.exerciseName}
               </span>
+              {/* Video indicator */}
+              {hasVideo && (
+                <Video className="w-3 h-3 flex-shrink-0" style={{ color: "#7A8B5C" }} />
+              )}
               {/* Action buttons */}
               <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity ml-auto flex-shrink-0">
+                <button
+                  onClick={(e) => { e.stopPropagation(); onMove("up"); }}
+                  disabled={isFirst}
+                  className="p-1 rounded hover:bg-white/10 disabled:opacity-30"
+                  style={{ color: "#8A8A8E" }}
+                  title="Mover arriba"
+                >
+                  <ArrowUp className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onMove("down"); }}
+                  disabled={isLast}
+                  className="p-1 rounded hover:bg-white/10 disabled:opacity-30"
+                  style={{ color: "#8A8A8E" }}
+                  title="Mover abajo"
+                >
+                  <ArrowDown className="w-3 h-3" />
+                </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); onSwap(); }}
                   className="p-1 rounded hover:bg-white/10"
@@ -82,15 +111,6 @@ export function ExerciseRow({
                 </button>
               </div>
             </div>
-            {/* Spanish name — only for non-EMOM */}
-            {firstSet.set_type !== "emom" && exerciseGroup.exerciseNameEs && (
-              <span
-                className="font-body text-xs block mt-0.5"
-                style={{ color: "#8A8A8E" }}
-              >
-                {exerciseGroup.exerciseNameEs}
-              </span>
-            )}
           </div>
         </div>
 
@@ -99,10 +119,10 @@ export function ExerciseRow({
           {/* Sets × Reps or Duration */}
           <span className="font-mono text-xs" style={{ color: "#C9A96E" }}>
             {firstSet.set_type === "emom"
-              ? `${firstSet.planned_reps ?? "—"} reps`
+              ? `${firstSet.planned_reps ?? "\u2014"} reps`
               : firstSet.planned_duration_seconds
-                ? `${setCount} × ${firstSet.planned_duration_seconds}s`
-                : `${setCount} × ${firstSet.planned_reps ?? "—"}`}
+                ? `${setCount} \u00D7 ${firstSet.planned_duration_seconds}s`
+                : `${setCount} \u00D7 ${firstSet.planned_reps ?? "\u2014"}`}
           </span>
 
           {/* Weight */}
@@ -165,6 +185,11 @@ export function ExerciseRow({
         style={{ backgroundColor: blockColor }}
       />
 
+      {/* Video indicator */}
+      {hasVideo && (
+        <Video className="w-2.5 h-2.5 flex-shrink-0" style={{ color: "#7A8B5C" }} />
+      )}
+
       {/* Exercise name */}
       <span
         className="font-body text-xs min-w-0"
@@ -177,10 +202,10 @@ export function ExerciseRow({
       {/* Set count × Reps or Duration */}
       <span className="font-mono text-xs flex-shrink-0" style={{ color: "#C9A96E" }}>
         {firstSet.set_type === "emom"
-          ? `${firstSet.planned_reps ?? "—"}r`
+          ? `${firstSet.planned_reps ?? "\u2014"}r`
           : firstSet.planned_duration_seconds
-            ? `${setCount}× ${firstSet.planned_duration_seconds}s`
-            : `${setCount}×`}
+            ? `${setCount}\u00D7 ${firstSet.planned_duration_seconds}s`
+            : `${setCount}\u00D7`}
       </span>
 
       {/* Reps (only for rep-based, non-EMOM) */}
@@ -214,6 +239,24 @@ export function ExerciseRow({
 
       {/* Action buttons (visible on hover) */}
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-auto">
+        <button
+          onClick={(e) => { e.stopPropagation(); onMove("up"); }}
+          disabled={isFirst}
+          className="p-0.5 rounded hover:opacity-80 disabled:opacity-30"
+          style={{ color: "#8A8A8E" }}
+          title="Mover arriba"
+        >
+          <ArrowUp className="w-3 h-3" />
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); onMove("down"); }}
+          disabled={isLast}
+          className="p-0.5 rounded hover:opacity-80 disabled:opacity-30"
+          style={{ color: "#8A8A8E" }}
+          title="Mover abajo"
+        >
+          <ArrowDown className="w-3 h-3" />
+        </button>
         <button
           onClick={(e) => { e.stopPropagation(); onSwap(); }}
           className="p-0.5 rounded hover:opacity-80"

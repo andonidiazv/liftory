@@ -159,7 +159,7 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
           const chunk = wIds.slice(i, i + CHUNK);
           const { data, error } = await supabase
             .from("workout_sets")
-            .select("*, exercises(name, name_es)")
+            .select("*, exercises(name, name_es, video_url, thumbnail_url)")
             .in("workout_id", chunk)
             .order("set_order")
             .limit(5000);
@@ -174,7 +174,7 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
         }
 
         draftSets = (allSets ?? []).map(
-          (s: Record<string, unknown> & { exercises?: { name?: string; name_es?: string } }) => ({
+          (s: Record<string, unknown> & { exercises?: { name?: string; name_es?: string; video_url?: string; thumbnail_url?: string } }) => ({
             id: s.id as string,
             workout_id: s.workout_id as string,
             exercise_id: s.exercise_id as string,
@@ -191,6 +191,8 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
             planned_duration_seconds: s.planned_duration_seconds as number | null,
             planned_rest_seconds: s.planned_rest_seconds as number | null,
             coaching_cue_override: s.coaching_cue_override as string | null,
+            video_url: (s.exercises?.video_url as string) ?? null,
+            thumbnail_url: (s.exercises?.thumbnail_url as string) ?? null,
           }),
         );
       }
@@ -621,6 +623,123 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
 
         newSets = _resequenceWorkout(newSets, workoutId);
         return { ...prev, sets: newSets };
+      });
+    },
+    [],
+  );
+
+  /* ---- Add/remove sets for an exercise ---- */
+
+  const addSetToExercise = useCallback(
+    (workoutId: string, blockLabel: string, exerciseId: string) => {
+      setDraftWithUndo((prev) => {
+        // Find existing sets for this exercise in this block
+        const exerciseSets = prev.sets
+          .filter(
+            (s) =>
+              s.workout_id === workoutId &&
+              s.block_label === blockLabel &&
+              s.exercise_id === exerciseId,
+          )
+          .sort((a, b) => a.set_order - b.set_order);
+
+        if (exerciseSets.length === 0) return prev;
+
+        // Clone the last set with a new id
+        const lastSet = exerciseSets[exerciseSets.length - 1];
+        const newSet: DraftSet = {
+          ...lastSet,
+          id: crypto.randomUUID(),
+          _isNew: true,
+          set_order: lastSet.set_order + 1,
+        };
+
+        // Shift all sets after this exercise's position
+        let newSets = prev.sets.map((s) => {
+          if (s.workout_id === workoutId && s.set_order > lastSet.set_order) {
+            return { ...s, set_order: s.set_order + 1 };
+          }
+          return s;
+        });
+
+        newSets = [...newSets, newSet];
+        return { ...prev, sets: newSets };
+      });
+    },
+    [],
+  );
+
+  const removeSetFromExercise = useCallback(
+    (workoutId: string, blockLabel: string, exerciseId: string) => {
+      setDraftWithUndo((prev) => {
+        const exerciseSets = prev.sets
+          .filter(
+            (s) =>
+              s.workout_id === workoutId &&
+              s.block_label === blockLabel &&
+              s.exercise_id === exerciseId,
+          )
+          .sort((a, b) => a.set_order - b.set_order);
+
+        // Must keep at least 1 set
+        if (exerciseSets.length <= 1) return prev;
+
+        const lastSet = exerciseSets[exerciseSets.length - 1];
+        let newSets = prev.sets.filter((s) => s.id !== lastSet.id);
+        newSets = _resequenceWorkout(newSets, workoutId);
+        return { ...prev, sets: newSets };
+      });
+    },
+    [],
+  );
+
+  /* ---- Reorder exercises within a block ---- */
+
+  const moveExerciseInBlock = useCallback(
+    (
+      workoutId: string,
+      blockLabel: string,
+      exerciseId: string,
+      direction: "up" | "down",
+    ) => {
+      setDraftWithUndo((prev) => {
+        // Get all sets for this block, grouped by exercise
+        const blockSets = prev.sets
+          .filter((s) => s.workout_id === workoutId && s.block_label === blockLabel)
+          .sort((a, b) => a.set_order - b.set_order);
+
+        // Build exercise group order
+        const groupOrder: string[] = [];
+        for (const s of blockSets) {
+          if (!groupOrder.includes(s.exercise_id)) {
+            groupOrder.push(s.exercise_id);
+          }
+        }
+
+        const idx = groupOrder.indexOf(exerciseId);
+        const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+        if (idx < 0 || swapIdx < 0 || swapIdx >= groupOrder.length) return prev;
+
+        // Swap the two exercises by reassigning set_order
+        const exA = groupOrder[idx];
+        const exB = groupOrder[swapIdx];
+        const setsA = blockSets.filter((s) => s.exercise_id === exA);
+        const setsB = blockSets.filter((s) => s.exercise_id === exB);
+        const minA = Math.min(...setsA.map((s) => s.set_order));
+        const minB = Math.min(...setsB.map((s) => s.set_order));
+
+        const newSets = prev.sets.map((s) => {
+          if (s.workout_id !== workoutId || s.block_label !== blockLabel) return s;
+          if (s.exercise_id === exA) {
+            return { ...s, set_order: s.set_order + (minB - minA) };
+          }
+          if (s.exercise_id === exB) {
+            return { ...s, set_order: s.set_order + (minA - minB) };
+          }
+          return s;
+        });
+
+        return { ...prev, sets: _resequenceWorkout(newSets, workoutId) };
       });
     },
     [],
@@ -1270,6 +1389,9 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
     deleteExerciseFromBlock,
     swapExercise,
     moveExerciseBetweenBlocks,
+    addSetToExercise,
+    removeSetFromExercise,
+    moveExerciseInBlock,
 
     // Persistence
     save,

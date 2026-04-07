@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Trash2, Shuffle } from "lucide-react";
+import { Trash2, Shuffle, Plus, Minus, Video, ChevronDown, ChevronRight } from "lucide-react";
 import { SET_TYPES } from "@/constants/blocks";
 import type { DraftSet } from "./types";
 import { useState, useMemo } from "react";
@@ -48,8 +48,11 @@ interface ExerciseEditPanelProps {
     sets: DraftSet[];
   } | null;
   blockLabel: string;
+  workoutId: string;
   availableBlocks: string[];
   onUpdateSets: (setId: string, fields: Partial<DraftSet>) => void;
+  onAddSet: () => void;
+  onRemoveSet: () => void;
   onDeleteExercise: () => void;
   onSwapExercise: () => void;
   onMoveToBlock: (targetBlock: string) => void;
@@ -62,11 +65,14 @@ export function ExerciseEditPanel({
   blockLabel,
   availableBlocks,
   onUpdateSets,
+  onAddSet,
+  onRemoveSet,
   onDeleteExercise,
   onSwapExercise,
   onMoveToBlock,
 }: ExerciseEditPanelProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [perSetOpen, setPerSetOpen] = useState(false);
 
   const firstSet = exerciseGroup?.sets[0] ?? null;
   const isEmom = firstSet?.set_type === "emom";
@@ -79,7 +85,8 @@ export function ExerciseEditPanel({
 
   if (!exerciseGroup || !firstSet) return null;
 
-  const isInterval = firstSet.set_type === "interval";
+  const setCount = exerciseGroup.sets.length;
+  const hasVideo = !!firstSet.video_url;
 
   // Update a param across ALL sets in the group
   const updateAllSets = (fields: Partial<DraftSet>) => {
@@ -101,47 +108,96 @@ export function ExerciseEditPanel({
     const updated = { ...emomParsed, [field]: value };
     const newCue = buildEmomCue(updated.windowSeconds, updated.rounds, updated.extraText);
     const fields: Partial<DraftSet> = { coaching_cue_override: newCue };
-    // Sync planned_rest_seconds with window
     if (field === "windowSeconds") {
       fields.planned_rest_seconds = value as number;
     }
     updateAllSets(fields);
   };
 
+  // Check if sets have different values (for showing per-set indicator)
+  const setsVary = exerciseGroup.sets.length > 1 && exerciseGroup.sets.some(
+    (s) =>
+      s.planned_reps !== firstSet.planned_reps ||
+      s.planned_weight !== firstSet.planned_weight ||
+      s.planned_rpe !== firstSet.planned_rpe ||
+      s.planned_rir !== firstSet.planned_rir,
+  );
+
   return (
-    <Dialog open={open} onOpenChange={(val) => { if (!val) onClose(); }}>
+    <Dialog open={open} onOpenChange={(val) => { if (!val) { onClose(); setConfirmDelete(false); setPerSetOpen(false); } }}>
       <DialogContent
         className="max-w-md max-h-[90vh] overflow-y-auto"
         style={{ backgroundColor: "#1C1C1E", borderColor: "#2A2A2A" }}
       >
         <DialogHeader>
-          <DialogTitle className="font-display text-lg" style={{ color: "#FAF8F5" }}>
-            {exerciseGroup.exerciseName}
-          </DialogTitle>
+          <div className="flex items-center gap-2">
+            <DialogTitle className="font-display text-lg" style={{ color: "#FAF8F5" }}>
+              {exerciseGroup.exerciseName}
+            </DialogTitle>
+            {hasVideo && (
+              <Video className="w-4 h-4 flex-shrink-0" style={{ color: "#7A8B5C" }} />
+            )}
+          </div>
         </DialogHeader>
 
         {/* Parameters section */}
         <div className="space-y-3 mt-2">
-          {/* Set type — always first so EMOM fields react immediately */}
-          <div>
-            <Label className="font-mono text-[10px]" style={{ color: "#8A8A8E" }}>
-              Tipo de set
-            </Label>
-            <Select
-              value={firstSet.set_type}
-              onValueChange={(val) => updateAllSets({ set_type: val })}
-            >
-              <SelectTrigger className="font-body text-sm" style={inputStyle}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent style={{ backgroundColor: "#1C1C1E", borderColor: "#3A3A3A" }}>
-                {SET_TYPES.map((st) => (
-                  <SelectItem key={st} value={st} style={{ color: "#FAF8F5" }}>
-                    {st}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+          {/* Set type + set count row */}
+          <div className="flex items-end gap-3">
+            {/* Set type */}
+            <div className="flex-1">
+              <Label className="font-mono text-[10px]" style={{ color: "#8A8A8E" }}>
+                Tipo de set
+              </Label>
+              <Select
+                value={firstSet.set_type}
+                onValueChange={(val) => updateAllSets({ set_type: val })}
+              >
+                <SelectTrigger className="font-body text-sm" style={inputStyle}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent style={{ backgroundColor: "#1C1C1E", borderColor: "#3A3A3A" }}>
+                  {SET_TYPES.map((st) => (
+                    <SelectItem key={st} value={st} style={{ color: "#FAF8F5" }}>
+                      {st}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Set count +/- (not for EMOM — rounds are controlled separately) */}
+            {!isEmom && (
+              <div>
+                <Label className="font-mono text-[10px]" style={{ color: "#8A8A8E" }}>
+                  Series
+                </Label>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={onRemoveSet}
+                    disabled={setCount <= 1}
+                    className="flex items-center justify-center w-8 h-9 rounded border transition-colors disabled:opacity-30"
+                    style={{ backgroundColor: "#0D0C0A", borderColor: "#3A3A3A", color: "#FAF8F5" }}
+                  >
+                    <Minus className="w-3.5 h-3.5" />
+                  </button>
+                  <span
+                    className="flex items-center justify-center w-10 h-9 rounded border font-mono text-sm font-semibold"
+                    style={{ backgroundColor: "#0D0C0A", borderColor: "#3A3A3A", color: "#FAF8F5" }}
+                  >
+                    {setCount}
+                  </span>
+                  <button
+                    onClick={onAddSet}
+                    className="flex items-center justify-center w-8 h-9 rounded border transition-colors"
+                    style={{ backgroundColor: "#0D0C0A", borderColor: "#3A3A3A", color: "#FAF8F5" }}
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {isEmom && emomParsed ? (
@@ -416,18 +472,110 @@ export function ExerciseEditPanel({
                   style={inputStyle}
                 />
               </div>
+
+              {/* ─── Per-set editing ─── */}
+              {setCount > 1 && (
+                <div>
+                  <button
+                    onClick={() => setPerSetOpen(!perSetOpen)}
+                    className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider py-1"
+                    style={{ color: setsVary ? "#C9A96E" : "#8A8A8E" }}
+                  >
+                    {perSetOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                    Editar por set {setsVary && "(valores distintos)"}
+                  </button>
+
+                  {perSetOpen && (
+                    <div className="mt-2 space-y-2">
+                      {/* Header row */}
+                      <div className="grid gap-2" style={{ gridTemplateColumns: "2rem 1fr 1fr 1fr 1fr" }}>
+                        <span className="font-mono text-[9px]" style={{ color: "#5A5A5A" }}>#</span>
+                        <span className="font-mono text-[9px]" style={{ color: "#5A5A5A" }}>Reps</span>
+                        <span className="font-mono text-[9px]" style={{ color: "#5A5A5A" }}>Peso</span>
+                        <span className="font-mono text-[9px]" style={{ color: "#5A5A5A" }}>RPE</span>
+                        <span className="font-mono text-[9px]" style={{ color: "#5A5A5A" }}>RIR</span>
+                      </div>
+
+                      {exerciseGroup.sets
+                        .slice()
+                        .sort((a, b) => a.set_order - b.set_order)
+                        .map((s, i) => (
+                        <div
+                          key={s.id}
+                          className="grid gap-2 items-center"
+                          style={{ gridTemplateColumns: "2rem 1fr 1fr 1fr 1fr" }}
+                        >
+                          <span className="font-mono text-xs font-semibold" style={{ color: "#8A8A8E" }}>
+                            {i + 1}
+                          </span>
+                          <Input
+                            type="number"
+                            value={s.planned_reps ?? ""}
+                            onChange={(e) =>
+                              onUpdateSets(s.id, {
+                                planned_reps: e.target.value ? parseInt(e.target.value) : null,
+                              })
+                            }
+                            className="font-mono text-xs h-8"
+                            style={inputStyle}
+                          />
+                          <Input
+                            type="number"
+                            step="0.5"
+                            value={s.planned_weight ?? ""}
+                            onChange={(e) =>
+                              onUpdateSets(s.id, {
+                                planned_weight: e.target.value ? parseFloat(e.target.value) : null,
+                              })
+                            }
+                            className="font-mono text-xs h-8"
+                            style={inputStyle}
+                          />
+                          <Input
+                            type="number"
+                            min={1}
+                            max={10}
+                            step="0.5"
+                            value={s.planned_rpe ?? ""}
+                            onChange={(e) =>
+                              onUpdateSets(s.id, {
+                                planned_rpe: e.target.value ? parseFloat(e.target.value) : null,
+                              })
+                            }
+                            className="font-mono text-xs h-8"
+                            style={inputStyle}
+                          />
+                          <Input
+                            type="number"
+                            min={0}
+                            max={10}
+                            value={s.planned_rir ?? ""}
+                            onChange={(e) =>
+                              onUpdateSets(s.id, {
+                                planned_rir: e.target.value ? parseInt(e.target.value) : null,
+                              })
+                            }
+                            className="font-mono text-xs h-8"
+                            style={inputStyle}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </>
           )}
         </div>
 
         {/* Actions section */}
         <DialogFooter className="flex flex-col gap-2 sm:flex-col mt-4">
-          <div className="flex items-center gap-2 w-full">
+          <div className="flex items-center gap-2 w-full flex-wrap">
             {/* Move to block */}
             {otherBlocks.length > 0 && (
               <Select onValueChange={(val) => onMoveToBlock(val)}>
                 <SelectTrigger
-                  className="flex-1 font-body text-xs"
+                  className="flex-1 font-body text-xs min-w-[120px]"
                   style={inputStyle}
                 >
                   <SelectValue placeholder="Mover a bloque..." />
