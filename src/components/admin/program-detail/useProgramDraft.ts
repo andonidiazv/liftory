@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type {
@@ -749,9 +749,13 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
   /*  PERSISTENCE                                                     */
   /* ================================================================ */
 
+  const saveInProgressRef = useRef(false);
+
   const save = useCallback(
     async (scope: SaveScope) => {
       if (!draft.program) return;
+      if (saveInProgressRef.current) return; // Prevent concurrent saves
+      saveInProgressRef.current = true;
       setSaving(true);
 
       try {
@@ -1331,6 +1335,7 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
         toast.error(`Error al guardar: ${msg}`);
       } finally {
         setSaving(false);
+        saveInProgressRef.current = false;
       }
     },
     [draft, original, fetchData, mesocycleId],

@@ -43,9 +43,12 @@ export function SaveScopeModal({
       case "forward":
         onSave({ type: "forward", fromWeek: currentWeek, toWeek: totalWeeks });
         break;
-      case "range":
-        onSave({ type: "range", fromWeek: rangeFrom, toWeek: rangeTo });
+      case "range": {
+        const safeFrom = Math.max(1, Math.min(rangeFrom, totalWeeks));
+        const safeTo = Math.max(safeFrom, Math.min(rangeTo, totalWeeks));
+        onSave({ type: "range", fromWeek: safeFrom, toWeek: safeTo });
         break;
+      }
       case "all":
         onSave({ type: "all" });
         break;

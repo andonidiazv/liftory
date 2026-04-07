@@ -19,7 +19,7 @@ import {
 import { Trash2, Shuffle, Plus, Minus, Video, ChevronDown, ChevronRight } from "lucide-react";
 import { SET_TYPES } from "@/constants/blocks";
 import type { DraftSet } from "./types";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 /* ─── EMOM cue helpers ─── */
 
@@ -46,9 +46,9 @@ function parseEmomFromCue(cue: string | null): EmomCueParsed {
   // New format: "EMOM 75s | 3R x 4V. Alterna: Shrimp R, Shrimp L, Plyo BSS R, Plyo BSS L. R1-2: RPE 8.5, R3: RPE 9"
   const newMatch = cue.match(/EMOM\s+(\d+)s?\s*\|\s*(\d+)R\s*x\s*(\d+)V/i);
   if (newMatch) {
-    const windowSeconds = parseInt(newMatch[1], 10);
-    const totalRondas = parseInt(newMatch[2], 10);
-    const ventanasPerRonda = parseInt(newMatch[3], 10);
+    const windowSeconds = parseInt(newMatch[1], 10) || 90;
+    const totalRondas = parseInt(newMatch[2], 10) || 3;
+    const ventanasPerRonda = parseInt(newMatch[3], 10) || 4;
 
     // Parse Alterna
     const alternaMatch = cue.match(/Alterna:\s*(.+?)(?:\.\s|$)/i);
@@ -82,8 +82,8 @@ function parseEmomFromCue(cue: string | null): EmomCueParsed {
   // Legacy format: "EMOM 75s x 8 rounds"
   const legacyMatch = cue.match(/^EMOM\s+(\d+)s?\s*x\s*(\d+)\s*rounds?\.?\s*/i);
   if (legacyMatch) {
-    const windowSeconds = parseInt(legacyMatch[1], 10);
-    const totalWindows = parseInt(legacyMatch[2], 10);
+    const windowSeconds = parseInt(legacyMatch[1], 10) || 90;
+    const totalWindows = parseInt(legacyMatch[2], 10) || 6;
     const extraText = cue.slice(legacyMatch[0].length).trim();
 
     const alternaMatch = extraText.match(/Alterna:\s*(.+?)(?:\s*\(x\d+\))?(?:\.\s|$)/i);
@@ -169,8 +169,12 @@ export function ExerciseEditPanel({
   const [localRpeRanges, setLocalRpeRanges] = useState<{ from: string; to: string; rpe: string }[]>([]);
   const [localAlterna, setLocalAlterna] = useState("");
 
-  // Sync local state when emomParsed changes
-  useMemo(() => {
+  // Stable keys for sync detection
+  const alternaKey = emomParsed?.alternaItems.join(",") ?? "";
+  const rpeKey = emomParsed?.rpeRanges.map((r) => `${r.from}-${r.to}:${r.rpe}`).join(",") ?? "";
+
+  // Sync local state when external emomParsed changes
+  useEffect(() => {
     if (emomParsed) {
       setLocalRpeRanges(
         emomParsed.rpeRanges.length > 0
@@ -179,7 +183,8 @@ export function ExerciseEditPanel({
       );
       setLocalAlterna(emomParsed.alternaItems.join(", "));
     }
-  }, [emomParsed?.alternaItems.join(","), emomParsed?.rpeRanges.map((r) => `${r.from}-${r.to}:${r.rpe}`).join(",")]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [alternaKey, rpeKey]);
 
   if (!exerciseGroup || !firstSet) return null;
 

@@ -64,12 +64,14 @@ export default function AdminProgramDetail() {
 
   useEffect(() => {
     if (!id) return;
+    let cancelled = false;
     (async () => {
       const { data } = await supabase
         .from("mesocycles")
         .select("id, cycle_number, status")
         .eq("template_program_id", id)
         .order("cycle_number", { ascending: true });
+      if (cancelled) return;
       if (data && data.length > 0) {
         setMesocycles(data);
         if (!cycleParam) {
@@ -79,6 +81,7 @@ export default function AdminProgramDetail() {
         }
       }
     })();
+    return () => { cancelled = true; };
   }, [id, cycleParam]);
 
   const handleCycleChange = (mcId: string) => {
