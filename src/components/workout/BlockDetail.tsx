@@ -13,6 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import IntervalTimerBlock from "./IntervalTimerBlock";
 import EmomTimerBlock from "./EmomTimerBlock";
+import { TimerErrorBoundary } from "./TimerErrorBoundary";
 
 /** Block types by render mode */
 const CARDIO_BLOCKS = ['ENGINE BLOCK'];
@@ -339,6 +340,7 @@ export default function BlockDetail({
       {/* Content */}
       <div className="flex-1 px-5 pb-8">
         {blockMode === 'emom' ? (
+          <TimerErrorBoundary blockName="EMOM">
           <EmomTimerBlock
             block={block}
             saving={saving}
@@ -371,6 +373,7 @@ export default function BlockDetail({
             getSuggestedWeight={getSuggestedWeight}
             onOpenVideo={(v) => setVideoOverlay(v)}
           />
+          </TimerErrorBoundary>
         ) : blockMode === 'cardio' ? (
           <div className="flex flex-col gap-4">
             {block.groups.map((group) => {
@@ -378,8 +381,8 @@ export default function BlockDetail({
 
               if (hasTimedSets) {
                 return (
+                  <TimerErrorBoundary key={group.exercise.id} blockName="Sprint">
                   <IntervalTimerBlock
-                    key={group.exercise.id}
                     group={group}
                     isCompleted={isCompleted}
                     onCompleteSet={async (set) => {
@@ -392,6 +395,7 @@ export default function BlockDetail({
                     }}
                     onOpenVideo={(v) => setVideoOverlay(v)}
                   />
+                  </TimerErrorBoundary>
                 );
               }
 

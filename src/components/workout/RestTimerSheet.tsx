@@ -37,23 +37,33 @@ export default function RestTimerSheet({ durationSeconds, visible, onDismiss }: 
     };
   }, [visible, remaining > 0]); // eslint-disable-line
 
-  // When timer hits 0
+  // When timer hits 0 — safe audio with gain ramping (no harsh pops)
   useEffect(() => {
     if (remaining !== 0 || !visible) return;
     // Vibrate
-    try { navigator.vibrate?.(200); } catch {}
-    // Sound
+    try { navigator.vibrate?.([80, 50, 80]); } catch {}
+    // Sound — premium beep with proper gain envelope
     try {
       if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
       const ctx = audioCtxRef.current;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.value = 800;
-      gain.gain.value = 0.3;
-      osc.start();
-      osc.stop(ctx.currentTime + 0.15);
+      // Resume if suspended (critical for iOS)
+      if (ctx.state === "suspended") ctx.resume();
+
+      const now = ctx.currentTime;
+      // Double beep for rest complete (similar to EMOM ronda beep)
+      for (let i = 0; i < 2; i++) {
+        const t = now + i * 0.15;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = "sine";
+        osc.frequency.value = 1046.5; // C6 — same as EMOM
+        gain.gain.setValueAtTime(0.4, t);
+        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.12);
+        osc.start(t);
+        osc.stop(t + 0.13);
+      }
     } catch {}
     // Flash
     setFlash(true);

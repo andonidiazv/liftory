@@ -66,56 +66,75 @@ export default function IntervalTimerBlock({
     }
   }, []);
 
+  // Refs for values that tick needs to read without re-creating the callback
+  const phaseRef = useRef<Phase>(phase);
+  phaseRef.current = phase;
+  const currentRoundRef = useRef(currentRound);
+  currentRoundRef.current = currentRound;
+  const totalRoundsRef = useRef(totalRounds);
+  totalRoundsRef.current = totalRounds;
+  const workSecondsRef = useRef(workSeconds);
+  workSecondsRef.current = workSeconds;
+  const restSecondsRef = useRef(restSeconds);
+  restSecondsRef.current = restSeconds;
+
+  // startTicking ref — lets tick schedule a new interval without circular deps
+  const startTickingRef = useRef<() => void>(() => {});
+
   const tick = useCallback(() => {
     setSecondsLeft((prev) => {
       if (prev <= 1) {
+        // Timer hit zero — schedule phase transition as microtask so we
+        // never nest setSecondsLeft inside this functional updater.
         clearTimer();
-        // Phase transition
-        setPhase((currentPhase) => {
+        queueMicrotask(() => {
+          const currentPhase = phaseRef.current;
+          const round = currentRoundRef.current;
+          const _totalRounds = totalRoundsRef.current;
+          const _workSeconds = workSecondsRef.current;
+          const _restSeconds = restSecondsRef.current;
+
           if (currentPhase === "work") {
             // Complete this set
-            const set = setsRef.current[currentRound];
+            const set = setsRef.current[round];
             if (set) onCompleteSetRef.current(set);
 
-            if (restSeconds > 0) {
-              // Start rest phase
-              setSecondsLeft(restSeconds);
-              startTicking();
-              return "rest";
+            if (_restSeconds > 0) {
+              setPhase("rest");
+              setSecondsLeft(_restSeconds);
+              startTickingRef.current();
             } else {
-              // No rest — advance to next round or done
-              const nextRound = currentRound + 1;
-              if (nextRound >= totalRounds) {
+              const nextRound = round + 1;
+              if (nextRound >= _totalRounds) {
+                setPhase("done");
                 setRunning(false);
-                return "done";
+              } else {
+                setCurrentRound(nextRound);
+                setPhase("work");
+                setSecondsLeft(_workSeconds);
+                startTickingRef.current();
               }
-              setCurrentRound(nextRound);
-              setSecondsLeft(workSeconds);
-              startTicking();
-              return "work";
             }
-          }
-          if (currentPhase === "rest") {
-            // Advance to next round or done
-            const nextRound = currentRound + 1;
-            if (nextRound >= totalRounds) {
+          } else if (currentPhase === "rest") {
+            const nextRound = round + 1;
+            if (nextRound >= _totalRounds) {
+              setPhase("done");
               setRunning(false);
-              return "done";
+            } else {
+              setCurrentRound(nextRound);
+              setPhase("work");
+              setSecondsLeft(_workSeconds);
+              startTickingRef.current();
             }
-            setCurrentRound(nextRound);
-            setSecondsLeft(workSeconds);
-            startTicking();
-            return "work";
           }
-          return currentPhase;
         });
         return 0;
       }
       return prev - 1;
     });
-  }, [currentRound, totalRounds, workSeconds, restSeconds, clearTimer]);
+  }, [clearTimer]);
 
-  // We need this as a ref since tick references it
+  // Tick ref so setInterval always calls the latest tick
   const tickRef = useRef(tick);
   tickRef.current = tick;
 
@@ -123,6 +142,9 @@ export default function IntervalTimerBlock({
     clearTimer();
     intervalRef.current = setInterval(() => tickRef.current(), 1000);
   }, [clearTimer]);
+
+  // Keep startTickingRef current
+  startTickingRef.current = startTicking;
 
   const handleStart = useCallback(() => {
     if (phase === "idle") {
