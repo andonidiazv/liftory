@@ -202,7 +202,7 @@ export function ExerciseRow({
       {/* Set count × Reps or Duration */}
       <span className="font-mono text-xs flex-shrink-0" style={{ color: "#C9A96E" }}>
         {firstSet.set_type === "emom"
-          ? `${firstSet.planned_reps ?? "\u2014"}r`
+          ? `${setCount}R · ${firstSet.planned_reps ?? "\u2014"}r`
           : firstSet.planned_duration_seconds
             ? `${setCount}\u00D7 ${firstSet.planned_duration_seconds}s`
             : `${setCount}\u00D7`}

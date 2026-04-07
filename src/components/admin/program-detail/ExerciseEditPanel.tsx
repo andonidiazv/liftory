@@ -64,7 +64,7 @@ function parseEmomFromCue(cue: string | null): EmomCueParsed {
       rpeRanges.push({
         from: parseInt(m[1], 10),
         to: m[2] ? parseInt(m[2], 10) : parseInt(m[1], 10),
-        rpe: m[3],
+        rpe: m[3].replace(/\.+$/, ""),
       });
     }
 
@@ -93,7 +93,25 @@ function parseEmomFromCue(cue: string | null): EmomCueParsed {
     const ventanasPerRonda = alternaItems.length || 1;
     const totalRondas = Math.max(1, Math.round(totalWindows / ventanasPerRonda));
 
-    return { windowSeconds, totalRondas, ventanasPerRonda, alternaItems, rpeRanges: [], extraNotes: extraText };
+    // Parse legacy RPE: "Rounds 1-2: RPE 7" or "Round 6: RPE 9"
+    const rpeRanges: { from: number; to: number; rpe: string }[] = [];
+    const legacyRpeRegex = /Rounds?\s+(\d+)(?:-(\d+))?\s*:\s*RPE\s+([\d.]+(?:-[\d.]+)?)/gi;
+    let lm;
+    while ((lm = legacyRpeRegex.exec(extraText)) !== null) {
+      rpeRanges.push({
+        from: parseInt(lm[1], 10),
+        to: lm[2] ? parseInt(lm[2], 10) : parseInt(lm[1], 10),
+        rpe: lm[3].replace(/\.+$/, ""), // strip trailing dots from "7.5." → "7.5"
+      });
+    }
+
+    // Extract extraNotes: remove Alterna and RPE patterns from extraText
+    let extraNotes = extraText
+      .replace(/Alterna:\s*.+?(?:\s*\(x\d+\))?(?:\.\s|$)/i, "")
+      .replace(/Rounds?\s+\d+(?:-\d+)?\s*:\s*RPE\s+[\d.]+(?:-[\d.]+)?[,.\s]*/gi, "")
+      .trim();
+
+    return { windowSeconds, totalRondas, ventanasPerRonda, alternaItems, rpeRanges, extraNotes };
   }
 
   return { ...defaults, extraNotes: cue };
