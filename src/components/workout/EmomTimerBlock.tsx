@@ -180,6 +180,20 @@ function parseVentanaSequence(block: WorkoutBlock, totalVentanas: number): strin
   return sequence;
 }
 
+/**
+ * Detect if the EMOM alternates R/L sides (bilateral work).
+ * Returns true if Alterna items contain both "R" and "L" variants.
+ */
+function isBilateral(block: WorkoutBlock): boolean {
+  const cue = block.groups.flatMap((g) => g.sets)[0]?.coaching_cue_override || "";
+  const alternaMatch = cue.match(/Alterna:\s*(.+?)(?:\s*\(x\d+\))?(?:\.\s|$)/i);
+  if (!alternaMatch) return false;
+  const items = alternaMatch[1].split(",").map((s) => s.trim());
+  const hasR = items.some((i) => /\bR$/i.test(i) || /\bRight$/i.test(i));
+  const hasL = items.some((i) => /\bL$/i.test(i) || /\bLeft$/i.test(i));
+  return hasR && hasL;
+}
+
 function formatTime(s: number): string {
   const mins = Math.floor(s / 60);
   const secs = s % 60;
@@ -227,6 +241,7 @@ export default function EmomTimerBlock({
     () => parseVentanaSequence(block, totalVentanas),
     [block, totalVentanas],
   );
+  const bilateral = useMemo(() => isBilateral(block), [block]);
   const allSets = useMemo(() => block.groups.flatMap((g) => g.sets), [block]);
   const firstCue = allSets[0]?.coaching_cue_override;
   const allDone = allSets.every((s) => isCompleted(s));
@@ -639,7 +654,14 @@ export default function EmomTimerBlock({
                   </p>
                   {reps != null && (
                     <span className="font-mono text-xs text-muted-foreground">
-                      x{reps}
+                      x{reps}{bilateral && (
+                        <span
+                          className="ml-1 font-body text-[10px] font-medium px-1.5 py-0.5 rounded"
+                          style={{ backgroundColor: "rgba(255,255,255,0.06)", color: "#C9A96E" }}
+                        >
+                          /lado
+                        </span>
+                      )}
                     </span>
                   )}
                 </div>
