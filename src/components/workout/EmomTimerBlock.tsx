@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { Play, Pause, RotateCcw, Check, SkipForward, SkipBack, Dumbbell } from "lucide-react";
+import { Play, Pause, RotateCcw, Check, SkipForward, SkipBack, Dumbbell, ChevronDown } from "lucide-react";
 import ExerciseThumbnail from "./ExerciseThumbnail";
 import WeightPickerSheet from "./WeightPickerSheet";
 import type { WorkoutBlock } from "./WorkoutOverview";
@@ -255,24 +255,32 @@ export default function EmomTimerBlock({
   const currentRonda = Math.floor(currentWindow / ventanasPerRonda); // 0-indexed
   const ventanaInRonda = currentWindow % ventanasPerRonda; // 0-indexed
 
-  // Weight inputs — one per exercise group (EMOM has 1 set per exercise)
-  const [exerciseWeights, setExerciseWeights] = useState<Record<string, string>>(() => {
-    const init: Record<string, string> = {};
+  // Weight inputs — one array per exercise, one entry per ronda
+  const [exerciseWeights, setExerciseWeights] = useState<Record<string, string[]>>(() => {
+    const init: Record<string, string[]> = {};
     for (const g of block.groups) {
-      const set = g.sets[0];
-      if (!set) continue;
-      if (set.actual_weight != null && set.actual_weight > 0) {
-        init[g.exercise.id] = String(toDisplayWeight(set.actual_weight, weightUnit));
-      } else {
-        const suggestion = getSuggestedWeight(set.exercise_id, set.planned_reps);
-        if (suggestion.weightKg != null) {
-          init[g.exercise.id] = String(toDisplayWeight(suggestion.weightKg, weightUnit));
+      const weights: string[] = [];
+      for (const set of g.sets) {
+        if (set.actual_weight != null && set.actual_weight > 0) {
+          weights.push(String(toDisplayWeight(set.actual_weight, weightUnit)));
+        } else {
+          const suggestion = getSuggestedWeight(set.exercise_id, set.planned_reps);
+          weights.push(
+            suggestion.weightKg != null
+              ? String(toDisplayWeight(suggestion.weightKg, weightUnit))
+              : "",
+          );
         }
       }
+      init[g.exercise.id] = weights;
     }
     return init;
   });
+  // Tracks which ronda indices the user explicitly changed (for smart-fill)
+  const [userOverrides, setUserOverrides] = useState<Record<string, Set<number>>>({});
+  const [expandedExercise, setExpandedExercise] = useState<string | null>(null);
   const [pickerExerciseId, setPickerExerciseId] = useState<string | null>(null);
+  const [pickerRondaIndex, setPickerRondaIndex] = useState<number | null>(null);
   const [pickerInitial, setPickerInitial] = useState(0);
   const [running, setRunning] = useState(false);
   const [ventanaFlash, setVentanaFlash] = useState(false);
@@ -628,92 +636,205 @@ export default function EmomTimerBlock({
             const set = group.sets[0];
             const reps = set?.planned_reps;
             const cue = set?.coaching_cue_override;
-            const weightVal = exerciseWeights[ex.id] ?? "";
-            const hasWeight = weightVal !== "" && parseFloat(weightVal) > 0;
+            const weights = exerciseWeights[ex.id] ?? [];
+            const mainWeight = weights[0] ?? "";
+            const hasWeight = mainWeight !== "" && parseFloat(mainWeight) > 0;
+            const isExpanded = expandedExercise === ex.id;
+            const hasMultipleRondas = group.sets.length > 1;
+            const allSameWeight = weights.length > 0 && weights.every((w) => w === weights[0]);
 
             return (
-              <div key={ex.id} className="flex items-center gap-3 rounded-xl bg-secondary/50 p-3">
-                <button
-                  onClick={() =>
-                    onOpenVideo({ name: ex.name, videoUrl: ex.video_url, coachingCue: cue })
-                  }
-                  className="shrink-0 overflow-hidden rounded-lg"
-                  style={{ width: 52, height: 40 }}
-                >
-                  <ExerciseThumbnail
-                    thumbnailUrl={ex.thumbnail_url}
-                    videoUrl={ex.video_url}
-                    name={ex.name}
-                    width={52}
-                    height={40}
-                  />
-                </button>
-                <div className="flex-1 min-w-0">
-                  <p className="font-body text-[15px] font-semibold text-foreground truncate">
-                    {ex.name}
-                  </p>
-                  {reps != null && (
-                    <span className="font-mono text-xs text-muted-foreground">
-                      x{reps}{bilateral && (
-                        <span
-                          className="ml-1 font-body text-[10px] font-medium px-1.5 py-0.5 rounded"
-                          style={{ backgroundColor: "rgba(255,255,255,0.06)", color: "#C9A96E" }}
-                        >
-                          /lado
-                        </span>
-                      )}
-                    </span>
-                  )}
+              <div key={ex.id} className="rounded-xl bg-secondary/50 p-3">
+                {/* Main exercise row */}
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() =>
+                      onOpenVideo({ name: ex.name, videoUrl: ex.video_url, coachingCue: cue })
+                    }
+                    className="shrink-0 overflow-hidden rounded-lg"
+                    style={{ width: 52, height: 40 }}
+                  >
+                    <ExerciseThumbnail
+                      thumbnailUrl={ex.thumbnail_url}
+                      videoUrl={ex.video_url}
+                      name={ex.name}
+                      width={52}
+                      height={40}
+                    />
+                  </button>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-body text-[15px] font-semibold text-foreground truncate">
+                      {ex.name}
+                    </p>
+                    {reps != null && (
+                      <span className="font-mono text-xs text-muted-foreground">
+                        x{reps}{bilateral && (
+                          <span
+                            className="ml-1 font-body text-[10px] font-medium px-1.5 py-0.5 rounded"
+                            style={{ backgroundColor: "rgba(255,255,255,0.06)", color: "#C9A96E" }}
+                          >
+                            /lado
+                          </span>
+                        )}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Weight button — collapsed: applies to all rondas */}
+                  <button
+                    onClick={() => {
+                      setPickerExerciseId(ex.id);
+                      setPickerRondaIndex(null); // null = all rondas
+                      setPickerInitial(parseFloat(mainWeight) || 0);
+                    }}
+                    className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 shrink-0"
+                    style={{
+                      background: hasWeight ? "rgba(199,91,57,0.12)" : "hsl(var(--border))",
+                      border: hasWeight ? "1px solid rgba(199,91,57,0.25)" : "1px solid transparent",
+                      minWidth: 68,
+                    }}
+                  >
+                    {hasWeight ? (
+                      <span className="font-mono text-sm font-medium" style={{ color: "#C75B39" }}>
+                        {mainWeight}
+                      </span>
+                    ) : (
+                      <>
+                        <Dumbbell className="w-3.5 h-3.5 text-muted-foreground" />
+                        <span className="font-mono text-xs text-muted-foreground">{weightUnit}</span>
+                      </>
+                    )}
+                  </button>
                 </div>
 
-                {/* Weight input — always visible so user can log before or after timer */}
-                <button
-                  onClick={() => {
-                    setPickerExerciseId(ex.id);
-                    setPickerInitial(parseFloat(weightVal) || 0);
-                  }}
-                  className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 shrink-0"
-                  style={{
-                    background: hasWeight ? "rgba(199,91,57,0.12)" : "hsl(var(--border))",
-                    border: hasWeight ? "1px solid rgba(199,91,57,0.25)" : "1px solid transparent",
-                    minWidth: 68,
-                  }}
-                >
-                  {hasWeight ? (
-                    <span className="font-mono text-sm font-medium" style={{ color: "#C75B39" }}>
-                      {weightVal}
-                    </span>
-                  ) : (
-                    <>
-                      <Dumbbell className="w-3.5 h-3.5 text-muted-foreground" />
-                      <span className="font-mono text-xs text-muted-foreground">{weightUnit}</span>
-                    </>
-                  )}
-                </button>
+                {/* Per-ronda expand toggle + pills */}
+                {hasMultipleRondas && (
+                  <div className="mt-2" style={{ marginLeft: 64 }}>
+                    {!isExpanded ? (
+                      <button
+                        onClick={() => setExpandedExercise(ex.id)}
+                        className="flex items-center gap-1 py-0.5"
+                      >
+                        <span className="font-mono text-[10px] tracking-wider uppercase" style={{ color: "#8A8A8E" }}>
+                          {allSameWeight && hasWeight
+                            ? `x${group.sets.length} rondas`
+                            : "por ronda"}
+                        </span>
+                        <ChevronDown className="w-3 h-3" style={{ color: "#8A8A8E" }} />
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => setExpandedExercise(null)}
+                          className="flex items-center gap-1 py-0.5 mb-1.5"
+                        >
+                          <span className="font-mono text-[10px] tracking-wider uppercase" style={{ color: "#8A8A8E" }}>
+                            por ronda
+                          </span>
+                          <ChevronDown
+                            className="w-3 h-3 transition-transform rotate-180"
+                            style={{ color: "#8A8A8E" }}
+                          />
+                        </button>
+                        <div className="flex gap-1.5">
+                          {group.sets.map((rondaSet, idx) => {
+                            const rondaWeight = weights[idx] ?? "";
+                            const hasRondaWeight = rondaWeight !== "" && parseFloat(rondaWeight) > 0;
+                            return (
+                              <button
+                                key={rondaSet.id}
+                                onClick={() => {
+                                  setPickerExerciseId(ex.id);
+                                  setPickerRondaIndex(idx);
+                                  setPickerInitial(parseFloat(rondaWeight) || parseFloat(mainWeight) || 0);
+                                }}
+                                className="flex items-center gap-1 rounded-lg px-2 py-1.5 transition-colors"
+                                style={{
+                                  background: hasRondaWeight ? "rgba(199,91,57,0.08)" : "rgba(255,255,255,0.04)",
+                                  border: hasRondaWeight
+                                    ? "1px solid rgba(199,91,57,0.2)"
+                                    : "1px solid rgba(255,255,255,0.06)",
+                                }}
+                              >
+                                <span
+                                  className="font-mono text-[10px] font-medium"
+                                  style={{ color: "#8A8A8E" }}
+                                >
+                                  R{idx + 1}
+                                </span>
+                                <span
+                                  className="font-mono text-xs font-medium"
+                                  style={{ color: hasRondaWeight ? "#C75B39" : "#8A8A8E" }}
+                                >
+                                  {hasRondaWeight ? rondaWeight : "—"}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
       )}
 
-      {/* Weight picker sheet */}
+      {/* Weight picker sheet — with smart-fill logic */}
       <WeightPickerSheet
         visible={pickerExerciseId !== null}
         unit={weightUnit as "kg" | "lb"}
         initialValue={pickerInitial}
         onConfirm={(value) => {
           if (!pickerExerciseId) return;
-          setExerciseWeights((prev) => ({ ...prev, [pickerExerciseId]: String(value) }));
-          // Persist to DB for each set of this exercise
           const group = block.groups.find((g) => g.exercise.id === pickerExerciseId);
-          if (group) {
-            const kgValue = toStorageWeight(value, weightUnit);
-            for (const set of group.sets) {
-              onUpdateSetWeight(set.id, kgValue);
+          if (!group) return;
+
+          const kgValue = toStorageWeight(value, weightUnit);
+          const displayVal = String(value);
+
+          if (pickerRondaIndex === null) {
+            // Collapsed mode → apply to ALL rondas, clear overrides
+            setExerciseWeights((prev) => ({
+              ...prev,
+              [pickerExerciseId]: group.sets.map(() => displayVal),
+            }));
+            setUserOverrides((prev) => ({ ...prev, [pickerExerciseId]: new Set() }));
+            for (const s of group.sets) {
+              onUpdateSetWeight(s.id, kgValue);
+            }
+          } else {
+            // Specific ronda → smart fill downstream non-overridden rondas
+            const overrides = userOverrides[pickerExerciseId] ?? new Set();
+            setExerciseWeights((prev) => {
+              const current = [...(prev[pickerExerciseId] ?? [])];
+              for (let i = pickerRondaIndex; i < current.length; i++) {
+                if (i === pickerRondaIndex || !overrides.has(i)) {
+                  current[i] = displayVal;
+                }
+              }
+              return { ...prev, [pickerExerciseId]: current };
+            });
+            // Mark this ronda as user-overridden
+            setUserOverrides((prev) => {
+              const newSet = new Set(prev[pickerExerciseId] ?? []);
+              newSet.add(pickerRondaIndex);
+              return { ...prev, [pickerExerciseId]: newSet };
+            });
+            // Persist to DB
+            for (let i = pickerRondaIndex; i < group.sets.length; i++) {
+              if (i === pickerRondaIndex || !overrides.has(i)) {
+                onUpdateSetWeight(group.sets[i].id, kgValue);
+              }
             }
           }
         }}
-        onClose={() => setPickerExerciseId(null)}
+        onClose={() => {
+          setPickerExerciseId(null);
+          setPickerRondaIndex(null);
+        }}
       />
 
       {/* Coaching cue — visible in idle */}
@@ -795,8 +916,8 @@ export default function EmomTimerBlock({
           </p>
           {/* Nudge to log weights if missing */}
           {block.groups.some((g) => {
-            const w = exerciseWeights[g.exercise.id];
-            return !w || parseFloat(w) <= 0;
+            const w = exerciseWeights[g.exercise.id] ?? [];
+            return w.length === 0 || w.some((v) => !v || parseFloat(v) <= 0);
           }) && (
             <p className="font-body text-xs text-center" style={{ color: "#C9A96E" }}>
               Registra los pesos que usaste arriba

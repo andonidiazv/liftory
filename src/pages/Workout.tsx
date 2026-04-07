@@ -215,7 +215,20 @@ export default function Workout() {
         exerciseNames: groups.map((g) => g.exercise.name),
         totalSets,
         completedSets,
-        estimatedMinutes: Math.max(1, Math.round(totalSets * 2.5)),
+        estimatedMinutes: (() => {
+          if (blockSets[0]?.set_type === 'emom') {
+            const cue = blockSets[0]?.coaching_cue_override || '';
+            const newFmt = cue.match(/EMOM\s+(\d+)s?\s*\|\s*(\d+)R\s*x\s*(\d+)V/i);
+            if (newFmt) {
+              return Math.ceil((parseInt(newFmt[1]) * parseInt(newFmt[2]) * parseInt(newFmt[3])) / 60);
+            }
+            const legacyFmt = cue.match(/EMOM\s+(\d+)s?\s*x\s*(\d+)/i);
+            if (legacyFmt) {
+              return Math.ceil((parseInt(legacyFmt[1]) * parseInt(legacyFmt[2])) / 60);
+            }
+          }
+          return Math.max(1, Math.round(totalSets * 2.5));
+        })(),
         groups,
         supersetGroup,
       };
