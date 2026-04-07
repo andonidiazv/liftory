@@ -34,9 +34,14 @@ type Experience = "beginner" | "intermediate" | "advanced";
 type Objective = "muscle_strength" | "athletic_performance" | "look_feel_better" | "move_better";
 
 /* ───────── constants ───────── */
-const TOTAL_STEPS = 11;
+const TOTAL_STEPS = 12;
 const PROGRESS_STEPS = 7;
 const STORAGE_KEY = "liftory_onboarding";
+
+/** VIP beta invites — these users skip paywall and get full access */
+const VIP_EMAILS = new Set([
+  "victor.vega.0495@gmail.com",
+]);
 
 /* ───────── palette (strict: cream + charcoal only) ───────── */
 const cream = "#FAF8F5";
@@ -137,6 +142,7 @@ export default function Onboarding() {
   const [programName, setProgramName] = useState("");
   const [joinMode, setJoinMode] = useState<"live" | "fresh">("live");
   const [mesocycleInfo, setMesocycleInfo] = useState<{ currentWeek: number; totalWeeks: number; weeksLeft: number; todayDay: string; endDate: string } | null>(null);
+  const [isVip, setIsVip] = useState(false);
   const loadingStart = useRef(0);
   const programStarted = useRef(false);
 
@@ -152,6 +158,8 @@ export default function Onboarding() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) return;
+    // Detect VIP from auth email (covers Google OAuth return)
+    if (user.email && VIP_EMAILS.has(user.email.toLowerCase())) setIsVip(true);
     const saved = loadAnswers();
     if (saved && !programStarted.current) {
       setName(saved.name); setGender(saved.gender);
@@ -219,6 +227,7 @@ export default function Onboarding() {
       const fullName = `${name.trim()} ${lastName.trim()}`.trim();
       const { data, error } = await signUp(trimmedEmail, signupPassword, fullName);
       if (error) { setSignupError(error.message); setSignupLoading(false); return; }
+      if (VIP_EMAILS.has(trimmedEmail.toLowerCase())) setIsVip(true);
       if (data.session && data.user) { setStep(10); }
       else if (data.user && !data.session) { setSignupError("Revisa tu correo para confirmar tu cuenta antes de continuar."); }
     } catch { setSignupError("Error al crear la cuenta. Intenta de nuevo."); }
@@ -243,10 +252,24 @@ export default function Onboarding() {
         emotional_barriers: [], connected_wearable: null,
         specific_event: null, event_date: null, inbody_data: null,
       }, { onConflict: "user_id" });
-      await supabase.from("user_profiles").update({
+      // Check VIP directly from auth email (avoids state race condition)
+      const userEmail = (await supabase.auth.getUser()).data.user?.email?.toLowerCase() ?? "";
+      const vip = VIP_EMAILS.has(userEmail);
+      if (vip) setIsVip(true);
+
+      const profileUpdate: Record<string, unknown> = {
         full_name: userName, gender: g, onboarding_completed: true,
         training_days_per_week: 5, training_location: "full_gym", experience_level: e,
-      }).eq("user_id", userId);
+      };
+      // VIP: grant full active access without payment
+      if (vip) {
+        profileUpdate.subscription_status = "active";
+        profileUpdate.subscription_tier = "vip_beta";
+        const oneYearFromNow = new Date();
+        oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+        profileUpdate.current_period_end = oneYearFromNow.toISOString();
+      }
+      await supabase.from("user_profiles").update(profileUpdate).eq("user_id", userId);
       const result = await assignProgram(userId, g, level, joinMode);
       if (!result.success) throw new Error("assign failed");
       clearAnswers(); setAssignDone(true);
@@ -264,11 +287,16 @@ export default function Onboarding() {
     const checkDone = setInterval(() => {
       if (Date.now() - loadingStart.current >= MIN_DURATION && assignDone && !assignError) {
         clearInterval(checkDone);
-        refreshProfile().then(() => navigate("/paywall", { replace: true }));
+        if (isVip) {
+          // VIP: show welcome screen before entering
+          refreshProfile().then(() => setStep(11));
+        } else {
+          refreshProfile().then(() => navigate("/paywall", { replace: true }));
+        }
       }
     }, 200);
     return () => { clearInterval(msgTimer); clearInterval(progressTimer); clearInterval(checkDone); };
-  }, [step, assignDone, assignError, navigate, refreshProfile]);
+  }, [step, assignDone, assignError, navigate, refreshProfile, isVip]);
 
   /* ═══════════ SHARED ═══════════ */
 
@@ -848,6 +876,74 @@ export default function Onboarding() {
           </div>
         )}
         <style>{globalAnimations}</style>
+      </div>
+    );
+  }
+
+  /* ═══════════ STEP 11: VIP WELCOME ═══════════ */
+  if (step === 11) {
+    const d = darkTheme;
+    const firstName = name.split(" ")[0] || "Atleta";
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center px-6" style={{ background: d.bg }}>
+        <style>{globalAnimations}</style>
+
+        {/* Crown icon */}
+        <div
+          className="flex items-center justify-center rounded-full anim-in"
+          style={{ width: 80, height: 80, background: "rgba(201,169,110,0.12)", border: "1px solid rgba(201,169,110,0.25)" }}
+        >
+          <Crown className="w-9 h-9" style={{ color: "#C9A96E" }} />
+        </div>
+
+        {/* LIFTORY wordmark */}
+        <p
+          className="mt-6 anim-in-d1"
+          style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 13, letterSpacing: "-0.03em", color: d.text, opacity: 0.3 }}
+        >
+          LIFTORY
+        </p>
+
+        {/* VIP title */}
+        <h1
+          className="mt-4 text-center anim-in-d2"
+          style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 28, letterSpacing: "-0.02em", color: "#C9A96E", lineHeight: 1.2 }}
+        >
+          ACCESO VIP
+        </h1>
+
+        {/* Personalized welcome */}
+        <p className="mt-3 text-center font-body anim-in-d3" style={{ fontSize: 16, color: d.text, lineHeight: 1.5 }}>
+          Bienvenido, {firstName}.
+        </p>
+
+        <p className="mt-2 text-center font-body anim-in-d4" style={{ fontSize: 14, color: d.textMuted, lineHeight: 1.6, maxWidth: 300 }}>
+          Tienes acceso completo a LIFTORY como miembro de nuestro grupo de beta testers exclusivo. Sin restricciones, sin cobros.
+        </p>
+
+        {/* Program pill */}
+        <div
+          className="mt-6 flex items-center gap-2 px-4 py-2.5 rounded-xl anim-in-d5"
+          style={{ background: "rgba(199,91,57,0.1)", border: "1px solid rgba(199,91,57,0.2)" }}
+        >
+          <Gem className="w-4 h-4" style={{ color: "#C75B39" }} />
+          <span className="font-mono text-xs tracking-wider" style={{ color: "#C75B39" }}>{programName || "TU PROGRAMA"}</span>
+        </div>
+
+        {/* CTA */}
+        <button
+          onClick={() => navigate("/home", { replace: true })}
+          className="mt-10 flex items-center gap-2 font-body font-medium px-8 py-3.5 active:scale-[0.97] transition-transform anim-in-d6"
+          style={{ background: "#C9A96E", color: "#0F0F0F", borderRadius: 50, fontSize: 15, letterSpacing: "0.05em" }}
+        >
+          Comenzar a entrenar
+          <ArrowRight className="w-4 h-4" />
+        </button>
+
+        {/* Subtle VIP badge */}
+        <p className="mt-8 font-mono anim-in-d7" style={{ fontSize: 10, letterSpacing: "0.2em", color: d.textSubtle }}>
+          VIP BETA ACCESS
+        </p>
       </div>
     );
   }
