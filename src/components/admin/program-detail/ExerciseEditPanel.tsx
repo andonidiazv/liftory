@@ -68,12 +68,17 @@ export function ExerciseEditPanel({
 }: ExerciseEditPanelProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  if (!exerciseGroup) return null;
+  const firstSet = exerciseGroup?.sets[0] ?? null;
+  const isEmom = firstSet?.set_type === "emom";
 
-  const firstSet = exerciseGroup.sets[0];
-  if (!firstSet) return null;
+  /* ─── EMOM parsed state (must be called every render — Rules of Hooks) ─── */
+  const emomParsed = useMemo(
+    () => (isEmom && firstSet ? parseEmomFromCue(firstSet.coaching_cue_override) : null),
+    [isEmom, firstSet?.coaching_cue_override],
+  );
 
-  const isEmom = firstSet.set_type === "emom";
+  if (!exerciseGroup || !firstSet) return null;
+
   const isInterval = firstSet.set_type === "interval";
 
   // Update a param across ALL sets in the group
@@ -90,12 +95,6 @@ export function ExerciseEditPanel({
   };
 
   const otherBlocks = availableBlocks.filter((b) => b !== blockLabel);
-
-  /* ─── EMOM parsed state ─── */
-  const emomParsed = useMemo(
-    () => (isEmom ? parseEmomFromCue(firstSet.coaching_cue_override) : null),
-    [isEmom, firstSet.coaching_cue_override],
-  );
 
   const updateEmomField = (field: "windowSeconds" | "rounds" | "extraText", value: number | string) => {
     if (!emomParsed) return;
