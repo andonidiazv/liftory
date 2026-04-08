@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Play, Pause, RotateCcw, Check, SkipForward, SkipBack, Dumbbell, ChevronDown } from "lucide-react";
 import ExerciseThumbnail from "./ExerciseThumbnail";
-import WeightPickerSheet from "./WeightPickerSheet";
+import WeightPickerSheet, { BODYWEIGHT_SENTINEL } from "./WeightPickerSheet";
 import type { WorkoutBlock } from "./WorkoutOverview";
 import type { WorkoutSetData } from "@/hooks/useWorkoutData";
 import { toDisplayWeight, toStorageWeight } from "@/utils/weightConversion";
@@ -282,7 +282,9 @@ export default function EmomTimerBlock({
     for (const g of block.groups) {
       const weights: string[] = [];
       for (const set of g.sets) {
-        if (set.actual_weight != null && set.actual_weight > 0) {
+        if (set.actual_weight === BODYWEIGHT_SENTINEL) {
+          weights.push("BW");
+        } else if (set.actual_weight != null && set.actual_weight > 0) {
           weights.push(String(toDisplayWeight(set.actual_weight, weightUnit)));
         } else {
           const suggestion = getSuggestedWeight(set.exercise_id, set.planned_reps);
@@ -737,7 +739,7 @@ export default function EmomTimerBlock({
                 const primaryEx = primaryGroup.exercise;
                 const weights = exerciseWeights[primaryEx.id] ?? [];
                 const mainWeight = weights[0] ?? "";
-                const hasWeight = mainWeight !== "" && parseFloat(mainWeight) > 0;
+                const hasWeight = mainWeight === "BW" || (mainWeight !== "" && parseFloat(mainWeight) > 0);
                 const isExpanded = expandedExercise === `complex-${primaryEx.id}`;
                 const allSameWeight = weights.length > 0 && weights.every((w) => w === weights[0]);
 
@@ -755,7 +757,7 @@ export default function EmomTimerBlock({
                         onClick={() => {
                           setPickerExerciseId(primaryEx.id);
                           setPickerRondaIndex(null);
-                          setPickerInitial(parseFloat(mainWeight) || 0);
+                          setPickerInitial(mainWeight === "BW" ? BODYWEIGHT_SENTINEL : (parseFloat(mainWeight) || 0));
                         }}
                         className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 shrink-0"
                         style={{
@@ -765,14 +767,18 @@ export default function EmomTimerBlock({
                         }}
                       >
                         {hasWeight ? (
-                          <>
-                            <span className="font-mono text-sm font-semibold" style={{ color: "#C75B39" }}>
-                              {mainWeight}
-                            </span>
-                            <span className="font-mono text-[10px]" style={{ color: "#C75B39", opacity: 0.7 }}>
-                              {weightUnit}
-                            </span>
-                          </>
+                          mainWeight === "BW" ? (
+                            <span className="font-mono text-sm font-semibold" style={{ color: "#C75B39" }}>BW</span>
+                          ) : (
+                            <>
+                              <span className="font-mono text-sm font-semibold" style={{ color: "#C75B39" }}>
+                                {mainWeight}
+                              </span>
+                              <span className="font-mono text-[10px]" style={{ color: "#C75B39", opacity: 0.7 }}>
+                                {weightUnit}
+                              </span>
+                            </>
+                          )
                         ) : (
                           <>
                             <Dumbbell className="w-3.5 h-3.5 text-muted-foreground" />
@@ -814,14 +820,15 @@ export default function EmomTimerBlock({
                             <div className="flex gap-1.5 flex-wrap">
                               {primaryGroup.sets.map((rondaSet, idx) => {
                                 const rondaWeight = weights[idx] ?? "";
-                                const hasRondaWeight = rondaWeight !== "" && parseFloat(rondaWeight) > 0;
+                                const hasRondaWeight = rondaWeight === "BW" || (rondaWeight !== "" && parseFloat(rondaWeight) > 0);
                                 return (
                                   <button
                                     key={rondaSet.id}
                                     onClick={() => {
                                       setPickerExerciseId(primaryEx.id);
                                       setPickerRondaIndex(idx);
-                                      setPickerInitial(parseFloat(rondaWeight) || parseFloat(mainWeight) || 0);
+                                      const init = rondaWeight === "BW" ? BODYWEIGHT_SENTINEL : (parseFloat(rondaWeight) || (mainWeight === "BW" ? BODYWEIGHT_SENTINEL : (parseFloat(mainWeight) || 0)));
+                                      setPickerInitial(init);
                                     }}
                                     className="flex items-center gap-1 rounded-lg px-2 py-1.5 transition-colors"
                                     style={{
@@ -838,7 +845,7 @@ export default function EmomTimerBlock({
                                       className="font-mono text-xs font-medium"
                                       style={{ color: hasRondaWeight ? "#C75B39" : "#8A8A8E" }}
                                     >
-                                      {hasRondaWeight ? `${rondaWeight} ${weightUnit}` : `— ${weightUnit}`}
+                                      {hasRondaWeight ? (rondaWeight === "BW" ? "BW" : `${rondaWeight} ${weightUnit}`) : `— ${weightUnit}`}
                                     </span>
                                   </button>
                                 );
@@ -861,7 +868,7 @@ export default function EmomTimerBlock({
               const cue = set?.coaching_cue_override;
               const weights = exerciseWeights[ex.id] ?? [];
               const mainWeight = weights[0] ?? "";
-              const hasWeight = mainWeight !== "" && parseFloat(mainWeight) > 0;
+              const hasWeight = mainWeight === "BW" || (mainWeight !== "" && parseFloat(mainWeight) > 0);
               const isExpanded = expandedExercise === ex.id;
               const hasMultipleRondas = group.sets.length > 1;
               const allSameWeight = weights.length > 0 && weights.every((w) => w === weights[0]);
@@ -908,7 +915,7 @@ export default function EmomTimerBlock({
                       onClick={() => {
                         setPickerExerciseId(ex.id);
                         setPickerRondaIndex(null);
-                        setPickerInitial(parseFloat(mainWeight) || 0);
+                        setPickerInitial(mainWeight === "BW" ? BODYWEIGHT_SENTINEL : (parseFloat(mainWeight) || 0));
                       }}
                       className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 shrink-0"
                       style={{
@@ -918,14 +925,18 @@ export default function EmomTimerBlock({
                       }}
                     >
                       {hasWeight ? (
-                        <>
-                          <span className="font-mono text-sm font-medium" style={{ color: "#C75B39" }}>
-                            {mainWeight}
-                          </span>
-                          <span className="font-mono text-[10px]" style={{ color: "#C75B39", opacity: 0.7 }}>
-                            {weightUnit}
-                          </span>
-                        </>
+                        mainWeight === "BW" ? (
+                          <span className="font-mono text-sm font-semibold" style={{ color: "#C75B39" }}>BW</span>
+                        ) : (
+                          <>
+                            <span className="font-mono text-sm font-medium" style={{ color: "#C75B39" }}>
+                              {mainWeight}
+                            </span>
+                            <span className="font-mono text-[10px]" style={{ color: "#C75B39", opacity: 0.7 }}>
+                              {weightUnit}
+                            </span>
+                          </>
+                        )
                       ) : (
                         <>
                           <Dumbbell className="w-3.5 h-3.5 text-muted-foreground" />
@@ -967,14 +978,15 @@ export default function EmomTimerBlock({
                           <div className="flex gap-1.5">
                             {group.sets.map((rondaSet, idx) => {
                               const rondaWeight = weights[idx] ?? "";
-                              const hasRondaWeight = rondaWeight !== "" && parseFloat(rondaWeight) > 0;
+                              const hasRondaWeight = rondaWeight === "BW" || (rondaWeight !== "" && parseFloat(rondaWeight) > 0);
                               return (
                                 <button
                                   key={rondaSet.id}
                                   onClick={() => {
                                     setPickerExerciseId(ex.id);
                                     setPickerRondaIndex(idx);
-                                    setPickerInitial(parseFloat(rondaWeight) || parseFloat(mainWeight) || 0);
+                                    const init = rondaWeight === "BW" ? BODYWEIGHT_SENTINEL : (parseFloat(rondaWeight) || (mainWeight === "BW" ? BODYWEIGHT_SENTINEL : (parseFloat(mainWeight) || 0)));
+                                    setPickerInitial(init);
                                   }}
                                   className="flex items-center gap-1 rounded-lg px-2 py-1.5 transition-colors"
                                   style={{
@@ -994,7 +1006,7 @@ export default function EmomTimerBlock({
                                     className="font-mono text-xs font-medium"
                                     style={{ color: hasRondaWeight ? "#C75B39" : "#8A8A8E" }}
                                   >
-                                    {hasRondaWeight ? `${rondaWeight} ${weightUnit}` : `— ${weightUnit}`}
+                                    {hasRondaWeight ? (rondaWeight === "BW" ? "BW" : `${rondaWeight} ${weightUnit}`) : `— ${weightUnit}`}
                                   </span>
                                 </button>
                               );
@@ -1021,8 +1033,9 @@ export default function EmomTimerBlock({
           const group = block.groups.find((g) => g.exercise.id === pickerExerciseId);
           if (!group) return;
 
-          const kgValue = toStorageWeight(value, weightUnit);
-          const displayVal = String(value);
+          const isBW = value === BODYWEIGHT_SENTINEL;
+          const kgValue = isBW ? BODYWEIGHT_SENTINEL : toStorageWeight(value, weightUnit);
+          const displayVal = isBW ? "BW" : String(value);
 
           if (pickerRondaIndex === null) {
             // Collapsed mode → apply to ALL rondas, clear overrides
@@ -1163,7 +1176,7 @@ export default function EmomTimerBlock({
           {/* Nudge to log weights if missing (in complex mode, only check first exercise) */}
           {(complexMode ? [block.groups[0]] : block.groups).filter(Boolean).some((g) => {
             const w = exerciseWeights[g.exercise.id] ?? [];
-            return w.length === 0 || w.some((v) => !v || parseFloat(v) <= 0);
+            return w.length === 0 || w.some((v) => !v || (v !== "BW" && parseFloat(v) <= 0));
           }) && (
             <p className="font-body text-xs text-center" style={{ color: "#C9A96E" }}>
               Registra los pesos que usaste arriba

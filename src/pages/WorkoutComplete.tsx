@@ -209,7 +209,10 @@ export default function WorkoutComplete() {
 
     const completedSets = sets.filter((s) => s.is_completed);
     const volume = completedSets.reduce(
-      (acc, s) => acc + (s.actual_weight ?? 0) * (s.actual_reps ?? 0),
+      (acc, s) => {
+        const w = s.actual_weight ?? 0;
+        return acc + (w > 0 ? w : 0) * (s.actual_reps ?? 0); // skip BW sentinel (-1)
+      },
       0
     );
     const prs = completedSets.filter((s) => s.is_pr).length;
@@ -217,7 +220,8 @@ export default function WorkoutComplete() {
     // Strength sets = non-mobility, non-cooldown
     const mobilityBlocks = ['PRIME BLOCK', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION', 'RECOVERY BLOCK'];
     const strengthSets = completedSets.filter(s => !mobilityBlocks.includes(s.block_label || ''));
-    const setsWithWeight = strengthSets.filter(s => s.actual_weight != null && s.actual_weight > 0).length;
+    // Count sets with weight logged: actual_weight > 0 OR bodyweight sentinel (-1)
+    const setsWithWeight = strengthSets.filter(s => s.actual_weight != null && (s.actual_weight > 0 || s.actual_weight === -1)).length;
 
     let duration = "—";
     let durationMinutes = 0;
