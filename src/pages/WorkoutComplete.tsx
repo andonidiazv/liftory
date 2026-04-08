@@ -231,10 +231,17 @@ export default function WorkoutComplete() {
         .map((s) => new Date(s.logged_at!).getTime());
       if (loggedTimes.length > 0) {
         const first = Math.min(...loggedTimes);
-        const end = new Date(workout.completed_at).getTime();
-        const diffSec = Math.floor((end - first) / 1000);
-        const m = Math.floor(diffSec / 60);
-        const sec = diffSec % 60;
+        // Use last logged_at instead of completed_at — the user may tap
+        // "complete workout" hours later, inflating the duration.
+        const lastLogged = Math.max(...loggedTimes);
+        const completedTime = new Date(workout.completed_at).getTime();
+        // Use whichever is earlier: last set logged or completed_at
+        const end = Math.min(lastLogged + 120_000, completedTime); // +2 min buffer for cooldown
+        const diffSec = Math.max(0, Math.floor((end - first) / 1000));
+        // Cap at 4 hours max to prevent absurd values
+        const cappedSec = Math.min(diffSec, 4 * 3600);
+        const m = Math.floor(cappedSec / 60);
+        const sec = cappedSec % 60;
         duration = `${m}:${sec.toString().padStart(2, "0")}`;
         durationMinutes = m;
       }
