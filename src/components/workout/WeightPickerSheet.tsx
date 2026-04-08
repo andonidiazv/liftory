@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { hapticTick, unlockHaptics } from "@/utils/haptics";
 
 interface Props {
   visible: boolean;
@@ -48,9 +49,10 @@ export default function WeightPickerSheet({
 
   const jumpValues = unit === "kg" ? JUMP_VALUES_KG : JUMP_VALUES_LB;
 
-  // Reset mode when sheet opens
+  // Reset mode when sheet opens + unlock haptics
   useEffect(() => {
     if (!visible) return;
+    unlockHaptics();
     if (initialValue === BODYWEIGHT_SENTINEL) {
       setMode("bodyweight");
     } else {
@@ -94,6 +96,11 @@ export default function WeightPickerSheet({
     const scrollTop = scrollRef.current.scrollTop;
     const immediateIndex = Math.round(scrollTop / ITEM_HEIGHT);
     const clampedImmediate = Math.max(0, Math.min(immediateIndex, values.length - 1));
+
+    // Haptic tick on each snap boundary crossing
+    if (clampedImmediate !== selectedIndexRef.current) {
+      hapticTick();
+    }
     selectedIndexRef.current = clampedImmediate;
 
     scrollTimeout.current = setTimeout(() => {
@@ -135,6 +142,7 @@ export default function WeightPickerSheet({
   };
 
   const handleNumpadKey = (key: string) => {
+    hapticTick();
     if (key === "delete") {
       setNumpadValue((prev) => prev.slice(0, -1));
     } else if (key === ".") {

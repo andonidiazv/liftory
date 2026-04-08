@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { hapticTick, unlockHaptics } from "@/utils/haptics";
 
 interface Props {
   visible: boolean;
@@ -27,6 +28,7 @@ export default function RepsPickerSheet({ visible, initialValue, onConfirm, onCl
 
   useEffect(() => {
     if (!visible) return;
+    unlockHaptics();
     const closest = VALUES.reduce((best, v, i) =>
       Math.abs(v - initialValue) < Math.abs(VALUES[best] - initialValue) ? i : best, 0
     );
@@ -59,6 +61,10 @@ export default function RepsPickerSheet({ visible, initialValue, onConfirm, onCl
     const scrollTop = scrollRef.current.scrollTop;
     const immediateIndex = Math.round(scrollTop / ITEM_HEIGHT);
     const clampedImmediate = Math.max(0, Math.min(immediateIndex, VALUES.length - 1));
+
+    if (clampedImmediate !== selectedIndexRef.current) {
+      hapticTick();
+    }
     selectedIndexRef.current = clampedImmediate;
 
     scrollTimeout.current = setTimeout(() => {
