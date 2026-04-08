@@ -16,7 +16,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const ADMIN_EMAIL = "andonidiazv@gmail.com";
+const ADMIN_EMAIL = "team@liftory.app";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
