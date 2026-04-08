@@ -79,17 +79,16 @@ function calculatePrimeScore(args: {
   strengthSets: number;
   prs: number;
   cooldownDone: boolean;
-  durationMinutes: number;
 }): number {
-  const { completedSets, totalSets, setsWithWeight, strengthSets, prs, cooldownDone, durationMinutes } = args;
+  const { completedSets, totalSets, setsWithWeight, strengthSets, prs, cooldownDone } = args;
 
-  // 1. Completion rate (0-40 pts)
+  // 1. Completion rate (0-45 pts)
   const completionRate = totalSets > 0 ? completedSets / totalSets : 0;
-  const completionScore = completionRate * 40;
+  const completionScore = completionRate * 45;
 
-  // 2. Weight logging rate (0-30 pts)
+  // 2. Weight logging rate (0-35 pts)
   const weightLogRate = strengthSets > 0 ? setsWithWeight / strengthSets : 1;
-  const weightScore = weightLogRate * 30;
+  const weightScore = weightLogRate * 35;
 
   // 3. PRs bonus (0-15 pts)
   const prScore = Math.min(prs * 5, 15);
@@ -97,10 +96,7 @@ function calculatePrimeScore(args: {
   // 4. Cooldown bonus (0-5 pts)
   const cooldownScore = cooldownDone ? 5 : 0;
 
-  // 5. Duration bonus — showed up and put in time (0-10 pts)
-  const durationScore = durationMinutes >= 20 ? 10 : durationMinutes >= 10 ? 7 : durationMinutes >= 5 ? 4 : 0;
-
-  return Math.min(100, Math.round(completionScore + weightScore + prScore + cooldownScore + durationScore));
+  return Math.min(100, Math.round(completionScore + weightScore + prScore + cooldownScore));
 }
 
 function getScoreLabel(score: number): string {
@@ -257,7 +253,6 @@ export default function WorkoutComplete() {
     strengthSets: stats.strengthSets,
     prs: stats.prs,
     cooldownDone: cooldownCompleted,
-    durationMinutes: stats.durationMinutes,
   }), [stats, cooldownCompleted]);
 
   const scoreLabel = getScoreLabel(primeScore);
