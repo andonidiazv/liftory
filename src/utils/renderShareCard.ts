@@ -66,99 +66,107 @@ function drawCenteredText(
   }
 }
 
-// Simple icon drawings (16×16 at scale)
+// ── Icon drawings — crisp, bold strokes ──
+
 function drawClockIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string) {
+  const lw = Math.max(size * 0.14, 2);
   ctx.strokeStyle = color;
-  ctx.lineWidth = size * 0.12;
+  ctx.lineWidth = lw;
   ctx.lineCap = "round";
+  const r = size * 0.4;
   // Circle
   ctx.beginPath();
-  ctx.arc(cx, cy, size * 0.42, 0, Math.PI * 2);
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.stroke();
-  // Hour hand
+  // Hour hand (12 to 3)
   ctx.beginPath();
   ctx.moveTo(cx, cy);
-  ctx.lineTo(cx, cy - size * 0.25);
+  ctx.lineTo(cx, cy - r * 0.6);
   ctx.stroke();
   // Minute hand
   ctx.beginPath();
   ctx.moveTo(cx, cy);
-  ctx.lineTo(cx + size * 0.18, cy);
+  ctx.lineTo(cx + r * 0.45, cy);
   ctx.stroke();
 }
 
 function drawDumbbellIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string) {
+  const lw = Math.max(size * 0.14, 2);
   ctx.strokeStyle = color;
-  ctx.lineWidth = size * 0.12;
+  ctx.lineWidth = lw;
   ctx.lineCap = "round";
-  const hw = size * 0.38;
-  const bw = size * 0.15;
-  // Bar
+  const hw = size * 0.4; // half-width of bar
+  const ph = size * 0.3; // plate height (half)
+  const pw = size * 0.08; // plate width offset from end
+  // Center bar
   ctx.beginPath();
   ctx.moveTo(cx - hw, cy);
   ctx.lineTo(cx + hw, cy);
   ctx.stroke();
-  // Left weight
+  // Left plate (thick vertical line)
+  ctx.lineWidth = lw * 1.8;
   ctx.beginPath();
-  ctx.moveTo(cx - hw, cy - size * 0.22);
-  ctx.lineTo(cx - hw, cy + size * 0.22);
+  ctx.moveTo(cx - hw + pw, cy - ph);
+  ctx.lineTo(cx - hw + pw, cy + ph);
   ctx.stroke();
+  // Right plate
   ctx.beginPath();
-  ctx.moveTo(cx - hw + bw, cy - size * 0.16);
-  ctx.lineTo(cx - hw + bw, cy + size * 0.16);
+  ctx.moveTo(cx + hw - pw, cy - ph);
+  ctx.lineTo(cx + hw - pw, cy + ph);
   ctx.stroke();
-  // Right weight
-  ctx.beginPath();
-  ctx.moveTo(cx + hw, cy - size * 0.22);
-  ctx.lineTo(cx + hw, cy + size * 0.22);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(cx + hw - bw, cy - size * 0.16);
-  ctx.lineTo(cx + hw - bw, cy + size * 0.16);
-  ctx.stroke();
+  ctx.lineWidth = lw; // reset
 }
 
 function drawTrendUpIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string) {
+  const lw = Math.max(size * 0.14, 2);
   ctx.strokeStyle = color;
-  ctx.lineWidth = size * 0.12;
+  ctx.lineWidth = lw;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
-  const s = size * 0.36;
+  const s = size * 0.38;
+  // Polyline going up
   ctx.beginPath();
-  ctx.moveTo(cx - s, cy + s * 0.6);
-  ctx.lineTo(cx - s * 0.1, cy - s * 0.3);
-  ctx.lineTo(cx + s * 0.3, cy + s * 0.1);
-  ctx.lineTo(cx + s, cy - s * 0.6);
+  ctx.moveTo(cx - s, cy + s * 0.5);
+  ctx.lineTo(cx - s * 0.15, cy - s * 0.2);
+  ctx.lineTo(cx + s * 0.25, cy + s * 0.15);
+  ctx.lineTo(cx + s, cy - s * 0.55);
   ctx.stroke();
   // Arrow head
   ctx.beginPath();
-  ctx.moveTo(cx + s * 0.4, cy - s * 0.6);
-  ctx.lineTo(cx + s, cy - s * 0.6);
+  ctx.moveTo(cx + s * 0.45, cy - s * 0.55);
+  ctx.lineTo(cx + s, cy - s * 0.55);
   ctx.lineTo(cx + s, cy - s * 0.05);
   ctx.stroke();
 }
 
 function drawTrophyIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string) {
+  const lw = Math.max(size * 0.13, 2);
   ctx.strokeStyle = color;
-  ctx.lineWidth = size * 0.1;
+  ctx.lineWidth = lw;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
-  const s = size * 0.35;
-  // Cup body
+  const s = size * 0.38;
+  // Cup rim
   ctx.beginPath();
-  ctx.moveTo(cx - s, cy - s);
-  ctx.lineTo(cx - s * 0.7, cy + s * 0.3);
-  ctx.quadraticCurveTo(cx, cy + s * 0.8, cx + s * 0.7, cy + s * 0.3);
-  ctx.lineTo(cx + s, cy - s);
+  ctx.moveTo(cx - s, cy - s * 0.7);
+  ctx.lineTo(cx + s, cy - s * 0.7);
+  ctx.stroke();
+  // Cup body (U shape)
+  ctx.beginPath();
+  ctx.moveTo(cx - s, cy - s * 0.7);
+  ctx.lineTo(cx - s * 0.75, cy + s * 0.1);
+  ctx.quadraticCurveTo(cx, cy + s * 0.7, cx + s * 0.75, cy + s * 0.1);
+  ctx.lineTo(cx + s, cy - s * 0.7);
+  ctx.stroke();
+  // Stem
+  ctx.beginPath();
+  ctx.moveTo(cx, cy + s * 0.35);
+  ctx.lineTo(cx, cy + s * 0.7);
   ctx.stroke();
   // Base
   ctx.beginPath();
-  ctx.moveTo(cx, cy + s * 0.3);
-  ctx.lineTo(cx, cy + s * 0.8);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(cx - s * 0.5, cy + s * 0.8);
-  ctx.lineTo(cx + s * 0.5, cy + s * 0.8);
+  ctx.moveTo(cx - s * 0.45, cy + s * 0.7);
+  ctx.lineTo(cx + s * 0.45, cy + s * 0.7);
   ctx.stroke();
 }
 
@@ -283,20 +291,25 @@ export async function renderShareCard(
   ctx.stroke();
   ctx.restore();
 
-  // Score number
+  // Score number + "/100" — baseline-aligned, centered as a group inside the ring
+  ctx.font = `700 ${46 * S}px "DM Mono"`;
+  const scoreStr = String(opts.score);
+  const scoreTextW = ctx.measureText(scoreStr).width;
+  ctx.font = `400 ${14 * S}px "DM Mono"`;
+  const slashW = ctx.measureText("/100").width;
+  const totalGroupW = scoreTextW + 2 * S + slashW;
+  const groupStartX = centerX - totalGroupW / 2;
+
+  // Score digits
   ctx.font = `700 ${46 * S}px "DM Mono"`;
   ctx.fillStyle = "#FAF8F5";
-  ctx.textAlign = "right";
-  const scoreStr = String(opts.score);
-  const scoreW = ctx.measureText(scoreStr).width;
-  const scoreRightX = centerX + scoreW / 2 + 4 * S;
-  ctx.fillText(scoreStr, scoreRightX, ringCY + 16 * S);
+  ctx.textAlign = "left";
+  ctx.fillText(scoreStr, groupStartX, ringCY + 16 * S);
 
   // "/100"
-  ctx.font = `400 ${13 * S}px "DM Mono"`;
+  ctx.font = `400 ${14 * S}px "DM Mono"`;
   ctx.fillStyle = "rgba(250,248,245,0.3)";
-  ctx.textAlign = "left";
-  ctx.fillText("/100", scoreRightX + 2 * S, ringCY + 16 * S);
+  ctx.fillText("/100", groupStartX + scoreTextW + 2 * S, ringCY + 16 * S);
 
   // ── Sticker label ──
   y = ringCY + ringR + 28 * S;
@@ -359,9 +372,9 @@ export async function renderShareCard(
     ctx.fill();
     ctx.stroke();
 
-    // Icon
-    const iconSize = 14 * S;
-    stat.icon(ctx, bx + boxW / 2, by + 16 * S, iconSize, "rgba(250,248,245,0.4)");
+    // Icon — larger and bolder for clarity
+    const iconSize = 18 * S;
+    stat.icon(ctx, bx + boxW / 2, by + 18 * S, iconSize, "rgba(250,248,245,0.45)");
 
     // Value
     ctx.font = `600 ${17 * S}px "DM Mono"`;
