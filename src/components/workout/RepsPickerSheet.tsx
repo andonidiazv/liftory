@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 
 interface Props {
   visible: boolean;
@@ -41,6 +41,15 @@ export default function RepsPickerSheet({ visible, initialValue, onConfirm, onCl
       setTimeout(() => { isInitialScroll.current = false; }, 150);
     });
   }, [visible, initialValue]);
+
+  const scrollToIndex = useCallback((index: number) => {
+    const clamped = Math.max(0, Math.min(index, VALUES.length - 1));
+    setSelectedIndex(clamped);
+    selectedIndexRef.current = clamped;
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({ top: clamped * ITEM_HEIGHT, behavior: "smooth" });
+    }
+  }, []);
 
   const handleScroll = useCallback(() => {
     if (!scrollRef.current || isInitialScroll.current) return;
@@ -99,6 +108,7 @@ export default function RepsPickerSheet({ visible, initialValue, onConfirm, onCl
 
         {/* Wheel */}
         <div className="relative" style={{ height: CONTAINER_HEIGHT }}>
+          {/* Selection highlight band */}
           <div
             className="absolute left-4 right-4 pointer-events-none rounded-xl"
             style={{
@@ -108,13 +118,15 @@ export default function RepsPickerSheet({ visible, initialValue, onConfirm, onCl
               border: "1.5px solid rgba(199,91,57,0.2)",
             }}
           />
+
+          {/* Top/bottom fade gradients — reduced intensity for readability */}
           <div
             className="absolute top-0 left-0 right-0 pointer-events-none z-10"
-            style={{ height: ITEM_HEIGHT * 2, background: "linear-gradient(to bottom, #FAF8F5 10%, transparent)" }}
+            style={{ height: ITEM_HEIGHT * 1.5, background: "linear-gradient(to bottom, #FAF8F5 5%, transparent)" }}
           />
           <div
             className="absolute bottom-0 left-0 right-0 pointer-events-none z-10"
-            style={{ height: ITEM_HEIGHT * 2, background: "linear-gradient(to top, #FAF8F5 10%, transparent)" }}
+            style={{ height: ITEM_HEIGHT * 1.5, background: "linear-gradient(to top, #FAF8F5 5%, transparent)" }}
           />
 
           <div
@@ -143,17 +155,17 @@ export default function RepsPickerSheet({ visible, initialValue, onConfirm, onCl
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    opacity: distance === 0 ? 1 : distance === 1 ? 0.5 : 0.25,
-                    transform: `scale(${distance === 0 ? 1 : distance === 1 ? 0.9 : 0.8})`,
+                    opacity: distance === 0 ? 1 : distance === 1 ? 0.75 : 0.45,
+                    transform: `scale(${distance === 0 ? 1 : distance === 1 ? 0.92 : 0.84})`,
                     transition: "opacity 0.15s, transform 0.15s",
                   }}
                 >
                   <span
                     className="font-mono tabular-nums"
                     style={{
-                      fontSize: isSelected ? 32 : 22,
+                      fontSize: isSelected ? 32 : distance === 1 ? 24 : 22,
                       fontWeight: isSelected ? 600 : 400,
-                      color: isSelected ? "#1C1C1E" : "#B0ACA7",
+                      color: isSelected ? "#1C1C1E" : distance === 1 ? "#6B6560" : "#9A9590",
                       letterSpacing: "0.02em",
                     }}
                   >
@@ -189,11 +201,7 @@ export default function RepsPickerSheet({ visible, initialValue, onConfirm, onCl
                 const closest = VALUES.reduce((best, v, i) =>
                   Math.abs(v - newVal) < Math.abs(VALUES[best] - newVal) ? i : best, 0
                 );
-                setSelectedIndex(closest);
-                selectedIndexRef.current = closest;
-                if (scrollRef.current) {
-                  scrollRef.current.scrollTo({ top: closest * ITEM_HEIGHT, behavior: "smooth" });
-                }
+                scrollToIndex(closest);
               }}
               className="rounded-full px-3 py-1.5 font-mono text-sm transition-colors"
               style={{
