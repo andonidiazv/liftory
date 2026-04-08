@@ -46,6 +46,7 @@ export default function BadgeClaim() {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const libraryInputRef = useRef<HTMLInputElement>(null);
 
   const [badge, setBadge] = useState<BadgeData | null>(null);
   const [userStatuses, setUserStatuses] = useState<UserBadgeStatus[]>([]);
@@ -169,6 +170,7 @@ export default function BadgeClaim() {
     setVideoFile(null);
     setVideoPreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
+    if (libraryInputRef.current) libraryInputRef.current.value = "";
   };
 
   // ── Submit ──
@@ -266,6 +268,22 @@ export default function BadgeClaim() {
         setSubmitting(false);
         setUploadProgress(0);
         return;
+      }
+
+      // Notify admin (non-blocking — don't await)
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      if (supabaseUrl) {
+        fetch(`${supabaseUrl}/functions/v1/notify-badge-submission`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            athleteName: profile?.display_name || user.email,
+            athleteEmail: user.email,
+            badgeName: badge.name,
+            tierLabel: selectedTierData.tier_label,
+            videoUrl: publicUrl,
+          }),
+        }).catch(() => {}); // fire and forget
       }
 
       setSubmitted(true);
@@ -464,6 +482,7 @@ export default function BadgeClaim() {
 
       {/* ── Video area (full-width, camera-first) ── */}
       <div className="flex-1 flex flex-col px-4 pb-4">
+        {/* Hidden file input for CAMERA (with capture) */}
         <input
           ref={fileInputRef}
           type="file"
@@ -472,30 +491,27 @@ export default function BadgeClaim() {
           className="hidden"
           onChange={handleVideoSelect}
         />
+        {/* Hidden file input for LIBRARY (without capture) */}
+        <input
+          ref={libraryInputRef}
+          type="file"
+          accept="video/mp4,video/quicktime,video/webm,video/mov,.mp4,.mov,.webm"
+          className="hidden"
+          onChange={handleVideoSelect}
+        />
 
         {!videoFile ? (
-          /* ── No video yet — big tap target ── */
+          /* ── No video yet — two options ── */
           <div className="flex-1 flex flex-col">
-            {/* Camera button */}
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="flex-1 flex flex-col items-center justify-center gap-4 rounded-2xl transition-all active:scale-[0.98]"
+            {/* Record / Upload area */}
+            <div
+              className="flex-1 flex flex-col items-center justify-center gap-5 rounded-2xl"
               style={{
                 background: `${selectedColor}08`,
                 border: `2px dashed ${selectedColor}30`,
                 minHeight: 280,
               }}
             >
-              <div
-                className="h-20 w-20 rounded-full flex items-center justify-center"
-                style={{ background: `${selectedColor}15` }}
-              >
-                <Camera
-                  className="h-9 w-9"
-                  style={{ color: selectedColor }}
-                />
-              </div>
               <div className="text-center px-6">
                 <p
                   className="font-display text-[16px] font-[800]"
@@ -504,7 +520,7 @@ export default function BadgeClaim() {
                     letterSpacing: "-0.03em",
                   }}
                 >
-                  Graba o sube tu video
+                  Envia tu video
                 </p>
                 <p
                   className="font-body text-[12px] mt-1"
@@ -513,7 +529,72 @@ export default function BadgeClaim() {
                   MP4, MOV o WebM — max 50MB
                 </p>
               </div>
-            </button>
+
+              <div className="flex items-center gap-3">
+                {/* Record button */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex flex-col items-center gap-2 rounded-2xl px-5 py-4 transition-all active:scale-[0.97]"
+                  style={{
+                    background: `${selectedColor}12`,
+                    border: `1.5px solid ${selectedColor}25`,
+                    minWidth: 120,
+                  }}
+                >
+                  <div
+                    className="h-12 w-12 rounded-full flex items-center justify-center"
+                    style={{ background: `${selectedColor}20` }}
+                  >
+                    <Camera
+                      className="h-6 w-6"
+                      style={{ color: selectedColor }}
+                    />
+                  </div>
+                  <span
+                    className="font-mono text-[11px] uppercase tracking-wider font-medium"
+                    style={{ color: selectedColor }}
+                  >
+                    Grabar
+                  </span>
+                </button>
+
+                <span
+                  className="font-mono text-[10px] uppercase"
+                  style={{ color: "#555" }}
+                >
+                  o
+                </span>
+
+                {/* Upload from library button */}
+                <button
+                  type="button"
+                  onClick={() => libraryInputRef.current?.click()}
+                  className="flex flex-col items-center gap-2 rounded-2xl px-5 py-4 transition-all active:scale-[0.97]"
+                  style={{
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1.5px solid rgba(255,255,255,0.08)",
+                    minWidth: 120,
+                  }}
+                >
+                  <div
+                    className="h-12 w-12 rounded-full flex items-center justify-center"
+                    style={{ background: "rgba(255,255,255,0.06)" }}
+                  >
+                    <Video
+                      className="h-6 w-6"
+                      style={{ color: "#8A8A8E" }}
+                    />
+                  </div>
+                  <span
+                    className="font-mono text-[11px] uppercase tracking-wider font-medium"
+                    style={{ color: "#8A8A8E" }}
+                  >
+                    Subir
+                  </span>
+                </button>
+              </div>
+            </div>
 
             {/* Tips — compact, non-intrusive */}
             <div

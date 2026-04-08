@@ -413,6 +413,34 @@ export function buildPaymentFailedEmail(
 }
 
 /** Admin alert when a payment fails */
+export function buildAdminBadgeSubmissionEmail(
+  athleteName: string,
+  athleteEmail: string,
+  badgeName: string,
+  tierLabel: string,
+  videoUrl: string,
+): { subject: string; html: string } {
+  const content = `
+    ${heading("Nuevo video de badge")}
+    ${paragraph("Un atleta envio un video para aprobacion de badge.")}
+
+    ${infoCard([
+      { label: "Atleta", value: athleteName },
+      { label: "Email", value: athleteEmail },
+      { label: "Badge", value: badgeName },
+      { label: "Tier", value: tierLabel },
+    ])}
+
+    ${paragraph("Revisa el video y aprueba o rechaza el badge desde el panel de administracion.")}
+    ${button("Revisar ahora", "https://liftory.app/admin")}
+  `;
+
+  return {
+    subject: `Badge pendiente -- ${athleteName} -- ${badgeName} (${tierLabel})`,
+    html: wrapInLayout(content, `${athleteName} envio un video para ${badgeName}.`),
+  };
+}
+
 export function buildAdminPaymentAlertEmail(
   athleteName: string,
   athleteEmail: string,
