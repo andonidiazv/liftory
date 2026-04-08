@@ -4,7 +4,6 @@ interface Props {
   visible: boolean;
   unit: "kg" | "lb";
   initialValue: number;
-  allowBodyweight?: boolean;
   onConfirm: (value: number) => void;
   onClose: () => void;
 }
@@ -34,7 +33,7 @@ const JUMP_VALUES_LB = [45, 95, 135, 185, 225, 315];
 type Mode = "wheel" | "numpad" | "bodyweight";
 
 export default function WeightPickerSheet({
-  visible, unit, initialValue, allowBodyweight, onConfirm, onClose,
+  visible, unit, initialValue, onConfirm, onClose,
 }: Props) {
   const values = useMemo(() => generateValues(unit), [unit]);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -196,20 +195,18 @@ export default function WeightPickerSheet({
         {/* Mode toggle row: BW chip + numpad toggle */}
         <div className="flex items-center justify-between px-5 py-2" style={{ borderBottom: "1px solid #E0DCD7" }}>
           <div className="flex items-center gap-2">
-            {allowBodyweight && (
-              <button
-                onClick={() => setMode(mode === "bodyweight" ? "wheel" : "bodyweight")}
-                className="font-mono text-xs uppercase tracking-wider rounded-full px-3 py-1.5 transition-all"
-                style={{
-                  background: mode === "bodyweight" ? "rgba(199,91,57,0.15)" : "rgba(136,136,136,0.08)",
-                  color: mode === "bodyweight" ? "#C75B39" : "#888",
-                  fontWeight: mode === "bodyweight" ? 600 : 400,
-                  border: mode === "bodyweight" ? "1.5px solid rgba(199,91,57,0.3)" : "1.5px solid transparent",
-                }}
-              >
-                BW
-              </button>
-            )}
+            <button
+              onClick={() => setMode(mode === "bodyweight" ? "wheel" : "bodyweight")}
+              className="font-mono text-xs uppercase tracking-wider rounded-full px-3 py-1.5 transition-all"
+              style={{
+                background: mode === "bodyweight" ? "rgba(199,91,57,0.15)" : "rgba(136,136,136,0.08)",
+                color: mode === "bodyweight" ? "#C75B39" : "#888",
+                fontWeight: mode === "bodyweight" ? 600 : 400,
+                border: mode === "bodyweight" ? "1.5px solid rgba(199,91,57,0.3)" : "1.5px solid transparent",
+              }}
+            >
+              BW
+            </button>
           </div>
           {mode !== "bodyweight" && (
             <button

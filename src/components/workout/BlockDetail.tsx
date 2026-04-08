@@ -5,21 +5,6 @@ import SwapBottomSheet from "./SwapBottomSheet";
 import WeightPickerSheet, { BODYWEIGHT_SENTINEL } from "./WeightPickerSheet";
 import RepsPickerSheet from "./RepsPickerSheet";
 
-/** Equipment that implies external weight — exercises with ONLY non-weighted gear are BW-eligible */
-const WEIGHTED_EQUIPMENT = new Set([
-  "barbell", "dumbbell", "kettlebell", "cable", "ez_bar", "smith_machine",
-  "trap_bar", "weight_belt_or_dumbbell", "plates", "landmine", "t_bar",
-  "leg_press", "hack_squat", "hip_adductor_machine", "hip_abductor_machine",
-  "lat_pulldown_machine", "cable_machine", "chest_press_machine",
-  "rowing_machine", "sled", "weight_stack",
-]);
-
-/** Returns true if this exercise can be done at bodyweight (no external load equipment) */
-function isBodyweightEligible(equipment: string[] | null, category: string): boolean {
-  if (category === "mobility" || category === "conditioning") return false;
-  if (!equipment || equipment.length === 0) return true;
-  return equipment.every((e) => !WEIGHTED_EQUIPMENT.has(e));
-}
 import type { WorkoutBlock } from "./WorkoutOverview";
 import ExerciseVideoOverlay from "./ExerciseVideoOverlay";
 import type { WorkoutSetData, ExerciseGroup } from "@/hooks/useWorkoutData";
@@ -680,8 +665,6 @@ function ExerciseCard({
   const [pickerSetId, setPickerSetId] = useState<string | null>(null);
   const [pickerInitialValue, setPickerInitialValue] = useState(0);
 
-  const bwEligible = isBodyweightEligible(ex.equipment_required, ex.category);
-
   const openWeightPicker = (set: WorkoutSetData) => {
     const inputs = getInputs(set);
     if (inputs.weight === "BW") {
@@ -818,7 +801,6 @@ function ExerciseCard({
         visible={pickerSetId !== null}
         unit={weightUnit as "kg" | "lb"}
         initialValue={pickerInitialValue}
-        allowBodyweight={bwEligible}
         onConfirm={(value) => {
           const targetSetId = pickerSetId;
           if (!targetSetId) return;
