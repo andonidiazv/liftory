@@ -235,14 +235,20 @@ export default function WorkoutComplete() {
         .map((s) => new Date(s.logged_at!).getTime())
         .filter((t) => t <= completedTime);
       if (loggedTimes.length > 0) {
-        const first = Math.min(...loggedTimes);
-        // Use last in-session logged_at — the user may tap "complete workout"
-        // hours later, inflating the duration.
-        const lastLogged = Math.max(...loggedTimes);
+        // Cluster: walk sorted timestamps — if a gap >30 min appears,
+        // everything after is a re-completion / post-session edit.
+        const sorted = [...loggedTimes].sort((a, b) => a - b);
+        const sessionTimes: number[] = [sorted[0]];
+        for (let i = 1; i < sorted.length; i++) {
+          if (sorted[i] - sorted[i - 1] > 30 * 60 * 1000) break; // 30-min gap = session over
+          sessionTimes.push(sorted[i]);
+        }
+        const first = sessionTimes[0];
+        const lastLogged = sessionTimes[sessionTimes.length - 1];
         // Use whichever is earlier: last set logged + buffer or completed_at
         const end = Math.min(lastLogged + 120_000, completedTime); // +2 min buffer for cooldown
         const diffSec = Math.max(0, Math.floor((end - first) / 1000));
-        // Cap at 4 hours max to prevent absurd values
+        // Cap at 4 hours max as absolute safety net
         const cappedSec = Math.min(diffSec, 4 * 3600);
         const m = Math.floor(cappedSec / 60);
         const sec = cappedSec % 60;

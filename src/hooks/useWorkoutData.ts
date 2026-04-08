@@ -370,24 +370,35 @@ export function useWorkoutData(workoutId: string | undefined) {
     async (notes?: string) => {
       if (!workoutId) return;
       setSaving(true);
+
+      // Preserve original completed_at — re-completing must NOT overwrite it,
+      // otherwise the duration calculation breaks (post-session logged_at
+      // timestamps slip through the filter and inflate the duration).
+      const alreadyCompleted = !!workout?.completed_at;
+      const now = new Date().toISOString();
+
+      const updatePayload: Record<string, unknown> = {
+        is_completed: true,
+        notes: notes || null,
+      };
+      if (!alreadyCompleted) {
+        updatePayload.completed_at = now;
+      }
+
       const { error } = await supabase
         .from("workouts")
-        .update({
-          is_completed: true,
-          completed_at: new Date().toISOString(),
-          notes: notes || null,
-        })
+        .update(updatePayload)
         .eq("id", workoutId);
 
       if (error) {
         toast({ title: "Error al finalizar", description: error.message, variant: "destructive" });
       } else {
-        setWorkout((w) => (w ? { ...w, is_completed: true, completed_at: new Date().toISOString() } : w));
+        setWorkout((w) => (w ? { ...w, is_completed: true, completed_at: w.completed_at || now } : w));
       }
       setSaving(false);
       return !error;
     },
-    [workoutId]
+    [workoutId, workout?.completed_at]
   );
 
   // Separate cooldown sets from main exercise groups

@@ -136,9 +136,14 @@ export async function renderShareCard(
   canvas.height = canvasH;
   const ctx = canvas.getContext("2d")!;
 
-  // Pre-load Lucide icons as SVG images
+  // Crisp rendering settings
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  (ctx as any).textRendering = "optimizeLegibility";
+
+  // Pre-load Lucide icons as SVG images (larger for crispness, drawn at iconPx)
   const iconPx = 18 * S;
-  const icons = await loadIcons(iconPx, "rgba(250,248,245,0.45)");
+  const icons = await loadIcons(iconPx * 2, "rgba(250,248,245,0.45)");
 
   // ── Story background ──
   if (mode === "story") {
@@ -210,21 +215,22 @@ export async function renderShareCard(
   ctx.font = `700 ${46 * S}px "DM Mono"`;
   const scoreStr = String(opts.score);
   const scoreTextW = ctx.measureText(scoreStr).width;
-  ctx.font = `400 ${14 * S}px "DM Mono"`;
+  ctx.font = `500 ${14 * S}px "DM Mono"`;
   const slashW = ctx.measureText("/100").width;
   const totalGroupW = scoreTextW + 2 * S + slashW;
-  const groupStartX = centerX - totalGroupW / 2;
+  const groupStartX = Math.round(centerX - totalGroupW / 2);
+  const scoreBaselineY = Math.round(ringCY + 16 * S);
 
   // Score digits
   ctx.font = `700 ${46 * S}px "DM Mono"`;
   ctx.fillStyle = "#FAF8F5";
   ctx.textAlign = "left";
-  ctx.fillText(scoreStr, groupStartX, ringCY + 16 * S);
+  ctx.fillText(scoreStr, groupStartX, scoreBaselineY);
 
   // "/100"
-  ctx.font = `400 ${14 * S}px "DM Mono"`;
-  ctx.fillStyle = "rgba(250,248,245,0.3)";
-  ctx.fillText("/100", groupStartX + scoreTextW + 2 * S, ringCY + 16 * S);
+  ctx.font = `500 ${14 * S}px "DM Mono"`;
+  ctx.fillStyle = "rgba(250,248,245,0.35)";
+  ctx.fillText("/100", Math.round(groupStartX + scoreTextW + 2 * S), scoreBaselineY);
 
   // ── Sticker label ──
   y = ringCY + ringR + 28 * S;
@@ -288,22 +294,24 @@ export async function renderShareCard(
     ctx.fill();
     ctx.stroke();
 
-    // Lucide icon — rendered from SVG for pixel-perfect match with the app
+    // Lucide icon — rendered from 2× SVG for crispness, drawn at target size
     const iconImg = icons[stat.iconKey];
     if (iconImg) {
-      ctx.drawImage(iconImg, bx + boxW / 2 - iconPx / 2, by + 10 * S, iconPx, iconPx);
+      const ix = Math.round(bx + boxW / 2 - iconPx / 2);
+      const iy = Math.round(by + 10 * S);
+      ctx.drawImage(iconImg, ix, iy, iconPx, iconPx);
     }
 
-    // Value
-    ctx.font = `600 ${17 * S}px "DM Mono"`;
+    // Value — 700 weight for sharper rendering
+    const valueFont = `700 ${17 * S}px "DM Mono"`;
+    ctx.font = valueFont;
     ctx.fillStyle = "#FAF8F5";
     ctx.textAlign = "center";
-    ctx.fillText(stat.value, bx + boxW / 2, by + 42 * S);
+    ctx.fillText(stat.value, Math.round(bx + boxW / 2), Math.round(by + 42 * S));
 
     // Label
-    ctx.font = `400 ${7.5 * S}px "DM Mono"`;
-    ctx.fillStyle = "rgba(250,248,245,0.35)";
-    drawCenteredText(ctx, stat.label, bx + boxW / 2, by + 58 * S, `400 ${7.5 * S}px "DM Mono"`, "rgba(250,248,245,0.35)", 1.5 * S);
+    const labelFont = `500 ${8 * S}px "DM Mono"`;
+    drawCenteredText(ctx, stat.label, Math.round(bx + boxW / 2), Math.round(by + 58 * S), labelFont, "rgba(250,248,245,0.4)", 1.5 * S);
   }
 
   // ── Badges row ──
