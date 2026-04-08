@@ -222,16 +222,20 @@ export default function WorkoutComplete() {
     let duration = "—";
     let durationMinutes = 0;
     if (workout?.completed_at) {
+      const completedTime = new Date(workout.completed_at).getTime();
+      // Only consider logged_at timestamps from DURING the session.
+      // Post-completion edits (e.g. updating weights later) have logged_at
+      // after completed_at and must be excluded from duration calculation.
       const loggedTimes = completedSets
         .filter((s) => s.logged_at)
-        .map((s) => new Date(s.logged_at!).getTime());
+        .map((s) => new Date(s.logged_at!).getTime())
+        .filter((t) => t <= completedTime);
       if (loggedTimes.length > 0) {
         const first = Math.min(...loggedTimes);
-        // Use last logged_at instead of completed_at — the user may tap
-        // "complete workout" hours later, inflating the duration.
+        // Use last in-session logged_at — the user may tap "complete workout"
+        // hours later, inflating the duration.
         const lastLogged = Math.max(...loggedTimes);
-        const completedTime = new Date(workout.completed_at).getTime();
-        // Use whichever is earlier: last set logged or completed_at
+        // Use whichever is earlier: last set logged + buffer or completed_at
         const end = Math.min(lastLogged + 120_000, completedTime); // +2 min buffer for cooldown
         const diffSec = Math.max(0, Math.floor((end - first) / 1000));
         // Cap at 4 hours max to prevent absurd values
