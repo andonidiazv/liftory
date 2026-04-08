@@ -679,77 +679,222 @@ export default function EmomTimerBlock({
       {/* Exercise list — idle + done */}
       {(phase === "idle" || phase === "done") && (
         <div className="px-5 pb-3 flex flex-col gap-2">
-          {/* Complex mode label */}
-          {complexMode && (
-            <div className="flex items-center gap-2 mb-0.5">
-              <span
-                className="font-mono text-[10px] tracking-wider uppercase px-2 py-0.5 rounded"
-                style={{ backgroundColor: "rgba(199,91,57,0.12)", color: "#C75B39" }}
-              >
-                COMPLEX
-              </span>
-              <span className="font-mono text-[10px] text-muted-foreground tracking-wider">
-                Mismo peso para todo el complejo
-              </span>
-            </div>
-          )}
-          {block.groups.map((group, groupIndex) => {
-            const ex = group.exercise;
-            const set = group.sets[0];
-            const reps = set?.planned_reps;
-            const cue = set?.coaching_cue_override;
-            // In complex mode, exercises after the first are display-only (no weight logging)
-            const isDisplayOnly = complexMode && groupIndex > 0;
-            const weights = exerciseWeights[ex.id] ?? [];
-            const mainWeight = weights[0] ?? "";
-            const hasWeight = mainWeight !== "" && parseFloat(mainWeight) > 0;
-            const isExpanded = expandedExercise === ex.id;
-            const hasMultipleRondas = group.sets.length > 1;
-            const allSameWeight = weights.length > 0 && weights.every((w) => w === weights[0]);
-
-            return (
-              <div key={ex.id} className="rounded-xl bg-secondary/50 p-3">
-                {/* Main exercise row */}
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() =>
-                      onOpenVideo({ name: ex.name, videoUrl: ex.video_url, coachingCue: cue })
-                    }
-                    className="shrink-0 overflow-hidden rounded-lg"
-                    style={{ width: 52, height: 40 }}
-                  >
-                    <ExerciseThumbnail
-                      thumbnailUrl={ex.thumbnail_url}
-                      videoUrl={ex.video_url}
-                      name={ex.name}
-                      width={52}
-                      height={40}
-                    />
-                  </button>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-body text-[15px] font-semibold text-foreground truncate">
-                      {ex.name}
-                    </p>
-                    {reps != null && (
-                      <span className="font-mono text-xs text-muted-foreground">
-                        x{reps}{bilateral && (
-                          <span
-                            className="ml-1 font-body text-[10px] font-medium px-1.5 py-0.5 rounded"
-                            style={{ backgroundColor: "rgba(255,255,255,0.06)", color: "#C9A96E" }}
-                          >
-                            /lado
-                          </span>
+          {complexMode ? (
+            /* ─── Complex mode: clean exercise list + global weight section ─── */
+            <>
+              {block.groups.map((group) => {
+                const ex = group.exercise;
+                const set = group.sets[0];
+                const reps = set?.planned_reps;
+                const cue = set?.coaching_cue_override;
+                return (
+                  <div key={ex.id} className="rounded-xl bg-secondary/50 p-3">
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() =>
+                          onOpenVideo({ name: ex.name, videoUrl: ex.video_url, coachingCue: cue })
+                        }
+                        className="shrink-0 overflow-hidden rounded-lg"
+                        style={{ width: 52, height: 40 }}
+                      >
+                        <ExerciseThumbnail
+                          thumbnailUrl={ex.thumbnail_url}
+                          videoUrl={ex.video_url}
+                          name={ex.name}
+                          width={52}
+                          height={40}
+                        />
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-body text-[15px] font-semibold text-foreground truncate">
+                          {ex.name}
+                        </p>
+                        {reps != null && (
+                          <span className="font-mono text-xs text-muted-foreground">x{reps}</span>
                         )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Global weight section for the complex */}
+              {(() => {
+                const primaryGroup = block.groups[0];
+                const primaryEx = primaryGroup.exercise;
+                const weights = exerciseWeights[primaryEx.id] ?? [];
+                const mainWeight = weights[0] ?? "";
+                const hasWeight = mainWeight !== "" && parseFloat(mainWeight) > 0;
+                const isExpanded = expandedExercise === `complex-${primaryEx.id}`;
+                const allSameWeight = weights.length > 0 && weights.every((w) => w === weights[0]);
+
+                return (
+                  <div
+                    className="rounded-xl p-3 mt-1"
+                    style={{ backgroundColor: "rgba(199,91,57,0.06)", border: "1px solid rgba(199,91,57,0.12)" }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Dumbbell className="w-4 h-4 shrink-0" style={{ color: "#C75B39" }} />
+                      <span className="font-mono text-xs tracking-wider uppercase flex-1" style={{ color: "#C75B39" }}>
+                        Peso de la barra
                       </span>
+                      <button
+                        onClick={() => {
+                          setPickerExerciseId(primaryEx.id);
+                          setPickerRondaIndex(null);
+                          setPickerInitial(parseFloat(mainWeight) || 0);
+                        }}
+                        className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 shrink-0"
+                        style={{
+                          background: hasWeight ? "rgba(199,91,57,0.15)" : "hsl(var(--border))",
+                          border: hasWeight ? "1px solid rgba(199,91,57,0.3)" : "1px solid transparent",
+                          minWidth: 72,
+                        }}
+                      >
+                        {hasWeight ? (
+                          <>
+                            <span className="font-mono text-sm font-semibold" style={{ color: "#C75B39" }}>
+                              {mainWeight}
+                            </span>
+                            <span className="font-mono text-[10px]" style={{ color: "#C75B39", opacity: 0.7 }}>
+                              {weightUnit}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <Dumbbell className="w-3.5 h-3.5 text-muted-foreground" />
+                            <span className="font-mono text-xs text-muted-foreground">{weightUnit}</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Per-round expand */}
+                    {primaryGroup.sets.length > 1 && (
+                      <div className="mt-2">
+                        {!isExpanded ? (
+                          <button
+                            onClick={() => setExpandedExercise(`complex-${primaryEx.id}`)}
+                            className="flex items-center gap-1 py-0.5"
+                          >
+                            <span className="font-mono text-[10px] tracking-wider uppercase" style={{ color: "#8A8A8E" }}>
+                              {allSameWeight && hasWeight
+                                ? `x${primaryGroup.sets.length} rondas`
+                                : "por ronda"}
+                            </span>
+                            <ChevronDown className="w-3 h-3" style={{ color: "#8A8A8E" }} />
+                          </button>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => setExpandedExercise(null)}
+                              className="flex items-center gap-1 py-0.5 mb-1.5"
+                            >
+                              <span className="font-mono text-[10px] tracking-wider uppercase" style={{ color: "#8A8A8E" }}>
+                                por ronda
+                              </span>
+                              <ChevronDown
+                                className="w-3 h-3 transition-transform rotate-180"
+                                style={{ color: "#8A8A8E" }}
+                              />
+                            </button>
+                            <div className="flex gap-1.5 flex-wrap">
+                              {primaryGroup.sets.map((rondaSet, idx) => {
+                                const rondaWeight = weights[idx] ?? "";
+                                const hasRondaWeight = rondaWeight !== "" && parseFloat(rondaWeight) > 0;
+                                return (
+                                  <button
+                                    key={rondaSet.id}
+                                    onClick={() => {
+                                      setPickerExerciseId(primaryEx.id);
+                                      setPickerRondaIndex(idx);
+                                      setPickerInitial(parseFloat(rondaWeight) || parseFloat(mainWeight) || 0);
+                                    }}
+                                    className="flex items-center gap-1 rounded-lg px-2 py-1.5 transition-colors"
+                                    style={{
+                                      background: hasRondaWeight ? "rgba(199,91,57,0.08)" : "rgba(255,255,255,0.04)",
+                                      border: hasRondaWeight
+                                        ? "1px solid rgba(199,91,57,0.2)"
+                                        : "1px solid rgba(255,255,255,0.06)",
+                                    }}
+                                  >
+                                    <span className="font-mono text-[10px] font-medium" style={{ color: "#8A8A8E" }}>
+                                      R{idx + 1}
+                                    </span>
+                                    <span
+                                      className="font-mono text-xs font-medium"
+                                      style={{ color: hasRondaWeight ? "#C75B39" : "#8A8A8E" }}
+                                    >
+                                      {hasRondaWeight ? `${rondaWeight} ${weightUnit}` : `— ${weightUnit}`}
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </>
+                        )}
+                      </div>
                     )}
                   </div>
+                );
+              })()}
+            </>
+          ) : (
+            /* ─── Normal mode: per-exercise weight buttons ─── */
+            block.groups.map((group) => {
+              const ex = group.exercise;
+              const set = group.sets[0];
+              const reps = set?.planned_reps;
+              const cue = set?.coaching_cue_override;
+              const weights = exerciseWeights[ex.id] ?? [];
+              const mainWeight = weights[0] ?? "";
+              const hasWeight = mainWeight !== "" && parseFloat(mainWeight) > 0;
+              const isExpanded = expandedExercise === ex.id;
+              const hasMultipleRondas = group.sets.length > 1;
+              const allSameWeight = weights.length > 0 && weights.every((w) => w === weights[0]);
 
-                  {/* Weight button — collapsed: applies to all rondas (hidden for display-only complex exercises) */}
-                  {!isDisplayOnly && (
+              return (
+                <div key={ex.id} className="rounded-xl bg-secondary/50 p-3">
+                  {/* Main exercise row */}
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() =>
+                        onOpenVideo({ name: ex.name, videoUrl: ex.video_url, coachingCue: cue })
+                      }
+                      className="shrink-0 overflow-hidden rounded-lg"
+                      style={{ width: 52, height: 40 }}
+                    >
+                      <ExerciseThumbnail
+                        thumbnailUrl={ex.thumbnail_url}
+                        videoUrl={ex.video_url}
+                        name={ex.name}
+                        width={52}
+                        height={40}
+                      />
+                    </button>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-body text-[15px] font-semibold text-foreground truncate">
+                        {ex.name}
+                      </p>
+                      {reps != null && (
+                        <span className="font-mono text-xs text-muted-foreground">
+                          x{reps}{bilateral && (
+                            <span
+                              className="ml-1 font-body text-[10px] font-medium px-1.5 py-0.5 rounded"
+                              style={{ backgroundColor: "rgba(255,255,255,0.06)", color: "#C9A96E" }}
+                            >
+                              /lado
+                            </span>
+                          )}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Weight button */}
                     <button
                       onClick={() => {
                         setPickerExerciseId(ex.id);
-                        setPickerRondaIndex(null); // null = all rondas
+                        setPickerRondaIndex(null);
                         setPickerInitial(parseFloat(mainWeight) || 0);
                       }}
                       className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 shrink-0"
@@ -775,81 +920,81 @@ export default function EmomTimerBlock({
                         </>
                       )}
                     </button>
-                  )}
-                </div>
+                  </div>
 
-                {/* Per-ronda expand toggle + pills (hidden for display-only complex exercises) */}
-                {hasMultipleRondas && !isDisplayOnly && (
-                  <div className="mt-2" style={{ marginLeft: 64 }}>
-                    {!isExpanded ? (
-                      <button
-                        onClick={() => setExpandedExercise(ex.id)}
-                        className="flex items-center gap-1 py-0.5"
-                      >
-                        <span className="font-mono text-[10px] tracking-wider uppercase" style={{ color: "#8A8A8E" }}>
-                          {allSameWeight && hasWeight
-                            ? `x${group.sets.length} rondas`
-                            : "por ronda"}
-                        </span>
-                        <ChevronDown className="w-3 h-3" style={{ color: "#8A8A8E" }} />
-                      </button>
-                    ) : (
-                      <>
+                  {/* Per-ronda expand toggle + pills */}
+                  {hasMultipleRondas && (
+                    <div className="mt-2" style={{ marginLeft: 64 }}>
+                      {!isExpanded ? (
                         <button
-                          onClick={() => setExpandedExercise(null)}
-                          className="flex items-center gap-1 py-0.5 mb-1.5"
+                          onClick={() => setExpandedExercise(ex.id)}
+                          className="flex items-center gap-1 py-0.5"
                         >
                           <span className="font-mono text-[10px] tracking-wider uppercase" style={{ color: "#8A8A8E" }}>
-                            por ronda
+                            {allSameWeight && hasWeight
+                              ? `x${group.sets.length} rondas`
+                              : "por ronda"}
                           </span>
-                          <ChevronDown
-                            className="w-3 h-3 transition-transform rotate-180"
-                            style={{ color: "#8A8A8E" }}
-                          />
+                          <ChevronDown className="w-3 h-3" style={{ color: "#8A8A8E" }} />
                         </button>
-                        <div className="flex gap-1.5">
-                          {group.sets.map((rondaSet, idx) => {
-                            const rondaWeight = weights[idx] ?? "";
-                            const hasRondaWeight = rondaWeight !== "" && parseFloat(rondaWeight) > 0;
-                            return (
-                              <button
-                                key={rondaSet.id}
-                                onClick={() => {
-                                  setPickerExerciseId(ex.id);
-                                  setPickerRondaIndex(idx);
-                                  setPickerInitial(parseFloat(rondaWeight) || parseFloat(mainWeight) || 0);
-                                }}
-                                className="flex items-center gap-1 rounded-lg px-2 py-1.5 transition-colors"
-                                style={{
-                                  background: hasRondaWeight ? "rgba(199,91,57,0.08)" : "rgba(255,255,255,0.04)",
-                                  border: hasRondaWeight
-                                    ? "1px solid rgba(199,91,57,0.2)"
-                                    : "1px solid rgba(255,255,255,0.06)",
-                                }}
-                              >
-                                <span
-                                  className="font-mono text-[10px] font-medium"
-                                  style={{ color: "#8A8A8E" }}
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => setExpandedExercise(null)}
+                            className="flex items-center gap-1 py-0.5 mb-1.5"
+                          >
+                            <span className="font-mono text-[10px] tracking-wider uppercase" style={{ color: "#8A8A8E" }}>
+                              por ronda
+                            </span>
+                            <ChevronDown
+                              className="w-3 h-3 transition-transform rotate-180"
+                              style={{ color: "#8A8A8E" }}
+                            />
+                          </button>
+                          <div className="flex gap-1.5">
+                            {group.sets.map((rondaSet, idx) => {
+                              const rondaWeight = weights[idx] ?? "";
+                              const hasRondaWeight = rondaWeight !== "" && parseFloat(rondaWeight) > 0;
+                              return (
+                                <button
+                                  key={rondaSet.id}
+                                  onClick={() => {
+                                    setPickerExerciseId(ex.id);
+                                    setPickerRondaIndex(idx);
+                                    setPickerInitial(parseFloat(rondaWeight) || parseFloat(mainWeight) || 0);
+                                  }}
+                                  className="flex items-center gap-1 rounded-lg px-2 py-1.5 transition-colors"
+                                  style={{
+                                    background: hasRondaWeight ? "rgba(199,91,57,0.08)" : "rgba(255,255,255,0.04)",
+                                    border: hasRondaWeight
+                                      ? "1px solid rgba(199,91,57,0.2)"
+                                      : "1px solid rgba(255,255,255,0.06)",
+                                  }}
                                 >
-                                  R{idx + 1}
-                                </span>
-                                <span
-                                  className="font-mono text-xs font-medium"
-                                  style={{ color: hasRondaWeight ? "#C75B39" : "#8A8A8E" }}
-                                >
-                                  {hasRondaWeight ? `${rondaWeight} ${weightUnit}` : `— ${weightUnit}`}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                                  <span
+                                    className="font-mono text-[10px] font-medium"
+                                    style={{ color: "#8A8A8E" }}
+                                  >
+                                    R{idx + 1}
+                                  </span>
+                                  <span
+                                    className="font-mono text-xs font-medium"
+                                    style={{ color: hasRondaWeight ? "#C75B39" : "#8A8A8E" }}
+                                  >
+                                    {hasRondaWeight ? `${rondaWeight} ${weightUnit}` : `— ${weightUnit}`}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
         </div>
       )}
 
