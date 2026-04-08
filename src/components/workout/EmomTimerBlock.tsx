@@ -181,6 +181,23 @@ function parseVentanaSequence(block: WorkoutBlock, totalVentanas: number): strin
 }
 
 /**
+ * Detect "complex" mode — multiple exercises done with the same barbell in each round.
+ * Complex: first exercise has EMOM timing config, other exercises don't (they are "part of" the complex).
+ * NOT complex: Alterna mode (all exercises have EMOM config) or single-exercise EMOM.
+ */
+function isComplexBlock(block: WorkoutBlock): boolean {
+  if (block.groups.length <= 1) return false;
+  const firstCue = block.groups[0]?.sets[0]?.coaching_cue_override || "";
+  const hasEmomConfig = /EMOM\s+\d+s/i.test(firstCue);
+  if (!hasEmomConfig) return false;
+  // Other exercises must NOT have their own EMOM config
+  return block.groups.slice(1).every((g) => {
+    const cue = g.sets[0]?.coaching_cue_override || "";
+    return !/EMOM\s+\d+s/i.test(cue);
+  });
+}
+
+/**
  * Detect if the EMOM alternates R/L sides (bilateral work).
  * Returns true if Alterna items contain both "R" and "L" variants.
  */
@@ -245,6 +262,7 @@ export default function EmomTimerBlock({
     [block, totalVentanas],
   );
   const bilateral = useMemo(() => isBilateral(block), [block]);
+  const complexMode = useMemo(() => isComplexBlock(block), [block]);
   const allSets = useMemo(() => block.groups.flatMap((g) => g.sets), [block]);
   const firstCue = allSets[0]?.coaching_cue_override;
   const allDone = allSets.length > 0 && allSets.every((s) => isCompleted(s));
@@ -654,18 +672,34 @@ export default function EmomTimerBlock({
           )}
         </div>
         <span className="font-mono text-xs text-muted-foreground tracking-wider">
-          EMOM {formatTime(windowSeconds)} · {totalRondas} RONDAS x {ventanasPerRonda} VENTANAS
+          EMOM {formatTime(windowSeconds)} · {totalRondas} RONDAS{!complexMode && ` x ${ventanasPerRonda} VENTANAS`}
         </span>
       </div>
 
       {/* Exercise list — idle + done */}
       {(phase === "idle" || phase === "done") && (
         <div className="px-5 pb-3 flex flex-col gap-2">
-          {block.groups.map((group) => {
+          {/* Complex mode label */}
+          {complexMode && (
+            <div className="flex items-center gap-2 mb-0.5">
+              <span
+                className="font-mono text-[10px] tracking-wider uppercase px-2 py-0.5 rounded"
+                style={{ backgroundColor: "rgba(199,91,57,0.12)", color: "#C75B39" }}
+              >
+                COMPLEX
+              </span>
+              <span className="font-mono text-[10px] text-muted-foreground tracking-wider">
+                Mismo peso para todo el complejo
+              </span>
+            </div>
+          )}
+          {block.groups.map((group, groupIndex) => {
             const ex = group.exercise;
             const set = group.sets[0];
             const reps = set?.planned_reps;
             const cue = set?.coaching_cue_override;
+            // In complex mode, exercises after the first are display-only (no weight logging)
+            const isDisplayOnly = complexMode && groupIndex > 0;
             const weights = exerciseWeights[ex.id] ?? [];
             const mainWeight = weights[0] ?? "";
             const hasWeight = mainWeight !== "" && parseFloat(mainWeight) > 0;
@@ -710,40 +744,42 @@ export default function EmomTimerBlock({
                     )}
                   </div>
 
-                  {/* Weight button — collapsed: applies to all rondas */}
-                  <button
-                    onClick={() => {
-                      setPickerExerciseId(ex.id);
-                      setPickerRondaIndex(null); // null = all rondas
-                      setPickerInitial(parseFloat(mainWeight) || 0);
-                    }}
-                    className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 shrink-0"
-                    style={{
-                      background: hasWeight ? "rgba(199,91,57,0.12)" : "hsl(var(--border))",
-                      border: hasWeight ? "1px solid rgba(199,91,57,0.25)" : "1px solid transparent",
-                      minWidth: 68,
-                    }}
-                  >
-                    {hasWeight ? (
-                      <>
-                        <span className="font-mono text-sm font-medium" style={{ color: "#C75B39" }}>
-                          {mainWeight}
-                        </span>
-                        <span className="font-mono text-[10px]" style={{ color: "#C75B39", opacity: 0.7 }}>
-                          {weightUnit}
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <Dumbbell className="w-3.5 h-3.5 text-muted-foreground" />
-                        <span className="font-mono text-xs text-muted-foreground">{weightUnit}</span>
-                      </>
-                    )}
-                  </button>
+                  {/* Weight button — collapsed: applies to all rondas (hidden for display-only complex exercises) */}
+                  {!isDisplayOnly && (
+                    <button
+                      onClick={() => {
+                        setPickerExerciseId(ex.id);
+                        setPickerRondaIndex(null); // null = all rondas
+                        setPickerInitial(parseFloat(mainWeight) || 0);
+                      }}
+                      className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 shrink-0"
+                      style={{
+                        background: hasWeight ? "rgba(199,91,57,0.12)" : "hsl(var(--border))",
+                        border: hasWeight ? "1px solid rgba(199,91,57,0.25)" : "1px solid transparent",
+                        minWidth: 68,
+                      }}
+                    >
+                      {hasWeight ? (
+                        <>
+                          <span className="font-mono text-sm font-medium" style={{ color: "#C75B39" }}>
+                            {mainWeight}
+                          </span>
+                          <span className="font-mono text-[10px]" style={{ color: "#C75B39", opacity: 0.7 }}>
+                            {weightUnit}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Dumbbell className="w-3.5 h-3.5 text-muted-foreground" />
+                          <span className="font-mono text-xs text-muted-foreground">{weightUnit}</span>
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
 
-                {/* Per-ronda expand toggle + pills */}
-                {hasMultipleRondas && (
+                {/* Per-ronda expand toggle + pills (hidden for display-only complex exercises) */}
+                {hasMultipleRondas && !isDisplayOnly && (
                   <div className="mt-2" style={{ marginLeft: 64 }}>
                     {!isExpanded ? (
                       <button
@@ -879,8 +915,8 @@ export default function EmomTimerBlock({
         </div>
       )}
 
-      {/* Current exercise label during active */}
-      {phase === "active" && currentExercise && (
+      {/* Current exercise label during active (non-complex) */}
+      {phase === "active" && currentExercise && !complexMode && (
         <div className="px-5 pb-1 text-center">
           <p className="font-body text-base font-semibold text-foreground">
             {currentExercise}
@@ -888,8 +924,25 @@ export default function EmomTimerBlock({
         </div>
       )}
 
-      {/* Compact exercise names during countdown (no sequence yet) */}
-      {phase === "countdown" && (
+      {/* Complex mode: show all exercises during countdown + active */}
+      {complexMode && (phase === "countdown" || phase === "active") && (
+        <div className="px-5 pb-2">
+          <div className="flex flex-col gap-1 items-center">
+            {block.groups.map((group, i) => (
+              <span key={group.exercise.id} className="font-body text-xs text-muted-foreground">
+                {group.exercise.name}
+                {group.sets[0]?.planned_reps ? ` x${group.sets[0].planned_reps}` : ""}
+                {i < block.groups.length - 1 && (
+                  <span style={{ color: "#555", margin: "0 2px" }}> + </span>
+                )}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Compact exercise names during countdown (non-complex) */}
+      {phase === "countdown" && !complexMode && (
         <div className="px-5 pb-2">
           <div className="flex flex-wrap gap-x-3 gap-y-1 justify-center">
             {block.groups.map((group) => (
@@ -902,8 +955,8 @@ export default function EmomTimerBlock({
         </div>
       )}
 
-      {/* Compact exercise names when no sequence parsed (active fallback) */}
-      {phase === "active" && !currentExercise && (
+      {/* Compact exercise names when no sequence parsed (active fallback, non-complex) */}
+      {phase === "active" && !currentExercise && !complexMode && (
         <div className="px-5 pb-2">
           <div className="flex flex-wrap gap-x-3 gap-y-1 justify-center">
             {block.groups.map((group) => (
@@ -949,8 +1002,8 @@ export default function EmomTimerBlock({
           <p className="font-body text-base text-muted-foreground">
             {totalRondas}/{totalRondas} rondas completadas
           </p>
-          {/* Nudge to log weights if missing */}
-          {block.groups.some((g) => {
+          {/* Nudge to log weights if missing (in complex mode, only check first exercise) */}
+          {(complexMode ? [block.groups[0]] : block.groups).filter(Boolean).some((g) => {
             const w = exerciseWeights[g.exercise.id] ?? [];
             return w.length === 0 || w.some((v) => !v || parseFloat(v) <= 0);
           }) && (
@@ -980,7 +1033,9 @@ export default function EmomTimerBlock({
               >
                 {phase === "countdown"
                   ? "PREPARATE"
-                  : `RONDA ${currentRonda + 1} DE ${totalRondas} · VENTANA ${ventanaInRonda + 1}/${ventanasPerRonda}`}
+                  : complexMode || ventanasPerRonda === 1
+                    ? `RONDA ${currentRonda + 1} DE ${totalRondas}`
+                    : `RONDA ${currentRonda + 1} DE ${totalRondas} · VENTANA ${ventanaInRonda + 1}/${ventanasPerRonda}`}
               </p>
               {currentRpe && phase === "active" && (
                 <span
