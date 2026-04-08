@@ -157,6 +157,7 @@ export default function WorkoutComplete() {
   const [animatedScore, setAnimatedScore] = useState(0);
   const [animatedStats, setAnimatedStats] = useState({ completedSets: 0, volume: 0, prs: 0, durationSec: 0 });
   const [stickerVisible, setStickerVisible] = useState(false);
+  const [animDone, setAnimDone] = useState(false);
   const animStartedRef = useRef(false);
 
   const showFeedback = !feedbackDone && !feedbackSkipped;
@@ -299,6 +300,7 @@ export default function WorkoutComplete() {
 
       if (tScore >= 1 && tStats >= 1) {
         clearInterval(interval);
+        setAnimDone(true);
       }
       // Trigger sticker slam 2s after score ring completes
       if (tScore >= 1 && !stickerVisible) {
@@ -393,6 +395,20 @@ export default function WorkoutComplete() {
     if (!ref) return;
     setSharing(true);
     try {
+      // Force final values before capture (in case animation was interrupted)
+      const targetDurationSec = stats.durationMinutes * 60 + (stats.duration !== "—" ? parseInt(stats.duration.split(":")[1] || "0") : 0);
+      setAnimatedScore(primeScore);
+      setAnimatedStats({ completedSets: stats.completedSets, volume: stats.volume, prs: stats.prs, durationSec: targetDurationSec });
+      setStickerVisible(true);
+
+      // Wait for fonts to load
+      await document.fonts.ready;
+
+      // Wait for React to flush + browser to paint (double rAF)
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+      );
+
       const html2canvas = (await import("html2canvas")).default;
 
       // Capture the real scoreCard at 3x resolution
@@ -501,29 +517,31 @@ export default function WorkoutComplete() {
         {/* ═══ PRIME SCORE CARD (dark, shareable) ═══ */}
         <div
           ref={scoreCardRef}
-          className="w-full max-w-md rounded-2xl overflow-hidden"
+          className="w-full max-w-md"
           style={{
             background: "linear-gradient(170deg, #1C1C1E 0%, #0D0D0F 50%, #1A1614 100%)",
             padding: "32px 24px 24px",
+            borderRadius: 16,
+            overflow: "hidden",
           }}
         >
-          {/* Top: LIFTORY centered + date */}
-          <div className="flex flex-col items-center">
-            <span className="font-display" style={{ fontSize: 22, color: "#FAF8F5", fontWeight: 800, letterSpacing: "-0.03em" }}>
+          {/* Top: PRIME SCORE centered + date */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 22, color: "#FAF8F5", fontWeight: 800, letterSpacing: "-0.03em" }}>
               PRIME SCORE
             </span>
-            <span className="font-mono uppercase mt-1" style={{ fontSize: 9, color: "rgba(250,248,245,0.3)", letterSpacing: "0.1em" }}>
+            <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", marginTop: 4, fontSize: 9, color: "rgba(250,248,245,0.3)", letterSpacing: "0.1em" }}>
               {dateStr}
             </span>
           </div>
 
           {/* Score circle */}
-          <div className="flex flex-col items-center mt-6">
-            <div className="relative flex items-center justify-center" style={{ width: 150, height: 150 }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 24 }}>
+            <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", width: 150, height: 150 }}>
               {/* Glow behind ring */}
               <div
-                className="absolute rounded-full"
                 style={{
+                  position: "absolute", borderRadius: "50%",
                   width: 130, height: 130,
                   background: `radial-gradient(circle, ${scoreColor}20 0%, transparent 70%)`,
                   filter: `blur(12px)`,
@@ -531,7 +549,7 @@ export default function WorkoutComplete() {
                 }}
               />
               {/* Ring SVG */}
-              <svg width="150" height="150" className="absolute">
+              <svg width="150" height="150" style={{ position: "absolute" }}>
                 <circle cx="75" cy="75" r="62" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5" />
                 <circle
                   cx="75" cy="75" r="62"
@@ -546,21 +564,23 @@ export default function WorkoutComplete() {
                 />
               </svg>
               {/* Score number */}
-              <div className="flex items-baseline justify-center z-10">
-                <span className="font-mono font-bold" style={{ fontSize: 48, color: "#FAF8F5", letterSpacing: "-0.03em", lineHeight: 1 }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", position: "relative", zIndex: 10 }}>
+                <span style={{ fontFamily: "'DM Mono', monospace", fontWeight: 700, fontSize: 48, color: "#FAF8F5", letterSpacing: "-0.03em", lineHeight: 1 }}>
                   {animatedScore}
                 </span>
-                <span className="font-mono" style={{ fontSize: 14, color: "rgba(250,248,245,0.3)", marginLeft: 2 }}>
+                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 14, color: "rgba(250,248,245,0.3)", marginLeft: 2 }}>
                   /100
                 </span>
               </div>
             </div>
 
             {/* Sticker label */}
-            <div className="mt-3 relative" style={{ height: 28, overflow: "visible" }}>
+            <div style={{ marginTop: 12, position: "relative", height: 28, overflow: "visible" }}>
               <span
-                className={`sticker-label font-display uppercase ${stickerVisible ? "sticker-slam" : ""}`}
+                className={`sticker-label ${stickerVisible ? "sticker-slam" : ""}`}
                 style={{
+                  fontFamily: "'Syne', sans-serif",
+                  textTransform: "uppercase",
                   fontSize: 13,
                   color: scoreColor,
                   fontWeight: 800,
@@ -575,18 +595,18 @@ export default function WorkoutComplete() {
             </div>
 
             {/* Workout name + phase */}
-            <p className="mt-2 font-display text-center" style={{ fontSize: 16, color: "rgba(250,248,245,0.85)", fontWeight: 600, letterSpacing: "-0.01em" }}>
+            <p style={{ fontFamily: "'Syne', sans-serif", marginTop: 8, textAlign: "center", fontSize: 16, color: "rgba(250,248,245,0.85)", fontWeight: 600, letterSpacing: "-0.01em" }}>
               {workout?.day_label ?? "Workout"}
             </p>
-            <div className="flex items-center gap-2 mt-2">
-              <span className="font-mono uppercase rounded-full px-2.5 py-0.5" style={{ fontSize: 9, letterSpacing: "0.12em", fontWeight: 700, color: "#C75B39", background: "rgba(199,91,57,0.15)", border: "1px solid rgba(199,91,57,0.25)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+              <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", borderRadius: 9999, padding: "2px 10px", fontSize: 9, letterSpacing: "0.12em", fontWeight: 700, color: "#C75B39", background: "rgba(199,91,57,0.15)", border: "1px solid rgba(199,91,57,0.25)" }}>
                 SEMANA {weekNumber} · {phaseLabel}
               </span>
             </div>
           </div>
 
-          {/* Stats grid */}
-          <div className="grid grid-cols-2 gap-3 mt-6">
+          {/* Stats grid — inline styles for html2canvas compatibility */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 24 }}>
             {[
               { Icon: Clock, label: "DURACIÓN", value: formatAnimDuration(animatedStats.durationSec) },
               { Icon: Dumbbell, label: "SETS", value: `${animatedStats.completedSets}/${stats.totalSets}` },
@@ -595,14 +615,13 @@ export default function WorkoutComplete() {
             ].map((stat) => (
               <div
                 key={stat.label}
-                className="rounded-xl text-center py-3 px-2"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, textAlign: "center", padding: "12px 8px" }}
               >
-                <stat.Icon className="h-4 w-4 mx-auto" style={{ color: "rgba(250,248,245,0.4)" }} />
-                <p className="font-mono font-semibold mt-1.5 tabular-nums" style={{ fontSize: 18, color: "#FAF8F5", letterSpacing: "0.02em" }}>
+                <stat.Icon style={{ width: 16, height: 16, margin: "0 auto", color: "rgba(250,248,245,0.4)" }} />
+                <p style={{ fontFamily: "'DM Mono', monospace", fontWeight: 600, marginTop: 6, fontSize: 18, color: "#FAF8F5", letterSpacing: "0.02em", fontVariantNumeric: "tabular-nums" }}>
                   {stat.value}
                 </p>
-                <p className="font-mono uppercase mt-0.5" style={{ fontSize: 8, color: "rgba(250,248,245,0.35)", letterSpacing: "0.15em" }}>
+                <p style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", marginTop: 2, fontSize: 8, color: "rgba(250,248,245,0.35)", letterSpacing: "0.15em" }}>
                   {stat.label}
                 </p>
               </div>
@@ -610,19 +629,19 @@ export default function WorkoutComplete() {
           </div>
 
           {/* Badges row */}
-          <div className="flex items-center justify-center gap-2 mt-5">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 20 }}>
             {stats.prs > 0 && (
-              <span className="flex items-center gap-1 rounded-full px-3 py-1" style={{ background: "rgba(201,169,110,0.15)", border: "1px solid rgba(201,169,110,0.3)" }}>
-                <Star className="h-3 w-3" style={{ color: "#C9A96E" }} />
-                <span className="font-mono uppercase" style={{ fontSize: 9, color: "#C9A96E", fontWeight: 600, letterSpacing: "0.1em" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 4, borderRadius: 9999, padding: "4px 12px", background: "rgba(201,169,110,0.15)", border: "1px solid rgba(201,169,110,0.3)" }}>
+                <Star style={{ width: 12, height: 12, color: "#C9A96E" }} />
+                <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", fontSize: 9, color: "#C9A96E", fontWeight: 600, letterSpacing: "0.1em" }}>
                   {stats.prs} PR{stats.prs > 1 ? "s" : ""}
                 </span>
               </span>
             )}
             {primeScore >= 85 && (
-              <span className="flex items-center gap-1 rounded-full px-3 py-1" style={{ background: "rgba(199,91,57,0.15)", border: "1px solid rgba(199,91,57,0.3)" }}>
-                <Trophy className="h-3 w-3" style={{ color: "#C75B39" }} />
-                <span className="font-mono uppercase" style={{ fontSize: 9, color: "#C75B39", fontWeight: 600, letterSpacing: "0.1em" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 4, borderRadius: 9999, padding: "4px 12px", background: "rgba(199,91,57,0.15)", border: "1px solid rgba(199,91,57,0.3)" }}>
+                <Trophy style={{ width: 12, height: 12, color: "#C75B39" }} />
+                <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", fontSize: 9, color: "#C75B39", fontWeight: 600, letterSpacing: "0.1em" }}>
                   ÉLITE
                 </span>
               </span>
@@ -630,11 +649,11 @@ export default function WorkoutComplete() {
           </div>
 
           {/* Bottom branding */}
-          <div className="flex items-center justify-center gap-1.5 mt-5 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-            <span className="font-mono uppercase" style={{ fontSize: 8, color: "rgba(250,248,245,0.65)", letterSpacing: "0.2em" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 20, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+            <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", fontSize: 8, color: "rgba(250,248,245,0.65)", letterSpacing: "0.2em" }}>
               POWERED BY
             </span>
-            <span className="font-display" style={{ fontSize: 10, color: "#FAF8F5", fontWeight: 800, letterSpacing: "-0.02em" }}>
+            <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 10, color: "#FAF8F5", fontWeight: 800, letterSpacing: "-0.02em" }}>
               LIFTORY
             </span>
           </div>
@@ -644,18 +663,18 @@ export default function WorkoutComplete() {
         <div className="flex w-full max-w-md gap-3 mt-4">
           <button
             onClick={() => handleShare("story")}
-            disabled={sharing}
+            disabled={sharing || !animDone}
             className="press-scale flex flex-1 items-center justify-center gap-2 rounded-xl py-4 font-display text-[15px] font-semibold text-primary-foreground transition-all"
-            style={{ background: "#C75B39" }}
+            style={{ background: "#C75B39", opacity: animDone ? 1 : 0.4 }}
           >
             <Instagram className="h-4 w-4" />
             {sharing ? "..." : "Stories"}
           </button>
           <button
             onClick={() => handleShare("card")}
-            disabled={sharing}
+            disabled={sharing || !animDone}
             className="press-scale flex flex-1 items-center justify-center gap-2 rounded-xl py-4 font-display text-[15px] font-semibold transition-all"
-            style={{ background: "rgba(199,91,57,0.12)", color: "#C75B39", border: "1px solid rgba(199,91,57,0.3)" }}
+            style={{ background: "rgba(199,91,57,0.12)", color: "#C75B39", border: "1px solid rgba(199,91,57,0.3)", opacity: animDone ? 1 : 0.4 }}
           >
             <Share2 className="h-4 w-4" />
             {sharing ? "..." : "Compartir"}
