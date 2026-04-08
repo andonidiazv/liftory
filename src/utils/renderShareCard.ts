@@ -66,124 +66,35 @@ function drawCenteredText(
   }
 }
 
-// ── Icon drawings — pixel-snapped for crisp rendering ──
-// All coordinates rounded to integers to prevent sub-pixel anti-aliasing blur.
+// ── Lucide SVG icon rendering — exact same icons as the app ──
 
-const R = Math.round; // shorthand for pixel-snapping
+const LUCIDE_SVGS: Record<string, string> = {
+  clock: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="COLOR" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+  dumbbell: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="COLOR" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 14.4 9.6 9.6"/><path d="M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z"/><path d="m21.5 21.5-1.4-1.4"/><path d="M3.9 3.9 2.5 2.5"/><path d="M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z"/></svg>`,
+  trendingUp: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="COLOR" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>`,
+  trophy: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="COLOR" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>`,
+  star: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="COLOR" stroke="COLOR" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg>`,
+};
 
-function drawClockIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string) {
-  cx = R(cx); cy = R(cy);
-  const lw = R(Math.max(size * 0.15, 3));
-  ctx.strokeStyle = color;
-  ctx.lineWidth = lw;
-  ctx.lineCap = "round";
-  const r = R(size * 0.4);
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(cx, cy);
-  ctx.lineTo(cx, cy - R(r * 0.6));
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(cx, cy);
-  ctx.lineTo(cx + R(r * 0.45), cy);
-  ctx.stroke();
-}
-
-function drawDumbbellIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string) {
-  cx = R(cx); cy = R(cy);
-  const lw = R(Math.max(size * 0.13, 3));
-  ctx.strokeStyle = color;
-  ctx.lineCap = "round";
-  const hw = R(size * 0.38);
-  const ph = R(size * 0.28);
-  // Center bar
-  ctx.lineWidth = lw;
-  ctx.beginPath();
-  ctx.moveTo(cx - hw, cy);
-  ctx.lineTo(cx + hw, cy);
-  ctx.stroke();
-  // Plates — drawn as filled rounded rects for crispness
-  const plateW = R(Math.max(lw * 2, 6));
-  const plateH = ph * 2;
-  ctx.fillStyle = color;
-  // Left plate
-  roundRect(ctx, R(cx - hw - plateW / 2), R(cy - ph), plateW, plateH, R(plateW * 0.25));
-  ctx.fill();
-  // Right plate
-  roundRect(ctx, R(cx + hw - plateW / 2), R(cy - ph), plateW, plateH, R(plateW * 0.25));
-  ctx.fill();
-}
-
-function drawTrendUpIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string) {
-  cx = R(cx); cy = R(cy);
-  const lw = R(Math.max(size * 0.15, 3));
-  ctx.strokeStyle = color;
-  ctx.lineWidth = lw;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  const s = R(size * 0.38);
-  ctx.beginPath();
-  ctx.moveTo(R(cx - s), R(cy + s * 0.5));
-  ctx.lineTo(R(cx - s * 0.15), R(cy - s * 0.2));
-  ctx.lineTo(R(cx + s * 0.25), R(cy + s * 0.15));
-  ctx.lineTo(R(cx + s), R(cy - s * 0.55));
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(R(cx + s * 0.45), R(cy - s * 0.55));
-  ctx.lineTo(R(cx + s), R(cy - s * 0.55));
-  ctx.lineTo(R(cx + s), R(cy - s * 0.05));
-  ctx.stroke();
-}
-
-function drawTrophyIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string) {
-  cx = R(cx); cy = R(cy);
-  const lw = R(Math.max(size * 0.15, 3));
-  ctx.strokeStyle = color;
-  ctx.lineWidth = lw;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  const s = R(size * 0.38);
-  // Cup (single path — rim + body)
-  ctx.beginPath();
-  ctx.moveTo(R(cx - s), R(cy - s * 0.7));
-  ctx.lineTo(R(cx - s * 0.7), R(cy + s * 0.15));
-  ctx.quadraticCurveTo(cx, R(cy + s * 0.75), R(cx + s * 0.7), R(cy + s * 0.15));
-  ctx.lineTo(R(cx + s), R(cy - s * 0.7));
-  ctx.stroke();
-  // Rim (top line)
-  ctx.beginPath();
-  ctx.moveTo(R(cx - s), R(cy - s * 0.7));
-  ctx.lineTo(R(cx + s), R(cy - s * 0.7));
-  ctx.stroke();
-  // Stem
-  ctx.beginPath();
-  ctx.moveTo(cx, R(cy + s * 0.35));
-  ctx.lineTo(cx, R(cy + s * 0.75));
-  ctx.stroke();
-  // Base
-  ctx.lineWidth = R(lw * 1.2);
-  ctx.beginPath();
-  ctx.moveTo(R(cx - s * 0.5), R(cy + s * 0.75));
-  ctx.lineTo(R(cx + s * 0.5), R(cy + s * 0.75));
-  ctx.stroke();
-}
-
-function drawStarIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string) {
-  ctx.fillStyle = color;
-  const r = size * 0.35;
-  const ir = r * 0.4;
-  ctx.beginPath();
-  for (let i = 0; i < 5; i++) {
-    const outerAngle = (Math.PI / 2) * -1 + (i * 2 * Math.PI) / 5;
-    const innerAngle = outerAngle + Math.PI / 5;
-    if (i === 0) ctx.moveTo(cx + r * Math.cos(outerAngle), cy + r * Math.sin(outerAngle));
-    else ctx.lineTo(cx + r * Math.cos(outerAngle), cy + r * Math.sin(outerAngle));
-    ctx.lineTo(cx + ir * Math.cos(innerAngle), cy + ir * Math.sin(innerAngle));
-  }
-  ctx.closePath();
-  ctx.fill();
+/** Pre-load all icons as images at the desired size and color */
+async function loadIcons(size: number, color: string): Promise<Record<string, HTMLImageElement>> {
+  const results: Record<string, HTMLImageElement> = {};
+  const promises = Object.entries(LUCIDE_SVGS).map(async ([name, svg]) => {
+    const colored = svg.replace(/COLOR/g, color);
+    const blob = new Blob([colored], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.width = size;
+    img.height = size;
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => { URL.revokeObjectURL(url); resolve(); };
+      img.onerror = reject;
+      img.src = url;
+    });
+    results[name] = img;
+  });
+  await Promise.all(promises);
+  return results;
 }
 
 // ── Main Renderer ────────────────────────────────────────────────
@@ -224,6 +135,10 @@ export async function renderShareCard(
   canvas.width = canvasW;
   canvas.height = canvasH;
   const ctx = canvas.getContext("2d")!;
+
+  // Pre-load Lucide icons as SVG images
+  const iconPx = 18 * S;
+  const icons = await loadIcons(iconPx, "rgba(250,248,245,0.45)");
 
   // ── Story background ──
   if (mode === "story") {
@@ -351,10 +266,10 @@ export async function renderShareCard(
   const gridX = x0 + 24 * S;
 
   const statsData = [
-    { icon: drawClockIcon, label: "DURACI\u00D3N", value: opts.duration },
-    { icon: drawDumbbellIcon, label: "SETS", value: `${opts.completedSets}/${opts.totalSets}` },
-    { icon: drawTrendUpIcon, label: "VOLUMEN", value: `${opts.volume.toLocaleString()} ${opts.weightUnit}` },
-    { icon: drawTrophyIcon, label: "PRs", value: String(opts.prs) },
+    { iconKey: "clock", label: "DURACI\u00D3N", value: opts.duration },
+    { iconKey: "dumbbell", label: "SETS", value: `${opts.completedSets}/${opts.totalSets}` },
+    { iconKey: "trendingUp", label: "VOLUMEN", value: `${opts.volume.toLocaleString()} ${opts.weightUnit}` },
+    { iconKey: "trophy", label: "PRs", value: String(opts.prs) },
   ];
 
   for (let i = 0; i < 4; i++) {
@@ -372,9 +287,11 @@ export async function renderShareCard(
     ctx.fill();
     ctx.stroke();
 
-    // Icon — larger and bolder for clarity
-    const iconSize = 18 * S;
-    stat.icon(ctx, bx + boxW / 2, by + 18 * S, iconSize, "rgba(250,248,245,0.45)");
+    // Lucide icon — rendered from SVG for pixel-perfect match with the app
+    const iconImg = icons[stat.iconKey];
+    if (iconImg) {
+      ctx.drawImage(iconImg, bx + boxW / 2 - iconPx / 2, by + 10 * S, iconPx, iconPx);
+    }
 
     // Value
     ctx.font = `600 ${17 * S}px "DM Mono"`;
@@ -432,7 +349,18 @@ export async function renderShareCard(
       ctx.stroke();
 
       if (badge.hasIcon) {
-        drawStarIcon(ctx, bx + 14 * S, by2 + bh / 2, 12 * S, badge.color);
+        // Load star icon with badge-specific color
+        const starSize = 12 * S;
+        const starSvg = LUCIDE_SVGS.star.replace(/COLOR/g, badge.color);
+        const starBlob = new Blob([starSvg], { type: "image/svg+xml" });
+        const starUrl = URL.createObjectURL(starBlob);
+        const starImg = new Image();
+        starImg.width = starSize;
+        starImg.height = starSize;
+        try {
+          await new Promise<void>((res, rej) => { starImg.onload = () => { URL.revokeObjectURL(starUrl); res(); }; starImg.onerror = rej; starImg.src = starUrl; });
+          ctx.drawImage(starImg, bx + 8 * S, by2 + bh / 2 - starSize / 2, starSize, starSize);
+        } catch { /* skip icon if load fails */ }
       }
 
       ctx.fillStyle = badge.color;
