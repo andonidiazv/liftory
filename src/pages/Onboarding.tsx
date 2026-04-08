@@ -264,7 +264,7 @@ export default function Onboarding() {
       // VIP: grant full active access without payment
       if (vip) {
         profileUpdate.subscription_status = "active";
-        profileUpdate.subscription_tier = "vip_beta";
+        profileUpdate.subscription_tier = "annual";
         const oneYearFromNow = new Date();
         oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
         profileUpdate.current_period_end = oneYearFromNow.toISOString();
