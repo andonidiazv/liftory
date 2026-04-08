@@ -396,69 +396,28 @@ export default function WorkoutComplete() {
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  // Share functionality — both modes use the SAME scoreCard to guarantee identical visuals
+  // Share functionality — canvas-based rendering (no html2canvas)
   const handleShare = async (mode: "story" | "card" = "card") => {
-    const ref = scoreCardRef.current;
-    if (!ref) return;
     setSharing(true);
     try {
-      // Force final values before capture (in case animation was interrupted)
-      const targetDurationSec = stats.durationMinutes * 60 + (stats.duration !== "—" ? parseInt(stats.duration.split(":")[1] || "0") : 0);
-      setAnimatedScore(primeScore);
-      setAnimatedStats({ completedSets: stats.completedSets, volume: stats.volume, prs: stats.prs, durationSec: targetDurationSec });
-      setStickerVisible(true);
+      const { renderShareCard } = await import("@/utils/renderShareCard");
 
-      // Wait for fonts to load
-      await document.fonts.ready;
+      const blob = await renderShareCard({
+        score: primeScore,
+        scoreLabel,
+        scoreColor,
+        dayLabel: workout?.day_label ?? "Workout",
+        weekNumber,
+        phaseLabel,
+        duration: stats.duration,
+        completedSets: stats.completedSets,
+        totalSets: stats.totalSets,
+        volume: stats.volume,
+        prs: stats.prs,
+        weightUnit,
+        dateStr,
+      }, mode);
 
-      // Wait for React to flush + browser to paint (double rAF)
-      await new Promise<void>((resolve) =>
-        requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
-      );
-
-      const html2canvas = (await import("html2canvas")).default;
-
-      // Capture the real scoreCard at 3x resolution
-      const cardCanvas = await html2canvas(ref, {
-        backgroundColor: null,
-        scale: 3,
-        useCORS: true,
-      });
-
-      let finalCanvas: HTMLCanvasElement;
-
-      if (mode === "story") {
-        // For Stories: center the card on a 1080×1920 dark canvas (9:16)
-        const storyW = 1080;
-        const storyH = 1920;
-        finalCanvas = document.createElement("canvas");
-        finalCanvas.width = storyW;
-        finalCanvas.height = storyH;
-        const ctx = finalCanvas.getContext("2d")!;
-
-        // Dark gradient background matching the card
-        const grad = ctx.createLinearGradient(0, 0, storyW * 0.15, storyH);
-        grad.addColorStop(0, "#1C1C1E");
-        grad.addColorStop(0.5, "#0D0D0F");
-        grad.addColorStop(1, "#1A1614");
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, storyW, storyH);
-
-        // Scale card to fit width with padding (48px each side at 3x = 144px)
-        const padding = 144;
-        const availW = storyW - padding * 2;
-        const scale = availW / cardCanvas.width;
-        const drawW = cardCanvas.width * scale;
-        const drawH = cardCanvas.height * scale;
-        const x = (storyW - drawW) / 2;
-        const y = (storyH - drawH) / 2;
-
-        ctx.drawImage(cardCanvas, x, y, drawW, drawH);
-      } else {
-        finalCanvas = cardCanvas;
-      }
-
-      const blob = await new Promise<Blob | null>((resolve) => finalCanvas.toBlob(resolve, "image/png"));
       if (!blob) { setSharing(false); return; }
 
       const fileName = mode === "story" ? "prime-score-story.png" : "prime-score.png";
