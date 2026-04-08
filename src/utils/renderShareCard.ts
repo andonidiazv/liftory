@@ -258,12 +258,13 @@ export async function renderShareCard(
   ctx.textAlign = "center";
   ctx.fillText(pillText, centerX, y);
 
-  // ── Stats grid (2×2) ──
+  // ── Stats grid (2×2) — centered ──
   y += 20 * S;
   const gridGap = 10 * S;
-  const boxW = (cw - 48 * S * 2 - gridGap) / 2;
+  const gridPad = 24 * S; // padding each side
+  const boxW = (cw - 2 * gridPad - gridGap) / 2;
   const boxH = 72 * S;
-  const gridX = x0 + 24 * S;
+  const gridX = x0 + gridPad;
 
   const statsData = [
     { iconKey: "clock", label: "DURACI\u00D3N", value: opts.duration },
