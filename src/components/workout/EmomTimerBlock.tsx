@@ -671,9 +671,19 @@ export default function EmomTimerBlock({
             </div>
           )}
         </div>
-        <span className="font-mono text-xs text-muted-foreground tracking-wider">
-          EMOM {formatTime(windowSeconds)} · {totalRondas} RONDAS{!complexMode && ` x ${ventanasPerRonda} VENTANAS`}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-xs text-muted-foreground tracking-wider">
+            EMOM {formatTime(windowSeconds)} · {totalRondas} RONDAS{!complexMode && ` x ${ventanasPerRonda} VENTANAS`}
+          </span>
+          {complexMode && (
+            <span
+              className="font-mono text-[10px] tracking-wider uppercase px-1.5 py-0.5 rounded font-medium"
+              style={{ backgroundColor: "rgba(199,91,57,0.12)", color: "#C75B39" }}
+            >
+              COMPLEX
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Exercise list — idle + done */}
@@ -682,6 +692,9 @@ export default function EmomTimerBlock({
           {complexMode ? (
             /* ─── Complex mode: clean exercise list + global weight section ─── */
             <>
+              <p className="font-body text-[13px] text-muted-foreground leading-relaxed mb-1">
+                Ejecuta los {block.groups.length} movimientos seguidos sin soltar la barra, con las reps indicadas en cada uno.
+              </p>
               {block.groups.map((group) => {
                 const ex = group.exercise;
                 const set = group.sets[0];
@@ -710,7 +723,7 @@ export default function EmomTimerBlock({
                           {ex.name}
                         </p>
                         {reps != null && (
-                          <span className="font-mono text-xs text-muted-foreground">x{reps}</span>
+                          <span className="font-mono text-xs text-muted-foreground">x{reps} {reps === 1 ? "rep" : "reps"}</span>
                         )}
                       </div>
                     </div>
@@ -878,7 +891,7 @@ export default function EmomTimerBlock({
                       </p>
                       {reps != null && (
                         <span className="font-mono text-xs text-muted-foreground">
-                          x{reps}{bilateral && (
+                          x{reps} {reps === 1 ? "rep" : "reps"}{bilateral && (
                             <span
                               className="ml-1 font-body text-[10px] font-medium px-1.5 py-0.5 rounded"
                               style={{ backgroundColor: "rgba(255,255,255,0.06)", color: "#C9A96E" }}
@@ -1076,7 +1089,7 @@ export default function EmomTimerBlock({
             {block.groups.map((group, i) => (
               <span key={group.exercise.id} className="font-body text-xs text-muted-foreground">
                 {group.exercise.name}
-                {group.sets[0]?.planned_reps ? ` x${group.sets[0].planned_reps}` : ""}
+                {group.sets[0]?.planned_reps ? ` x${group.sets[0].planned_reps} ${group.sets[0].planned_reps === 1 ? "rep" : "reps"}` : ""}
                 {i < block.groups.length - 1 && (
                   <span style={{ color: "#555", margin: "0 2px" }}> + </span>
                 )}
@@ -1093,7 +1106,7 @@ export default function EmomTimerBlock({
             {block.groups.map((group) => (
               <span key={group.exercise.id} className="font-body text-xs text-muted-foreground">
                 {group.exercise.name}
-                {group.sets[0]?.planned_reps ? ` x${group.sets[0].planned_reps}` : ""}
+                {group.sets[0]?.planned_reps ? ` x${group.sets[0].planned_reps} ${group.sets[0].planned_reps === 1 ? "rep" : "reps"}` : ""}
               </span>
             ))}
           </div>
@@ -1107,7 +1120,7 @@ export default function EmomTimerBlock({
             {block.groups.map((group) => (
               <span key={group.exercise.id} className="font-body text-xs text-muted-foreground">
                 {group.exercise.name}
-                {group.sets[0]?.planned_reps ? ` x${group.sets[0].planned_reps}` : ""}
+                {group.sets[0]?.planned_reps ? ` x${group.sets[0].planned_reps} ${group.sets[0].planned_reps === 1 ? "rep" : "reps"}` : ""}
               </span>
             ))}
           </div>
