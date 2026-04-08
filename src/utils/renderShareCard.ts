@@ -66,107 +66,107 @@ function drawCenteredText(
   }
 }
 
-// ── Icon drawings — crisp, bold strokes ──
+// ── Icon drawings — pixel-snapped for crisp rendering ──
+// All coordinates rounded to integers to prevent sub-pixel anti-aliasing blur.
+
+const R = Math.round; // shorthand for pixel-snapping
 
 function drawClockIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string) {
-  const lw = Math.max(size * 0.14, 2);
+  cx = R(cx); cy = R(cy);
+  const lw = R(Math.max(size * 0.15, 3));
   ctx.strokeStyle = color;
   ctx.lineWidth = lw;
   ctx.lineCap = "round";
-  const r = size * 0.4;
-  // Circle
+  const r = R(size * 0.4);
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.stroke();
-  // Hour hand (12 to 3)
   ctx.beginPath();
   ctx.moveTo(cx, cy);
-  ctx.lineTo(cx, cy - r * 0.6);
+  ctx.lineTo(cx, cy - R(r * 0.6));
   ctx.stroke();
-  // Minute hand
   ctx.beginPath();
   ctx.moveTo(cx, cy);
-  ctx.lineTo(cx + r * 0.45, cy);
+  ctx.lineTo(cx + R(r * 0.45), cy);
   ctx.stroke();
 }
 
 function drawDumbbellIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string) {
-  const lw = Math.max(size * 0.14, 2);
+  cx = R(cx); cy = R(cy);
+  const lw = R(Math.max(size * 0.13, 3));
   ctx.strokeStyle = color;
-  ctx.lineWidth = lw;
   ctx.lineCap = "round";
-  const hw = size * 0.4; // half-width of bar
-  const ph = size * 0.3; // plate height (half)
-  const pw = size * 0.08; // plate width offset from end
+  const hw = R(size * 0.38);
+  const ph = R(size * 0.28);
   // Center bar
+  ctx.lineWidth = lw;
   ctx.beginPath();
   ctx.moveTo(cx - hw, cy);
   ctx.lineTo(cx + hw, cy);
   ctx.stroke();
-  // Left plate (thick vertical line)
-  ctx.lineWidth = lw * 1.8;
-  ctx.beginPath();
-  ctx.moveTo(cx - hw + pw, cy - ph);
-  ctx.lineTo(cx - hw + pw, cy + ph);
-  ctx.stroke();
+  // Plates — drawn as filled rounded rects for crispness
+  const plateW = R(Math.max(lw * 2, 6));
+  const plateH = ph * 2;
+  ctx.fillStyle = color;
+  // Left plate
+  roundRect(ctx, R(cx - hw - plateW / 2), R(cy - ph), plateW, plateH, R(plateW * 0.25));
+  ctx.fill();
   // Right plate
-  ctx.beginPath();
-  ctx.moveTo(cx + hw - pw, cy - ph);
-  ctx.lineTo(cx + hw - pw, cy + ph);
-  ctx.stroke();
-  ctx.lineWidth = lw; // reset
+  roundRect(ctx, R(cx + hw - plateW / 2), R(cy - ph), plateW, plateH, R(plateW * 0.25));
+  ctx.fill();
 }
 
 function drawTrendUpIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string) {
-  const lw = Math.max(size * 0.14, 2);
+  cx = R(cx); cy = R(cy);
+  const lw = R(Math.max(size * 0.15, 3));
   ctx.strokeStyle = color;
   ctx.lineWidth = lw;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
-  const s = size * 0.38;
-  // Polyline going up
+  const s = R(size * 0.38);
   ctx.beginPath();
-  ctx.moveTo(cx - s, cy + s * 0.5);
-  ctx.lineTo(cx - s * 0.15, cy - s * 0.2);
-  ctx.lineTo(cx + s * 0.25, cy + s * 0.15);
-  ctx.lineTo(cx + s, cy - s * 0.55);
+  ctx.moveTo(R(cx - s), R(cy + s * 0.5));
+  ctx.lineTo(R(cx - s * 0.15), R(cy - s * 0.2));
+  ctx.lineTo(R(cx + s * 0.25), R(cy + s * 0.15));
+  ctx.lineTo(R(cx + s), R(cy - s * 0.55));
   ctx.stroke();
-  // Arrow head
   ctx.beginPath();
-  ctx.moveTo(cx + s * 0.45, cy - s * 0.55);
-  ctx.lineTo(cx + s, cy - s * 0.55);
-  ctx.lineTo(cx + s, cy - s * 0.05);
+  ctx.moveTo(R(cx + s * 0.45), R(cy - s * 0.55));
+  ctx.lineTo(R(cx + s), R(cy - s * 0.55));
+  ctx.lineTo(R(cx + s), R(cy - s * 0.05));
   ctx.stroke();
 }
 
 function drawTrophyIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string) {
-  const lw = Math.max(size * 0.13, 2);
+  cx = R(cx); cy = R(cy);
+  const lw = R(Math.max(size * 0.15, 3));
   ctx.strokeStyle = color;
   ctx.lineWidth = lw;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
-  const s = size * 0.38;
-  // Cup rim
+  const s = R(size * 0.38);
+  // Cup (single path — rim + body)
   ctx.beginPath();
-  ctx.moveTo(cx - s, cy - s * 0.7);
-  ctx.lineTo(cx + s, cy - s * 0.7);
+  ctx.moveTo(R(cx - s), R(cy - s * 0.7));
+  ctx.lineTo(R(cx - s * 0.7), R(cy + s * 0.15));
+  ctx.quadraticCurveTo(cx, R(cy + s * 0.75), R(cx + s * 0.7), R(cy + s * 0.15));
+  ctx.lineTo(R(cx + s), R(cy - s * 0.7));
   ctx.stroke();
-  // Cup body (U shape)
+  // Rim (top line)
   ctx.beginPath();
-  ctx.moveTo(cx - s, cy - s * 0.7);
-  ctx.lineTo(cx - s * 0.75, cy + s * 0.1);
-  ctx.quadraticCurveTo(cx, cy + s * 0.7, cx + s * 0.75, cy + s * 0.1);
-  ctx.lineTo(cx + s, cy - s * 0.7);
+  ctx.moveTo(R(cx - s), R(cy - s * 0.7));
+  ctx.lineTo(R(cx + s), R(cy - s * 0.7));
   ctx.stroke();
   // Stem
   ctx.beginPath();
-  ctx.moveTo(cx, cy + s * 0.35);
-  ctx.lineTo(cx, cy + s * 0.7);
+  ctx.moveTo(cx, R(cy + s * 0.35));
+  ctx.lineTo(cx, R(cy + s * 0.75));
   ctx.stroke();
   // Base
+  ctx.lineWidth = R(lw * 1.2);
   ctx.beginPath();
-  ctx.moveTo(cx - s * 0.45, cy + s * 0.7);
-  ctx.lineTo(cx + s * 0.45, cy + s * 0.7);
+  ctx.moveTo(R(cx - s * 0.5), R(cy + s * 0.75));
+  ctx.lineTo(R(cx + s * 0.5), R(cy + s * 0.75));
   ctx.stroke();
 }
 
@@ -189,7 +189,7 @@ function drawStarIcon(ctx: CanvasRenderingContext2D, cx: number, cy: number, siz
 // ── Main Renderer ────────────────────────────────────────────────
 
 const CARD_W_CSS = 370; // CSS pixels
-const CARD_H_CSS = 490; // CSS pixels
+const CARD_H_CSS = 530; // CSS pixels (extra room for badges + branding)
 
 export async function renderShareCard(
   opts: ShareCardOpts,

@@ -438,7 +438,7 @@ export default function WorkoutComplete() {
         URL.revokeObjectURL(url);
       }
     } catch (e) {
-      // Share failed — silent
+      console.error("[Share] failed:", e);
     }
     setSharing(false);
   };
@@ -629,18 +629,18 @@ export default function WorkoutComplete() {
         <div className="flex w-full max-w-md gap-3 mt-4">
           <button
             onClick={() => handleShare("story")}
-            disabled={sharing || !animDone}
+            disabled={sharing}
             className="press-scale flex flex-1 items-center justify-center gap-2 rounded-xl py-4 font-display text-[15px] font-semibold text-primary-foreground transition-all"
-            style={{ background: "#C75B39", opacity: animDone ? 1 : 0.4 }}
+            style={{ background: "#C75B39" }}
           >
             <Instagram className="h-4 w-4" />
             {sharing ? "..." : "Stories"}
           </button>
           <button
             onClick={() => handleShare("card")}
-            disabled={sharing || !animDone}
+            disabled={sharing}
             className="press-scale flex flex-1 items-center justify-center gap-2 rounded-xl py-4 font-display text-[15px] font-semibold transition-all"
-            style={{ background: "rgba(199,91,57,0.12)", color: "#C75B39", border: "1px solid rgba(199,91,57,0.3)", opacity: animDone ? 1 : 0.4 }}
+            style={{ background: "rgba(199,91,57,0.12)", color: "#C75B39", border: "1px solid rgba(199,91,57,0.3)" }}
           >
             <Share2 className="h-4 w-4" />
             {sharing ? "..." : "Compartir"}
