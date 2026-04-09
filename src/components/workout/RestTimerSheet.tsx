@@ -50,6 +50,7 @@ export default function RestTimerSheet({ durationSeconds, visible, onDismiss }: 
       if (ctx.state === "suspended") ctx.resume();
 
       const now = ctx.currentTime;
+      const SAFE = 0.15; // hard volume cap — never exceed
       // Double beep for rest complete (similar to EMOM ronda beep)
       for (let i = 0; i < 2; i++) {
         const t = now + i * 0.15;
@@ -59,8 +60,8 @@ export default function RestTimerSheet({ durationSeconds, visible, onDismiss }: 
         gain.connect(ctx.destination);
         osc.type = "sine";
         osc.frequency.value = 1046.5; // C6 — same as EMOM
-        gain.gain.setValueAtTime(0.4, t);
-        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.12);
+        gain.gain.setValueAtTime(SAFE, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
         osc.start(t);
         osc.stop(t + 0.13);
       }

@@ -377,6 +377,8 @@ export default function EmomTimerBlock({
 
         const now = ctx.currentTime;
 
+        const SAFE = 0.15; // hard volume cap — never exceed
+
         if (type === "tick") {
           // Short high beep — Tabata countdown style
           const osc = ctx.createOscillator();
@@ -385,8 +387,8 @@ export default function EmomTimerBlock({
           gain.connect(ctx.destination);
           osc.type = "sine";
           osc.frequency.value = 880;
-          gain.gain.setValueAtTime(0.5, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+          gain.gain.setValueAtTime(SAFE, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
           osc.start(now);
           osc.stop(now + 0.13);
         } else if (type === "transition") {
@@ -397,8 +399,8 @@ export default function EmomTimerBlock({
           gain.connect(ctx.destination);
           osc.type = "sine";
           osc.frequency.value = 1046.5; // C6
-          gain.gain.setValueAtTime(0.6, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+          gain.gain.setValueAtTime(SAFE, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
           osc.start(now);
           osc.stop(now + 0.13);
         } else if (type === "ronda") {
@@ -411,8 +413,8 @@ export default function EmomTimerBlock({
             gain.connect(ctx.destination);
             osc.type = "sine";
             osc.frequency.value = 1046.5; // C6
-            gain.gain.setValueAtTime(0.6, t);
-            gain.gain.exponentialRampToValueAtTime(0.01, t + 0.12);
+            gain.gain.setValueAtTime(SAFE, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
             osc.start(t);
             osc.stop(t + 0.13);
           }
@@ -427,8 +429,8 @@ export default function EmomTimerBlock({
             gain.connect(ctx.destination);
             osc.type = "sine";
             osc.frequency.value = freqs[i];
-            gain.gain.setValueAtTime(0.6, t);
-            gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+            gain.gain.setValueAtTime(SAFE, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
             osc.start(t);
             osc.stop(t + 0.22);
           }
