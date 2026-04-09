@@ -1,5 +1,7 @@
 import { Home, CalendarDays, TrendingUp, User } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 
 const tabs = [
   { id: "home", icon: Home, label: "Home", path: "/home" },
@@ -11,13 +13,15 @@ const tabs = [
 export default function TabBar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
 
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-50"
       style={{
-        background: "#FAF8F5",
-        borderTop: "1px solid #E0DCD7",
+        background: t.bg,
+        borderTop: `1px solid ${t.border}`,
         height: 60,
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
       }}
@@ -25,7 +29,7 @@ export default function TabBar() {
       <div className="flex items-center justify-around h-[60px] px-2">
         {tabs.map((tab) => {
           const isActive = location.pathname === tab.path;
-          const color = isActive ? "#1C1C1E" : "#B0ACA7";
+          const color = isActive ? t.text : t.muted;
 
           return (
             <button

@@ -1,5 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import { Dumbbell } from "lucide-react";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 
 interface Props {
   thumbnailUrl: string | null;
@@ -22,6 +24,8 @@ export default function ExerciseThumbnail({
   width = 64,
   height = 48,
 }: Props) {
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
   const [frameUrl, setFrameUrl] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -97,7 +101,7 @@ export default function ExerciseThumbnail({
           <div className="flex h-full w-full items-center justify-center">
             <div
               className="h-3 w-3 rounded-full border-2 border-t-transparent animate-spin"
-              style={{ borderColor: "#8A8A8E", borderTopColor: "transparent" }}
+              style={{ borderColor: t.muted, borderTopColor: "transparent" }}
             />
           </div>
         )}

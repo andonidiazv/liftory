@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, ChevronRight, RefreshCw, Share2, Loader2 } from "lucide-react";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 import { getBadgeIcon } from "@/lib/badgeIcons";
 import { useShareBadgeCard } from "@/hooks/useShareBadgeCard";
 import BadgeShareCard from "@/components/share/BadgeShareCard";
@@ -14,6 +16,8 @@ interface Props {
 
 export default function BadgeReviewCelebration({ notification, onDismiss, onCheckNext }: Props) {
   const navigate = useNavigate();
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
   const [visible, setVisible] = useState(false);
   const [exiting, setExiting] = useState(false);
   const { cardRef, sharing, share, cardData, athleteName, avatarUrl } = useShareBadgeCard();
@@ -95,7 +99,7 @@ export default function BadgeReviewCelebration({ notification, onDismiss, onChec
         <div
           className="relative w-full max-w-sm rounded-2xl overflow-hidden"
           style={{
-            background: "#161614",
+            background: t.card,
             border: `1px solid ${isApproved ? notification.tierColor + "40" : "rgba(239,68,68,0.3)"}`,
             boxShadow: isApproved
               ? `0 0 60px ${notification.tierColor}20, 0 20px 60px rgba(0,0,0,0.5)`
@@ -120,9 +124,9 @@ export default function BadgeReviewCelebration({ notification, onDismiss, onChec
           <button
             onClick={handleDismiss}
             className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full"
-            style={{ background: "rgba(255,255,255,0.08)" }}
+            style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(61,43,36,0.08)" }}
           >
-            <X className="h-3.5 w-3.5" style={{ color: "rgba(255,255,255,0.5)" }} />
+            <X className="h-3.5 w-3.5" style={{ color: t.muted }} />
           </button>
 
           <div className="px-6 pt-8 pb-6 text-center">
@@ -163,7 +167,7 @@ export default function BadgeReviewCelebration({ notification, onDismiss, onChec
                 </h2>
                 <p
                   className="font-display text-[16px] font-[700] mt-1"
-                  style={{ color: "#FAF8F5", letterSpacing: "-0.02em" }}
+                  style={{ color: t.text, letterSpacing: "-0.02em" }}
                 >
                   {notification.badgeName}
                 </p>
@@ -173,19 +177,19 @@ export default function BadgeReviewCelebration({ notification, onDismiss, onChec
                 >
                   {notification.tierLabel}
                 </p>
-                <p className="font-body text-[13px] mt-3 leading-relaxed" style={{ color: "#8A8A8E" }}>
+                <p className="font-body text-[13px] mt-3 leading-relaxed" style={{ color: t.muted }}>
                   Tu video fue revisado y aprobado. Este badge ya es parte de tu perfil.
                 </p>
 
                 {notification.reviewNotes && (
                   <div
                     className="mt-4 rounded-xl px-4 py-3 text-left"
-                    style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${notification.tierColor}20` }}
+                    style={{ background: isDark ? "rgba(255,255,255,0.03)" : "rgba(61,43,36,0.03)", border: `1px solid ${notification.tierColor}20` }}
                   >
-                    <p className="font-mono text-[9px] uppercase tracking-wider mb-1" style={{ color: "#666" }}>
+                    <p className="font-mono text-[9px] uppercase tracking-wider mb-1" style={{ color: t.muted }}>
                       Nota del coach
                     </p>
-                    <p className="font-body text-[12px] leading-relaxed" style={{ color: "#B0ACA7" }}>
+                    <p className="font-body text-[12px] leading-relaxed" style={{ color: t.muted }}>
                       {notification.reviewNotes}
                     </p>
                   </div>
@@ -211,11 +215,11 @@ export default function BadgeReviewCelebration({ notification, onDismiss, onChec
                 </h2>
                 <p
                   className="font-display text-[15px] font-[700] mt-1"
-                  style={{ color: "#FAF8F5", letterSpacing: "-0.02em" }}
+                  style={{ color: t.text, letterSpacing: "-0.02em" }}
                 >
                   {notification.badgeName} — {notification.tierLabel}
                 </p>
-                <p className="font-body text-[13px] mt-3 leading-relaxed" style={{ color: "#8A8A8E" }}>
+                <p className="font-body text-[13px] mt-3 leading-relaxed" style={{ color: t.muted }}>
                   Tu video fue revisado pero no cumplio con los requisitos. Puedes volver a enviarlo.
                 </p>
 
@@ -224,10 +228,10 @@ export default function BadgeReviewCelebration({ notification, onDismiss, onChec
                     className="mt-4 rounded-xl px-4 py-3 text-left"
                     style={{ background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.15)" }}
                   >
-                    <p className="font-mono text-[9px] uppercase tracking-wider mb-1" style={{ color: "#666" }}>
+                    <p className="font-mono text-[9px] uppercase tracking-wider mb-1" style={{ color: t.muted }}>
                       Motivo
                     </p>
-                    <p className="font-body text-[12px] leading-relaxed" style={{ color: "#B0ACA7" }}>
+                    <p className="font-body text-[12px] leading-relaxed" style={{ color: t.muted }}>
                       {notification.reviewNotes}
                     </p>
                   </div>
@@ -242,7 +246,7 @@ export default function BadgeReviewCelebration({ notification, onDismiss, onChec
                   <button
                     onClick={handleViewBadges}
                     className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 font-display text-[13px] font-[700] transition-all active:scale-[0.98]"
-                    style={{ background: notification.tierColor, color: "#FAF8F5" }}
+                    style={{ background: notification.tierColor, color: t.btnText }}
                   >
                     Ver mis badges
                     <ChevronRight className="h-4 w-4" />
@@ -271,7 +275,7 @@ export default function BadgeReviewCelebration({ notification, onDismiss, onChec
                 <button
                   onClick={handleResubmit}
                   className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 font-display text-[13px] font-[700] transition-all active:scale-[0.98]"
-                  style={{ background: "#EF4444", color: "#FAF8F5" }}
+                  style={{ background: "#EF4444", color: t.text }}
                 >
                   Volver a enviar video
                   <ChevronRight className="h-4 w-4" />
@@ -280,7 +284,7 @@ export default function BadgeReviewCelebration({ notification, onDismiss, onChec
               <button
                 onClick={handleDismiss}
                 className="w-full py-2 font-body text-[12px]"
-                style={{ color: "#666" }}
+                style={{ color: t.muted }}
               >
                 Cerrar
               </button>

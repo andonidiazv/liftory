@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { hapticTick, unlockHaptics } from "@/utils/haptics";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 
 interface Props {
   visible: boolean;
@@ -36,6 +38,8 @@ type Mode = "wheel" | "numpad" | "bodyweight";
 export default function WeightPickerSheet({
   visible, unit, initialValue, onConfirm, onClose,
 }: Props) {
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
   const values = useMemo(() => generateValues(unit), [unit]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -184,33 +188,33 @@ export default function WeightPickerSheet({
 
       <div
         className="relative w-full max-w-md rounded-t-2xl overflow-hidden animate-slide-up"
-        style={{ background: "#FAF8F5" }}
+        style={{ background: t.card }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3" style={{ borderBottom: "1px solid #E0DCD7" }}>
-          <button onClick={onClose} className="font-body text-sm text-muted-foreground">
+        <div className="flex items-center justify-between px-5 py-3" style={{ borderBottom: `1px solid ${t.border}` }}>
+          <button onClick={onClose} className="font-body text-sm" style={{ color: t.muted }}>
             Cancelar
           </button>
-          <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+          <span className="font-mono text-xs uppercase tracking-widest" style={{ color: t.muted }}>
             {mode === "bodyweight" ? "BODYWEIGHT" : `PESO (${unit.toUpperCase()})`}
           </span>
-          <button onClick={handleConfirm} className="font-body text-sm font-semibold" style={{ color: "#C75B39" }}>
+          <button onClick={handleConfirm} className="font-body text-sm font-semibold" style={{ color: t.accent }}>
             Listo
           </button>
         </div>
 
         {/* Mode toggle row: BW chip + numpad toggle */}
-        <div className="flex items-center justify-between px-5 py-2" style={{ borderBottom: "1px solid #E0DCD7" }}>
+        <div className="flex items-center justify-between px-5 py-2" style={{ borderBottom: `1px solid ${t.border}` }}>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setMode(mode === "bodyweight" ? "wheel" : "bodyweight")}
               className="font-mono text-xs uppercase tracking-wider rounded-full px-3 py-1.5 transition-all"
               style={{
-                background: mode === "bodyweight" ? "rgba(199,91,57,0.15)" : "rgba(136,136,136,0.08)",
-                color: mode === "bodyweight" ? "#C75B39" : "#888",
+                background: mode === "bodyweight" ? t.accentBgStrong : (isDark ? "rgba(138,126,114,0.12)" : "rgba(129,109,102,0.08)"),
+                color: mode === "bodyweight" ? t.accent : t.muted,
                 fontWeight: mode === "bodyweight" ? 600 : 400,
-                border: mode === "bodyweight" ? "1.5px solid rgba(199,91,57,0.3)" : "1.5px solid transparent",
+                border: mode === "bodyweight" ? `1.5px solid ${t.accentBgStrong}` : "1.5px solid transparent",
               }}
             >
               BW
@@ -221,10 +225,10 @@ export default function WeightPickerSheet({
               onClick={() => mode === "numpad" ? switchToWheel() : setMode("numpad")}
               className="font-mono text-xs uppercase tracking-wider rounded-full px-3 py-1.5 transition-all"
               style={{
-                background: mode === "numpad" ? "rgba(199,91,57,0.15)" : "rgba(136,136,136,0.08)",
-                color: mode === "numpad" ? "#C75B39" : "#888",
+                background: mode === "numpad" ? t.accentBgStrong : (isDark ? "rgba(138,126,114,0.12)" : "rgba(129,109,102,0.08)"),
+                color: mode === "numpad" ? t.accent : t.muted,
                 fontWeight: mode === "numpad" ? 600 : 400,
-                border: mode === "numpad" ? "1.5px solid rgba(199,91,57,0.3)" : "1.5px solid transparent",
+                border: mode === "numpad" ? `1.5px solid ${t.accentBgStrong}` : "1.5px solid transparent",
               }}
             >
               {mode === "numpad" ? (
@@ -239,7 +243,7 @@ export default function WeightPickerSheet({
         {/* BODYWEIGHT MODE */}
         {mode === "bodyweight" && (
           <div className="flex flex-col items-center justify-center" style={{ height: CONTAINER_HEIGHT }}>
-            <span className="font-mono font-semibold" style={{ fontSize: 48, color: "#C75B39", letterSpacing: "0.05em" }}>
+            <span className="font-mono font-semibold" style={{ fontSize: 48, color: t.accent, letterSpacing: "0.05em" }}>
               BW
             </span>
             <span className="font-body text-muted-foreground mt-2" style={{ fontSize: 13 }}>
@@ -253,10 +257,10 @@ export default function WeightPickerSheet({
           <div style={{ minHeight: CONTAINER_HEIGHT + 48 }}>
             {/* Display */}
             <div className="flex items-center justify-center py-4" style={{ height: 80 }}>
-              <span className="font-mono tabular-nums" style={{ fontSize: 40, fontWeight: 600, color: "#1C1C1E", letterSpacing: "0.02em" }}>
+              <span className="font-mono tabular-nums" style={{ fontSize: 40, fontWeight: 600, color: t.text, letterSpacing: "0.02em" }}>
                 {numpadValue || "0"}
               </span>
-              <span className="font-mono uppercase ml-2" style={{ fontSize: 16, color: "#C75B39", fontWeight: 600 }}>
+              <span className="font-mono uppercase ml-2" style={{ fontSize: 16, color: t.accent, fontWeight: 600 }}>
                 {unit}
               </span>
             </div>
@@ -273,8 +277,8 @@ export default function WeightPickerSheet({
                     height: 52,
                     fontSize: key === "delete" ? 18 : 24,
                     fontWeight: 500,
-                    color: key === "delete" ? "#888" : "#1C1C1E",
-                    background: key ? "rgba(136,136,136,0.06)" : "transparent",
+                    color: key === "delete" ? t.muted : t.text,
+                    background: key ? (isDark ? "rgba(255,255,255,0.06)" : "rgba(61,43,36,0.06)") : "transparent",
                   }}
                 >
                   {key === "delete" ? "⌫" : key}
@@ -316,9 +320,9 @@ export default function WeightPickerSheet({
                     style={{
                       fontSize: 12,
                       fontWeight: isActive ? 600 : 400,
-                      background: isActive ? "rgba(199,91,57,0.15)" : "rgba(136,136,136,0.06)",
-                      color: isActive ? "#C75B39" : "#6B6560",
-                      border: isActive ? "1px solid rgba(199,91,57,0.25)" : "1px solid transparent",
+                      background: isActive ? t.accentBgStrong : (isDark ? "rgba(138,126,114,0.1)" : "rgba(129,109,102,0.06)"),
+                      color: isActive ? t.accent : t.muted,
+                      border: isActive ? `1px solid ${t.accentBgStrong}` : "1px solid transparent",
                     }}
                   >
                     {jv}
@@ -335,19 +339,19 @@ export default function WeightPickerSheet({
                 style={{
                   top: ITEM_HEIGHT * 2,
                   height: ITEM_HEIGHT,
-                  background: "rgba(199,91,57,0.08)",
-                  border: "1.5px solid rgba(199,91,57,0.2)",
+                  background: t.accentBg,
+                  border: `1.5px solid ${t.accentBgStrong}`,
                 }}
               />
 
               {/* Top/bottom fade gradients — reduced intensity for readability */}
               <div
                 className="absolute top-0 left-0 right-0 pointer-events-none z-10"
-                style={{ height: ITEM_HEIGHT * 1.5, background: "linear-gradient(to bottom, #FAF8F5 5%, transparent)" }}
+                style={{ height: ITEM_HEIGHT * 1.5, background: `linear-gradient(to bottom, ${t.card} 5%, transparent)` }}
               />
               <div
                 className="absolute bottom-0 left-0 right-0 pointer-events-none z-10"
-                style={{ height: ITEM_HEIGHT * 1.5, background: "linear-gradient(to top, #FAF8F5 5%, transparent)" }}
+                style={{ height: ITEM_HEIGHT * 1.5, background: `linear-gradient(to top, ${t.card} 5%, transparent)` }}
               />
 
               {/* Scrollable list */}
@@ -390,7 +394,7 @@ export default function WeightPickerSheet({
                           fontSize: isSelected ? 32 : distance === 1 ? 24 : 22,
                           fontWeight: isSelected ? 600 : 400,
                           // Better contrast: darker non-selected color
-                          color: isSelected ? "#1C1C1E" : distance === 1 ? "#6B6560" : "#9A9590",
+                          color: isSelected ? t.text : distance === 1 ? t.muted : t.subtle,
                           letterSpacing: "0.02em",
                         }}
                       >
@@ -399,7 +403,7 @@ export default function WeightPickerSheet({
                       {isSelected && (
                         <span
                           className="font-mono uppercase ml-2"
-                          style={{ fontSize: 14, color: "#C75B39", fontWeight: 600, letterSpacing: "0.1em" }}
+                          style={{ fontSize: 14, color: t.accent, fontWeight: 600, letterSpacing: "0.1em" }}
                         >
                           {unit}
                         </span>
@@ -416,7 +420,7 @@ export default function WeightPickerSheet({
             {/* Quick increment buttons */}
             <div
               className="flex items-center justify-center gap-2 px-5 py-3"
-              style={{ borderTop: "1px solid #E0DCD7" }}
+              style={{ borderTop: `1px solid ${t.border}` }}
             >
               {(unit === "kg" ? [-5, -2.5, 2.5, 5] : [-10, -5, 5, 10]).map((inc) => (
                 <button
@@ -431,8 +435,8 @@ export default function WeightPickerSheet({
                   }}
                   className="rounded-full px-3 py-1.5 font-mono text-sm transition-colors"
                   style={{
-                    background: inc > 0 ? "rgba(199,91,57,0.1)" : "rgba(136,136,136,0.1)",
-                    color: inc > 0 ? "#C75B39" : "#888",
+                    background: inc > 0 ? t.accentBgStrong : (isDark ? "rgba(138,126,114,0.15)" : "rgba(129,109,102,0.1)"),
+                    color: inc > 0 ? t.accent : t.muted,
                     fontSize: 13,
                   }}
                 >

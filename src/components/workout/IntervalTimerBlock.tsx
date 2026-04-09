@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Play, Pause, RotateCcw, Check, SkipForward, SkipBack } from "lucide-react";
 import ExerciseThumbnail from "./ExerciseThumbnail";
 import type { WorkoutSetData, ExerciseGroup } from "@/hooks/useWorkoutData";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 
 interface IntervalTimerBlockProps {
   group: ExerciseGroup;
@@ -20,6 +22,8 @@ export default function IntervalTimerBlock({
   onUncompleteSet,
   onOpenVideo,
 }: IntervalTimerBlockProps) {
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
   const sets = group.sets;
   const totalRounds = sets.length;
   const workSeconds = sets[0]?.planned_duration_seconds ?? 30;
@@ -261,7 +265,7 @@ export default function IntervalTimerBlock({
   const progress = totalSecs > 0 ? ((totalSecs - secondsLeft) / totalSecs) * 100 : 100;
   const completedCount = sets.filter((s) => isCompleted(s)).length;
 
-  const phaseColor = phase === "rest" ? "#8A8A8E" : "#C75B39";
+  const phaseColor = phase === "rest" ? t.muted : t.accent;
   const phaseLabel = phase === "rest" ? "DESCANSO" : phase === "work" ? ex.name.toUpperCase() : "";
 
   return (
@@ -313,7 +317,7 @@ export default function IntervalTimerBlock({
                 ? "#7A8B5C"
                 : i === currentRound && (phase === "work" || phase === "rest")
                   ? phaseColor
-                  : "#2A2A2A",
+                  : t.border,
             }}
           />
         ))}
@@ -367,7 +371,7 @@ export default function IntervalTimerBlock({
             <span
               className="font-mono tabular-nums"
               style={{
-                color: phase === "idle" ? "#FAF8F5" : phaseColor,
+                color: phase === "idle" ? t.text : phaseColor,
                 fontSize: phase === "idle" ? "2rem" : "3.5rem",
                 fontWeight: 700,
                 lineHeight: 1,
@@ -405,12 +409,12 @@ export default function IntervalTimerBlock({
             <button
               onClick={running ? handlePause : handleStart}
               className="flex h-14 w-14 items-center justify-center rounded-full transition-colors"
-              style={{ backgroundColor: phase === "idle" ? "#C75B39" : phaseColor }}
+              style={{ backgroundColor: phase === "idle" ? t.accent : phaseColor }}
             >
               {running ? (
-                <Pause className="w-6 h-6 text-white" />
+                <Pause className="w-6 h-6" style={{ color: t.btnText }} />
               ) : (
-                <Play className="w-6 h-6 text-white ml-0.5" />
+                <Play className="w-6 h-6 ml-0.5" style={{ color: t.btnText }} />
               )}
             </button>
 

@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import Layout from "@/components/Layout";
 import { Search, Play, X, Heart } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,6 +64,8 @@ export default function Exercises() {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   
   const { isPremium } = useAuth();
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
 
   const fetchExercises = useCallback(async () => {
     setLoading(true);
@@ -205,8 +209,8 @@ export default function Exercises() {
                   <Heart
                     className="h-4 w-4"
                     style={{
-                      color: isPremium() && favorites.has(ex.id) ? "#C75B39" : "#6B6360",
-                      fill: isPremium() && favorites.has(ex.id) ? "#C75B39" : "none",
+                      color: isPremium() && favorites.has(ex.id) ? t.accent : t.muted,
+                      fill: isPremium() && favorites.has(ex.id) ? t.accent : "none",
                     }}
                   />
                 </button>

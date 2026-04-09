@@ -1,5 +1,6 @@
 import { Component, type ReactNode } from "react";
 import { RotateCcw } from "lucide-react";
+import { getTheme } from "@/lib/colors";
 
 interface Props {
   blockName: string;
@@ -36,6 +37,7 @@ export class TimerErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      const t = getTheme();
       return (
         <div className="rounded-2xl border border-border bg-card p-6 flex flex-col items-center gap-4">
           <p className="font-body text-sm text-foreground text-center">
@@ -49,7 +51,7 @@ export class TimerErrorBoundary extends Component<Props, State> {
           <button
             onClick={this.handleRetry}
             className="flex items-center gap-2 px-4 py-2 rounded-full transition-colors"
-            style={{ backgroundColor: "#C75B39", color: "#FAF8F5" }}
+            style={{ backgroundColor: t.accent, color: t.btnText }}
           >
             <RotateCcw className="w-4 h-4" />
             <span className="font-body text-sm">Reintentar</span>

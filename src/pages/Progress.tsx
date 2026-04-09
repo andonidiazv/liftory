@@ -16,6 +16,8 @@ import {
 } from "recharts";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -55,6 +57,8 @@ function ProgressSkeleton() {
 export default function Progress() {
   const { profile } = useAuth();
   const { prs, weeklyVolume, muscleData, stats, loading } = useProgressData();
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
 
   if (loading) {
     return (
@@ -97,13 +101,13 @@ export default function Progress() {
               {weeklyVolume.some((d) => d.volume > 0) ? (
                 <ResponsiveContainer width="100%" height={180}>
                   <BarChart data={weeklyVolume}>
-                    <XAxis dataKey="day" tick={{ fontSize: 11, fill: "hsl(240, 2%, 55%)" }} axisLine={false} tickLine={false} />
+                    <XAxis dataKey="day" tick={{ fontSize: 11, fill: t.muted }} axisLine={false} tickLine={false} />
                     <YAxis hide />
                     <Tooltip
-                      contentStyle={{ background: "hsl(40, 33%, 97%)", border: "1px solid hsl(37, 12%, 89%)", borderRadius: 12, fontSize: 12 }}
+                      contentStyle={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: 12, fontSize: 12, color: t.text }}
                       formatter={(value: number) => [`${value.toLocaleString()} kg`, "Volumen"]}
                     />
-                    <Bar dataKey="volume" fill="hsl(22, 62%, 45%)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="volume" fill={t.accent} radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
@@ -180,19 +184,19 @@ export default function Progress() {
         {muscleData.length > 0 && (
           <div className="mt-8 mb-4">
             <span className="eyebrow-label">BALANCE MUSCULAR</span>
-            <p className="text-xs font-body" style={{ color: "#6B6360", marginTop: 2 }}>Volumen relativo por grupo muscular</p>
+            <p className="text-xs font-body" style={{ color: t.muted, marginTop: 2 }}>Volumen relativo por grupo muscular</p>
             <div className="mt-4 card-fbb">
               <ResponsiveContainer width="100%" height={260}>
                 <RadarChart data={muscleData} cx="50%" cy="50%" outerRadius="75%">
-                  <PolarGrid stroke="hsl(30, 5%, 25%)" />
-                  <PolarAngleAxis dataKey="group" tick={{ fontSize: 11, fill: "#A89F95" }} />
-                  <Radar name="Volumen" dataKey="volume" stroke="#C75B39" fill="#C75B39" fillOpacity={0.5} strokeWidth={2} />
+                  <PolarGrid stroke={t.border} />
+                  <PolarAngleAxis dataKey="group" tick={{ fontSize: 11, fill: t.muted }} />
+                  <Radar name="Volumen" dataKey="volume" stroke={t.accent} fill={t.accent} fillOpacity={0.5} strokeWidth={2} />
                 </RadarChart>
               </ResponsiveContainer>
               <div className="mt-3 grid grid-cols-3 gap-2">
                 {muscleData.slice(0, 6).map((d) => (
                   <div key={d.group} className="card-fbb flex flex-col items-center py-3">
-                    <span className="font-body text-xs" style={{ color: "#A89F95" }}>{d.group}</span>
+                    <span className="font-body text-xs" style={{ color: t.muted }}>{d.group}</span>
                     <span className="font-mono text-sm font-semibold mt-1 text-foreground">{d.volume}%</span>
                   </div>
                 ))}

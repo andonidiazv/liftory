@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { Bell, X } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 import {
   isPushSupported,
   getPushPermission,
@@ -43,6 +45,8 @@ function markDismissed(): void {
  */
 export default function PushPermissionPrompt() {
   const { user } = useAuth();
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
   const [show, setShow] = useState(false);
   const [subscribing, setSubscribing] = useState(false);
 
@@ -97,30 +101,30 @@ export default function PushPermissionPrompt() {
       <div
         className="rounded-2xl px-4 py-4 flex items-start gap-3"
         style={{
-          background: "#1C1C1E",
-          border: "1px solid rgba(255,255,255,0.08)",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+          background: t.card,
+          border: `1px solid ${t.border}`,
+          boxShadow: `0 8px 32px ${t.shadow}`,
         }}
       >
         {/* Bell icon */}
         <div
           className="shrink-0 h-10 w-10 rounded-full flex items-center justify-center"
-          style={{ background: "rgba(199,91,57,0.15)" }}
+          style={{ background: t.accentBgStrong }}
         >
-          <Bell className="h-5 w-5" style={{ color: "#C75B39" }} />
+          <Bell className="h-5 w-5" style={{ color: t.accent }} />
         </div>
 
         {/* Text */}
         <div className="flex-1 min-w-0">
           <p
             className="font-display text-[14px] font-[700]"
-            style={{ color: "#FAF8F5", letterSpacing: "-0.02em" }}
+            style={{ color: t.text, letterSpacing: "-0.02em" }}
           >
             Activa notificaciones
           </p>
           <p
             className="font-body text-[12px] mt-0.5 leading-snug"
-            style={{ color: "#8A8A8E" }}
+            style={{ color: t.muted }}
           >
             Te avisamos cuando tus badges sean revisados.
           </p>
@@ -131,14 +135,14 @@ export default function PushPermissionPrompt() {
               onClick={handleEnable}
               disabled={subscribing}
               className="flex-1 rounded-lg py-2 font-display text-[12px] font-[700] transition-all active:scale-[0.97]"
-              style={{ background: "#C75B39", color: "#FAF8F5" }}
+              style={{ background: t.accent, color: t.btnText }}
             >
               {subscribing ? "Activando..." : "Activar"}
             </button>
             <button
               onClick={handleDismiss}
               className="rounded-lg px-3 py-2 font-body text-[12px]"
-              style={{ color: "#666" }}
+              style={{ color: t.subtle }}
             >
               Ahora no
             </button>
@@ -149,9 +153,9 @@ export default function PushPermissionPrompt() {
         <button
           onClick={handleDismiss}
           className="shrink-0 h-6 w-6 flex items-center justify-center rounded-full"
-          style={{ background: "rgba(255,255,255,0.06)" }}
+          style={{ background: t.accentBg }}
         >
-          <X className="h-3 w-3" style={{ color: "rgba(255,255,255,0.4)" }} />
+          <X className="h-3 w-3" style={{ color: t.muted }} />
         </button>
       </div>
     </div>

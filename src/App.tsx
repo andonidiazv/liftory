@@ -37,6 +37,11 @@ import AdminPayments from "./pages/admin/AdminPayments";
 import Badges from "./pages/Badges";
 import BadgeClaim from "./pages/BadgeClaim";
 
+// Apply dark mode preference on load (before render)
+if (localStorage.getItem("liftory-dark-mode") === "true") {
+  document.documentElement.classList.add("dark-mode");
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

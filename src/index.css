@@ -4,81 +4,85 @@
 
 @layer base {
   :root {
-    /* LIFTORY Light Mode */
-    --background: 40 33% 97%;       /* #FAF8F5 */
-    --foreground: 40 10% 11%;       /* #1C1C1E */
+    /* Mallorquina DIA (light) */
+    --background: 33 33% 96%;        /* #FAF6F1 Mallorcan Cream */
+    --foreground: 16 25% 19%;        /* #3D2B24 Chocolate */
 
-    --card: 0 0% 100%;
-    --card-foreground: 40 10% 11%;
+    --card: 0 0% 100%;               /* #FFFFFF White */
+    --card-foreground: 16 25% 19%;   /* #3D2B24 */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 40 10% 11%;
+    --popover: 0 0% 100%;            /* #FFFFFF */
+    --popover-foreground: 16 25% 19%;/* #3D2B24 */
 
-    --primary: 240 3% 11%;          /* #1C1C1E charcoal */
-    --primary-foreground: 40 33% 97%;
+    --primary: 11 49% 27%;           /* #652F23 Burgundy Clay */
+    --primary-foreground: 33 33% 96%;/* #FAF6F1 */
 
-    --secondary: 37 18% 93%;        /* #F5F2ED */
-    --secondary-foreground: 40 10% 11%;
+    --secondary: 35 24% 91%;         /* #EDE8E1 Sandstone */
+    --secondary-foreground: 16 25% 19%;/* #3D2B24 */
 
-    --muted: 37 18% 93%;
-    --muted-foreground: 240 2% 55%; /* #8A8A8E */
+    --muted: 35 24% 91%;             /* #EDE8E1 */
+    --muted-foreground: 15 12% 45%;  /* #816D66 Taupe */
 
-    --accent: 39 37% 60%;           /* #C9A96E */
-    --accent-foreground: 40 10% 11%;
+    --accent: 25 27% 58%;            /* #B19176 Camel Sand */
+    --accent-foreground: 16 25% 19%;
 
-    --destructive: 4 53% 47%;       /* #C0392B */
-    --destructive-foreground: 40 33% 97%;
+    --destructive: 4 53% 47%;        /* #C0392B */
+    --destructive-foreground: 33 33% 96%;
 
-    --border: 37 12% 89%;
-    --input: 37 12% 89%;
-    --ring: 240 3% 11%;
+    --border: 35 24% 91%;            /* #EDE8E1 */
+    --input: 35 24% 91%;
+    --ring: 11 49% 27%;              /* #652F23 */
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    --success: 90 22% 45%;          /* #7A8B5C */
-    --success-foreground: 40 33% 97%;
+    --success: 90 22% 45%;           /* #7A8B5C */
+    --success-foreground: 16 25% 19%;
     --warning: 38 69% 50%;
-    --gold: 39 37% 60%;             /* #C9A96E */
+    --gold: 25 27% 58%;              /* #B19176 Camel Sand */
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 33 33% 96%;
+    --sidebar-foreground: 16 25% 19%;
+    --sidebar-primary: 11 49% 27%;
+    --sidebar-primary-foreground: 33 33% 96%;
+    --sidebar-accent: 35 24% 91%;
+    --sidebar-accent-foreground: 16 25% 19%;
+    --sidebar-border: 35 24% 91%;
+    --sidebar-ring: 11 49% 27%;
   }
 
-  /* Workout Mode — same light theme */
+  /* Dark Mode + Workout Mode — Mallorquina NOCHE */
+  .dark-mode,
   .workout-mode {
-    --background: 40 33% 97%;       /* #FAF8F5 */
-    --foreground: 40 10% 11%;       /* #1C1C1E */
+    --background: 30 19% 3%;         /* #0D0B09 Espresso Black */
+    --foreground: 33 27% 92%;        /* #F0EBE5 Warm Ash */
 
-    --card: 0 0% 100%;
-    --card-foreground: 40 10% 11%;
+    --card: 30 14% 9%;               /* #1A1714 Dark Walnut */
+    --card-foreground: 33 27% 92%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 40 10% 11%;
+    --popover: 30 14% 9%;
+    --popover-foreground: 33 27% 92%;
 
-    --primary: 240 3% 11%;          /* #1C1C1E charcoal */
-    --primary-foreground: 40 33% 97%;
+    --primary: 25 40% 60%;           /* #C4956E Aged Camel */
+    --primary-foreground: 30 19% 3%;
 
-    --secondary: 37 18% 93%;        /* #F5F2ED */
-    --secondary-foreground: 40 10% 11%;
+    --secondary: 30 13% 15%;         /* #2A2520 Dark Sand */
+    --secondary-foreground: 33 27% 92%;
 
-    --muted: 37 18% 93%;
-    --muted-foreground: 240 2% 55%; /* #8A8A8E */
+    --muted: 30 13% 15%;
+    --muted-foreground: 30 10% 49%;  /* #8A7E72 Pewter */
 
-    --accent: 39 37% 60%;           /* #C9A96E */
-    --accent-foreground: 40 10% 11%;
+    --accent: 11 49% 27%;            /* #652F23 Burgundy as tint */
+    --accent-foreground: 33 27% 92%;
 
-    --border: 37 12% 89%;
-    --input: 37 12% 89%;
-    --ring: 240 3% 11%;
+    --destructive: 4 53% 47%;
+    --destructive-foreground: 33 27% 92%;
 
-    --success: 90 22% 45%;          /* #7A8B5C */
-    --success-foreground: 40 33% 97%;
+    --border: 30 13% 15%;            /* #2A2520 */
+    --input: 30 13% 15%;
+    --ring: 25 40% 60%;              /* #C4956E */
+
+    --success: 90 22% 45%;
+    --success-foreground: 33 27% 92%;
   }
 }
 
@@ -185,13 +189,13 @@
   .card-fbb {
     @apply bg-card rounded-xl p-5;
     border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 3px rgba(61, 43, 36, 0.06);
   }
 
   .card-hero {
     @apply bg-card rounded-xl p-6;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 12px rgba(61, 43, 36, 0.06);
   }
 
   /* ═══ PILL / TAG ═══ */
@@ -211,7 +215,7 @@
 
   /* ═══ GLOW EFFECTS ═══ */
   .glow-primary {
-    box-shadow: 0 0 20px hsl(22 62% 45% / 0.3);
+    box-shadow: 0 0 20px hsl(11 49% 27% / 0.3);
   }
 
   .glow-success {
@@ -219,7 +223,7 @@
   }
 
   .glow-gold {
-    box-shadow: 0 0 16px hsl(39 37% 60% / 0.25);
+    box-shadow: 0 0 16px hsl(25 27% 58% / 0.25);
   }
 
   /* ═══ SAFE AREA ═══ */
@@ -229,7 +233,7 @@
 
   /* ═══ WORKOUT MODE GLOWS ═══ */
   .workout-mode .glow-primary {
-    box-shadow: 0 0 24px hsl(22 62% 45% / 0.4);
+    box-shadow: 0 0 24px hsl(11 49% 27% / 0.4);
   }
 
   .workout-mode .glow-success {
@@ -270,30 +274,30 @@
   font-weight: 400;
   letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: #B8622F;
+  color: #652F23;
 }
 .eyebrow-label::before {
   content: '';
   width: 24px;
   height: 1px;
-  background: #B8622F;
+  background: #652F23;
   flex-shrink: 0;
 }
 
 /* ═══ ACCENT BORDERS ═══ */
 .card-accent-terracotta {
-  border-left: 3px solid hsl(22, 62%, 45%);
+  border-left: 3px solid hsl(11, 49%, 27%);
 }
 .card-accent-gold {
-  border-left: 3px solid hsl(39, 37%, 60%);
+  border-left: 3px solid hsl(25, 27%, 58%);
 }
 
 /* ═══ SEPARATORS ═══ */
 .separator-dark {
-  border-bottom: 1px solid rgba(250,248,245,0.06);
+  border-bottom: 1px solid rgba(61,43,36,0.06);
 }
 .separator-light {
-  border-bottom: 1px solid rgba(28,28,30,0.06);
+  border-bottom: 1px solid rgba(61,43,36,0.06);
 }
 
 /* ═══ STAGGERED FADE-IN ═══ */
@@ -332,9 +336,9 @@
 
 /* ═══ ANIMATIONS ═══ */
 @keyframes pulse-ring {
-  0% { box-shadow: 0 0 0 0 hsl(22 62% 45% / 0.4); }
-  70% { box-shadow: 0 0 0 8px hsl(22 62% 45% / 0); }
-  100% { box-shadow: 0 0 0 0 hsl(22 62% 45% / 0); }
+  0% { box-shadow: 0 0 0 0 hsl(11 49% 27% / 0.4); }
+  70% { box-shadow: 0 0 0 8px hsl(11 49% 27% / 0); }
+  100% { box-shadow: 0 0 0 0 hsl(11 49% 27% / 0); }
 }
 
 .animate-pulse-ring {
@@ -412,6 +416,6 @@
 
 /* ═══ CTA PULSE GLOW ═══ */
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 24px rgba(199,91,57,0.3); }
-  50% { box-shadow: 0 0 40px rgba(199,91,57,0.5), 0 0 60px rgba(199,91,57,0.2); }
+  0%, 100% { box-shadow: 0 0 24px rgba(101,47,35,0.3); }
+  50% { box-shadow: 0 0 40px rgba(101,47,35,0.5), 0 0 60px rgba(101,47,35,0.2); }
 }

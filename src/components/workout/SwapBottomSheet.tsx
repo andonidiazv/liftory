@@ -3,6 +3,8 @@ import { Loader2, X, ChevronRight, ArrowLeft } from "lucide-react";
 import ExerciseThumbnail from "./ExerciseThumbnail";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 
 const difficultyLabels: Record<string, string> = {
   beginner: "Principiante",
@@ -12,12 +14,12 @@ const difficultyLabels: Record<string, string> = {
 };
 const difficultyColors: Record<string, string> = {
   beginner: "bg-[#7A8B5C]/20 text-[#7A8B5C]",
-  intermediate: "bg-[#C9A96E]/20 text-[#C9A96E]",
-  advanced: "bg-[#C75B39]/20 text-[#C75B39]",
+  intermediate: "bg-[#652F23]/20 text-[#652F23]",
+  advanced: "bg-[#652F23]/20 text-[#652F23]",
   all_levels: "bg-secondary text-muted-foreground",
 };
 const priorityLabels: Record<number, { label: string; sublabel: string; color?: string }> = {
-  0: { label: "Original", sublabel: "Volver al ejercicio del programa", color: "#C9A96E" },
+  0: { label: "Original", sublabel: "Volver al ejercicio del programa", color: "#652F23" },
   1: { label: "Opción 1", sublabel: "Regresión más cercana" },
   2: { label: "Opción 2", sublabel: "Alternativa más accesible" },
 };
@@ -57,6 +59,8 @@ export default function SwapBottomSheet({
   onClose,
   onSwapComplete,
 }: SwapBottomSheetProps) {
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
   const [options, setOptions] = useState<SubOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<SubOption | null>(null);
@@ -359,7 +363,7 @@ export default function SwapBottomSheet({
                             style={{
                               fontSize: 9,
                               letterSpacing: "1.5px",
-                              color: pLabel.color || (opt.priority === 1 ? "#C9A96E" : "#7A8B5C"),
+                              color: pLabel.color ? t.accent : (opt.priority === 1 ? t.accent : t.success),
                             }}
                           >
                             {pLabel.label} — {pLabel.sublabel}

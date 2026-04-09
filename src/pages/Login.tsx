@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 
 const loginSchema = z.object({
   email: z.string().trim().email("Email no válido").max(255),
@@ -12,6 +14,8 @@ const loginSchema = z.object({
 export default function Login() {
   const navigate = useNavigate();
   const { signIn, signInWithGoogle, fetchProfile } = useAuth();
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
@@ -26,9 +30,9 @@ export default function Login() {
   const [forgotError, setForgotError] = useState("");
 
   const inputStyle: React.CSSProperties = {
-    background: "#FFFFFF",
-    border: "1px solid #E0DCD7",
-    color: "#1C1C1E",
+    background: t.card,
+    border: `1px solid ${t.border}`,
+    color: t.text,
     borderRadius: 14,
     padding: "14px 16px",
     fontSize: 14,
@@ -40,10 +44,10 @@ export default function Login() {
   };
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    e.target.style.borderColor = "#1C1C1E";
+    e.target.style.borderColor = t.accent;
   };
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    e.target.style.borderColor = "#E0DCD7";
+    e.target.style.borderColor = t.border;
   };
 
   const redirectByProfile = async (userId: string) => {
@@ -147,18 +151,18 @@ export default function Login() {
   return (
     <div
       className="grain-overlay flex min-h-screen flex-col items-center justify-center px-6"
-      style={{ background: "#FAF8F5" }}
+      style={{ background: t.bg }}
     >
       <div className="relative z-10 flex w-full max-w-sm flex-col items-center">
         {/* Wordmark */}
         <h1
           className="font-display"
-          style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em", color: "#1C1C1E" }}
+          style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em", color: t.wordmark }}
         >
           LIFTORY
         </h1>
 
-        <p className="mt-2 font-body" style={{ fontSize: 14, color: "#8A8580" }}>
+        <p className="mt-2 font-body" style={{ fontSize: 14, color: t.muted }}>
           Inicia sesión en tu cuenta
         </p>
 
@@ -175,7 +179,7 @@ export default function Login() {
               style={inputStyle}
             />
             {errors.email && (
-              <p className="mt-1 text-xs" style={{ color: "#C0392B" }}>{errors.email}</p>
+              <p className="mt-1 text-xs" style={{ color: t.destructive }}>{errors.email}</p>
             )}
           </div>
 
@@ -191,20 +195,20 @@ export default function Login() {
               onKeyDown={(e) => e.key === "Enter" && handleLogin()}
             />
             {errors.password && (
-              <p className="mt-1 text-xs" style={{ color: "#C0392B" }}>{errors.password}</p>
+              <p className="mt-1 text-xs" style={{ color: t.destructive }}>{errors.password}</p>
             )}
           </div>
 
           <button
             onClick={() => { setShowForgot(true); setForgotEmail(email); setForgotSent(false); setForgotError(""); }}
             className="self-end text-xs font-body font-medium"
-            style={{ color: "#A09D98", background: "none", border: "none" }}
+            style={{ color: t.muted, background: "none", border: "none" }}
           >
             ¿Olvidaste tu contraseña?
           </button>
 
           {generalError && (
-            <p className="text-xs text-center" style={{ color: "#C0392B" }}>{generalError}</p>
+            <p className="text-xs text-center" style={{ color: t.destructive }}>{generalError}</p>
           )}
 
           {/* Primary CTA */}
@@ -213,8 +217,8 @@ export default function Login() {
             disabled={loading}
             className="press-scale w-full font-body font-semibold transition-opacity disabled:opacity-60"
             style={{
-              background: "#1C1C1E",
-              color: "#FAF8F5",
+              background: t.accent,
+              color: t.btnText,
               borderRadius: 50,
               padding: "14px 0",
               fontSize: 14,
@@ -226,9 +230,9 @@ export default function Login() {
 
           {/* Separator */}
           <div className="flex items-center gap-3 my-1">
-            <div className="flex-1 h-px" style={{ background: "#E0DCD7" }} />
-            <span className="font-body text-xs" style={{ color: "#6B6360" }}>o</span>
-            <div className="flex-1 h-px" style={{ background: "#E0DCD7" }} />
+            <div className="flex-1 h-px" style={{ background: t.border }} />
+            <span className="font-body text-xs" style={{ color: t.muted }}>o</span>
+            <div className="flex-1 h-px" style={{ background: t.border }} />
           </div>
 
           {/* Google */}
@@ -238,8 +242,8 @@ export default function Login() {
             className="press-scale flex w-full items-center justify-center gap-3 font-body text-sm font-medium transition-opacity disabled:opacity-60"
             style={{
               background: "transparent",
-              border: "1px solid #E0DCD7",
-              color: "#1C1C1E",
+              border: `1px solid ${t.border}`,
+              color: t.text,
               borderRadius: 50,
               padding: "14px 0",
             }}
@@ -258,9 +262,9 @@ export default function Login() {
         <button
           onClick={() => navigate("/onboarding")}
           className="mt-8 font-body text-sm underline transition-colors"
-          style={{ color: "#8A8580", background: "none", border: "none" }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#1C1C1E")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#8A8580")}
+          style={{ color: t.muted, background: "none", border: "none" }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = t.text)}
+          onMouseLeave={(e) => (e.currentTarget.style.color = t.muted)}
         >
           Crear cuenta nueva
         </button>
@@ -270,34 +274,34 @@ export default function Login() {
       {showForgot && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center px-6"
-          style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }}
+          style={{ background: t.overlay, backdropFilter: "blur(4px)" }}
           onClick={() => setShowForgot(false)}
         >
           <div
             className="w-full max-w-sm rounded-2xl p-6 flex flex-col gap-4"
-            style={{ background: "#FFFFFF", border: "1px solid #E0DCD7" }}
+            style={{ background: t.card, border: `1px solid ${t.border}`, boxShadow: `0 8px 32px ${t.shadow}` }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="font-display text-lg font-bold" style={{ color: "#1C1C1E" }}>
+            <h2 className="font-display text-lg font-bold" style={{ color: t.text }}>
               Recuperar contraseña
             </h2>
 
             {forgotSent ? (
               <>
-                <p className="font-body text-sm" style={{ color: "#A0A0A0" }}>
-                  Te enviamos un enlace de recuperación a <strong style={{ color: "#1C1C1E" }}>{forgotEmail.trim()}</strong>. Revisa tu bandeja de entrada.
+                <p className="font-body text-sm" style={{ color: t.muted }}>
+                  Te enviamos un enlace de recuperación a <strong style={{ color: t.text }}>{forgotEmail.trim()}</strong>. Revisa tu bandeja de entrada.
                 </p>
                 <button
                   onClick={() => setShowForgot(false)}
                   className="press-scale w-full font-body font-semibold"
-                  style={{ background: "#1C1C1E", color: "#FAF8F5", borderRadius: 50, padding: "14px 0", fontSize: 14, letterSpacing: "0.08em" }}
+                  style={{ background: t.accent, color: t.btnText, borderRadius: 50, padding: "14px 0", fontSize: 14, letterSpacing: "0.08em" }}
                 >
                   ENTENDIDO
                 </button>
               </>
             ) : (
               <>
-                <p className="font-body text-sm" style={{ color: "#A0A0A0" }}>
+                <p className="font-body text-sm" style={{ color: t.muted }}>
                   Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.
                 </p>
                 <input
@@ -311,20 +315,20 @@ export default function Login() {
                   onKeyDown={(e) => e.key === "Enter" && handleForgotPassword()}
                 />
                 {forgotError && (
-                  <p className="text-xs" style={{ color: "#C0392B" }}>{forgotError}</p>
+                  <p className="text-xs" style={{ color: t.destructive }}>{forgotError}</p>
                 )}
                 <button
                   onClick={handleForgotPassword}
                   disabled={forgotLoading}
                   className="press-scale w-full font-body font-semibold transition-opacity disabled:opacity-60"
-                  style={{ background: "#1C1C1E", color: "#FAF8F5", borderRadius: 50, padding: "14px 0", fontSize: 14, letterSpacing: "0.08em" }}
+                  style={{ background: t.accent, color: t.btnText, borderRadius: 50, padding: "14px 0", fontSize: 14, letterSpacing: "0.08em" }}
                 >
                   {forgotLoading ? "ENVIANDO..." : "ENVIAR ENLACE"}
                 </button>
                 <button
                   onClick={() => setShowForgot(false)}
                   className="w-full py-2 text-center font-body text-sm"
-                  style={{ color: "#6B6360", background: "none", border: "none" }}
+                  style={{ color: t.muted, background: "none", border: "none" }}
                 >
                   Cancelar
                 </button>

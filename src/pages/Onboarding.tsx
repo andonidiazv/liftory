@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { useDarkMode } from "@/hooks/useDarkMode";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { assignProgram } from "@/lib/assignProgram";
@@ -43,9 +44,9 @@ const VIP_EMAILS = new Set([
   "victor.vega.0495@gmail.com",
 ]);
 
-/* ───────── palette (strict: cream + charcoal only) ───────── */
-const cream = "#FAF8F5";
-const charcoal = "#1C1C1E";
+/* ───────── palette (Mallorquina Unificada) ───────── */
+const cream = "#3D2B24";
+const charcoal = "#3D2B24";
 
 /* ───────── theme system ───────── */
 type Theme = {
@@ -55,18 +56,18 @@ type Theme = {
   accent: string; accentMuted: string;
 };
 
-const darkTheme: Theme = {
-  bg: "#0F0F0F", text: cream, textMuted: "#A09D98", textSubtle: "#666",
-  cardBg: "#1A1A1A", border: "#2A2A2A", btnBg: cream, btnText: charcoal,
-  inputBg: "#1A1A1A", inputBorder: "#2A2A2A", inputText: cream,
-  accent: cream, accentMuted: "rgba(250,248,245,0.08)",
+const mallorquinaTheme: Theme = {
+  bg: "#FAF6F1", text: "#3D2B24", textMuted: "#816D66", textSubtle: "#816D66",
+  cardBg: "#FFFFFF", border: "#EDE8E1", btnBg: "#652F23", btnText: "#FAF6F1",
+  inputBg: "#FFFFFF", inputBorder: "#EDE8E1", inputText: "#3D2B24",
+  accent: "#652F23", accentMuted: "rgba(101,47,35,0.06)",
 };
 
-const lightTheme: Theme = {
-  bg: cream, text: charcoal, textMuted: "#8A8580", textSubtle: "#B0ACA7",
-  cardBg: "#FFFFFF", border: "#E0DCD7", btnBg: charcoal, btnText: cream,
-  inputBg: "#FFFFFF", inputBorder: "#E0DCD7", inputText: charcoal,
-  accent: charcoal, accentMuted: "rgba(28,28,30,0.06)",
+const nocheTheme: Theme = {
+  bg: "#0D0B09", text: "#F0EBE5", textMuted: "#8A7E72", textSubtle: "#4A4744",
+  cardBg: "#1A1714", border: "#2A2520", btnBg: "#C4956E", btnText: "#0D0B09",
+  inputBg: "#1A1714", inputBorder: "#2A2520", inputText: "#F0EBE5",
+  accent: "#C4956E", accentMuted: "rgba(196,149,110,0.08)",
 };
 
 /* ───────── global animations ───────── */
@@ -146,13 +147,14 @@ export default function Onboarding() {
   const loadingStart = useRef(0);
   const programStarted = useRef(false);
 
-  const t: Theme = lightTheme;
+  const { isDark } = useDarkMode();
+  const t: Theme = isDark ? nocheTheme : mallorquinaTheme;
 
-  /* Icon box: charcoal bg + cream icon for contrast */
+  /* Icon box: secondary bg + light icon for contrast */
   const iconBox = (size: number, rounded = "rounded-2xl") =>
     `flex items-center justify-center ${rounded} shrink-0`;
   const iconBoxStyle = (size: number): React.CSSProperties => ({
-    width: size, height: size, background: charcoal,
+    width: size, height: size, background: isDark ? "#2A2520" : "#EDE8E1",
   });
 
   useEffect(() => {
@@ -341,17 +343,17 @@ export default function Onboarding() {
   /* ════════════ STEP 0: SPLASH ════════════ */
   if (step === 0) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-6" style={{ background: cream }}>
-        <h1 className="font-display splash-fade-in" style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-0.04em", color: charcoal, animationDelay: "0s" }}>LIFTORY</h1>
-        <p className="mt-3 font-body splash-reveal" style={{ fontSize: 14, color: "#8A8580", letterSpacing: "0.04em" }}>The Wellness Community</p>
+      <div className="flex min-h-screen flex-col items-center justify-center px-6" style={{ background: t.bg }}>
+        <h1 className="font-display splash-fade-in" style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-0.04em", color: isDark ? "#C4956E" : "#3D2B24", animationDelay: "0s" }}>LIFTORY</h1>
+        <p className="mt-3 font-body splash-reveal" style={{ fontSize: 14, color: t.textMuted, letterSpacing: "0.04em" }}>The Wellness Community</p>
         <div className="mt-14 w-full max-w-sm splash-fade-in" style={{ animationDelay: "2s" }}>
           <button onClick={next}
             className="press-scale flex w-full items-center justify-center font-body font-medium active:scale-[0.98] transition-transform"
-            style={{ background: charcoal, color: cream, borderRadius: 50, height: 50, fontSize: 14, letterSpacing: "0.08em" }}>
+            style={{ background: t.btnBg, color: t.btnText, borderRadius: 50, height: 50, fontSize: 14, letterSpacing: "0.08em" }}>
             LET'S GO
           </button>
         </div>
-        <button onClick={() => navigate("/login")} className="mt-6 font-body underline splash-fade-in" style={{ fontSize: 13, color: "#A09D98", animationDelay: "2.4s" }}>
+        <button onClick={() => navigate("/login")} className="mt-6 font-body underline splash-fade-in" style={{ fontSize: 13, color: t.textMuted, animationDelay: "2.4s" }}>
           ¿Ya tienes cuenta? Inicia sesión
         </button>
         <style>{globalAnimations}</style>
@@ -388,7 +390,7 @@ export default function Onboarding() {
             <SelectionCard selected={gender === "male"} onSelect={() => setGender("male")} className="anim-in-d2">
               <div className="flex items-center gap-4">
                 <div className={iconBox(48)} style={iconBoxStyle(48)}>
-                  <Crown className="h-6 w-6" style={{ color: cream }} />
+                  <Crown className="h-6 w-6" style={{ color: t.accent }} />
                 </div>
                 <div>
                   <p className="font-display font-bold uppercase" style={{ fontSize: 16, color: t.text, letterSpacing: "0.03em" }}>BUILD HIM</p>
@@ -399,7 +401,7 @@ export default function Onboarding() {
             <SelectionCard selected={gender === "female"} onSelect={() => setGender("female")} className="anim-in-d3">
               <div className="flex items-center gap-4">
                 <div className={iconBox(48)} style={iconBoxStyle(48)}>
-                  <Gem className="h-6 w-6" style={{ color: cream }} />
+                  <Gem className="h-6 w-6" style={{ color: t.accent }} />
                 </div>
                 <div>
                   <p className="font-display font-bold uppercase" style={{ fontSize: 16, color: t.text, letterSpacing: "0.03em" }}>SCULPT HER</p>
@@ -432,7 +434,7 @@ export default function Onboarding() {
               <SelectionCard key={opt.id} selected={experience === opt.id} onSelect={() => setExperience(opt.id)} className={`anim-in-d${i + 1}`}>
                 <div className="flex items-center gap-4">
                   <div className={iconBox(40, "rounded-xl")} style={iconBoxStyle(40)}>
-                    <opt.Icon className="h-5 w-5" style={{ color: cream }} />
+                    <opt.Icon className="h-5 w-5" style={{ color: t.accent }} />
                   </div>
                   <div>
                     <p className="font-display font-bold" style={{ fontSize: 15, color: t.text }}>{opt.label}</p>
@@ -468,7 +470,7 @@ export default function Onboarding() {
               <SelectionCard key={opt.id} selected={objective === opt.id} onSelect={() => setObjective(opt.id)} className={`anim-in-d${i + 1}`}>
                 <div className="flex items-center gap-4">
                   <div className={iconBox(40, "rounded-xl")} style={iconBoxStyle(40)}>
-                    <opt.Icon className="h-5 w-5" style={{ color: cream }} />
+                    <opt.Icon className="h-5 w-5" style={{ color: t.accent }} />
                   </div>
                   <p className="font-display font-bold" style={{ fontSize: 15, color: t.text }}>{opt.label}</p>
                 </div>
@@ -512,7 +514,7 @@ export default function Onboarding() {
               <div key={p.name} className={`flex items-center gap-3 anim-in-d${i + 1}`}
                 style={{ background: t.cardBg, borderRadius: 14, padding: "14px 16px", border: `1px solid ${t.border}` }}>
                 <div className={iconBox(40, "rounded-xl")} style={iconBoxStyle(40)}>
-                  <p.Icon className="h-[18px] w-[18px]" style={{ color: cream }} />
+                  <p.Icon className="h-[18px] w-[18px]" style={{ color: t.accent }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-display font-bold" style={{ fontSize: 15, color: t.text }}>{p.name}</p>
@@ -600,7 +602,7 @@ export default function Onboarding() {
           <div className="mt-4 flex flex-col gap-2.5">
             <div className="flex items-start gap-3 rounded-xl p-3.5 anim-in-d3" style={{ background: t.cardBg, border: `1px solid ${t.border}` }}>
               <div className={iconBox(36, "rounded-xl")} style={iconBoxStyle(36)}>
-                <Star className="h-4 w-4" style={{ color: cream }} />
+                <Star className="h-4 w-4" style={{ color: t.accent }} />
               </div>
               <div>
                 <p className="font-display font-bold" style={{ fontSize: 13, color: t.text }}>Un año completo. Cada semana con una meta.</p>
@@ -609,7 +611,7 @@ export default function Onboarding() {
             </div>
             <div className="flex items-start gap-3 rounded-xl p-3.5 anim-in-d4" style={{ background: t.cardBg, border: `1px solid ${t.border}` }}>
               <div className={iconBox(36, "rounded-xl")} style={iconBoxStyle(36)}>
-                <ArrowRight className="h-4 w-4" style={{ color: cream }} />
+                <ArrowRight className="h-4 w-4" style={{ color: t.accent }} />
               </div>
               <div>
                 <p className="font-display font-bold" style={{ fontSize: 13, color: t.text }}>Progresión wave. Semana a semana.</p>
@@ -618,7 +620,7 @@ export default function Onboarding() {
             </div>
             <div className="flex items-start gap-3 rounded-xl p-3.5 anim-in-d5" style={{ background: t.cardBg, border: `1px solid ${t.border}` }}>
               <div className={iconBox(36, "rounded-xl")} style={iconBoxStyle(36)}>
-                <Clock className="h-4 w-4" style={{ color: cream }} />
+                <Clock className="h-4 w-4" style={{ color: t.accent }} />
               </div>
               <div>
                 <p className="font-display font-bold" style={{ fontSize: 13, color: t.text }}>S6 no es parar. Es recargar.</p>
@@ -656,7 +658,7 @@ export default function Onboarding() {
             {valueProps.map((vp, i) => (
               <div key={vp.text} className={`flex items-start gap-4 anim-in-d${i + 1}`}>
                 <div className={iconBox(36, "rounded-xl")} style={iconBoxStyle(36)}>
-                  <vp.Icon className="h-[16px] w-[16px]" style={{ color: cream }} />
+                  <vp.Icon className="h-[16px] w-[16px]" style={{ color: t.accent }} />
                 </div>
                 <p className="font-body pt-2" style={{ fontSize: 14, color: t.text }}>{vp.text}</p>
               </div>
@@ -706,7 +708,7 @@ export default function Onboarding() {
             >
               <div className="flex items-center gap-3">
                 <div className={iconBox(44, "rounded-xl")} style={iconBoxStyle(44)}>
-                  <Zap className="h-5 w-5" style={{ color: cream }} />
+                  <Zap className="h-5 w-5" style={{ color: t.accent }} />
                 </div>
                 <div className="flex-1">
                   <p className="font-display font-bold uppercase" style={{ fontSize: 15, color: t.text, letterSpacing: "0.03em" }}>
@@ -746,7 +748,7 @@ export default function Onboarding() {
             >
               <div className="flex items-center gap-3">
                 <div className={iconBox(44, "rounded-xl")} style={iconBoxStyle(44)}>
-                  <Play className="h-5 w-5" style={{ color: cream }} />
+                  <Play className="h-5 w-5" style={{ color: t.accent }} />
                 </div>
                 <div className="flex-1">
                   <p className="font-display font-bold uppercase" style={{ fontSize: 15, color: t.text, letterSpacing: "0.03em" }}>
@@ -762,8 +764,8 @@ export default function Onboarding() {
           </div>
 
           {showRecommendWait && (
-            <div className="mt-4 rounded-xl p-3.5 anim-in-d4" style={{ background: "rgba(201,169,110,0.08)", border: "1px solid rgba(201,169,110,0.2)" }}>
-              <p className="font-body text-center" style={{ fontSize: 12, color: "#C9A96E" }}>
+            <div className="mt-4 rounded-xl p-3.5 anim-in-d4" style={{ background: t.accentMuted, border: `1px solid ${t.accent}25` }}>
+              <p className="font-body text-center" style={{ fontSize: 12, color: t.accent }}>
                 El ciclo actual termina el {mesocycleInfo?.endDate}. Te recomendamos <span style={{ fontWeight: 600 }}>empezar desde S1</span> para aprovechar el siguiente ciclo completo.
               </p>
             </div>
@@ -776,7 +778,7 @@ export default function Onboarding() {
 
   /* ════════════ STEP 9: CREAR CUENTA (dark theme) ════════════ */
   if (step === 9) {
-    const s = lightTheme;
+    const s = t;
     const signupInput: React.CSSProperties = {
       background: s.inputBg, border: `1px solid ${s.inputBorder}`, color: s.inputText,
       borderRadius: 12, height: 48, padding: "0 16px", fontSize: 16, width: "100%",
@@ -819,7 +821,7 @@ export default function Onboarding() {
 
           <button onClick={handleOnboardingSignup} disabled={signupLoading}
             className="press-scale w-full font-body font-medium disabled:opacity-50 active:scale-[0.98] transition-transform"
-            style={{ background: charcoal, color: cream, borderRadius: 50, height: 50, fontSize: 14, letterSpacing: "0.08em" }}>
+            style={{ background: t.btnBg, color: t.btnText, borderRadius: 50, height: 50, fontSize: 14, letterSpacing: "0.08em" }}>
             {signupLoading ? "Creando cuenta..." : "Crear cuenta"}
           </button>
 
@@ -852,13 +854,13 @@ export default function Onboarding() {
 
   /* ════════════ STEP 10: LOADING (dark theme) ════════════ */
   if (step === 10) {
-    const d = darkTheme;
+    const d = t;
     const msgs = ["Analizando tu perfil...", "Seleccionando ejercicios para tu nivel...", "Armando tu mesociclo de 6 semanas...", "¡Listo!"];
     return (
       <div className="flex min-h-screen flex-col items-center justify-center px-6" style={{ background: d.bg }}>
         <p className="font-display anim-in" style={{ fontSize: 14, color: d.text, opacity: 0.3 }}>LIFTORY</p>
         <div className="mt-10 h-[3px] w-[60%] overflow-hidden rounded-full anim-in-d1" style={{ background: d.border }}>
-          <div className="h-full rounded-full transition-all duration-100 ease-linear" style={{ width: `${loadingProgress}%`, background: "#C75B39" }} />
+          <div className="h-full rounded-full transition-all duration-100 ease-linear" style={{ width: `${loadingProgress}%`, background: t.accent }} />
         </div>
         <div className="mt-6 h-6 relative w-72 anim-in-d2">
           {msgs.map((msg, i) => (
@@ -873,7 +875,7 @@ export default function Onboarding() {
             <p className="font-body text-sm" style={{ color: "#E74C3C" }}>Hubo un error al generar tu programa.</p>
             <button onClick={() => { programStarted.current = false; setAssignError(false); }}
               className="font-body font-medium px-6 py-3 active:scale-[0.97] transition-transform"
-              style={{ background: "#C75B39", color: "#FFFFFF", borderRadius: 50 }}>Reintentar</button>
+              style={{ background: t.accent, color: t.btnText, borderRadius: 50 }}>Reintentar</button>
           </div>
         )}
         <style>{globalAnimations}</style>
@@ -883,7 +885,7 @@ export default function Onboarding() {
 
   /* ═══════════ STEP 11: VIP WELCOME ═══════════ */
   if (step === 11) {
-    const d = darkTheme;
+    const d = t;
     const firstName = name.split(" ")[0] || "Atleta";
     return (
       <div className="flex min-h-screen flex-col items-center justify-center px-6" style={{ background: d.bg }}>
@@ -892,9 +894,9 @@ export default function Onboarding() {
         {/* Crown icon */}
         <div
           className="flex items-center justify-center rounded-full anim-in"
-          style={{ width: 80, height: 80, background: "rgba(201,169,110,0.12)", border: "1px solid rgba(201,169,110,0.25)" }}
+          style={{ width: 80, height: 80, background: t.accentMuted, border: `1px solid ${t.accent}25` }}
         >
-          <Crown className="w-9 h-9" style={{ color: "#C9A96E" }} />
+          <Crown className="w-9 h-9" style={{ color: t.accent }} />
         </div>
 
         {/* LIFTORY wordmark */}
@@ -908,7 +910,7 @@ export default function Onboarding() {
         {/* VIP title */}
         <h1
           className="mt-4 text-center anim-in-d2"
-          style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 28, letterSpacing: "-0.02em", color: "#C9A96E", lineHeight: 1.2 }}
+          style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 28, letterSpacing: "-0.02em", color: t.accent, lineHeight: 1.2 }}
         >
           ACCESO VIP
         </h1>
@@ -925,17 +927,17 @@ export default function Onboarding() {
         {/* Program pill */}
         <div
           className="mt-6 flex items-center gap-2 px-4 py-2.5 rounded-xl anim-in-d5"
-          style={{ background: "rgba(199,91,57,0.1)", border: "1px solid rgba(199,91,57,0.2)" }}
+          style={{ background: t.accentMuted, border: `1px solid ${t.accent}25` }}
         >
-          <Gem className="w-4 h-4" style={{ color: "#C75B39" }} />
-          <span className="font-mono text-xs tracking-wider" style={{ color: "#C75B39" }}>{programName || "TU PROGRAMA"}</span>
+          <Gem className="w-4 h-4" style={{ color: t.accent }} />
+          <span className="font-mono text-xs tracking-wider" style={{ color: t.accent }}>{programName || "TU PROGRAMA"}</span>
         </div>
 
         {/* CTA */}
         <button
           onClick={() => navigate("/home", { replace: true })}
           className="mt-10 flex items-center gap-2 font-body font-medium px-8 py-3.5 active:scale-[0.97] transition-transform anim-in-d6"
-          style={{ background: "#C9A96E", color: "#0F0F0F", borderRadius: 50, fontSize: 15, letterSpacing: "0.05em" }}
+          style={{ background: t.accent, color: t.btnText, borderRadius: 50, fontSize: 15, letterSpacing: "0.05em" }}
         >
           Comenzar a entrenar
           <ArrowRight className="w-4 h-4" />

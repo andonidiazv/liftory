@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import MilestoneIcon from "./MilestoneIcon";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 
 export interface PRDetail {
   exerciseName: string;
@@ -26,6 +28,8 @@ export default function MilestoneCelebration({
   milestone,
   onDismiss,
 }: MilestoneCelebrationProps) {
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
   const [visible, setVisible] = useState(false);
   const [animate, setAnimate] = useState(false);
 
@@ -79,9 +83,9 @@ export default function MilestoneCelebration({
             maxWidth: 330,
             width: "88%",
             borderRadius: 24,
-            background: "#1C1C1E",
-            border: "1px solid rgba(250,248,245,0.08)",
-            boxShadow: "0 0 60px rgba(199,91,57,0.08), 0 25px 60px rgba(0,0,0,0.4)",
+            background: t.card,
+            border: `1px solid ${t.border}`,
+            boxShadow: `0 0 60px ${t.shadow}, 0 25px 60px rgba(0,0,0,0.4)`,
           }}
         >
           {/* PR Icon */}
@@ -90,7 +94,7 @@ export default function MilestoneCelebration({
               width: 80,
               height: 80,
               borderRadius: "50%",
-              background: "rgba(199,91,57,0.12)",
+              background: t.accentBgStrong,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -105,7 +109,7 @@ export default function MilestoneCelebration({
               height="36"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="#C75B39"
+              stroke={t.accent}
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -124,11 +128,11 @@ export default function MilestoneCelebration({
               fontWeight: 500,
               letterSpacing: 2,
               textTransform: "uppercase" as const,
-              color: "#C75B39",
-              background: "rgba(199,91,57,0.1)",
+              color: t.accent,
+              background: t.accentBg,
               padding: "4px 14px",
               borderRadius: 20,
-              border: "1px solid rgba(199,91,57,0.2)",
+              border: `1px solid ${t.accentBgStrong}`,
               marginBottom: 20,
               opacity: animate ? 1 : 0,
               transform: animate ? "translateY(0)" : "translateY(10px)",
@@ -145,7 +149,7 @@ export default function MilestoneCelebration({
               fontWeight: 800,
               fontSize: 20,
               textAlign: "center",
-              color: "#FAF8F5",
+              color: t.text,
               lineHeight: 1.2,
               letterSpacing: "-0.03em",
               marginBottom: 24,
@@ -171,7 +175,7 @@ export default function MilestoneCelebration({
                 fontFamily: "'DM Mono', monospace",
                 fontWeight: 700,
                 fontSize: 56,
-                color: "#FAF8F5",
+                color: t.text,
                 lineHeight: 1,
                 letterSpacing: "-0.03em",
               }}
@@ -183,7 +187,7 @@ export default function MilestoneCelebration({
                 fontFamily: "'DM Mono', monospace",
                 fontWeight: 500,
                 fontSize: 20,
-                color: "#9A9590",
+                color: t.muted,
                 marginLeft: 4,
               }}
             >
@@ -196,7 +200,7 @@ export default function MilestoneCelebration({
             style={{
               fontFamily: "'DM Mono', monospace",
               fontSize: 14,
-              color: "#9A9590",
+              color: t.muted,
               marginTop: 4,
               opacity: animate ? 1 : 0,
               transform: animate ? "translateY(0)" : "translateY(8px)",
@@ -215,21 +219,21 @@ export default function MilestoneCelebration({
                 gap: 6,
                 marginTop: 20,
                 padding: "8px 18px",
-                background: "rgba(199,91,57,0.12)",
+                background: t.accentBgStrong,
                 borderRadius: 24,
-                border: "1px solid rgba(199,91,57,0.2)",
+                border: `1px solid ${t.accentBgStrong}`,
                 opacity: animate ? 1 : 0,
                 transform: animate ? "translateY(0)" : "translateY(8px)",
                 transition: "all 0.5s ease 0.9s",
               }}
             >
-              <span style={{ color: "#C75B39", fontSize: 14 }}>&uarr;</span>
+              <span style={{ color: t.accent, fontSize: 14 }}>&uarr;</span>
               <span
                 style={{
                   fontFamily: "'DM Mono', monospace",
                   fontSize: 13,
                   fontWeight: 600,
-                  color: "#C75B39",
+                  color: t.accent,
                 }}
               >
                 +{improvement} {pr.unit} vs anterior
@@ -243,7 +247,7 @@ export default function MilestoneCelebration({
               width: animate ? 40 : 0,
               height: 2,
               borderRadius: 1,
-              background: "#C9A96E",
+              background: t.accent,
               opacity: 0.5,
               margin: "24px auto",
               transition: "width 0.5s cubic-bezier(0.4, 0, 0.15, 1) 1s",
@@ -257,7 +261,7 @@ export default function MilestoneCelebration({
               fontWeight: 800,
               fontSize: 11,
               letterSpacing: "-0.03em",
-              color: "rgba(250,248,245,0.2)",
+              color: t.accent, opacity: 0.2,
               opacity: animate ? 1 : 0,
               transition: "opacity 0.4s ease 1.1s",
             }}
@@ -274,8 +278,8 @@ export default function MilestoneCelebration({
               padding: "14px 48px",
               borderRadius: 100,
               border: "none",
-              background: "#FAF8F5",
-              color: "#1C1C1E",
+              background: t.accent,
+              color: t.btnText,
               fontSize: 12,
               letterSpacing: "0.06em",
               textTransform: "uppercase" as const,
@@ -320,8 +324,8 @@ export default function MilestoneCelebration({
           maxWidth: 320,
           width: "85%",
           borderRadius: 24,
-          background: "#FAF9F6",
-          boxShadow: "0 25px 60px rgba(0,0,0,0.3)",
+          background: t.card,
+          boxShadow: `0 25px 60px ${t.shadow}`,
         }}
       >
         <div style={{ marginBottom: 8 }}>
@@ -339,7 +343,7 @@ export default function MilestoneCelebration({
           style={{
             fontSize: 24,
             letterSpacing: "-0.03em",
-            color: "#1a1a1a",
+            color: t.text,
             lineHeight: 1.15,
             opacity: animate ? 1 : 0,
             transform: animate ? "translateY(0)" : "translateY(16px)",
@@ -353,7 +357,7 @@ export default function MilestoneCelebration({
           className="font-body text-center"
           style={{
             fontSize: 14,
-            color: "#888",
+            color: t.muted,
             lineHeight: 1.5,
             maxWidth: 240,
             opacity: animate ? 1 : 0,
@@ -383,8 +387,8 @@ export default function MilestoneCelebration({
             padding: "12px 32px",
             borderRadius: 100,
             border: "none",
-            background: "#1a1a1a",
-            color: "#fff",
+            background: t.accent,
+            color: t.btnText,
             fontSize: 12,
             letterSpacing: "0.06em",
             textTransform: "uppercase" as const,

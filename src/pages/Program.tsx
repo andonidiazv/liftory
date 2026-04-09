@@ -3,6 +3,8 @@ import { useProgramData } from "@/hooks/useProgramData";
 import Layout from "@/components/Layout";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Check, Leaf } from "lucide-react";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 
 const BLOCK_LABELS: Record<string, string> = {
   accumulation: "BASE",
@@ -38,6 +40,8 @@ function ProgramSkeleton() {
 export default function Program() {
   const navigate = useNavigate();
   const { program, workouts, loading, getBlockLabel, getWeekWorkouts, getWeekNumbers, todayStr } = useProgramData();
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
 
   if (loading) return <Layout><ProgramSkeleton /></Layout>;
 
@@ -74,7 +78,7 @@ export default function Program() {
           </p>
           <span
             className="mt-2 inline-block rounded-full px-3 py-1 font-mono text-[9px] uppercase tracking-wider"
-            style={{ background: "rgba(199,91,57,0.15)", color: "#C75B39" }}
+            style={{ background: t.accentBgStrong, color: t.accent }}
           >
             {getPhaseForWeek(program.current_week)}
           </span>
@@ -100,8 +104,8 @@ export default function Program() {
                 key={week}
                 className="rounded-2xl p-4"
                 style={{
-                  background: isCurrent ? "rgba(199,91,57,0.04)" : "transparent",
-                  border: isCurrent ? "1px solid rgba(199,91,57,0.15)" : "1px solid hsl(var(--border))",
+                  background: isCurrent ? t.accentBg : "transparent",
+                  border: isCurrent ? `1px solid ${t.accentBgStrong}` : `1px solid ${t.border}`,
                 }}
               >
                 {/* Week label */}
@@ -134,15 +138,15 @@ export default function Program() {
                           className="flex h-11 w-11 items-center justify-center rounded-xl transition-all"
                           style={{
                             background: isCompleted
-                              ? "#C75B39"
+                              ? t.accent
                               : isRest
                               ? "rgba(122,139,92,0.2)"
-                              : "#E0DCD7",
-                            boxShadow: isToday ? "0 0 0 2px #C75B39, 0 0 0 4px rgba(199,91,57,0.2)" : "none",
+                              : t.border,
+                            boxShadow: isToday ? `0 0 0 2px ${t.accent}, 0 0 0 4px ${t.accentBgStrong}` : "none",
                           }}
                         >
                           {isCompleted ? (
-                            <Check className="h-4 w-4 text-white" />
+                            <Check className="h-4 w-4" style={{ color: t.btnText }} />
                           ) : isRest ? (
                             <Leaf className="h-3.5 w-3.5" style={{ color: "#7A8B5C" }} />
                           ) : null}

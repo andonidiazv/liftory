@@ -1,5 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Check, Dumbbell, Loader2, Quote, Trophy, Shuffle, X } from "lucide-react";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 import ExerciseThumbnail from "./ExerciseThumbnail";
 import SwapBottomSheet from "./SwapBottomSheet";
 import WeightPickerSheet, { BODYWEIGHT_SENTINEL } from "./WeightPickerSheet";
@@ -122,6 +124,8 @@ export default function BlockDetail({
   onFinishWorkout,
 }: Props) {
   const { user, refreshProfile } = useAuth();
+  const { isDark } = useDarkMode();
+  const tc = isDark ? noche : dia;
   const [setInputs, setSetInputs] = useState<Record<string, SetInputs>>({});
   const [prFlash, setPrFlash] = useState<string | null>(null);
   const [justCompleted, setJustCompleted] = useState<string | null>(null);
@@ -537,7 +541,7 @@ export default function BlockDetail({
           <button
             onClick={onNextBlock}
             className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-display text-[14px] font-semibold transition-colors"
-            style={{ background: "rgba(199,91,57,0.1)", color: "#C75B39", border: "1px solid rgba(199,91,57,0.2)" }}
+            style={{ background: tc.accentBgStrong, color: tc.accent, border: `1px solid ${tc.accentBgStrong}` }}
           >
             Siguiente: {nextBlockName} <ChevronRight className="h-4 w-4" />
           </button>
@@ -551,7 +555,7 @@ export default function BlockDetail({
             onClick={onFinishWorkout}
             disabled={saving}
             className="flex w-full items-center justify-center gap-2 rounded-xl py-4 font-display text-[15px] font-semibold text-primary-foreground transition-all press-scale"
-            style={{ background: "#C75B39" }}
+            style={{ background: tc.accent, color: tc.btnText }}
           >
             <Check className="h-4 w-4" />
             Terminar sesión
@@ -834,8 +838,8 @@ function ExerciseCard({
             onClick={onToggleUnit}
             className="flex items-center rounded-full cursor-pointer select-none -mx-1"
             style={{
-              background: "rgba(199,91,57,0.08)",
-              border: "1px solid rgba(199,91,57,0.15)",
+              background: tc.accentBg,
+              border: `1px solid ${tc.accentBgStrong}`,
               height: 20,
               width: 58,
             }}
@@ -845,8 +849,8 @@ function ExerciseCard({
               style={{
                 fontSize: 8,
                 fontWeight: localUnit === "kg" ? 700 : 400,
-                color: localUnit === "kg" ? "#fff" : "#B0ACA7",
-                background: localUnit === "kg" ? "#C75B39" : "transparent",
+                color: localUnit === "kg" ? tc.btnText : tc.muted,
+                background: localUnit === "kg" ? tc.accent : "transparent",
                 borderRadius: 9999,
                 lineHeight: "18px",
                 letterSpacing: "0.05em",
@@ -859,8 +863,8 @@ function ExerciseCard({
               style={{
                 fontSize: 8,
                 fontWeight: localUnit === "lb" ? 700 : 400,
-                color: localUnit === "lb" ? "#fff" : "#B0ACA7",
-                background: localUnit === "lb" ? "#C75B39" : "transparent",
+                color: localUnit === "lb" ? tc.btnText : tc.muted,
+                background: localUnit === "lb" ? tc.accent : "transparent",
                 borderRadius: 9999,
                 lineHeight: "18px",
                 letterSpacing: "0.05em",
@@ -889,7 +893,7 @@ function ExerciseCard({
               className="grid grid-cols-[28px_48px_72px_52px_28px] gap-2 items-center px-1 py-1.5 rounded-lg transition-all"
               style={{
                 opacity: completed ? 0.8 : isWarmup ? 0.6 : 1,
-                backgroundColor: isJustDone ? "rgba(199,91,57,0.08)" : undefined,
+                backgroundColor: isJustDone ? tc.accentBg : undefined,
               }}
             >
               <div className="flex items-center gap-1">
@@ -897,10 +901,10 @@ function ExerciseCard({
                   {si + 1}
                 </span>
                 {isWarmup && <span className="font-mono text-muted-foreground" style={{ fontSize: 8 }}>W</span>}
-                {isBackoff && <span className="font-mono" style={{ fontSize: 8, color: "#C9A96E" }}>BK</span>}
+                {isBackoff && <span className="font-mono" style={{ fontSize: 8, color: tc.accent }}>BK</span>}
               </div>
 
-              <span className="font-mono rounded-full px-1.5 py-0.5 text-center" style={{ fontSize: 9, backgroundColor: rpeHigh ? "rgba(199,91,57,0.15)" : "rgba(136,136,136,0.1)", color: rpeHigh ? "#C75B39" : "#888" }}>
+              <span className="font-mono rounded-full px-1.5 py-0.5 text-center" style={{ fontSize: 9, backgroundColor: rpeHigh ? tc.accentBgStrong : (isDark ? "rgba(138,126,114,0.15)" : "rgba(129,109,102,0.1)"), color: rpeHigh ? tc.accent : tc.muted }}>
                 {set.planned_rpe ? `RPE ${set.planned_rpe}` : "—"}
               </span>
 
@@ -912,7 +916,7 @@ function ExerciseCard({
                 {(() => {
                   // BW sentinel: show "BW" label
                   if (inputs.weight === "BW" || set.actual_weight === BODYWEIGHT_SENTINEL) {
-                    return <span style={{ color: "#C75B39", fontWeight: 600, fontSize: 13 }}>BW</span>;
+                    return <span style={{ color: tc.accent, fontWeight: 600, fontSize: 13 }}>BW</span>;
                   }
                   const displayVal = inputs.weight || (set.actual_weight != null && set.actual_weight > 0 ? String(toDisplayWeight(set.actual_weight, localUnit)) : "");
                   return displayVal ? (
@@ -935,7 +939,7 @@ function ExerciseCard({
                     <span>
                       {displayVal}
                       {isPerSide(setCue) ? <span className="text-muted-foreground" style={{ fontSize: 9 }}>/l</span> : null}
-                      {isPrFlash && <span className="ml-1 font-mono" style={{ fontSize: 9, color: "#C9A96E" }}>PR</span>}
+                      {isPrFlash && <span className="ml-1 font-mono" style={{ fontSize: 9, color: tc.accent }}>PR</span>}
                     </span>
                   ) : (
                     <span className="text-muted-foreground" style={{ fontSize: 12 }}>reps</span>

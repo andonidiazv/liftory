@@ -1,6 +1,8 @@
 import { ChevronLeft, Check, Clock, ChevronRight, AlertCircle } from "lucide-react";
 import type { WorkoutData, ExerciseGroup, SupersetGroup } from "@/hooks/useWorkoutData";
 import { useState, useEffect, useRef, useMemo } from "react";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 
 /** A "block" is a visual grouping of exercises for the overview */
 export interface WorkoutBlock {
@@ -24,10 +26,10 @@ const BLOCK_LABEL_COLORS: Record<string, string> = {
   'DYNAMIC FLOW': '#7A8B5C',
   'ATHLETIC INTEGRATION': '#7A8B5C',
   'POWER BLOCK': '#D45555',
-  'HEAVY BLOCK — A': '#C75B39',
-  'HEAVY BLOCK — B': '#C75B39',
-  'BUILD BLOCK — A': '#C9A96E',
-  'BUILD BLOCK — B': '#C9A96E',
+  'HEAVY BLOCK — A': '#652F23',
+  'HEAVY BLOCK — B': '#652F23',
+  'BUILD BLOCK — A': '#652F23',
+  'BUILD BLOCK — B': '#652F23',
   'ATHLETIC HINGE': '#D4896B',
   'ENGINE BLOCK': '#D45555',
   'RECOVERY BLOCK': '#7A8B5C',
@@ -37,13 +39,13 @@ const BLOCK_LABEL_COLORS: Record<string, string> = {
 const BLOCK_TYPE_COLORS: Record<string, string> = {
   mobility: "#7A8B5C",
   cooldown: "#7A8B5C",
-  strength: "#C75B39",
-  sculpt: "#C9A96E",
+  strength: "#652F23",
+  sculpt: "#652F23",
   conditioning: "#D45555",
 };
 
 function getBlockColor(block: WorkoutBlock): string {
-  return BLOCK_LABEL_COLORS[block.name] || BLOCK_TYPE_COLORS[block.type] || "#C75B39";
+  return BLOCK_LABEL_COLORS[block.name] || BLOCK_TYPE_COLORS[block.type] || "#652F23";
 }
 
 const INSTRUCTION_BLOCK_LABELS = ['ENGINE BLOCK', 'RECOVERY BLOCK', 'PRIME BLOCK', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION'];
@@ -111,6 +113,8 @@ export default function WorkoutOverview({
   onFinish,
   saving,
 }: Props) {
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
   const [showConfirm, setShowConfirm] = useState(false);
   const [softGateBlockId, setSoftGateBlockId] = useState<string | null>(null);
   const [softGateNextBlock, setSoftGateNextBlock] = useState<WorkoutBlock | null>(null);
@@ -240,7 +244,7 @@ export default function WorkoutOverview({
                     <button
                       onClick={() => handleBlockNavigate(nextBlock)}
                       className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 font-display text-[13px] font-semibold transition-colors"
-                      style={{ background: "rgba(199,91,57,0.1)", color: "#C75B39" }}
+                      style={{ background: t.accentBg, color: t.accent }}
                     >
                       Siguiente bloque <ChevronRight className="h-4 w-4" />
                     </button>
@@ -258,8 +262,8 @@ export default function WorkoutOverview({
                 className={`press-scale flex w-full items-stretch gap-0 text-left transition-all ${isActive ? "block-breathing" : ""}`}
                 style={{
                   borderRadius: 16,
-                  border: isActive ? "1.5px solid rgba(199,91,57,0.4)" : "1px solid hsl(var(--border))",
-                  backgroundColor: isActive ? "rgba(199,91,57,0.03)" : "hsl(var(--card))",
+                  border: isActive ? `1.5px solid ${t.accent}66` : `1px solid ${t.border}`,
+                  backgroundColor: isActive ? t.accentBg : t.card,
                   overflow: "hidden",
                 }}
               >
@@ -273,7 +277,7 @@ export default function WorkoutOverview({
                       {block.formatBadge && (
                         <span
                           className="font-mono rounded-full px-2 py-0.5"
-                          style={{ fontSize: 9, letterSpacing: "0.05em", backgroundColor: "#1C1C1E", color: "#FAF8F5" }}
+                          style={{ fontSize: 9, letterSpacing: "0.05em", backgroundColor: t.border, color: t.text }}
                         >
                           {block.formatBadge}
                         </span>
@@ -281,7 +285,7 @@ export default function WorkoutOverview({
                       {isActive && (
                         <span
                           className="font-mono rounded-full px-2 py-0.5"
-                          style={{ fontSize: 8, letterSpacing: "0.1em", backgroundColor: "rgba(199,91,57,0.15)", color: "#C75B39", fontWeight: 700 }}
+                          style={{ fontSize: 8, letterSpacing: "0.1em", backgroundColor: t.accentBgStrong, color: t.accent, fontWeight: 700 }}
                         >
                           SIGUIENTE
                         </span>
@@ -466,6 +470,8 @@ function cleanCoachNote(raw: string, weekNumber: number, totalWeeks: number): st
 }
 
 function CoachNote({ note, shortOnTimeNote, weekNumber, totalWeeks }: { note: string; shortOnTimeNote: string | null; weekNumber: number; totalWeeks: number }) {
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
   const [expanded, setExpanded] = useState(false);
   const [showShortNote, setShowShortNote] = useState(false);
   const displayNote = cleanCoachNote(note, weekNumber, totalWeeks);
@@ -476,8 +482,8 @@ function CoachNote({ note, shortOnTimeNote, weekNumber, totalWeeks }: { note: st
       <div
         className="rounded-2xl p-4"
         style={{
-          backgroundColor: "rgba(199,91,57,0.06)",
-          borderLeft: "3px solid #C75B39",
+          backgroundColor: t.accentBg,
+          borderLeft: `3px solid ${t.accent}`,
         }}
       >
         <p className="font-mono uppercase text-primary" style={{ fontSize: 9, letterSpacing: "2px" }}>
@@ -508,10 +514,10 @@ function CoachNote({ note, shortOnTimeNote, weekNumber, totalWeeks }: { note: st
         <button
           onClick={() => setShowShortNote(true)}
           className="flex items-center gap-1.5 rounded-lg px-3 py-2 transition-colors"
-          style={{ background: "rgba(199,91,57,0.06)", border: "1px solid rgba(199,91,57,0.12)" }}
+          style={{ background: t.accentBg, border: `1px solid ${t.accentBgStrong}` }}
         >
-          <Clock className="h-3.5 w-3.5" style={{ color: "#C75B39" }} />
-          <span className="font-body text-[12px] font-medium" style={{ color: "#C75B39" }}>
+          <Clock className="h-3.5 w-3.5" style={{ color: t.accent }} />
+          <span className="font-body text-[12px] font-medium" style={{ color: t.accent }}>
             ¿Poco tiempo?
           </span>
         </button>
@@ -519,11 +525,11 @@ function CoachNote({ note, shortOnTimeNote, weekNumber, totalWeeks }: { note: st
       {shortOnTimeNote && showShortNote && (
         <div
           className="rounded-xl p-3"
-          style={{ background: "rgba(199,91,57,0.05)", border: "1px solid rgba(199,91,57,0.12)" }}
+          style={{ background: t.accentBg, border: `1px solid ${t.accentBgStrong}` }}
         >
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-start gap-2">
-              <Clock className="h-3.5 w-3.5 mt-0.5 shrink-0" style={{ color: "#C75B39" }} />
+              <Clock className="h-3.5 w-3.5 mt-0.5 shrink-0" style={{ color: t.accent }} />
               <p className="font-body text-[12px] text-foreground leading-relaxed">
                 {shortOnTimeNote}
               </p>

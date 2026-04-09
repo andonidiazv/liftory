@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { hapticTick, unlockHaptics } from "@/utils/haptics";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 
 interface Props {
   visible: boolean;
@@ -20,6 +22,8 @@ const CONTAINER_HEIGHT = ITEM_HEIGHT * VISIBLE_COUNT;
 const VALUES = generateValues();
 
 export default function RepsPickerSheet({ visible, initialValue, onConfirm, onClose }: Props) {
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
   const scrollRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const scrollTimeout = useRef<ReturnType<typeof setTimeout>>();
@@ -96,18 +100,18 @@ export default function RepsPickerSheet({ visible, initialValue, onConfirm, onCl
 
       <div
         className="relative w-full max-w-md rounded-t-2xl overflow-hidden animate-slide-up"
-        style={{ background: "#FAF8F5" }}
+        style={{ background: t.card }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3" style={{ borderBottom: "1px solid #E0DCD7" }}>
-          <button onClick={onClose} className="font-body text-sm text-muted-foreground">
+        <div className="flex items-center justify-between px-5 py-3" style={{ borderBottom: `1px solid ${t.border}` }}>
+          <button onClick={onClose} className="font-body text-sm" style={{ color: t.muted }}>
             Cancelar
           </button>
-          <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+          <span className="font-mono text-xs uppercase tracking-widest" style={{ color: t.muted }}>
             REPS
           </span>
-          <button onClick={handleConfirm} className="font-body text-sm font-semibold" style={{ color: "#C75B39" }}>
+          <button onClick={handleConfirm} className="font-body text-sm font-semibold" style={{ color: t.accent }}>
             Listo
           </button>
         </div>
@@ -120,19 +124,19 @@ export default function RepsPickerSheet({ visible, initialValue, onConfirm, onCl
             style={{
               top: ITEM_HEIGHT * 2,
               height: ITEM_HEIGHT,
-              background: "rgba(199,91,57,0.08)",
-              border: "1.5px solid rgba(199,91,57,0.2)",
+              background: t.accentBg,
+              border: `1.5px solid ${t.accentBgStrong}`,
             }}
           />
 
           {/* Top/bottom fade gradients — reduced intensity for readability */}
           <div
             className="absolute top-0 left-0 right-0 pointer-events-none z-10"
-            style={{ height: ITEM_HEIGHT * 1.5, background: "linear-gradient(to bottom, #FAF8F5 5%, transparent)" }}
+            style={{ height: ITEM_HEIGHT * 1.5, background: `linear-gradient(to bottom, ${t.card} 5%, transparent)` }}
           />
           <div
             className="absolute bottom-0 left-0 right-0 pointer-events-none z-10"
-            style={{ height: ITEM_HEIGHT * 1.5, background: "linear-gradient(to top, #FAF8F5 5%, transparent)" }}
+            style={{ height: ITEM_HEIGHT * 1.5, background: `linear-gradient(to top, ${t.card} 5%, transparent)` }}
           />
 
           <div
@@ -171,7 +175,7 @@ export default function RepsPickerSheet({ visible, initialValue, onConfirm, onCl
                     style={{
                       fontSize: isSelected ? 32 : distance === 1 ? 24 : 22,
                       fontWeight: isSelected ? 600 : 400,
-                      color: isSelected ? "#1C1C1E" : distance === 1 ? "#6B6560" : "#9A9590",
+                      color: isSelected ? t.text : distance === 1 ? t.muted : t.subtle,
                       letterSpacing: "0.02em",
                     }}
                   >
@@ -180,7 +184,7 @@ export default function RepsPickerSheet({ visible, initialValue, onConfirm, onCl
                   {isSelected && (
                     <span
                       className="font-mono uppercase ml-2"
-                      style={{ fontSize: 14, color: "#C75B39", fontWeight: 600, letterSpacing: "0.1em" }}
+                      style={{ fontSize: 14, color: t.accent, fontWeight: 600, letterSpacing: "0.1em" }}
                     >
                       REPS
                     </span>
@@ -196,7 +200,7 @@ export default function RepsPickerSheet({ visible, initialValue, onConfirm, onCl
         {/* Quick increment buttons */}
         <div
           className="flex items-center justify-center gap-2 px-5 py-3"
-          style={{ borderTop: "1px solid #E0DCD7" }}
+          style={{ borderTop: `1px solid ${t.border}` }}
         >
           {[-5, -2, -1, 1, 2, 5].map((inc) => (
             <button
@@ -211,8 +215,8 @@ export default function RepsPickerSheet({ visible, initialValue, onConfirm, onCl
               }}
               className="rounded-full px-3 py-1.5 font-mono text-sm transition-colors"
               style={{
-                background: inc > 0 ? "rgba(199,91,57,0.1)" : "rgba(136,136,136,0.1)",
-                color: inc > 0 ? "#C75B39" : "#888",
+                background: inc > 0 ? t.accentBgStrong : (isDark ? "rgba(138,126,114,0.15)" : "rgba(129,109,102,0.1)"),
+                color: inc > 0 ? t.accent : t.muted,
                 fontSize: 13,
               }}
             >

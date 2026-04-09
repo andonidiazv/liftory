@@ -10,6 +10,8 @@ import FirstDayExperience from "@/components/onboarding/FirstDayExperience";
 import { useBadgeReviewNotification } from "@/hooks/useBadgeReviewNotification";
 import BadgeReviewCelebration from "@/components/celebrations/BadgeReviewCelebration";
 import PushPermissionPrompt from "@/components/notifications/PushPermissionPrompt";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 
 const BLOCK_LABELS: Record<string, string> = {
   accumulation: "BASE",
@@ -81,6 +83,8 @@ export default function Home() {
     transitioning,
   } = useNavigableHome();
 
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
   const displayName = profile?.full_name || "Atleta";
 
   // First Day Experience onboarding — keyed to user, not program
@@ -477,7 +481,7 @@ export default function Home() {
                   </span>
                   <span
                     className="rounded-full px-2.5 py-0.5 font-mono text-[9px] uppercase tracking-wider font-semibold"
-                    style={{ background: "rgba(199,91,57,0.12)", color: "#C75B39" }}
+                    style={{ background: t.accentBgStrong, color: t.accent }}
                   >
                     {getPhaseForWeek(viewingWeekNumber)}
                   </span>

@@ -5,6 +5,8 @@ import WeightPickerSheet, { BODYWEIGHT_SENTINEL } from "./WeightPickerSheet";
 import type { WorkoutBlock } from "./WorkoutOverview";
 import type { WorkoutSetData } from "@/hooks/useWorkoutData";
 import { toDisplayWeight, toStorageWeight } from "@/utils/weightConversion";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 
 /* ─── types ─── */
 
@@ -249,6 +251,8 @@ export default function EmomTimerBlock({
   getSuggestedWeight,
   onOpenVideo,
 }: EmomTimerBlockProps) {
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
   // Defensive: if block has no groups or no sets, show a minimal fallback
   const hasData = block.groups.length > 0 && block.groups.some((g) => g.sets.length > 0);
 
@@ -682,7 +686,7 @@ export default function EmomTimerBlock({
           {complexMode && (
             <span
               className="font-mono text-[10px] tracking-wider uppercase px-1.5 py-0.5 rounded font-medium"
-              style={{ backgroundColor: "rgba(199,91,57,0.12)", color: "#C75B39" }}
+              style={{ backgroundColor: t.accentBgStrong, color: t.accent }}
             >
               COMPLEX
             </span>
@@ -748,11 +752,11 @@ export default function EmomTimerBlock({
                 return (
                   <div
                     className="rounded-xl p-3 mt-1"
-                    style={{ backgroundColor: "rgba(199,91,57,0.06)", border: "1px solid rgba(199,91,57,0.12)" }}
+                    style={{ backgroundColor: t.accentBg, border: `1px solid ${t.accentBgStrong}` }}
                   >
                     <div className="flex items-center gap-3">
-                      <Dumbbell className="w-4 h-4 shrink-0" style={{ color: "#C75B39" }} />
-                      <span className="font-mono text-xs tracking-wider uppercase flex-1" style={{ color: "#C75B39" }}>
+                      <Dumbbell className="w-4 h-4 shrink-0" style={{ color: t.accent }} />
+                      <span className="font-mono text-xs tracking-wider uppercase flex-1" style={{ color: t.accent }}>
                         Peso de la barra
                       </span>
                       <button
@@ -763,20 +767,20 @@ export default function EmomTimerBlock({
                         }}
                         className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 shrink-0"
                         style={{
-                          background: hasWeight ? "rgba(199,91,57,0.15)" : "hsl(var(--border))",
-                          border: hasWeight ? "1px solid rgba(199,91,57,0.3)" : "1px solid transparent",
+                          background: hasWeight ? t.accentBgStrong : t.border,
+                          border: hasWeight ? `1px solid ${t.accent}4D` : "1px solid transparent",
                           minWidth: 72,
                         }}
                       >
                         {hasWeight ? (
                           mainWeight === "BW" ? (
-                            <span className="font-mono text-sm font-semibold" style={{ color: "#C75B39" }}>BW</span>
+                            <span className="font-mono text-sm font-semibold" style={{ color: t.accent }}>BW</span>
                           ) : (
                             <>
-                              <span className="font-mono text-sm font-semibold" style={{ color: "#C75B39" }}>
+                              <span className="font-mono text-sm font-semibold" style={{ color: t.accent }}>
                                 {mainWeight}
                               </span>
-                              <span className="font-mono text-[10px]" style={{ color: "#C75B39", opacity: 0.7 }}>
+                              <span className="font-mono text-[10px]" style={{ color: t.accent, opacity: 0.7 }}>
                                 {weightUnit}
                               </span>
                             </>
@@ -798,12 +802,12 @@ export default function EmomTimerBlock({
                             onClick={() => setExpandedExercise(`complex-${primaryEx.id}`)}
                             className="flex items-center gap-1 py-0.5"
                           >
-                            <span className="font-mono text-[10px] tracking-wider uppercase" style={{ color: "#8A8A8E" }}>
+                            <span className="font-mono text-[10px] tracking-wider uppercase" style={{ color: t.muted }}>
                               {allSameWeight && hasWeight
                                 ? `x${primaryGroup.sets.length} rondas`
                                 : "por ronda"}
                             </span>
-                            <ChevronDown className="w-3 h-3" style={{ color: "#8A8A8E" }} />
+                            <ChevronDown className="w-3 h-3" style={{ color: t.muted }} />
                           </button>
                         ) : (
                           <>
@@ -811,12 +815,12 @@ export default function EmomTimerBlock({
                               onClick={() => setExpandedExercise(null)}
                               className="flex items-center gap-1 py-0.5 mb-1.5"
                             >
-                              <span className="font-mono text-[10px] tracking-wider uppercase" style={{ color: "#8A8A8E" }}>
+                              <span className="font-mono text-[10px] tracking-wider uppercase" style={{ color: t.muted }}>
                                 por ronda
                               </span>
                               <ChevronDown
                                 className="w-3 h-3 transition-transform rotate-180"
-                                style={{ color: "#8A8A8E" }}
+                                style={{ color: t.muted }}
                               />
                             </button>
                             <div className="flex gap-1.5 flex-wrap">
@@ -834,18 +838,18 @@ export default function EmomTimerBlock({
                                     }}
                                     className="flex items-center gap-1 rounded-lg px-2 py-1.5 transition-colors"
                                     style={{
-                                      background: hasRondaWeight ? "rgba(199,91,57,0.08)" : "rgba(255,255,255,0.04)",
+                                      background: hasRondaWeight ? t.accentBg : t.accentBg,
                                       border: hasRondaWeight
-                                        ? "1px solid rgba(199,91,57,0.2)"
-                                        : "1px solid rgba(255,255,255,0.06)",
+                                        ? `1px solid ${t.accentBgStrong}`
+                                        : `1px solid ${t.border}`,
                                     }}
                                   >
-                                    <span className="font-mono text-[10px] font-medium" style={{ color: "#8A8A8E" }}>
+                                    <span className="font-mono text-[10px] font-medium" style={{ color: t.muted }}>
                                       R{idx + 1}
                                     </span>
                                     <span
                                       className="font-mono text-xs font-medium"
-                                      style={{ color: hasRondaWeight ? "#C75B39" : "#8A8A8E" }}
+                                      style={{ color: hasRondaWeight ? t.accent : t.muted }}
                                     >
                                       {hasRondaWeight ? (rondaWeight === "BW" ? "BW" : `${rondaWeight} ${weightUnit}`) : `— ${weightUnit}`}
                                     </span>
@@ -903,7 +907,7 @@ export default function EmomTimerBlock({
                           x{reps} {reps === 1 ? "rep" : "reps"}{bilateral && (
                             <span
                               className="ml-1 font-body text-[10px] font-medium px-1.5 py-0.5 rounded"
-                              style={{ backgroundColor: "rgba(255,255,255,0.06)", color: "#C9A96E" }}
+                              style={{ backgroundColor: t.accentBg, color: t.accent }}
                             >
                               /lado
                             </span>
@@ -921,20 +925,20 @@ export default function EmomTimerBlock({
                       }}
                       className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 shrink-0"
                       style={{
-                        background: hasWeight ? "rgba(199,91,57,0.12)" : "hsl(var(--border))",
-                        border: hasWeight ? "1px solid rgba(199,91,57,0.25)" : "1px solid transparent",
+                        background: hasWeight ? t.accentBgStrong : t.border,
+                        border: hasWeight ? `1px solid ${t.accent}40` : "1px solid transparent",
                         minWidth: 68,
                       }}
                     >
                       {hasWeight ? (
                         mainWeight === "BW" ? (
-                          <span className="font-mono text-sm font-semibold" style={{ color: "#C75B39" }}>BW</span>
+                          <span className="font-mono text-sm font-semibold" style={{ color: t.accent }}>BW</span>
                         ) : (
                           <>
-                            <span className="font-mono text-sm font-medium" style={{ color: "#C75B39" }}>
+                            <span className="font-mono text-sm font-medium" style={{ color: t.accent }}>
                               {mainWeight}
                             </span>
-                            <span className="font-mono text-[10px]" style={{ color: "#C75B39", opacity: 0.7 }}>
+                            <span className="font-mono text-[10px]" style={{ color: t.accent, opacity: 0.7 }}>
                               {weightUnit}
                             </span>
                           </>
@@ -956,12 +960,12 @@ export default function EmomTimerBlock({
                           onClick={() => setExpandedExercise(ex.id)}
                           className="flex items-center gap-1 py-0.5"
                         >
-                          <span className="font-mono text-[10px] tracking-wider uppercase" style={{ color: "#8A8A8E" }}>
+                          <span className="font-mono text-[10px] tracking-wider uppercase" style={{ color: t.muted }}>
                             {allSameWeight && hasWeight
                               ? `x${group.sets.length} rondas`
                               : "por ronda"}
                           </span>
-                          <ChevronDown className="w-3 h-3" style={{ color: "#8A8A8E" }} />
+                          <ChevronDown className="w-3 h-3" style={{ color: t.muted }} />
                         </button>
                       ) : (
                         <>
@@ -969,12 +973,12 @@ export default function EmomTimerBlock({
                             onClick={() => setExpandedExercise(null)}
                             className="flex items-center gap-1 py-0.5 mb-1.5"
                           >
-                            <span className="font-mono text-[10px] tracking-wider uppercase" style={{ color: "#8A8A8E" }}>
+                            <span className="font-mono text-[10px] tracking-wider uppercase" style={{ color: t.muted }}>
                               por ronda
                             </span>
                             <ChevronDown
                               className="w-3 h-3 transition-transform rotate-180"
-                              style={{ color: "#8A8A8E" }}
+                              style={{ color: t.muted }}
                             />
                           </button>
                           <div className="flex gap-1.5">
@@ -992,21 +996,21 @@ export default function EmomTimerBlock({
                                   }}
                                   className="flex items-center gap-1 rounded-lg px-2 py-1.5 transition-colors"
                                   style={{
-                                    background: hasRondaWeight ? "rgba(199,91,57,0.08)" : "rgba(255,255,255,0.04)",
+                                    background: hasRondaWeight ? t.accentBg : t.accentBg,
                                     border: hasRondaWeight
-                                      ? "1px solid rgba(199,91,57,0.2)"
-                                      : "1px solid rgba(255,255,255,0.06)",
+                                      ? `1px solid ${t.accentBgStrong}`
+                                      : `1px solid ${t.border}`,
                                   }}
                                 >
                                   <span
                                     className="font-mono text-[10px] font-medium"
-                                    style={{ color: "#8A8A8E" }}
+                                    style={{ color: t.muted }}
                                   >
                                     R{idx + 1}
                                   </span>
                                   <span
                                     className="font-mono text-xs font-medium"
-                                    style={{ color: hasRondaWeight ? "#C75B39" : "#8A8A8E" }}
+                                    style={{ color: hasRondaWeight ? t.accent : t.muted }}
                                   >
                                     {hasRondaWeight ? (rondaWeight === "BW" ? "BW" : `${rondaWeight} ${weightUnit}`) : `— ${weightUnit}`}
                                   </span>
@@ -1156,10 +1160,10 @@ export default function EmomTimerBlock({
                     style={{
                       backgroundColor:
                         phase === "done" || idx < currentWindow
-                          ? "#7A8B5C"
+                          ? t.success
                           : idx === currentWindow && phase === "active"
-                            ? "#C75B39"
-                            : "#2A2A2A",
+                            ? t.accent
+                            : t.border,
                     }}
                   />
                 );
@@ -1180,7 +1184,7 @@ export default function EmomTimerBlock({
             const w = exerciseWeights[g.exercise.id] ?? [];
             return w.length === 0 || w.some((v) => !v || (v !== "BW" && parseFloat(v) <= 0));
           }) && (
-            <p className="font-body text-xs text-center" style={{ color: "#C9A96E" }}>
+            <p className="font-body text-xs text-center" style={{ color: t.accent }}>
               Registra los pesos que usaste arriba
             </p>
           )}
@@ -1202,7 +1206,7 @@ export default function EmomTimerBlock({
                 className={`font-mono text-xs tracking-[0.2em] uppercase transition-all duration-300 ${
                   ventanaFlash ? "opacity-0 scale-90" : "opacity-100 scale-100"
                 }`}
-                style={{ color: phase === "countdown" ? "#8A8A8E" : "#C75B39" }}
+                style={{ color: phase === "countdown" ? t.muted : t.accent }}
               >
                 {phase === "countdown"
                   ? "PREPARATE"
@@ -1213,7 +1217,7 @@ export default function EmomTimerBlock({
               {currentRpe && phase === "active" && (
                 <span
                   className="inline-block mt-2 font-mono text-sm px-3 py-1 rounded-full font-medium"
-                  style={{ backgroundColor: "rgba(199, 91, 57, 0.15)", color: "#C75B39" }}
+                  style={{ backgroundColor: t.accentBgStrong, color: t.accent }}
                 >
                   RPE {currentRpe}
                 </span>
@@ -1226,7 +1230,7 @@ export default function EmomTimerBlock({
             <div className="flex items-center justify-center py-4">
               <span
                 className="font-mono tabular-nums font-bold"
-                style={{ color: "#FAF8F5", fontSize: "3rem", lineHeight: 1 }}
+                style={{ color: t.text, fontSize: "3rem", lineHeight: 1 }}
               >
                 {formatTime(windowSeconds)}
               </span>
@@ -1247,7 +1251,7 @@ export default function EmomTimerBlock({
                     cy={RADIUS + STROKE}
                     r={RADIUS}
                     fill="none"
-                    stroke="#2A2A2A"
+                    stroke={t.border}
                     strokeWidth={STROKE}
                   />
                   {/* Progress arc */}
@@ -1256,7 +1260,7 @@ export default function EmomTimerBlock({
                     cy={RADIUS + STROKE}
                     r={RADIUS}
                     fill="none"
-                    stroke={isWarning ? "#D45555" : phase === "countdown" ? "#8A8A8E" : "#C75B39"}
+                    stroke={isWarning ? "#D45555" : phase === "countdown" ? t.muted : t.accent}
                     strokeWidth={STROKE}
                     strokeLinecap="round"
                     strokeDasharray={CIRCUMFERENCE}
@@ -1272,7 +1276,7 @@ export default function EmomTimerBlock({
                       ventanaFlash ? "opacity-30 scale-95" : "opacity-100 scale-100"
                     } ${isWarning ? "animate-pulse" : ""}`}
                     style={{
-                      color: isWarning ? "#D45555" : phase === "countdown" ? "#8A8A8E" : "#C75B39",
+                      color: isWarning ? "#D45555" : phase === "countdown" ? t.muted : t.accent,
                       fontSize: "4rem",
                       lineHeight: 1,
                       letterSpacing: "-0.02em",
@@ -1283,7 +1287,7 @@ export default function EmomTimerBlock({
                   {phase === "active" && (
                     <span
                       className="font-mono text-[10px] tracking-wider mt-1"
-                      style={{ color: "#8A8A8E" }}
+                      style={{ color: t.muted }}
                     >
                       VENTANA {currentWindow + 1}/{totalVentanas}
                     </span>
@@ -1297,9 +1301,9 @@ export default function EmomTimerBlock({
           {phase === "active" && hasNextVentana && (nextExercise || rpeChanges) && (
             <div
               className="flex items-center justify-center gap-2 mt-3 px-4 py-2 rounded-xl mx-auto"
-              style={{ backgroundColor: "rgba(255,255,255,0.04)", maxWidth: "fit-content" }}
+              style={{ backgroundColor: t.accentBg, maxWidth: "fit-content" }}
             >
-              <span className="font-mono text-[10px] tracking-wider uppercase" style={{ color: "#8A8A8E" }}>
+              <span className="font-mono text-[10px] tracking-wider uppercase" style={{ color: t.muted }}>
                 {isNextNewRonda ? "NUEVA RONDA:" : "SIGUIENTE:"}
               </span>
               {nextExercise && (
@@ -1310,13 +1314,13 @@ export default function EmomTimerBlock({
               {nextRpe && rpeChanges && (
                 <span
                   className="font-mono text-[10px] px-2 py-0.5 rounded-full"
-                  style={{ backgroundColor: "rgba(199, 91, 57, 0.1)", color: "#C75B39" }}
+                  style={{ backgroundColor: t.accentBg, color: t.accent }}
                 >
                   RPE {nextRpe}
                 </span>
               )}
               {nextRpe && !rpeChanges && !nextExercise && (
-                <span className="font-mono text-xs" style={{ color: "#8A8A8E" }}>
+                <span className="font-mono text-xs" style={{ color: t.muted }}>
                   RPE {nextRpe}
                 </span>
               )}
@@ -1330,7 +1334,7 @@ export default function EmomTimerBlock({
               <button
                 onClick={handleBack}
                 className="flex h-12 w-12 items-center justify-center rounded-full transition-colors"
-                style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+                style={{ backgroundColor: t.accentBg }}
                 title="Ventana anterior"
               >
                 <SkipBack className="w-5 h-5 text-muted-foreground" />
@@ -1342,7 +1346,7 @@ export default function EmomTimerBlock({
               <button
                 onClick={handleReset}
                 className="flex h-12 w-12 items-center justify-center rounded-full transition-colors"
-                style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+                style={{ backgroundColor: t.accentBg }}
                 title="Reiniciar todo"
               >
                 <RotateCcw className="w-5 h-5 text-muted-foreground" />
@@ -1355,14 +1359,14 @@ export default function EmomTimerBlock({
               disabled={saving}
               className="flex h-16 w-16 items-center justify-center rounded-full transition-all disabled:opacity-50 shadow-lg"
               style={{
-                backgroundColor: "#C75B39",
-                boxShadow: running ? "0 0 24px rgba(199, 91, 57, 0.4)" : "0 4px 12px rgba(0,0,0,0.3)",
+                backgroundColor: t.accent,
+                boxShadow: running ? `0 0 24px ${t.shadow}` : "0 4px 12px rgba(0,0,0,0.3)",
               }}
             >
               {running ? (
-                <Pause className="w-7 h-7 text-white" />
+                <Pause className="w-7 h-7" style={{ color: t.btnText }} />
               ) : (
-                <Play className="w-7 h-7 text-white ml-0.5" />
+                <Play className="w-7 h-7 ml-0.5" style={{ color: t.btnText }} />
               )}
             </button>
 
@@ -1371,7 +1375,7 @@ export default function EmomTimerBlock({
               <button
                 onClick={handleSkip}
                 className="flex h-12 w-12 items-center justify-center rounded-full transition-colors"
-                style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+                style={{ backgroundColor: t.accentBg }}
                 title="Saltar ventana"
               >
                 <SkipForward className="w-5 h-5 text-muted-foreground" />

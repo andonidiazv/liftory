@@ -7,6 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { useMilestoneDetection } from "@/hooks/useMilestoneDetection";
 import MilestoneCelebration from "@/components/celebrations/MilestoneCelebration";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 
 // ── Question pool ──────────────────────────────────────────────
 interface FeedbackQuestion {
@@ -108,10 +110,10 @@ function getScoreLabel(score: number): string {
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 85) return "#C9A96E"; // gold
-  if (score >= 70) return "#C75B39"; // terracotta
+  if (score >= 85) return "#652F23"; // gold
+  if (score >= 70) return "#652F23"; // terracotta
   if (score >= 50) return "#7A8B5C"; // sage
-  return "#B0ACA7"; // muted
+  return "#816D66"; // muted
 }
 
 function getPhaseForWeek(week: number): string {
@@ -137,6 +139,8 @@ export default function WorkoutComplete() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
   const { workout, sets, loading, weightUnit, cooldownCompleted } = useWorkoutData(id);
   const scoreCardRef = useRef<HTMLDivElement>(null);
   const { activeMilestone, checkMilestones, dismissMilestone } = useMilestoneDetection();
@@ -529,7 +533,7 @@ export default function WorkoutComplete() {
           ref={scoreCardRef}
           className="w-full max-w-md"
           style={{
-            background: "linear-gradient(170deg, #1C1C1E 0%, #0D0D0F 50%, #1A1614 100%)",
+            background: "linear-gradient(170deg, #FFFFFF 0%, #FAF6F1 50%, #FFFFFF 100%)",
             padding: "32px 24px 24px",
             borderRadius: 16,
             overflow: "hidden",
@@ -537,10 +541,10 @@ export default function WorkoutComplete() {
         >
           {/* Top: PRIME SCORE centered + date */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 22, color: "#FAF8F5", fontWeight: 800, letterSpacing: "-0.03em" }}>
+            <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 22, color: "#3D2B24", fontWeight: 800, letterSpacing: "-0.03em" }}>
               PRIME SCORE
             </span>
-            <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", marginTop: 4, fontSize: 9, color: "rgba(250,248,245,0.3)", letterSpacing: "0.1em" }}>
+            <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", marginTop: 4, fontSize: 9, color: "rgba(61,43,36,0.3)", letterSpacing: "0.1em" }}>
               {dateStr}
             </span>
           </div>
@@ -560,7 +564,7 @@ export default function WorkoutComplete() {
               />
               {/* Ring SVG */}
               <svg width="150" height="150" style={{ position: "absolute" }}>
-                <circle cx="75" cy="75" r="62" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5" />
+                <circle cx="75" cy="75" r="62" fill="none" stroke="rgba(61,43,36,0.06)" strokeWidth="5" />
                 <circle
                   cx="75" cy="75" r="62"
                   fill="none"
@@ -575,10 +579,10 @@ export default function WorkoutComplete() {
               </svg>
               {/* Score number */}
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", position: "relative", zIndex: 10 }}>
-                <span style={{ fontFamily: "'DM Mono', monospace", fontWeight: 700, fontSize: 48, color: "#FAF8F5", letterSpacing: "-0.03em", lineHeight: 1 }}>
+                <span style={{ fontFamily: "'DM Mono', monospace", fontWeight: 700, fontSize: 48, color: "#3D2B24", letterSpacing: "-0.03em", lineHeight: 1 }}>
                   {animatedScore}
                 </span>
-                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 14, color: "rgba(250,248,245,0.3)", marginLeft: 2 }}>
+                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 14, color: "rgba(61,43,36,0.3)", marginLeft: 2 }}>
                   /100
                 </span>
               </div>
@@ -605,11 +609,11 @@ export default function WorkoutComplete() {
             </div>
 
             {/* Workout name + phase */}
-            <p style={{ fontFamily: "'Syne', sans-serif", marginTop: 8, textAlign: "center", fontSize: 16, color: "rgba(250,248,245,0.85)", fontWeight: 600, letterSpacing: "-0.01em" }}>
+            <p style={{ fontFamily: "'Syne', sans-serif", marginTop: 8, textAlign: "center", fontSize: 16, color: "rgba(61,43,36,0.85)", fontWeight: 600, letterSpacing: "-0.01em" }}>
               {workout?.day_label ?? "Workout"}
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-              <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", borderRadius: 9999, padding: "2px 10px", fontSize: 9, letterSpacing: "0.12em", fontWeight: 700, color: "#C75B39", background: "rgba(199,91,57,0.15)", border: "1px solid rgba(199,91,57,0.25)" }}>
+              <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", borderRadius: 9999, padding: "2px 10px", fontSize: 9, letterSpacing: "0.12em", fontWeight: 700, color: "#652F23", background: "rgba(101,47,35,0.15)", border: "1px solid rgba(101,47,35,0.25)" }}>
                 SEMANA {weekNumber} · {phaseLabel}
               </span>
             </div>
@@ -625,13 +629,13 @@ export default function WorkoutComplete() {
             ].map((stat) => (
               <div
                 key={stat.label}
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, textAlign: "center", padding: "12px 8px" }}
+                style={{ background: "rgba(61,43,36,0.04)", border: "1px solid rgba(61,43,36,0.06)", borderRadius: 12, textAlign: "center", padding: "12px 8px" }}
               >
-                <stat.Icon style={{ width: 16, height: 16, margin: "0 auto", color: "rgba(250,248,245,0.4)" }} />
-                <p style={{ fontFamily: "'DM Mono', monospace", fontWeight: 600, marginTop: 6, fontSize: 18, color: "#FAF8F5", letterSpacing: "0.02em", fontVariantNumeric: "tabular-nums" }}>
+                <stat.Icon style={{ width: 16, height: 16, margin: "0 auto", color: "rgba(61,43,36,0.4)" }} />
+                <p style={{ fontFamily: "'DM Mono', monospace", fontWeight: 600, marginTop: 6, fontSize: 18, color: "#3D2B24", letterSpacing: "0.02em", fontVariantNumeric: "tabular-nums" }}>
                   {stat.value}
                 </p>
-                <p style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", marginTop: 2, fontSize: 8, color: "rgba(250,248,245,0.35)", letterSpacing: "0.15em" }}>
+                <p style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", marginTop: 2, fontSize: 8, color: "rgba(61,43,36,0.35)", letterSpacing: "0.15em" }}>
                   {stat.label}
                 </p>
               </div>
@@ -641,17 +645,17 @@ export default function WorkoutComplete() {
           {/* Badges row */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 20 }}>
             {stats.prs > 0 && (
-              <span style={{ display: "flex", alignItems: "center", gap: 4, borderRadius: 9999, padding: "4px 12px", background: "rgba(201,169,110,0.15)", border: "1px solid rgba(201,169,110,0.3)" }}>
-                <Star style={{ width: 12, height: 12, color: "#C9A96E" }} />
-                <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", fontSize: 9, color: "#C9A96E", fontWeight: 600, letterSpacing: "0.1em" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 4, borderRadius: 9999, padding: "4px 12px", background: "rgba(101,47,35,0.15)", border: "1px solid rgba(101,47,35,0.3)" }}>
+                <Star style={{ width: 12, height: 12, color: "#652F23" }} />
+                <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", fontSize: 9, color: "#652F23", fontWeight: 600, letterSpacing: "0.1em" }}>
                   {stats.prs} PR{stats.prs > 1 ? "s" : ""}
                 </span>
               </span>
             )}
             {primeScore >= 85 && (
-              <span style={{ display: "flex", alignItems: "center", gap: 4, borderRadius: 9999, padding: "4px 12px", background: "rgba(199,91,57,0.15)", border: "1px solid rgba(199,91,57,0.3)" }}>
-                <Trophy style={{ width: 12, height: 12, color: "#C75B39" }} />
-                <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", fontSize: 9, color: "#C75B39", fontWeight: 600, letterSpacing: "0.1em" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 4, borderRadius: 9999, padding: "4px 12px", background: "rgba(101,47,35,0.15)", border: "1px solid rgba(101,47,35,0.3)" }}>
+                <Trophy style={{ width: 12, height: 12, color: "#652F23" }} />
+                <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", fontSize: 9, color: "#652F23", fontWeight: 600, letterSpacing: "0.1em" }}>
                   ÉLITE
                 </span>
               </span>
@@ -659,11 +663,11 @@ export default function WorkoutComplete() {
           </div>
 
           {/* Bottom branding */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 20, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-            <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", fontSize: 8, color: "rgba(250,248,245,0.65)", letterSpacing: "0.2em" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 20, paddingTop: 16, borderTop: "1px solid rgba(61,43,36,0.06)" }}>
+            <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", fontSize: 8, color: "rgba(61,43,36,0.65)", letterSpacing: "0.2em" }}>
               POWERED BY
             </span>
-            <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 10, color: "#FAF8F5", fontWeight: 800, letterSpacing: "-0.02em" }}>
+            <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 10, color: "#652F23", fontWeight: 800, letterSpacing: "-0.02em" }}>
               LIFTORY
             </span>
           </div>
@@ -674,8 +678,8 @@ export default function WorkoutComplete() {
           <button
             onClick={() => handleShare("story")}
             disabled={sharing}
-            className="press-scale flex flex-1 items-center justify-center gap-2 rounded-xl py-4 font-display text-[15px] font-semibold text-primary-foreground transition-all"
-            style={{ background: "#C75B39" }}
+            className="press-scale flex flex-1 items-center justify-center gap-2 rounded-xl py-4 font-display text-[15px] font-semibold transition-all"
+            style={{ background: t.accent, color: t.btnText }}
           >
             <Instagram className="h-4 w-4" />
             {sharing ? "..." : "Stories"}
@@ -684,7 +688,7 @@ export default function WorkoutComplete() {
             onClick={() => handleShare("card")}
             disabled={sharing}
             className="press-scale flex flex-1 items-center justify-center gap-2 rounded-xl py-4 font-display text-[15px] font-semibold transition-all"
-            style={{ background: "rgba(199,91,57,0.12)", color: "#C75B39", border: "1px solid rgba(199,91,57,0.3)" }}
+            style={{ background: t.accentBgStrong, color: t.accent, border: `1px solid ${t.accent}4D` }}
           >
             <Share2 className="h-4 w-4" />
             {sharing ? "..." : "Compartir"}
@@ -819,7 +823,7 @@ export default function WorkoutComplete() {
         {/* Phase info card */}
         <div className="mt-6 w-full max-w-md rounded-xl p-4" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="font-mono uppercase" style={{ fontSize: 10, letterSpacing: "0.12em", fontWeight: 700, color: "#C75B39" }}>
+            <span className="font-mono uppercase" style={{ fontSize: 10, letterSpacing: "0.12em", fontWeight: 700, color: t.accent }}>
               SEMANA {weekNumber} · {phaseLabel}
             </span>
           </div>
@@ -839,8 +843,8 @@ export default function WorkoutComplete() {
           </button>
           <button
             onClick={() => navigate("/home", { replace: true })}
-            className="press-scale w-full rounded-xl py-4 font-body text-[15px] font-medium text-primary-foreground transition-all"
-            style={{ background: "#C75B39" }}
+            className="press-scale w-full rounded-xl py-4 font-body text-[15px] font-medium transition-all"
+            style={{ background: t.accent, color: t.btnText }}
           >
             Volver al inicio
           </button>

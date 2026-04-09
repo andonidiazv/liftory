@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Trophy, X, ChevronRight } from "lucide-react";
 import type { BadgeMatch } from "@/hooks/useBadgeDetection";
 import { dismissBadgeNotification } from "@/hooks/useBadgeDetection";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 
 interface Props {
   match: BadgeMatch | null;
@@ -11,6 +13,8 @@ interface Props {
 
 export default function BadgeQualificationToast({ match, onDismiss }: Props) {
   const navigate = useNavigate();
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
   const [visible, setVisible] = useState(false);
   const [exiting, setExiting] = useState(false);
   const dismissRef = useRef(onDismiss);
@@ -83,7 +87,7 @@ export default function BadgeQualificationToast({ match, onDismiss }: Props) {
         <button
           onClick={dismiss}
           className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full"
-          style={{ background: "rgba(255,255,255,0.1)" }}
+          style={{ background: t.accentBg }}
         >
           <X className="h-3 w-3 text-white/60" />
         </button>
@@ -143,7 +147,7 @@ export default function BadgeQualificationToast({ match, onDismiss }: Props) {
               <button
                 onClick={handleDismissPermanently}
                 className="font-body text-[11px] transition-colors"
-                style={{ color: "rgba(255,255,255,0.3)" }}
+                style={{ color: t.subtle }}
               >
                 No me interesa
               </button>

@@ -9,12 +9,14 @@ import TabBar from "@/components/TabBar";
 import { BADGE_ICON_MAP, getBadgeIcon } from "@/lib/badgeIcons";
 import { useShareBadgeCard } from "@/hooks/useShareBadgeCard";
 import BadgeShareCard from "@/components/share/BadgeShareCard";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 
 // Re-export for backward compat within this file
 const ICON_MAP = BADGE_ICON_MAP;
 
 // ── Constants ──
-const TIER_COLORS: Record<string, string> = { longevity: "#7A8B5C", excelente: "#C75B39", elite: "#C9A96E" };
+const TIER_COLORS: Record<string, string> = { longevity: "#7A8B5C", excelente: "#652F23", elite: "#652F23" };
 const TIER_LABELS: Record<string, string> = { longevity: "LONGEVITY", excelente: "EXCELENTE", elite: "ELITE" };
 const TIER_DESCS: Record<string, string> = {
   longevity: "Top 50% entrenados",
@@ -28,7 +30,7 @@ const CATEGORIES = [
   { key: "olympic", label: "Olympic" },
   { key: "bodyweight", label: "Bodyweight" },
 ];
-const CAT_COLORS: Record<string, string> = { compound: "#C75B39", olympic: "#C9A96E", bodyweight: "#7A8B5C" };
+const CAT_COLORS: Record<string, string> = { compound: "#652F23", olympic: "#652F23", bodyweight: "#7A8B5C" };
 
 // ── Types ──
 interface BadgeTier {
@@ -46,10 +48,12 @@ interface BadgeDefinition {
 
 // ── Skeleton ──
 function BadgesSkeleton() {
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
   return (
-    <div className="min-h-screen px-5 pt-14 space-y-6" style={{ background: "#0D0C0A" }}>
+    <div className="min-h-screen px-5 pt-14 space-y-6" style={{ background: t.bg }}>
       {[1,2,3].map(i => (
-        <div key={i} className="h-72 rounded-2xl animate-pulse" style={{ background: "rgba(255,255,255,0.04)" }} />
+        <div key={i} className="h-72 rounded-2xl animate-pulse" style={{ background: t.accentBg }} />
       ))}
     </div>
   );
@@ -66,6 +70,8 @@ export default function Badges() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const { cardRef, sharing, share, cardData, athleteName, avatarUrl } = useShareBadgeCard();
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
 
   // ── Fetch ──
   useEffect(() => {
@@ -129,37 +135,37 @@ export default function Badges() {
   if (loading) return <><BadgesSkeleton /><TabBar /></>;
 
   return (
-    <div className="min-h-screen pb-28" style={{ background: "#0D0C0A" }}>
+    <div className="min-h-screen pb-28" style={{ background: t.bg }}>
       {/* ── Hero ── */}
       <div className="relative overflow-hidden px-5 pt-14 pb-8">
         {/* Glow */}
-        <div className="absolute top-[-120px] left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(199,91,57,0.08) 0%, transparent 70%)" }} />
+        <div className="absolute top-[-120px] left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: `radial-gradient(circle, ${t.accentBg} 0%, transparent 70%)` }} />
 
-        <button onClick={() => navigate(-1)} className="flex items-center gap-1 mb-6" style={{ color: "#8A8A8E" }}>
+        <button onClick={() => navigate(-1)} className="flex items-center gap-1 mb-6" style={{ color: t.muted }}>
           <ChevronLeft className="h-4 w-4" />
           <span className="font-body text-[13px]">Atrás</span>
         </button>
 
-        <h1 className="font-display text-[32px] font-[800] relative" style={{ color: "#FAF8F5", letterSpacing: "-0.03em" }}>
+        <h1 className="font-display text-[32px] font-[800] relative" style={{ color: t.text, letterSpacing: "-0.03em" }}>
           BADGES
         </h1>
-        <p className="mt-2 font-body text-[15px] leading-relaxed" style={{ color: "#8A8A8E", maxWidth: 320 }}>
+        <p className="mt-2 font-body text-[15px] leading-relaxed" style={{ color: t.muted, maxWidth: 320 }}>
           Insignias verificadas de fuerza. No se regalan — se ganan con video y revisión manual.
         </p>
 
         {/* Stats row */}
         <div className="flex gap-3 mt-6">
-          <div className="flex-1 rounded-xl py-3 px-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <p className="font-display text-[22px] font-[800]" style={{ color: "#C75B39" }}>{badges.length}</p>
-            <p className="font-mono text-[9px] uppercase tracking-wider mt-0.5" style={{ color: "#8A8A8E" }}>Badges</p>
+          <div className="flex-1 rounded-xl py-3 px-4" style={{ background: t.accentBg, border: `1px solid ${t.border}` }}>
+            <p className="font-display text-[22px] font-[800]" style={{ color: t.accent }}>{badges.length}</p>
+            <p className="font-mono text-[9px] uppercase tracking-wider mt-0.5" style={{ color: t.muted }}>Badges</p>
           </div>
-          <div className="flex-1 rounded-xl py-3 px-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <p className="font-display text-[22px] font-[800]" style={{ color: "#C9A96E" }}>{stats.total}</p>
-            <p className="font-mono text-[9px] uppercase tracking-wider mt-0.5" style={{ color: "#8A8A8E" }}>Tiers totales</p>
+          <div className="flex-1 rounded-xl py-3 px-4" style={{ background: t.accentBg, border: `1px solid ${t.border}` }}>
+            <p className="font-display text-[22px] font-[800]" style={{ color: t.accent }}>{stats.total}</p>
+            <p className="font-mono text-[9px] uppercase tracking-wider mt-0.5" style={{ color: t.muted }}>Tiers totales</p>
           </div>
-          <div className="flex-1 rounded-xl py-3 px-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <p className="font-display text-[22px] font-[800]" style={{ color: "#7A8B5C" }}>{stats.earned}</p>
-            <p className="font-mono text-[9px] uppercase tracking-wider mt-0.5" style={{ color: "#8A8A8E" }}>Ganados</p>
+          <div className="flex-1 rounded-xl py-3 px-4" style={{ background: t.accentBg, border: `1px solid ${t.border}` }}>
+            <p className="font-display text-[22px] font-[800]" style={{ color: t.success }}>{stats.earned}</p>
+            <p className="font-mono text-[9px] uppercase tracking-wider mt-0.5" style={{ color: t.muted }}>Ganados</p>
           </div>
         </div>
       </div>
@@ -174,9 +180,9 @@ export default function Badges() {
               onClick={() => setActiveFilter(cat.key)}
               className="shrink-0 rounded-full px-4 py-2 font-mono text-[10px] uppercase tracking-[1.5px] transition-all"
               style={{
-                background: isActive ? "rgba(199,91,57,0.15)" : "rgba(255,255,255,0.04)",
-                color: isActive ? "#C75B39" : "#8A8A8E",
-                border: isActive ? "1px solid rgba(199,91,57,0.3)" : "1px solid rgba(255,255,255,0.06)",
+                background: isActive ? t.accentBgStrong : t.accentBg,
+                color: isActive ? t.accent : t.muted,
+                border: isActive ? `1px solid ${t.accent}4D` : `1px solid ${t.border}`,
               }}
             >
               {cat.label}
@@ -187,10 +193,10 @@ export default function Badges() {
 
       {/* ── Empty state ── */}
       {filtered.length === 0 && (
-        <div className="mx-5 rounded-2xl p-10 text-center" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-          <Filter className="mx-auto h-8 w-8 mb-3" style={{ color: "#8A8A8E" }} />
-          <p className="font-display text-[15px] font-bold" style={{ color: "#FAF8F5" }}>Sin badges en esta categoría</p>
-          <p className="mt-1 font-body text-[13px]" style={{ color: "#8A8A8E" }}>Prueba otro filtro.</p>
+        <div className="mx-5 rounded-2xl p-10 text-center" style={{ background: t.accentBg, border: `1px solid ${t.border}` }}>
+          <Filter className="mx-auto h-8 w-8 mb-3" style={{ color: t.muted }} />
+          <p className="font-display text-[15px] font-bold" style={{ color: t.text }}>Sin badges en esta categoría</p>
+          <p className="mt-1 font-body text-[13px]" style={{ color: t.muted }}>Prueba otro filtro.</p>
         </div>
       )}
 
@@ -202,7 +208,7 @@ export default function Badges() {
           const claimable = nextClaim(badge);
           const anyEarned = badge.user_badges?.some(u => u.status === "approved");
           const isExpanded = expandedId === badge.id;
-          const catColor = CAT_COLORS[badge.category || "compound"] || "#C75B39";
+          const catColor = CAT_COLORS[badge.category || "compound"] || "#652F23";
           // Get elite tier max weights for bar chart scaling
           const eliteTier = badge.badge_tiers?.find(t => t.tier === "elite");
           const eliteM = eliteTier?.weight_male ?? 0;
@@ -213,8 +219,8 @@ export default function Badges() {
               key={badge.id}
               className="rounded-2xl overflow-hidden transition-all"
               style={{
-                background: "#161614",
-                border: anyEarned ? `1px solid ${catColor}30` : "1px solid rgba(255,255,255,0.06)",
+                background: t.card,
+                border: anyEarned ? `1px solid ${catColor}30` : `1px solid ${t.border}`,
                 boxShadow: anyEarned ? `0 0 30px ${catColor}10` : "none",
               }}
             >
@@ -235,7 +241,7 @@ export default function Badges() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-display text-[17px] font-[800]" style={{ color: "#FAF8F5", letterSpacing: "-0.02em" }}>
+                      <h3 className="font-display text-[17px] font-[800]" style={{ color: t.text, letterSpacing: "-0.02em" }}>
                         {badge.name}
                       </h3>
                       <span
@@ -245,7 +251,7 @@ export default function Badges() {
                         {badge.category}
                       </span>
                     </div>
-                    <p className="font-mono text-[10px] uppercase tracking-[1.5px] mt-0.5" style={{ color: "#8A8A8E" }}>
+                    <p className="font-mono text-[10px] uppercase tracking-[1.5px] mt-0.5" style={{ color: t.muted }}>
                       {badge.exercise_name}
                     </p>
                   </div>
@@ -253,7 +259,7 @@ export default function Badges() {
 
                 {/* Description */}
                 {badge.description && (
-                  <p className="mt-3 font-body text-[13px] leading-relaxed" style={{ color: "#B0ACA7" }}>
+                  <p className="mt-3 font-body text-[13px] leading-relaxed" style={{ color: t.muted }}>
                     {badge.description}
                   </p>
                 )}
@@ -273,8 +279,8 @@ export default function Badges() {
                       key={tier.id}
                       className="rounded-xl px-4 py-3 transition-all"
                       style={{
-                        background: status === "earned" ? `${color}12` : "rgba(255,255,255,0.03)",
-                        border: status === "earned" ? `1px solid ${color}30` : "1px solid rgba(255,255,255,0.04)",
+                        background: status === "earned" ? `${color}12` : t.accentBg,
+                        border: status === "earned" ? `1px solid ${color}30` : `1px solid ${t.border}`,
                         boxShadow: status === "earned" ? `0 0 20px ${color}15` : "none",
                       }}
                     >
@@ -282,24 +288,24 @@ export default function Badges() {
                         {/* Status icon */}
                         <div
                           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
-                          style={{ background: status === "earned" ? `${color}25` : status === "pending" ? "rgba(234,179,8,0.15)" : "rgba(255,255,255,0.06)" }}
+                          style={{ background: status === "earned" ? `${color}25` : status === "pending" ? "rgba(234,179,8,0.15)" : t.accentBg }}
                         >
                           {status === "earned" ? (
                             <Check className="h-4 w-4" style={{ color }} strokeWidth={3} />
                           ) : status === "pending" ? (
                             <div className="h-3 w-3 rounded-full animate-pulse" style={{ background: "#EAB308" }} />
                           ) : (
-                            <Lock className="h-3.5 w-3.5" style={{ color: "#8A8A8E" }} />
+                            <Lock className="h-3.5 w-3.5" style={{ color: t.muted }} />
                           )}
                         </div>
 
                         {/* Label + reps */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="font-display text-[13px] font-[700]" style={{ color: status === "earned" ? color : status === "locked" ? "#8A8A8E" : "#EAB308" }}>
+                            <span className="font-display text-[13px] font-[700]" style={{ color: status === "earned" ? color : status === "locked" ? t.muted : "#EAB308" }}>
                               {label}
                             </span>
-                            <span className="font-mono text-[9px]" style={{ color: "#666" }}>{desc}</span>
+                            <span className="font-mono text-[9px]" style={{ color: t.subtle }}>{desc}</span>
                           </div>
 
                           {(() => {
@@ -310,14 +316,14 @@ export default function Badges() {
                             return isBodyweight ? (
                               <div className="flex gap-3 mt-0.5">
                                 <span className="font-mono text-[11px]" style={{
-                                  color: isMale ? "#FAF8F5" : "#666",
+                                  color: isMale ? t.text : t.subtle,
                                   fontWeight: isMale ? 700 : 400,
                                   opacity: lockedOpacity,
                                 }}>
                                   H: {tier.reps_male} rep{tier.reps_male > 1 ? "s" : ""}
                                 </span>
                                 <span className="font-mono text-[11px]" style={{
-                                  color: isFemale ? "#FAF8F5" : "#666",
+                                  color: isFemale ? t.text : t.subtle,
                                   fontWeight: isFemale ? 700 : 400,
                                   opacity: lockedOpacity,
                                 }}>
@@ -327,14 +333,14 @@ export default function Badges() {
                             ) : (
                               <div className="flex gap-3 mt-0.5">
                                 <span className="font-mono text-[11px]" style={{
-                                  color: isMale ? "#FAF8F5" : "#666",
+                                  color: isMale ? t.text : t.subtle,
                                   fontWeight: isMale ? 700 : 400,
                                   opacity: lockedOpacity,
                                 }}>
                                   H: {tier.weight_male} kg x{tier.reps_male}
                                 </span>
                                 <span className="font-mono text-[11px]" style={{
-                                  color: isFemale ? "#FAF8F5" : "#666",
+                                  color: isFemale ? t.text : t.subtle,
                                   fontWeight: isFemale ? 700 : 400,
                                   opacity: lockedOpacity,
                                 }}>
@@ -386,10 +392,10 @@ export default function Badges() {
                           <div className="mt-2 space-y-1.5">
                             <div className="flex items-center gap-2">
                               <span className="font-mono text-[9px] uppercase tracking-wider w-4 shrink-0" style={{
-                                color: isMale ? "#FAF8F5" : "#555",
+                                color: isMale ? t.text : t.subtle,
                                 fontWeight: isMale ? 700 : 400,
                               }}>H</span>
-                              <div className="flex-1 h-5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                              <div className="flex-1 h-5 rounded-full overflow-hidden" style={{ background: t.accentBg }}>
                                 <div
                                   className="h-full rounded-full flex items-center justify-end pr-2 transition-all duration-700"
                                   style={{
@@ -398,7 +404,7 @@ export default function Badges() {
                                   }}
                                 >
                                   <span className="font-mono text-[10px]" style={{
-                                    color: isMale ? "#FAF8F5" : "#999",
+                                    color: isMale ? t.text : t.subtle,
                                     fontWeight: isMale ? 700 : 400,
                                   }}>{maleW} kg</span>
                                 </div>
@@ -406,10 +412,10 @@ export default function Badges() {
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="font-mono text-[9px] uppercase tracking-wider w-4 shrink-0" style={{
-                                color: isFemale ? "#FAF8F5" : "#555",
+                                color: isFemale ? t.text : t.subtle,
                                 fontWeight: isFemale ? 700 : 400,
                               }}>M</span>
-                              <div className="flex-1 h-5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                              <div className="flex-1 h-5 rounded-full overflow-hidden" style={{ background: t.accentBg }}>
                                 <div
                                   className="h-full rounded-full flex items-center justify-end pr-2 transition-all duration-700"
                                   style={{
@@ -418,7 +424,7 @@ export default function Badges() {
                                   }}
                                 >
                                   <span className="font-mono text-[10px]" style={{
-                                    color: isFemale ? "#FAF8F5" : "#999",
+                                    color: isFemale ? t.text : t.subtle,
                                     fontWeight: isFemale ? 700 : 400,
                                   }}>{femaleW} kg</span>
                                 </div>
@@ -436,7 +442,7 @@ export default function Badges() {
               {badge.fun_fact && (
                 <div
                   className="mx-5 mb-4 rounded-xl px-4 py-3 cursor-pointer"
-                  style={{ background: "rgba(255,255,255,0.03)", borderLeft: `3px solid ${catColor}40` }}
+                  style={{ background: t.accentBg, borderLeft: `3px solid ${catColor}40` }}
                   onClick={() => setExpandedId(isExpanded ? null : badge.id)}
                 >
                   <div className="flex items-start gap-2">
@@ -444,7 +450,7 @@ export default function Badges() {
                     <p
                       className="font-body text-[12px] leading-relaxed"
                       style={{
-                        color: "#B0ACA7",
+                        color: t.muted,
                         display: isExpanded ? "block" : "-webkit-box",
                         WebkitLineClamp: isExpanded ? undefined : 2,
                         WebkitBoxOrient: "vertical",
@@ -463,7 +469,7 @@ export default function Badges() {
                   <button
                     onClick={() => navigate(`/badges/claim/${badge.slug}/${claimable}`)}
                     className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-display text-[13px] font-[700] transition-all active:scale-[0.98]"
-                    style={{ background: catColor, color: "#FAF8F5" }}
+                    style={{ background: catColor, color: t.btnText }}
                   >
                     <Award className="h-4 w-4" />
                     Reclamar badge
@@ -471,7 +477,7 @@ export default function Badges() {
                 ) : (
                   <div
                     className="flex items-center justify-center gap-2 rounded-xl py-3.5 font-display text-[13px] font-[700]"
-                    style={{ background: "rgba(201,169,110,0.1)", color: "#C9A96E", border: "1px solid rgba(201,169,110,0.2)" }}
+                    style={{ background: t.accentBg, color: t.accent, border: `1px solid ${t.accentBgStrong}` }}
                   >
                     <Crown className="h-4 w-4" />
                     Todas las insignias ganadas
@@ -484,25 +490,25 @@ export default function Badges() {
       </div>
 
       {/* ── Tier legend ── */}
-      <div className="mx-5 mt-8 mb-4 rounded-2xl px-5 py-5" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-        <p className="font-mono text-[9px] uppercase tracking-[2px] mb-4" style={{ color: "#8A8A8E" }}>Niveles de badge</p>
+      <div className="mx-5 mt-8 mb-4 rounded-2xl px-5 py-5" style={{ background: t.accentBg, border: `1px solid ${t.border}` }}>
+        <p className="font-mono text-[9px] uppercase tracking-[2px] mb-4" style={{ color: t.muted }}>Niveles de badge</p>
         <div className="space-y-3">
-          {TIER_ORDER.map(t => (
-            <div key={t} className="flex items-center gap-3">
-              <div className="h-3 w-3 rounded-full" style={{ background: TIER_COLORS[t] }} />
+          {TIER_ORDER.map(tierKey => (
+            <div key={tierKey} className="flex items-center gap-3">
+              <div className="h-3 w-3 rounded-full" style={{ background: TIER_COLORS[tierKey] }} />
               <div className="flex-1">
-                <span className="font-display text-[12px] font-[700]" style={{ color: TIER_COLORS[t] }}>{TIER_LABELS[t]}</span>
-                <span className="font-body text-[11px] ml-2" style={{ color: "#8A8A8E" }}>
-                  {t === "longevity" && "Fuerza funcional sólida. 6-12 meses de entrenamiento consistente."}
-                  {t === "excelente" && "Fuerza que impresiona. 1-2 mesociclos dedicados."}
-                  {t === "elite" && "El badge que presumes. 3+ mesociclos de trabajo serio."}
+                <span className="font-display text-[12px] font-[700]" style={{ color: TIER_COLORS[tierKey] }}>{TIER_LABELS[tierKey]}</span>
+                <span className="font-body text-[11px] ml-2" style={{ color: t.muted }}>
+                  {tierKey === "longevity" && "Fuerza funcional sólida. 6-12 meses de entrenamiento consistente."}
+                  {tierKey === "excelente" && "Fuerza que impresiona. 1-2 mesociclos dedicados."}
+                  {tierKey === "elite" && "El badge que presumes. 3+ mesociclos de trabajo serio."}
                 </span>
               </div>
             </div>
           ))}
         </div>
-        <div className="mt-4 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-          <p className="font-body text-[11px] leading-relaxed" style={{ color: "#666" }}>
+        <div className="mt-4 pt-3" style={{ borderTop: `1px solid ${t.border}` }}>
+          <p className="font-body text-[11px] leading-relaxed" style={{ color: t.subtle }}>
             Datos basados en StrengthLevel.com (millones de lifts), ExRx.net, y estudios del NSCA. Tu metrica esta resaltada. H = hombres, M = mujeres.
           </p>
         </div>
@@ -510,7 +516,7 @@ export default function Badges() {
 
       {/* ── Footer ── */}
       <div className="text-center py-6">
-        <p className="font-display text-[11px] font-[800]" style={{ color: "#8A8A8E", letterSpacing: "-0.03em" }}>LIFTORY</p>
+        <p className="font-display text-[11px] font-[800]" style={{ color: t.muted, letterSpacing: "-0.03em" }}>LIFTORY</p>
       </div>
 
       <TabBar />
@@ -521,7 +527,7 @@ export default function Badges() {
           ref={cardRef}
           badgeName={cardData?.badgeName || ""}
           tierLabel={cardData?.tierLabel || ""}
-          tierColor={cardData?.tierColor || "#C75B39"}
+          tierColor={cardData?.tierColor || "#652F23"}
           exerciseName={cardData?.exerciseName || ""}
           iconName={cardData?.iconName ?? null}
           athleteName={athleteName}

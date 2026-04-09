@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { usePrimeWeeklyReset, PrevWeekMetrics } from "@/hooks/usePrimeWeeklyReset";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 import {
   Loader2,
   Repeat,
@@ -66,6 +68,8 @@ const prevKeyMap: Record<ComparableKey, keyof PrevWeekMetrics> = {
 };
 
 function ComparisonBadge({ current, previous }: { current: number; previous: number }) {
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
   if (previous === 0 && current === 0) return null;
   if (previous === 0) {
     return (
@@ -92,8 +96,8 @@ function ComparisonBadge({ current, previous }: { current: number; previous: num
     <span
       className="mt-1 inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-mono text-[8px] font-bold"
       style={{
-        background: isUp ? "rgba(122, 139, 92, 0.15)" : "rgba(199, 91, 57, 0.15)",
-        color: isUp ? "#7A8B5C" : "#C75B39",
+        background: isUp ? `${t.success}26` : t.accentBgStrong,
+        color: isUp ? t.success : t.accent,
       }}
     >
       {isUp ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}

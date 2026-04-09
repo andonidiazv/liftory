@@ -12,6 +12,9 @@ import {
   Play, Zap, Flame, Anchor, Rocket, Star, TrendingUp,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
+import { Moon, Sun } from "lucide-react";
 
 interface OnboardingData {
   experience_level: string;
@@ -26,6 +29,8 @@ export default function Profile() {
   const navigate = useNavigate();
   const { user, profile, signOut, refreshProfile, isPremium } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { isDark, toggle: toggleDarkMode } = useDarkMode();
+  const t = isDark ? noche : dia;
 
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState(profile?.full_name || "");
@@ -63,7 +68,7 @@ export default function Profile() {
             slug: b.badge_tiers?.badge_definitions?.slug || "",
             tier: b.badge_tiers?.tier || "",
             tier_label: b.badge_tiers?.tier_label || "",
-            color: b.badge_tiers?.color || "#C75B39",
+            color: b.badge_tiers?.color || "#652F23",
             earned_at: b.earned_at || "",
             proof_url: b.proof_url || null,
             icon_name: b.badge_tiers?.badge_definitions?.icon_name || null,
@@ -167,7 +172,7 @@ export default function Profile() {
 
   const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
     active: { label: "Premium", color: "hsl(var(--success))", icon: Crown },
-    trial: { label: "Prueba gratuita", color: "#B8622F", icon: Clock },
+    trial: { label: "Prueba gratuita", color: t.accent, icon: Clock },
     past_due: { label: "Pago pendiente", color: "hsl(var(--destructive))", icon: AlertTriangle },
     expired: { label: "Expirado", color: "hsl(var(--destructive))", icon: AlertTriangle },
     cancelled: { label: "Cancelado", color: "hsl(var(--muted-foreground))", icon: X },
@@ -255,6 +260,21 @@ export default function Profile() {
           </button>
         </div>
 
+        {/* Appearance toggle */}
+        <div className="mt-3 card-fbb flex items-center justify-between">
+          <div>
+            <p className="text-sm font-body font-medium text-foreground">Apariencia</p>
+            <p className="text-xs text-muted-foreground">{isDark ? "Modo Noche" : "Modo Dia"}</p>
+          </div>
+          <button
+            onClick={toggleDarkMode}
+            className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-primary bg-primary/10 press-scale"
+          >
+            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            {isDark ? "Cambiar a Dia" : "Cambiar a Noche"}
+          </button>
+        </div>
+
         {/* ═══ SUSCRIPCIÓN ═══ */}
         <div className="mt-8">
           <span className="eyebrow-label">TU SUSCRIPCIÓN</span>
@@ -280,7 +300,7 @@ export default function Profile() {
                 onClick={handleManageSubscription}
                 disabled={portalLoading}
                 className="mt-3 w-full rounded-xl py-3 text-sm font-body font-semibold press-scale"
-                style={{ background: "rgba(184, 98, 47, 0.12)", color: "#B8622F" }}
+                style={{ background: t.accentBgStrong, color: t.accent }}
               >
                 {portalLoading ? "Cargando..." : "Gestionar suscripción"}
               </button>
@@ -358,7 +378,7 @@ export default function Profile() {
                       }
                     }}
                     className="relative aspect-square overflow-hidden group"
-                    style={{ background: "#1A1A1A" }}
+                    style={{ background: t.card }}
                   >
                     {/* Video thumbnail or aesthetic placeholder */}
                     {isVideo && !isPending ? (
@@ -377,7 +397,7 @@ export default function Profile() {
                         background: `
                           radial-gradient(circle at 30% 20%, ${b.color}25 0%, transparent 50%),
                           radial-gradient(circle at 70% 80%, ${b.color}15 0%, transparent 50%),
-                          linear-gradient(145deg, #1A1917 0%, #0D0C0A 50%, ${b.color}08 100%)
+                          linear-gradient(145deg, ${t.card} 0%, ${t.bg} 50%, ${b.color}08 100%)
                         `,
                       }}>
                         <div className="absolute inset-0 flex items-center justify-center">
@@ -445,9 +465,9 @@ export default function Profile() {
             >
               <div
                 className="flex h-9 w-9 items-center justify-center rounded-lg"
-                style={{ background: "rgba(201,169,110,0.1)" }}
+                style={{ background: t.accentBg }}
               >
-                <Lock className="h-4 w-4" style={{ color: "#C9A96E" }} />
+                <Lock className="h-4 w-4" style={{ color: t.accent }} />
               </div>
               <div className="flex-1">
                 <p className="text-sm font-body font-medium text-foreground">Desbloquea tu primer badge</p>
@@ -466,9 +486,9 @@ export default function Profile() {
         >
           <div
             className="flex h-9 w-9 items-center justify-center rounded-lg"
-            style={{ background: "rgba(199,91,57,0.1)" }}
+            style={{ background: t.accentBg }}
           >
-            <BookOpen className="h-4 w-4" style={{ color: "#C75B39" }} />
+            <BookOpen className="h-4 w-4" style={{ color: t.accent }} />
           </div>
           <div className="flex-1">
             <p className="text-sm font-body font-medium text-foreground">Biblioteca de Ejercicios</p>
@@ -519,7 +539,7 @@ export default function Profile() {
             </button>
 
             {/* Video */}
-            <div className="rounded-2xl overflow-hidden" style={{ background: "#0D0C0A" }}>
+            <div className="rounded-2xl overflow-hidden" style={{ background: t.bg }}>
               <video
                 src={videoModal.url}
                 className="w-full"
