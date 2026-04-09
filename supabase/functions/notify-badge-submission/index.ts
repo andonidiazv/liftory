@@ -11,7 +11,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { sendEmail, buildAdminBadgeSubmissionEmail } from "../_shared/email.ts";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": "https://liftory.app",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };

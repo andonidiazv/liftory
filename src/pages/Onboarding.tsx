@@ -261,15 +261,16 @@ export default function Onboarding() {
         full_name: userName, gender: g, onboarding_completed: true,
         training_days_per_week: 5, training_location: "full_gym", experience_level: e,
       };
-      // VIP: grant full active access without payment
-      if (vip) {
-        profileUpdate.subscription_status = "active";
-        profileUpdate.subscription_tier = "annual";
-        const oneYearFromNow = new Date();
-        oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
-        profileUpdate.current_period_end = oneYearFromNow.toISOString();
-      }
       await supabase.from("user_profiles").update(profileUpdate).eq("user_id", userId);
+      // VIP: activate subscription via edge function (bypasses RLS on sensitive columns)
+      if (vip) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          await supabase.functions.invoke("activate-vip", {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          });
+        }
+      }
       const result = await assignProgram(userId, g, level, joinMode);
       if (!result.success) throw new Error("assign failed");
       clearAnswers(); setAssignDone(true);

@@ -798,7 +798,6 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
             break;
         }
 
-        console.log("[save] scope:", scope.type, "source:", sourceWeek, "targets:", targetWeeks);
 
         /* ----------------------------------------------------------
          *  PHASE 1: Save program-level changes
@@ -835,7 +834,6 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
         // Track newly created workout ID mappings (draft id -> real id)
         const workoutIdMap = new Map<string, string>();
 
-        console.log("[save] Phase 2: saving", sourceWorkouts.length, "source workouts for week", sourceWeek);
 
         for (const w of sourceWorkouts) {
           if (w._isNew) {
@@ -960,14 +958,12 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
           }
         }
 
-        console.log("[save] Phase 2 complete");
 
         /* ----------------------------------------------------------
          *  PHASE 3: Propagate to target weeks within same program.
          *  Query target workouts FRESH from DB to ensure accuracy.
          * ---------------------------------------------------------- */
         if (targetWeeks.length > 0) {
-          console.log("[save] Phase 3: propagating to target weeks", targetWeeks);
 
           // Query ALL target week workouts fresh from DB for this program
           let targetQuery = supabase
@@ -984,7 +980,6 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
           if (twErr) throw new Error(`Failed to fetch target workouts: ${twErr.message}`);
 
           const targetWorkoutList = dbTargetWorkouts ?? [];
-          console.log("[save] Phase 3: found", targetWorkoutList.length, "target workouts in DB");
 
           for (const targetWeek of targetWeeks) {
             for (const srcWorkout of sourceWorkouts) {
@@ -1000,7 +995,6 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
               );
 
               if (!targetWorkout) {
-                console.log("[save] Phase 3: no target workout for week", targetWeek, "day", srcWorkout.day_label, "— creating one");
                 // Create the missing workout in the target week
                 const DAY_LABELS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
                 const dayIdx = DAY_LABELS.indexOf(srcWorkout.day_label);
@@ -1062,7 +1056,6 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
 
               // Skip completed workouts
               if (targetWorkout.is_completed) {
-                console.log("[save] Phase 3: skipping completed workout", targetWorkout.id);
                 continue;
               }
 
@@ -1122,19 +1115,16 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
                   );
               }
 
-              console.log("[save] Phase 3: propagated", srcSets.length, "sets to week", targetWeek, "workout", targetWorkout.id);
             }
           }
         }
 
-        console.log("[save] Phase 3 complete");
 
         /* ----------------------------------------------------------
          *  PHASE 4: If this is a TEMPLATE (user_id = null),
          *  propagate changes to ALL user copies of this program.
          * ---------------------------------------------------------- */
         if (!draft.program.user_id) {
-          console.log("[save] Phase 4: propagating to athlete copies");
 
           // Find all user copies of this program (same name, user_id != null)
           const { data: userCopies, error: ucErr } = await supabase
@@ -1148,7 +1138,6 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
           }
 
           if (userCopies && userCopies.length > 0) {
-            console.log("[save] Phase 4: found", userCopies.length, "athlete copies");
 
             // Sync the same weeks that the admin chose in the scope
             const allWeeksToSync = [sourceWeek, ...targetWeeks];
@@ -1166,7 +1155,6 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
             }
 
             const { data: freshTemplateWorkouts } = await freshQuery;
-            console.log("[save] Phase 4: fresh template workouts:", freshTemplateWorkouts?.length ?? 0);
 
             // Fetch fresh template sets in chunks to avoid 1000-row limit
             const freshTemplateWorkoutIds = (freshTemplateWorkouts ?? []).map((w) => w.id);
@@ -1181,7 +1169,6 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
                 .limit(5000);
               if (data) freshTemplateSets = freshTemplateSets.concat(data);
             }
-            console.log("[save] Phase 4: fresh template sets:", freshTemplateSets.length);
 
             for (const userProg of userCopies) {
               // Get all workouts for this user's program in the relevant weeks
@@ -1208,7 +1195,6 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
                   );
 
                   if (!userWorkout) {
-                    console.log("[save] Phase 4: no user workout for", userProg.user_id, "week", weekNum, "day", tmplWorkout.day_label, "— creating one");
                     // Create missing workout for athlete
                     const DAY_LABELS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
                     const dayIdx = DAY_LABELS.indexOf(tmplWorkout.day_label);
@@ -1319,12 +1305,10 @@ export function useProgramDraft(programId: string | undefined, mesocycleId?: str
                 }
               }
 
-              console.log("[save] Phase 4: synced athlete", userProg.user_id);
             }
           }
         }
 
-        console.log("[save] All phases complete");
         toast.success("Cambios guardados");
 
         // Refetch everything to sync with DB
