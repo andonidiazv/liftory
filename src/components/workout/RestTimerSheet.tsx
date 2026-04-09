@@ -15,6 +15,7 @@ export default function RestTimerSheet({ durationSeconds, visible, onDismiss }: 
   const [done, setDone] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const endTimeRef = useRef<number>(0); // timestamp (ms) when timer should hit 0
 
   // Helper: get or create AudioContext
   const getAudioCtx = useCallback(() => {
@@ -63,9 +64,10 @@ export default function RestTimerSheet({ durationSeconds, visible, onDismiss }: 
     } catch {}
   }, [getAudioCtx]);
 
-  // Reset state when timer becomes visible
+  // Reset state when timer becomes visible — set absolute end time
   useEffect(() => {
     if (visible) {
+      endTimeRef.current = Date.now() + durationSeconds * 1000;
       setRemaining(durationSeconds);
       setTotal(durationSeconds);
       setFlash(false);
@@ -73,22 +75,33 @@ export default function RestTimerSheet({ durationSeconds, visible, onDismiss }: 
     }
   }, [visible, durationSeconds]);
 
-  // Main countdown interval
+  // Main countdown — uses absolute time so it survives app switching
   useEffect(() => {
-    if (!visible || remaining <= 0) return;
-    intervalRef.current = setInterval(() => {
-      setRemaining((prev) => {
-        if (prev <= 1) {
-          clearInterval(intervalRef.current!);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    if (!visible || done) return;
+
+    const tick = () => {
+      const now = Date.now();
+      const msLeft = endTimeRef.current - now;
+      const secsLeft = Math.max(0, Math.ceil(msLeft / 1000));
+      setRemaining(secsLeft);
+    };
+
+    // Immediately sync on mount (catches up if we were in background)
+    tick();
+
+    intervalRef.current = setInterval(tick, 250); // 4x/sec for smoother catch-up
+
+    // Also sync when page regains visibility (user comes back from WhatsApp etc)
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") tick();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [visible, remaining > 0]); // eslint-disable-line
+  }, [visible, done]);
 
   // Countdown beeps for last 5 seconds (5, 4, 3, 2, 1)
   useEffect(() => {
@@ -120,8 +133,10 @@ export default function RestTimerSheet({ durationSeconds, visible, onDismiss }: 
   }, [remaining, visible, done, onDismiss, playFinishBeep]);
 
   const addTime = useCallback(() => {
-    setRemaining((p) => p + 15);
+    // Extend the absolute end time by 15 seconds
+    endTimeRef.current += 15 * 1000;
     setTotal((p) => p + 15);
+    setRemaining((p) => p + 15);
     setDone(false);
   }, []);
 
