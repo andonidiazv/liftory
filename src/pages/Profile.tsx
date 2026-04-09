@@ -80,7 +80,11 @@ export default function Profile() {
 
   const handleSaveName = async () => {
     if (!user || !nameValue.trim()) return;
-    await supabase.from("user_profiles").update({ full_name: nameValue.trim() }).eq("user_id", user.id);
+    const { error } = await supabase.from("user_profiles").update({ full_name: nameValue.trim() }).eq("user_id", user.id);
+    if (error) {
+      toast({ title: "No se pudo actualizar el nombre", variant: "destructive" });
+      return;
+    }
     await refreshProfile();
     setEditingName(false);
     toast({ title: "Nombre actualizado" });
@@ -89,7 +93,11 @@ export default function Profile() {
   const handleToggleUnit = async () => {
     if (!user || !profile) return;
     const newUnit = profile.weight_unit === "kg" ? "lb" : "kg";
-    await supabase.from("user_profiles").update({ weight_unit: newUnit }).eq("user_id", user.id);
+    const { error } = await supabase.from("user_profiles").update({ weight_unit: newUnit }).eq("user_id", user.id);
+    if (error) {
+      toast({ title: "No se pudo cambiar la unidad", variant: "destructive" });
+      return;
+    }
     await refreshProfile();
     toast({ title: `Unidad cambiada a ${newUnit}` });
   };
@@ -111,7 +119,12 @@ export default function Profile() {
       return;
     }
     const { data: { publicUrl } } = supabase.storage.from("user-avatars").getPublicUrl(path);
-    await supabase.from("user_profiles").update({ avatar_url: publicUrl }).eq("user_id", user.id);
+    const { error: updateErr2 } = await supabase.from("user_profiles").update({ avatar_url: publicUrl }).eq("user_id", user.id);
+    if (updateErr2) {
+      toast({ title: "La imagen se subió pero no se pudo guardar en tu perfil", variant: "destructive" });
+      setUploading(false);
+      return;
+    }
     await refreshProfile();
     setUploading(false);
     toast({ title: "Foto actualizada" });
@@ -119,7 +132,12 @@ export default function Profile() {
 
   const handleDeleteAccount = async () => {
     if (!user) return;
-    await supabase.from("user_profiles").update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq("user_id", user.id);
+    const { error } = await supabase.from("user_profiles").update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq("user_id", user.id);
+    if (error) {
+      toast({ title: "No se pudo eliminar la cuenta", description: "Intenta de nuevo", variant: "destructive" });
+      setShowDeleteModal(false);
+      return;
+    }
     await signOut();
     navigate("/", { replace: true });
   };
