@@ -28,16 +28,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = useCallback(async (userId: string) => {
-    try {
-      const { data } = await supabase
-        .from("user_profiles")
-        .select("*")
-        .eq("user_id", userId)
-        .single();
-      setProfile(data as UserProfile | null);
-    } catch {
-      setProfile(null);
-    }
+    const { data } = await supabase
+      .from("user_profiles")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
+    setProfile(data as UserProfile | null);
   }, []);
 
   const refreshProfile = useCallback(async () => {
@@ -45,12 +41,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user, fetchProfile]);
 
   useEffect(() => {
-    let didFinish = false;
-    const markDone = () => { if (!didFinish) { didFinish = true; setLoading(false); } };
-
-    // Hard safety net — NEVER stay loading more than 8 seconds no matter what
-    const safetyTimer = setTimeout(markDone, 8000);
-
     // Set up listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, newSession) => {
@@ -58,30 +48,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(newSession?.user ?? null);
 
         if (newSession?.user) {
-          try { await fetchProfile(newSession.user.id); } catch {}
+          setTimeout(() => fetchProfile(newSession.user.id), 0);
         } else {
           setProfile(null);
         }
-        markDone();
+        setLoading(false);
       }
     );
 
     // THEN get current session
-    supabase.auth.getSession()
-      .then(async ({ data: { session: s } }) => {
-        setSession(s);
-        setUser(s?.user ?? null);
-        if (s?.user) {
-          try { await fetchProfile(s.user.id); } catch {}
-        }
-        markDone();
-      })
-      .catch(() => markDone());
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
+      setSession(s);
+      setUser(s?.user ?? null);
+      if (s?.user) {
+        fetchProfile(s.user.id);
+      }
+      setLoading(false);
+    });
 
-    return () => {
-      clearTimeout(safetyTimer);
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, [fetchProfile]);
 
   const signUp = async (email: string, password: string, fullName?: string) => {

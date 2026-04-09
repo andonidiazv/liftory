@@ -1,5 +1,4 @@
 // synced
-import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -23,22 +22,20 @@ import Paywall from "./pages/Paywall";
 import Program from "./pages/Program";
 import Welcome from "./pages/Welcome";
 import NotFound from "./pages/NotFound";
+import AdminLayout from "./components/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminExercises from "./pages/admin/AdminExercises";
+import AdminInsights from "./pages/admin/AdminInsights";
+import AdminAIRules from "./pages/admin/AdminAIRules";
+import AdminAuditLog from "./pages/admin/AdminAuditLog";
+import AdminPrograms from "./pages/admin/AdminPrograms";
+import AdminProgramDetail from "./pages/admin/AdminProgramDetail";
+import AdminFeedback from "./pages/admin/AdminFeedback";
+import AdminBadges from "./pages/admin/AdminBadges";
+import AdminPayments from "./pages/admin/AdminPayments";
 import Badges from "./pages/Badges";
 import BadgeClaim from "./pages/BadgeClaim";
-
-// ── Admin pages: lazy-loaded (only downloaded when you open /admin) ──
-const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
-const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
-const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
-const AdminExercises = lazy(() => import("./pages/admin/AdminExercises"));
-const AdminInsights = lazy(() => import("./pages/admin/AdminInsights"));
-const AdminAIRules = lazy(() => import("./pages/admin/AdminAIRules"));
-const AdminAuditLog = lazy(() => import("./pages/admin/AdminAuditLog"));
-const AdminPrograms = lazy(() => import("./pages/admin/AdminPrograms"));
-const AdminProgramDetail = lazy(() => import("./pages/admin/AdminProgramDetail"));
-const AdminFeedback = lazy(() => import("./pages/admin/AdminFeedback"));
-const AdminBadges = lazy(() => import("./pages/admin/AdminBadges"));
-const AdminPayments = lazy(() => import("./pages/admin/AdminPayments"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -79,18 +76,18 @@ const App = () => (
               <Route path="/badges" element={<ProtectedRoute><Badges /></ProtectedRoute>} />
               <Route path="/badges/claim/:slug/:tier" element={<ProtectedRoute><BadgeClaim /></ProtectedRoute>} />
 
-              {/* Admin routes — lazy-loaded, role-validated */}
-              <Route path="/admin" element={<AdminRoute><Suspense fallback={null}><AdminLayout><AdminDashboard /></AdminLayout></Suspense></AdminRoute>} />
-              <Route path="/admin/users" element={<AdminRoute><Suspense fallback={null}><AdminLayout><AdminUsers /></AdminLayout></Suspense></AdminRoute>} />
-              <Route path="/admin/programs" element={<AdminRoute><Suspense fallback={null}><AdminLayout><AdminPrograms /></AdminLayout></Suspense></AdminRoute>} />
-              <Route path="/admin/programs/:id" element={<AdminRoute><Suspense fallback={null}><AdminLayout><AdminProgramDetail /></AdminLayout></Suspense></AdminRoute>} />
-              <Route path="/admin/exercises" element={<AdminRoute><Suspense fallback={null}><AdminLayout><AdminExercises /></AdminLayout></Suspense></AdminRoute>} />
-              <Route path="/admin/feedback" element={<AdminRoute><Suspense fallback={null}><AdminLayout><AdminFeedback /></AdminLayout></Suspense></AdminRoute>} />
-              <Route path="/admin/badges" element={<AdminRoute><Suspense fallback={null}><AdminLayout><AdminBadges /></AdminLayout></Suspense></AdminRoute>} />
-              <Route path="/admin/payments" element={<AdminRoute><Suspense fallback={null}><AdminLayout><AdminPayments /></AdminLayout></Suspense></AdminRoute>} />
-              <Route path="/admin/insights" element={<AdminRoute><Suspense fallback={null}><AdminLayout><AdminInsights /></AdminLayout></Suspense></AdminRoute>} />
-              <Route path="/admin/ai-rules" element={<AdminRoute><Suspense fallback={null}><AdminLayout><AdminAIRules /></AdminLayout></Suspense></AdminRoute>} />
-              <Route path="/admin/audit" element={<AdminRoute><Suspense fallback={null}><AdminLayout><AdminAuditLog /></AdminLayout></Suspense></AdminRoute>} />
+              {/* Admin routes — role-validated */}
+              <Route path="/admin" element={<AdminRoute><AdminLayout><AdminDashboard /></AdminLayout></AdminRoute>} />
+              <Route path="/admin/users" element={<AdminRoute><AdminLayout><AdminUsers /></AdminLayout></AdminRoute>} />
+              <Route path="/admin/programs" element={<AdminRoute><AdminLayout><AdminPrograms /></AdminLayout></AdminRoute>} />
+              <Route path="/admin/programs/:id" element={<AdminRoute><AdminLayout><AdminProgramDetail /></AdminLayout></AdminRoute>} />
+              <Route path="/admin/exercises" element={<AdminRoute><AdminLayout><AdminExercises /></AdminLayout></AdminRoute>} />
+              <Route path="/admin/feedback" element={<AdminRoute><AdminLayout><AdminFeedback /></AdminLayout></AdminRoute>} />
+              <Route path="/admin/badges" element={<AdminRoute><AdminLayout><AdminBadges /></AdminLayout></AdminRoute>} />
+              <Route path="/admin/payments" element={<AdminRoute><AdminLayout><AdminPayments /></AdminLayout></AdminRoute>} />
+              <Route path="/admin/insights" element={<AdminRoute><AdminLayout><AdminInsights /></AdminLayout></AdminRoute>} />
+              <Route path="/admin/ai-rules" element={<AdminRoute><AdminLayout><AdminAIRules /></AdminLayout></AdminRoute>} />
+              <Route path="/admin/audit" element={<AdminRoute><AdminLayout><AdminAuditLog /></AdminLayout></AdminRoute>} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
