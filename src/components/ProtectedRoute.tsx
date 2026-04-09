@@ -1,18 +1,39 @@
+import { useState, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
+const PROFILE_TIMEOUT_MS = 6000; // 6 seconds max waiting for profile
+
+function LoadingSplash() {
+  return (
+    <div className="flex min-h-screen items-center justify-center" style={{ background: "#FAF8F5" }}>
+      <span className="font-display text-sm" style={{ color: "rgba(28,28,30,0.2)", fontWeight: 800, letterSpacing: "-0.04em" }}>
+        LIFTORY
+      </span>
+    </div>
+  );
+}
+
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, profile, loading, isAdmin, hasOnboarded } = useAuth();
+  const { user, profile, loading, isAdmin, hasOnboarded, refreshProfile } = useAuth();
   const location = useLocation();
+  const [timedOut, setTimedOut] = useState(false);
+
+  // Safety net: if profile doesn't load in 6s, stop waiting
+  useEffect(() => {
+    if (!loading && user && !profile) {
+      // Try to re-fetch profile once
+      refreshProfile();
+
+      const timer = setTimeout(() => setTimedOut(true), PROFILE_TIMEOUT_MS);
+      return () => clearTimeout(timer);
+    }
+    // Reset timeout if profile loads
+    if (profile) setTimedOut(false);
+  }, [loading, user, profile, refreshProfile]);
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center" style={{ background: "#FAF8F5" }}>
-        <span className="font-display text-sm" style={{ color: "rgba(28,28,30,0.2)", fontWeight: 800, letterSpacing: "-0.04em" }}>
-          LIFTORY
-        </span>
-      </div>
-    );
+    return <LoadingSplash />;
   }
 
   if (!user) {
@@ -20,13 +41,11 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   }
 
   if (!profile) {
-    return (
-      <div className="flex min-h-screen items-center justify-center" style={{ background: "#FAF8F5" }}>
-        <span className="font-display text-sm" style={{ color: "rgba(28,28,30,0.2)", fontWeight: 800, letterSpacing: "-0.04em" }}>
-          LIFTORY
-        </span>
-      </div>
-    );
+    // If we've waited too long, send to login instead of blank screen forever
+    if (timedOut) {
+      return <Navigate to="/login" replace />;
+    }
+    return <LoadingSplash />;
   }
 
   // Admin bypass — admins can go anywhere
