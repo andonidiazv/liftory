@@ -6,21 +6,74 @@ interface RestTimerSheetProps {
   onDismiss: () => void;
 }
 
+const SAFE_VOLUME = 0.15; // hard cap — never exceed
+
 export default function RestTimerSheet({ durationSeconds, visible, onDismiss }: RestTimerSheetProps) {
   const [remaining, setRemaining] = useState(durationSeconds);
   const [total, setTotal] = useState(durationSeconds);
   const [flash, setFlash] = useState(false);
+  const [done, setDone] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
 
+  // Helper: get or create AudioContext
+  const getAudioCtx = useCallback(() => {
+    if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
+    const ctx = audioCtxRef.current;
+    if (ctx.state === "suspended") ctx.resume();
+    return ctx;
+  }, []);
+
+  // Helper: play a single tick beep (countdown style)
+  const playTick = useCallback(() => {
+    try {
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = "sine";
+      osc.frequency.value = 880; // A5 — same as EMOM countdown
+      gain.gain.setValueAtTime(SAFE_VOLUME, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      osc.start(now);
+      osc.stop(now + 0.13);
+    } catch {}
+  }, [getAudioCtx]);
+
+  // Helper: play double beep for timer complete
+  const playFinishBeep = useCallback(() => {
+    try {
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+      for (let i = 0; i < 2; i++) {
+        const t = now + i * 0.15;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = "sine";
+        osc.frequency.value = 1046.5; // C6 — same as EMOM
+        gain.gain.setValueAtTime(SAFE_VOLUME, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+        osc.start(t);
+        osc.stop(t + 0.13);
+      }
+    } catch {}
+  }, [getAudioCtx]);
+
+  // Reset state when timer becomes visible
   useEffect(() => {
     if (visible) {
       setRemaining(durationSeconds);
       setTotal(durationSeconds);
       setFlash(false);
+      setDone(false);
     }
   }, [visible, durationSeconds]);
 
+  // Main countdown interval
   useEffect(() => {
     if (!visible || remaining <= 0) return;
     intervalRef.current = setInterval(() => {
@@ -37,46 +90,39 @@ export default function RestTimerSheet({ durationSeconds, visible, onDismiss }: 
     };
   }, [visible, remaining > 0]); // eslint-disable-line
 
-  // When timer hits 0 — safe audio with gain ramping (no harsh pops)
+  // Countdown beeps for last 5 seconds (5, 4, 3, 2, 1)
   useEffect(() => {
-    if (remaining !== 0 || !visible) return;
+    if (!visible || remaining > 5 || remaining <= 0 || done) return;
+    playTick();
+    try { navigator.vibrate?.(3); } catch {}
+  }, [remaining, visible, done, playTick]);
+
+  // When timer hits 0 — finish beep + enter done state
+  useEffect(() => {
+    if (remaining !== 0 || !visible || done) return;
+
     // Vibrate
     try { navigator.vibrate?.([80, 50, 80]); } catch {}
-    // Sound — premium beep with proper gain envelope
-    try {
-      if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
-      const ctx = audioCtxRef.current;
-      // Resume if suspended (critical for iOS)
-      if (ctx.state === "suspended") ctx.resume();
 
-      const now = ctx.currentTime;
-      const SAFE = 0.15; // hard volume cap — never exceed
-      // Double beep for rest complete (similar to EMOM ronda beep)
-      for (let i = 0; i < 2; i++) {
-        const t = now + i * 0.15;
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.type = "sine";
-        osc.frequency.value = 1046.5; // C6 — same as EMOM
-        gain.gain.setValueAtTime(SAFE, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
-        osc.start(t);
-        osc.stop(t + 0.13);
-      }
-    } catch {}
-    // Flash
+    // Finish beep
+    playFinishBeep();
+
+    // Flash once
     setFlash(true);
-    setTimeout(() => setFlash(false), 200);
-    // Auto-close
-    const t = setTimeout(onDismiss, 1500);
+    setTimeout(() => setFlash(false), 300);
+
+    // Enter done/pulsing state
+    setDone(true);
+
+    // Auto-close after 5 seconds of pulsing
+    const t = setTimeout(onDismiss, 5000);
     return () => clearTimeout(t);
-  }, [remaining, visible, onDismiss]);
+  }, [remaining, visible, done, onDismiss, playFinishBeep]);
 
   const addTime = useCallback(() => {
     setRemaining((p) => p + 15);
     setTotal((p) => p + 15);
+    setDone(false);
   }, []);
 
   const formatTime = (s: number) => {
@@ -111,8 +157,17 @@ export default function RestTimerSheet({ durationSeconds, visible, onDismiss }: 
           backgroundColor: flash ? "hsl(var(--primary))" : "hsl(var(--card))",
           boxShadow: "0 -8px 32px rgba(0,0,0,0.5)",
           height: 180,
+          animation: done ? "rest-pulse 1s ease-in-out infinite" : undefined,
         }}
       >
+        {/* Pulse animation for done state */}
+        <style>{`
+          @keyframes rest-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+          }
+        `}</style>
+
         {/* Drag handle */}
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-muted-foreground/30" />
 
@@ -121,9 +176,11 @@ export default function RestTimerSheet({ durationSeconds, visible, onDismiss }: 
             onClick={onDismiss}
             className="font-body text-sm text-muted-foreground"
           >
-            Saltar
+            {done ? "Cerrar" : "Saltar"}
           </button>
-          <p className="font-body text-sm text-muted-foreground">Descanso</p>
+          <p className="font-body text-sm text-muted-foreground">
+            {done ? "Listo" : "Descanso"}
+          </p>
           <button
             onClick={addTime}
             className="font-body text-sm font-medium text-primary"
@@ -134,8 +191,17 @@ export default function RestTimerSheet({ durationSeconds, visible, onDismiss }: 
 
         {/* Countdown */}
         <p
-          className="mt-2 text-center font-mono font-bold text-foreground"
-          style={{ fontSize: 48, lineHeight: 1, letterSpacing: "-0.02em" }}
+          className="mt-2 text-center font-mono font-bold"
+          style={{
+            fontSize: 48,
+            lineHeight: 1,
+            letterSpacing: "-0.02em",
+            color: done
+              ? "hsl(var(--primary))"
+              : remaining <= 5 && remaining > 0
+                ? "hsl(var(--primary))"
+                : "hsl(var(--foreground))",
+          }}
         >
           {formatTime(remaining)}
         </p>
