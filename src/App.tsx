@@ -71,7 +71,7 @@ const App = () => (
               <Route path="/progress" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
               <Route path="/exercises" element={<ProtectedRoute><Exercises /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/paywall" element={<ProtectedRoute><Paywall /></ProtectedRoute>} />
+              <Route path="/paywall" element={<Paywall />} />
               <Route path="/program" element={<ProtectedRoute><Program /></ProtectedRoute>} />
               <Route path="/badges" element={<ProtectedRoute><Badges /></ProtectedRoute>} />
               <Route path="/badges/claim/:slug/:tier" element={<ProtectedRoute><BadgeClaim /></ProtectedRoute>} />

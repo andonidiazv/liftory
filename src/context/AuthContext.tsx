@@ -28,12 +28,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = useCallback(async (userId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("user_profiles")
       .select("*")
       .eq("user_id", userId)
       .single();
-    setProfile(data as UserProfile | null);
+    if (data) {
+      setProfile(data as UserProfile);
+      return;
+    }
+    // First attempt failed — retry once after a short delay
+    if (error) {
+      console.warn("[AuthContext] fetchProfile failed, retrying…", error.message);
+      await new Promise((r) => setTimeout(r, 1500));
+      const { data: retryData } = await supabase
+        .from("user_profiles")
+        .select("*")
+        .eq("user_id", userId)
+        .single();
+      setProfile((retryData as UserProfile) ?? null);
+    }
   }, []);
 
   const refreshProfile = useCallback(async () => {

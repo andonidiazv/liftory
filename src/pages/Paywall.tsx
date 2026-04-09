@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Target, Play, TrendingUp, Check, Flame, Zap } from "lucide-react";
@@ -68,7 +68,7 @@ const benefits = [
 export default function Paywall() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, profile, refreshProfile, isAdmin, hasOnboarded, signOut } = useAuth();
+  const { user, profile, loading: authLoading, refreshProfile, isAdmin, hasOnboarded, signOut } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<Plan>("annual");
   const [loading, setLoading] = useState(false);
   const [checkingPayment, setCheckingPayment] = useState(false);
@@ -158,6 +158,20 @@ export default function Paywall() {
     await signOut();
     navigate("/login", { replace: true });
   };
+
+  // Auth guard (no ProtectedRoute wrapper)
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center" style={{ background: cream }}>
+        <span className="font-display text-sm" style={{ color: "rgba(28,28,30,0.2)", fontWeight: 800, letterSpacing: "-0.04em" }}>
+          LIFTORY
+        </span>
+      </div>
+    );
+  }
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
   if (isAdmin()) {
     navigate("/home", { replace: true });

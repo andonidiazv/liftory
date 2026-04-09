@@ -1,9 +1,20 @@
+import { useEffect, useRef } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, profile, loading, isAdmin, hasOnboarded } = useAuth();
+  const { user, profile, loading, isAdmin, hasOnboarded, fetchProfile } = useAuth();
   const location = useLocation();
+  const retried = useRef(false);
+
+  // Safety net: if user exists but profile is null, retry once
+  useEffect(() => {
+    if (!loading && user && !profile && !retried.current) {
+      retried.current = true;
+      fetchProfile(user.id);
+    }
+    if (profile) retried.current = false;
+  }, [loading, user, profile, fetchProfile]);
 
   if (loading) {
     return (

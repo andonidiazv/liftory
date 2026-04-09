@@ -149,53 +149,54 @@ export async function assignProgram(
 
   if (!createdWorkouts) return { success: false };
 
-  // 8. Map old workout IDs → new, copy all workout_sets
+  // 8. Map old workout IDs → new workout IDs via date alignment
   const dateToNewId: Record<string, string> = {};
   createdWorkouts.forEach((w) => {
     dateToNewId[w.scheduled_date] = w.id;
   });
 
-  const oldDateToOldId: Record<string, string> = {};
+  const oldIdToNewId: Record<string, string> = {};
   templateWorkouts.forEach((tw) => {
     const daysDiff = Math.floor(
       (new Date(tw.scheduled_date + "T00:00:00").getTime() - templateStart.getTime()) / 86400000
     );
     const nd = new Date(startDate);
     nd.setDate(startDate.getDate() + daysDiff);
-    oldDateToOldId[nd.toISOString().split("T")[0]] = tw.id;
+    const newDate = nd.toISOString().split("T")[0];
+    const newId = dateToNewId[newDate];
+    if (newId) oldIdToNewId[tw.id] = newId;
   });
 
-  for (const dateStr of Object.keys(dateToNewId)) {
-    const newWorkoutId = dateToNewId[dateStr];
-    const oldWorkoutId = oldDateToOldId[dateStr];
-    if (!oldWorkoutId) continue;
+  // 9. Fetch ALL template workout_sets in ONE batch query
+  const oldWorkoutIds = Object.keys(oldIdToNewId);
+  if (!oldWorkoutIds.length) return { success: true, programId: program.id };
 
-    const { data: tSets } = await supabase
-      .from("workout_sets")
-      .select("*")
-      .eq("workout_id", oldWorkoutId)
-      .order("set_order");
+  const { data: allTemplateSets } = await supabase
+    .from("workout_sets")
+    .select("*")
+    .in("workout_id", oldWorkoutIds)
+    .order("set_order");
 
-    if (!tSets?.length) continue;
+  if (!allTemplateSets?.length) return { success: true, programId: program.id };
 
-    const setInserts = tSets.map((ts) => ({
-      workout_id: newWorkoutId,
-      user_id: userId,
-      exercise_id: ts.exercise_id,
-      set_order: ts.set_order,
-      set_type: ts.set_type,
-      planned_reps: ts.planned_reps,
-      planned_weight: null,
-      planned_tempo: ts.planned_tempo,
-      planned_rpe: ts.planned_rpe,
-      planned_rir: null,
-      planned_rest_seconds: ts.planned_rest_seconds,
-      coaching_cue_override: ts.coaching_cue_override,
-      block_label: ts.block_label,
-    }));
+  // 10. Remap and insert ALL sets in ONE batch
+  const allSetInserts = allTemplateSets.map((ts) => ({
+    workout_id: oldIdToNewId[ts.workout_id],
+    user_id: userId,
+    exercise_id: ts.exercise_id,
+    set_order: ts.set_order,
+    set_type: ts.set_type,
+    planned_reps: ts.planned_reps,
+    planned_weight: null,
+    planned_tempo: ts.planned_tempo,
+    planned_rpe: ts.planned_rpe,
+    planned_rir: null,
+    planned_rest_seconds: ts.planned_rest_seconds,
+    coaching_cue_override: ts.coaching_cue_override,
+    block_label: ts.block_label,
+  }));
 
-    await supabase.from("workout_sets").insert(setInserts);
-  }
+  await supabase.from("workout_sets").insert(allSetInserts);
 
   return { success: true, programId: program.id };
 }
