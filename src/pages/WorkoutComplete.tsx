@@ -380,6 +380,40 @@ export default function WorkoutComplete() {
           (w) => !w.is_rest_day && w.workout_type !== "mobility"
         ).length;
 
+        // Build PR detail from the best PR set in this workout
+        let prDetail: { exerciseName: string; weight: number; reps: number; unit: string; previousBest: number | null } | undefined;
+        if (stats.prs > 0) {
+          const prSets = sets.filter(s => s.is_pr && s.is_completed && s.actual_weight && s.actual_weight > 0);
+          // Pick the heaviest PR set
+          const bestPR = prSets.sort((a, b) => (b.actual_weight ?? 0) - (a.actual_weight ?? 0))[0];
+          if (bestPR && bestPR.exercise) {
+            // Query previous best weight for this exercise (excluding current workout)
+            let previousBest: number | null = null;
+            try {
+              const { data: prevData } = await supabase
+                .from("workout_sets")
+                .select("actual_weight")
+                .eq("user_id", user.id)
+                .eq("exercise_id", bestPR.exercise_id)
+                .eq("is_completed", true)
+                .gt("actual_weight", 0)
+                .neq("workout_id", id!)
+                .order("actual_weight", { ascending: false })
+                .limit(1);
+              if (prevData && prevData.length > 0) {
+                previousBest = prevData[0].actual_weight;
+              }
+            } catch {}
+            prDetail = {
+              exerciseName: bestPR.exercise.name,
+              weight: bestPR.actual_weight!,
+              reps: bestPR.actual_reps ?? 0,
+              unit: weightUnit || "kg",
+              previousBest,
+            };
+          }
+        }
+
         // Delay milestone popup so score animations finish first
         setTimeout(() => {
           checkMilestones({
@@ -389,6 +423,7 @@ export default function WorkoutComplete() {
             prsThisWorkout: stats.prs,
             weekNumber: workout.week_number,
             primeScore,
+            prDetail,
           });
         }, 4500); // After score animation (2.8s) + sticker slam (2s)
       } catch {

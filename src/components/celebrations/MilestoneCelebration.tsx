@@ -1,11 +1,20 @@
 import { useState, useEffect } from "react";
 import MilestoneIcon from "./MilestoneIcon";
 
+export interface PRDetail {
+  exerciseName: string;
+  weight: number;
+  reps: number;
+  unit: string;
+  previousBest: number | null; // null if first time
+}
+
 export interface Milestone {
   id: string;
   title: string;
   subtitle: string;
   accentColor: string; // brand color for the milestone
+  prDetail?: PRDetail; // only present for PR milestones
 }
 
 interface MilestoneCelebrationProps {
@@ -26,7 +35,6 @@ export default function MilestoneCelebration({
       setAnimate(false);
       return;
     }
-    // Slight delay before showing to let the page settle
     const t1 = setTimeout(() => setVisible(true), 300);
     const t2 = setTimeout(() => setAnimate(true), 500);
     return () => { clearTimeout(t1); clearTimeout(t2); };
@@ -34,11 +42,258 @@ export default function MilestoneCelebration({
 
   const handleDismiss = () => {
     setVisible(false);
-    setTimeout(onDismiss, 400); // Wait for exit animation
+    setTimeout(onDismiss, 400);
   };
 
   if (!milestone) return null;
 
+  const isPR = !!milestone.prDetail;
+  const pr = milestone.prDetail;
+  const improvement = pr && pr.previousBest != null ? pr.weight - pr.previousBest : null;
+
+  // PR milestones use dark card, others use light card
+  if (isPR && pr) {
+    return (
+      <div
+        className="fixed inset-0 z-[70] flex items-center justify-center"
+        style={{
+          background: visible ? "rgba(0,0,0,0.7)" : "rgba(0,0,0,0)",
+          backdropFilter: visible ? "blur(12px)" : "none",
+          WebkitBackdropFilter: visible ? "blur(12px)" : "none",
+          transition: "background 0.4s ease, backdrop-filter 0.4s ease",
+          pointerEvents: visible ? "auto" : "none",
+        }}
+        onClick={handleDismiss}
+      >
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            opacity: visible ? 1 : 0,
+            transform: visible ? "scale(1) translateY(0)" : "scale(0.7) translateY(30px)",
+            transition: "all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 0,
+            padding: "40px 28px 32px",
+            maxWidth: 330,
+            width: "88%",
+            borderRadius: 24,
+            background: "#1C1C1E",
+            border: "1px solid rgba(250,248,245,0.08)",
+            boxShadow: "0 0 60px rgba(199,91,57,0.08), 0 25px 60px rgba(0,0,0,0.4)",
+          }}
+        >
+          {/* PR Icon */}
+          <div
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: "50%",
+              background: "rgba(199,91,57,0.12)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 24,
+              opacity: animate ? 1 : 0,
+              transform: animate ? "scale(1)" : "scale(0.5)",
+              transition: "all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s",
+            }}
+          >
+            <svg
+              width="36"
+              height="36"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#C75B39"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 19V5" />
+              <path d="M5 12l7-7 7 7" />
+            </svg>
+          </div>
+
+          {/* Badge */}
+          <div
+            style={{
+              display: "inline-block",
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 10,
+              fontWeight: 500,
+              letterSpacing: 2,
+              textTransform: "uppercase" as const,
+              color: "#C75B39",
+              background: "rgba(199,91,57,0.1)",
+              padding: "4px 14px",
+              borderRadius: 20,
+              border: "1px solid rgba(199,91,57,0.2)",
+              marginBottom: 20,
+              opacity: animate ? 1 : 0,
+              transform: animate ? "translateY(0)" : "translateY(10px)",
+              transition: "all 0.4s ease 0.5s",
+            }}
+          >
+            {milestone.title}
+          </div>
+
+          {/* Exercise name */}
+          <h2
+            className="font-display"
+            style={{
+              fontWeight: 800,
+              fontSize: 20,
+              textAlign: "center",
+              color: "#FAF8F5",
+              lineHeight: 1.2,
+              letterSpacing: "-0.03em",
+              marginBottom: 24,
+              opacity: animate ? 1 : 0,
+              transform: animate ? "translateY(0)" : "translateY(12px)",
+              transition: "all 0.5s ease 0.6s",
+            }}
+          >
+            {pr.exerciseName}
+          </h2>
+
+          {/* Weight */}
+          <div
+            style={{
+              opacity: animate ? 1 : 0,
+              transform: animate ? "translateY(0)" : "translateY(12px)",
+              transition: "all 0.5s ease 0.7s",
+              textAlign: "center",
+            }}
+          >
+            <span
+              style={{
+                fontFamily: "'DM Mono', monospace",
+                fontWeight: 700,
+                fontSize: 56,
+                color: "#FAF8F5",
+                lineHeight: 1,
+                letterSpacing: "-0.03em",
+              }}
+            >
+              {pr.weight}
+            </span>
+            <span
+              style={{
+                fontFamily: "'DM Mono', monospace",
+                fontWeight: 500,
+                fontSize: 20,
+                color: "#9A9590",
+                marginLeft: 4,
+              }}
+            >
+              {pr.unit}
+            </span>
+          </div>
+
+          {/* Reps */}
+          <p
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 14,
+              color: "#9A9590",
+              marginTop: 4,
+              opacity: animate ? 1 : 0,
+              transform: animate ? "translateY(0)" : "translateY(8px)",
+              transition: "all 0.4s ease 0.8s",
+            }}
+          >
+            {pr.reps} reps
+          </p>
+
+          {/* Improvement pill */}
+          {improvement != null && improvement > 0 && (
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                marginTop: 20,
+                padding: "8px 18px",
+                background: "rgba(199,91,57,0.12)",
+                borderRadius: 24,
+                border: "1px solid rgba(199,91,57,0.2)",
+                opacity: animate ? 1 : 0,
+                transform: animate ? "translateY(0)" : "translateY(8px)",
+                transition: "all 0.5s ease 0.9s",
+              }}
+            >
+              <span style={{ color: "#C75B39", fontSize: 14 }}>&uarr;</span>
+              <span
+                style={{
+                  fontFamily: "'DM Mono', monospace",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#C75B39",
+                }}
+              >
+                +{improvement} {pr.unit} vs anterior
+              </span>
+            </div>
+          )}
+
+          {/* Divider */}
+          <div
+            style={{
+              width: animate ? 40 : 0,
+              height: 2,
+              borderRadius: 1,
+              background: "#C9A96E",
+              opacity: 0.5,
+              margin: "24px auto",
+              transition: "width 0.5s cubic-bezier(0.4, 0, 0.15, 1) 1s",
+            }}
+          />
+
+          {/* Branding */}
+          <p
+            className="font-display"
+            style={{
+              fontWeight: 800,
+              fontSize: 11,
+              letterSpacing: "-0.03em",
+              color: "rgba(250,248,245,0.2)",
+              opacity: animate ? 1 : 0,
+              transition: "opacity 0.4s ease 1.1s",
+            }}
+          >
+            LIFTORY
+          </p>
+
+          {/* CTA */}
+          <button
+            onClick={handleDismiss}
+            className="font-display font-bold"
+            style={{
+              marginTop: 20,
+              padding: "14px 48px",
+              borderRadius: 100,
+              border: "none",
+              background: "#FAF8F5",
+              color: "#1C1C1E",
+              fontSize: 12,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase" as const,
+              cursor: "pointer",
+              opacity: animate ? 1 : 0,
+              transform: animate ? "translateY(0)" : "translateY(10px)",
+              transition: "all 0.4s ease 1.2s",
+              WebkitTapHighlightColor: "transparent",
+            }}
+          >
+            SEGUIR
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Default (non-PR) milestone — original light card
   return (
     <div
       className="fixed inset-0 z-[70] flex items-center justify-center"
@@ -69,7 +324,6 @@ export default function MilestoneCelebration({
           boxShadow: "0 25px 60px rgba(0,0,0,0.3)",
         }}
       >
-        {/* Animated milestone icon */}
         <div style={{ marginBottom: 8 }}>
           <MilestoneIcon
             milestoneId={milestone.id}
@@ -80,7 +334,6 @@ export default function MilestoneCelebration({
           />
         </div>
 
-        {/* Title */}
         <h2
           className="font-display font-[800] text-center"
           style={{
@@ -96,7 +349,6 @@ export default function MilestoneCelebration({
           {milestone.title}
         </h2>
 
-        {/* Subtitle */}
         <p
           className="font-body text-center"
           style={{
@@ -112,7 +364,6 @@ export default function MilestoneCelebration({
           {milestone.subtitle}
         </p>
 
-        {/* Accent line */}
         <div
           style={{
             width: animate ? 40 : 0,
@@ -124,7 +375,6 @@ export default function MilestoneCelebration({
           }}
         />
 
-        {/* Dismiss button */}
         <button
           onClick={handleDismiss}
           className="font-display font-bold"
@@ -137,7 +387,7 @@ export default function MilestoneCelebration({
             color: "#fff",
             fontSize: 12,
             letterSpacing: "0.06em",
-            textTransform: "uppercase",
+            textTransform: "uppercase" as const,
             cursor: "pointer",
             opacity: animate ? 1 : 0,
             transform: animate ? "translateY(0)" : "translateY(10px)",

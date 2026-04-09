@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import type { Milestone } from "@/components/celebrations/MilestoneCelebration";
+import type { Milestone, PRDetail } from "@/components/celebrations/MilestoneCelebration";
 
 // Brand colors
 const SAGE = "#7A8B5C";
@@ -14,6 +14,7 @@ interface MilestoneCheckData {
   prsThisWorkout: number; // PRs hit in the workout just completed
   weekNumber: number; // current week in mesocycle (1-6)
   primeScore: number; // score for the workout just completed
+  prDetail?: PRDetail; // details of the best PR in this workout
 }
 
 // Keys stored in localStorage to avoid repeating milestones
@@ -49,14 +50,16 @@ function detectMilestone(data: MilestoneCheckData): Milestone | null {
     };
   }
 
-  // 2. First PR
-  if (data.prsThisWorkout > 0 && !wasSeen("first_pr")) {
-    markSeen("first_pr");
+  // 2. PR celebration — fires EVERY time a PR is hit (not just first time)
+  if (data.prsThisWorkout > 0 && data.prDetail) {
+    // Mark first_pr for legacy tracking but always show PR celebration
+    if (!wasSeen("first_pr")) markSeen("first_pr");
     return {
-      id: "first_pr",
-      title: "Tu primer PR",
-      subtitle: "Acabas de romper tu record personal. Esto es solo el inicio.",
+      id: "pr_celebration",
+      title: "Nuevo PR",
+      subtitle: "",
       accentColor: GOLD,
+      prDetail: data.prDetail,
     };
   }
 
@@ -132,7 +135,6 @@ function detectMilestone(data: MilestoneCheckData): Milestone | null {
     6: { title: "Ciclo completado", subtitle: "6 semanas de transformacion. Nuevo ciclo, nuevo nivel.", color: DARK },
   };
 
-  // Only trigger phase completion when it's the last strength day of the week AND all 5 are done
   if (data.weekStrengthCompleted >= 5 && phaseCompletions[data.weekNumber]) {
     const key = `phase_${data.weekNumber}`;
     if (!wasSeen(key)) {
