@@ -37,7 +37,16 @@ import AdminPayments from "./pages/admin/AdminPayments";
 import Badges from "./pages/Badges";
 import BadgeClaim from "./pages/BadgeClaim";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 2 * 60 * 1000,    // 2 min — data is "fresh" for 2 min, no re-fetch
+      gcTime: 10 * 60 * 1000,      // 10 min — cached data kept for 10 min after unmount
+      refetchOnWindowFocus: false,  // don't re-fetch every time user switches back to tab
+      retry: 1,                     // retry once on failure, then show error
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
