@@ -13,6 +13,36 @@ import ExerciseVideoOverlay from "@/components/workout/ExerciseVideoOverlay";
 import BadgeQualificationToast from "@/components/workout/BadgeQualificationToast";
 import { useBadgeDetection, type BadgeMatch } from "@/hooks/useBadgeDetection";
 import { BLOCK_ORDER, BLOCK_LABEL_COLORS } from "@/constants/blocks";
+import { unlockAudio } from "@/lib/audio";
+
+// ─── Rest timer persistence ───
+// Survives app backgrounding AND full page reloads (iOS memory eviction).
+const REST_TIMER_STORAGE_KEY = "liftory-rest-timer";
+type StoredRestTimer = { workoutId: string; endTime: number; duration: number };
+
+function loadStoredRestTimer(workoutId: string): StoredRestTimer | null {
+  try {
+    const raw = localStorage.getItem(REST_TIMER_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed: StoredRestTimer = JSON.parse(raw);
+    if (parsed.workoutId !== workoutId) return null;
+    if (parsed.endTime <= Date.now()) {
+      localStorage.removeItem(REST_TIMER_STORAGE_KEY);
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function saveStoredRestTimer(t: StoredRestTimer): void {
+  try { localStorage.setItem(REST_TIMER_STORAGE_KEY, JSON.stringify(t)); } catch {}
+}
+
+function clearStoredRestTimer(): void {
+  try { localStorage.removeItem(REST_TIMER_STORAGE_KEY); } catch {}
+}
 
 function getBlockType(label: string): WorkoutBlock["type"] {
   if (['PRIME BLOCK', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION'].includes(label)) return 'mobility';
@@ -82,6 +112,7 @@ export default function Workout() {
   const [videoOverlay, setVideoOverlay] = useState<{ name: string; videoUrl: string | null; coachingCue: string | null } | null>(null);
   const [restTimerVisible, setRestTimerVisible] = useState(false);
   const [restTimerDuration, setRestTimerDuration] = useState(90);
+  const [restTimerEndTime, setRestTimerEndTime] = useState<number | null>(null);
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [finishNotes, setFinishNotes] = useState("");
   const [programTotalWeeks, setProgramTotalWeeks] = useState(6);
@@ -248,6 +279,9 @@ export default function Workout() {
 
   const handleCompleteSet = useCallback(
     async (set: WorkoutSetData, data: { actual_weight: number; actual_reps: number }) => {
+      // Unlock audio on first complete-set tap (iOS user-gesture requirement).
+      // Idempotent — safe to call on every tap.
+      unlockAudio();
       const result = await completeSet(set.id, {
         actual_weight: data.actual_weight,
         actual_reps: data.actual_reps,
@@ -280,9 +314,36 @@ export default function Workout() {
   );
 
   const handleRestStart = useCallback((seconds: number) => {
+    // Unlock audio on this synchronous user-gesture path so countdown beeps work on iOS
+    unlockAudio();
+    setRestTimerEndTime(null); // fresh timer (not a resume)
     setRestTimerDuration(seconds);
     setRestTimerVisible(true);
   }, []);
+
+  const handleRestTimerStart = useCallback((endTime: number) => {
+    if (!id) return;
+    saveStoredRestTimer({ workoutId: id, endTime, duration: restTimerDuration });
+  }, [id, restTimerDuration]);
+
+  const handleRestTimerDismiss = useCallback(() => {
+    setRestTimerVisible(false);
+    setRestTimerEndTime(null);
+    clearStoredRestTimer();
+  }, []);
+
+  // ─── Restore rest timer after page reload (iOS memory eviction) ───
+  useEffect(() => {
+    if (!id) return;
+    const stored = loadStoredRestTimer(id);
+    if (stored) {
+      const remainingMs = stored.endTime - Date.now();
+      const remainingSecs = Math.max(1, Math.ceil(remainingMs / 1000));
+      setRestTimerDuration(remainingSecs);
+      setRestTimerEndTime(stored.endTime);
+      setRestTimerVisible(true);
+    }
+  }, [id]);
 
   const handleCompleteTimerBlock = useCallback(async (block: WorkoutBlock, rounds: number) => {
     for (const group of block.groups) {
@@ -446,7 +507,9 @@ export default function Workout() {
         <RestTimerSheet
           durationSeconds={restTimerDuration}
           visible={restTimerVisible}
-          onDismiss={() => setRestTimerVisible(false)}
+          initialEndTime={restTimerEndTime}
+          onTimerStart={handleRestTimerStart}
+          onDismiss={handleRestTimerDismiss}
         />
         <BadgeQualificationToast match={badgeMatch} onDismiss={() => setBadgeMatch(null)} />
 
@@ -549,6 +612,15 @@ export default function Workout() {
           }
         }}
         saving={saving}
+      />
+
+      {/* Rest timer at overview level (survives page reload) */}
+      <RestTimerSheet
+        durationSeconds={restTimerDuration}
+        visible={restTimerVisible}
+        initialEndTime={restTimerEndTime}
+        onTimerStart={handleRestTimerStart}
+        onDismiss={handleRestTimerDismiss}
       />
 
       {/* Finish modal */}

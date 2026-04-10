@@ -1,79 +1,58 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { playTick, playFinishBeep, unlockAudio } from "@/lib/audio";
 
 interface RestTimerSheetProps {
   durationSeconds: number;
   visible: boolean;
   onDismiss: () => void;
+  /** Optional absolute end timestamp (ms). When provided, overrides durationSeconds
+   *  and resumes an existing timer (e.g. after a page reload). */
+  initialEndTime?: number | null;
+  /** Called when the timer is (re)started so parent can persist endTime. */
+  onTimerStart?: (endTime: number) => void;
 }
 
-const SAFE_VOLUME = 0.15; // hard cap — never exceed
-
-export default function RestTimerSheet({ durationSeconds, visible, onDismiss }: RestTimerSheetProps) {
+export default function RestTimerSheet({
+  durationSeconds,
+  visible,
+  onDismiss,
+  initialEndTime,
+  onTimerStart,
+}: RestTimerSheetProps) {
   const [remaining, setRemaining] = useState(durationSeconds);
   const [total, setTotal] = useState(durationSeconds);
   const [flash, setFlash] = useState(false);
   const [done, setDone] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const endTimeRef = useRef<number>(0); // timestamp (ms) when timer should hit 0
-
-  // Helper: get or create AudioContext
-  const getAudioCtx = useCallback(() => {
-    if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
-    const ctx = audioCtxRef.current;
-    if (ctx.state === "suspended") ctx.resume();
-    return ctx;
-  }, []);
-
-  // Helper: play a single tick beep (countdown style)
-  const playTick = useCallback(() => {
-    try {
-      const ctx = getAudioCtx();
-      const now = ctx.currentTime;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.type = "sine";
-      osc.frequency.value = 880; // A5 — same as EMOM countdown
-      gain.gain.setValueAtTime(SAFE_VOLUME, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-      osc.start(now);
-      osc.stop(now + 0.13);
-    } catch {}
-  }, [getAudioCtx]);
-
-  // Helper: play double beep for timer complete
-  const playFinishBeep = useCallback(() => {
-    try {
-      const ctx = getAudioCtx();
-      const now = ctx.currentTime;
-      for (let i = 0; i < 2; i++) {
-        const t = now + i * 0.15;
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.type = "sine";
-        osc.frequency.value = 1046.5; // C6 — same as EMOM
-        gain.gain.setValueAtTime(SAFE_VOLUME, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
-        osc.start(t);
-        osc.stop(t + 0.13);
-      }
-    } catch {}
-  }, [getAudioCtx]);
+  const endTimeRef = useRef<number>(0); // absolute timestamp (ms) when timer should hit 0
+  const lastBeepSecRef = useRef<number>(-1); // dedupe beeps if tick fires multiple times
 
   // Reset state when timer becomes visible — set absolute end time
   useEffect(() => {
     if (visible) {
-      endTimeRef.current = Date.now() + durationSeconds * 1000;
-      setRemaining(durationSeconds);
-      setTotal(durationSeconds);
+      // Unlock audio as a safety net (parent should have unlocked via tap already)
+      unlockAudio();
+
+      if (initialEndTime && initialEndTime > Date.now()) {
+        // Resume existing timer (page reload / remount)
+        endTimeRef.current = initialEndTime;
+        const msLeft = initialEndTime - Date.now();
+        const secsLeft = Math.max(0, Math.ceil(msLeft / 1000));
+        setRemaining(secsLeft);
+        setTotal(durationSeconds);
+      } else {
+        const end = Date.now() + durationSeconds * 1000;
+        endTimeRef.current = end;
+        setRemaining(durationSeconds);
+        setTotal(durationSeconds);
+        onTimerStart?.(end);
+      }
       setFlash(false);
       setDone(false);
+      lastBeepSecRef.current = -1;
     }
-  }, [visible, durationSeconds]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, durationSeconds, initialEndTime]);
 
   // Main countdown — uses absolute time so it survives app switching
   useEffect(() => {
@@ -106,9 +85,11 @@ export default function RestTimerSheet({ durationSeconds, visible, onDismiss }: 
   // Countdown beeps for last 5 seconds (5, 4, 3, 2, 1)
   useEffect(() => {
     if (!visible || remaining > 5 || remaining <= 0 || done) return;
+    if (lastBeepSecRef.current === remaining) return; // dedupe
+    lastBeepSecRef.current = remaining;
     playTick();
     try { navigator.vibrate?.(3); } catch {}
-  }, [remaining, visible, done, playTick]);
+  }, [remaining, visible, done]);
 
   // When timer hits 0 — finish beep + enter done state
   useEffect(() => {
@@ -130,15 +111,16 @@ export default function RestTimerSheet({ durationSeconds, visible, onDismiss }: 
     // Auto-close after 5 seconds of pulsing
     const t = setTimeout(onDismiss, 5000);
     return () => clearTimeout(t);
-  }, [remaining, visible, done, onDismiss, playFinishBeep]);
+  }, [remaining, visible, done, onDismiss]);
 
   const addTime = useCallback(() => {
     // Extend the absolute end time by 15 seconds
     endTimeRef.current += 15 * 1000;
+    onTimerStart?.(endTimeRef.current);
     setTotal((p) => p + 15);
     setRemaining((p) => p + 15);
     setDone(false);
-  }, []);
+  }, [onTimerStart]);
 
   const formatTime = (s: number) => {
     const m = Math.floor(s / 60);
