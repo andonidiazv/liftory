@@ -654,6 +654,8 @@ function ExerciseCard({
   localUnit: string;
   onToggleUnit: () => void;
 }) {
+  const { isDark } = useDarkMode();
+  const tc = isDark ? noche : dia;
   const ex = group.exercise;
   const sets = group.sets;
   const completedCount = sets.filter((s) => isCompleted(s)).length;
