@@ -141,7 +141,8 @@ export default function Program() {
                               ? t.accent
                               : isRest
                               ? "rgba(122,139,92,0.2)"
-                              : t.border,
+                              : t.card,
+                            border: isCompleted || isRest ? "none" : `1px solid ${t.border}`,
                             boxShadow: isToday ? `0 0 0 2px ${t.accent}, 0 0 0 4px ${t.accentBgStrong}` : "none",
                           }}
                         >

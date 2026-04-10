@@ -2,13 +2,13 @@
 
 export const alta = {
   bg: "#08080A",
-  card: "#141416",
+  card: "#1A1A1E",
   text: "#E8E8E8",
-  muted: "#6B6B6F",
-  subtle: "#4A4A4E",
-  border: "#202024",
+  muted: "#858589",
+  subtle: "#5A5A5E",
+  border: "#2A2A2E",
   accent: "#D4FF00",
-  accentSecondary: "#2A2A2E",
+  accentSecondary: "#333338",
   accentBg: "rgba(212,255,0,0.08)",
   accentBgStrong: "rgba(212,255,0,0.15)",
   btnText: "#08080A",

@@ -8,29 +8,29 @@
     --background: 240 11% 3%;          /* #08080A Forge Black */
     --foreground: 0 0% 91%;            /* #E8E8E8 Steel White */
 
-    --card: 240 8% 8%;                 /* #141416 Iron */
+    --card: 240 6% 11%;                /* #1A1A1E Iron */
     --card-foreground: 0 0% 91%;
 
-    --popover: 240 8% 8%;
+    --popover: 240 6% 11%;
     --popover-foreground: 0 0% 91%;
 
     --primary: 73 100% 50%;            /* #D4FF00 Neon Forge */
     --primary-foreground: 240 11% 3%;  /* #08080A */
 
-    --secondary: 240 7% 11%;           /* #2A2A2E Anvil */
+    --secondary: 240 5% 14%;           /* #222226 */
     --secondary-foreground: 0 0% 91%;
 
-    --muted: 240 7% 11%;
-    --muted-foreground: 240 3% 42%;    /* #6B6B6F Graphite */
+    --muted: 240 5% 14%;
+    --muted-foreground: 240 2% 53%;    /* #858589 */
 
-    --accent: 240 7% 11%;              /* #2A2A2E */
+    --accent: 240 5% 21%;              /* #333338 */
     --accent-foreground: 0 0% 91%;
 
     --destructive: 4 53% 47%;          /* #C0392B */
     --destructive-foreground: 0 0% 91%;
 
-    --border: 240 7% 13%;              /* #202024 Seam */
-    --input: 240 7% 13%;
+    --border: 240 5% 17%;              /* #2A2A2E */
+    --input: 240 5% 17%;
     --ring: 73 100% 50%;               /* #D4FF00 */
 
     --radius: 0.5rem;
@@ -44,9 +44,9 @@
     --sidebar-foreground: 0 0% 91%;
     --sidebar-primary: 73 100% 50%;
     --sidebar-primary-foreground: 240 11% 3%;
-    --sidebar-accent: 240 7% 11%;
+    --sidebar-accent: 240 5% 21%;
     --sidebar-accent-foreground: 0 0% 91%;
-    --sidebar-border: 240 7% 13%;
+    --sidebar-border: 240 5% 17%;
     --sidebar-ring: 73 100% 50%;
   }
 
@@ -88,22 +88,22 @@
   .workout-mode {
     --background: 240 11% 3%;
     --foreground: 0 0% 91%;
-    --card: 240 8% 8%;
+    --card: 240 6% 11%;
     --card-foreground: 0 0% 91%;
-    --popover: 240 8% 8%;
+    --popover: 240 6% 11%;
     --popover-foreground: 0 0% 91%;
     --primary: 73 100% 50%;
     --primary-foreground: 240 11% 3%;
-    --secondary: 240 7% 11%;
+    --secondary: 240 5% 14%;
     --secondary-foreground: 0 0% 91%;
-    --muted: 240 7% 11%;
-    --muted-foreground: 240 3% 42%;
-    --accent: 240 7% 11%;
+    --muted: 240 5% 14%;
+    --muted-foreground: 240 2% 53%;
+    --accent: 240 5% 21%;
     --accent-foreground: 0 0% 91%;
     --destructive: 4 53% 47%;
     --destructive-foreground: 0 0% 91%;
-    --border: 240 7% 13%;
-    --input: 240 7% 13%;
+    --border: 240 5% 17%;
+    --input: 240 5% 17%;
     --ring: 73 100% 50%;
     --success: 90 22% 45%;
     --success-foreground: 0 0% 91%;
