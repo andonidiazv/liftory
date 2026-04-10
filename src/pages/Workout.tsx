@@ -445,7 +445,7 @@ export default function Workout() {
         {/* Finish modal inside block detail */}
         {showFinishModal && (
           <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60" onClick={() => setShowFinishModal(false)}>
-            <div className="w-full max-w-lg rounded-t-2xl bg-card p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="w-full max-w-lg rounded-t-2xl p-6" style={{ background: "#2A2A2E", borderTop: "2px solid hsl(73,100%,50%)" }}" onClick={(e) => e.stopPropagation()}>
               <h3 className="font-display text-lg font-semibold text-foreground">Finalizar sesión</h3>
               <textarea
                 value={finishNotes}
@@ -469,7 +469,7 @@ export default function Workout() {
         {/* Soft gate dialog inside block detail */}
         {detailSoftGate && (
           <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60" onClick={() => setDetailSoftGate(null)}>
-            <div className="w-full max-w-lg rounded-t-2xl bg-card p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="w-full max-w-lg rounded-t-2xl p-6" style={{ background: "#2A2A2E", borderTop: "2px solid hsl(73,100%,50%)" }}" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center gap-2 mb-2">
                 <AlertCircle className="h-5 w-5 text-primary" />
                 <h3 className="font-display text-lg font-semibold text-foreground">Bloque incompleto</h3>
@@ -546,7 +546,7 @@ export default function Workout() {
       {/* Finish modal */}
       {showFinishModal && (
         <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60" onClick={() => setShowFinishModal(false)}>
-          <div className="w-full max-w-lg rounded-t-2xl bg-card p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-lg rounded-t-2xl p-6" style={{ background: "#2A2A2E", borderTop: "2px solid hsl(73,100%,50%)" }}" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-display text-lg font-semibold text-foreground">Finalizar sesión</h3>
             <textarea
               value={finishNotes}

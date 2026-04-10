@@ -348,7 +348,7 @@ export default function WorkoutOverview({
       {/* Soft gate dialog */}
       {softGateBlockId && softGateNextBlock && (
         <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60" onClick={() => { setSoftGateBlockId(null); setSoftGateNextBlock(null); }}>
-          <div className="w-full max-w-lg rounded-t-2xl bg-card p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-lg rounded-t-2xl p-6" style={{ background: "#2A2A2E", borderTop: `2px solid ${t.accent}` }} onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-2 mb-2">
               <AlertCircle className="h-5 w-5 text-primary" />
               <h3 className="font-display text-lg font-semibold text-foreground">Bloque incompleto</h3>
@@ -395,7 +395,7 @@ export default function WorkoutOverview({
       {/* Confirm finish dialog */}
       {showConfirm && (
         <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60" onClick={() => setShowConfirm(false)}>
-          <div className="w-full max-w-lg rounded-t-2xl bg-card p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-lg rounded-t-2xl p-6" style={{ background: "#2A2A2E", borderTop: `2px solid ${t.accent}` }} onClick={(e) => e.stopPropagation()}>
             <h3 className="font-display text-lg font-semibold text-foreground">¿Seguro?</h3>
             <p className="mt-2 font-body text-sm text-muted-foreground">
               Te faltan {pendingSets} sets por completar.
