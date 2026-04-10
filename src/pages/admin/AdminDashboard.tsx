@@ -65,9 +65,9 @@ export default function AdminDashboard() {
     return (
       <div>
         <h1 className="text-hero" style={{ color: "#FAF8F5" }}>Dashboard</h1>
-        <div className="mt-8 grid grid-cols-3 gap-4">
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:grid-cols-3 sm:gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-28 rounded-xl" style={{ background: "#1C1C1E" }} />
+            <Skeleton key={i} className="h-24 rounded-xl sm:h-28" style={{ background: "#1C1C1E" }} />
           ))}
         </div>
       </div>
@@ -79,27 +79,28 @@ export default function AdminDashboard() {
       <h1 className="text-hero" style={{ color: "#FAF8F5" }}>Dashboard</h1>
 
       {/* KPI Cards */}
-      <div className="mt-8 grid grid-cols-3 gap-4">
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:grid-cols-3 sm:gap-4">
         {kpis.map((kpi) => (
           <div
             key={kpi.label}
-            className="relative overflow-hidden rounded-xl p-5"
+            className="relative overflow-hidden rounded-xl p-4 sm:p-5"
             style={{ background: "#1C1C1E", border: "1px solid rgba(250,248,245,0.08)" }}
           >
-            <kpi.icon className="absolute right-4 top-4 h-5 w-5" style={{ color: "rgba(250,248,245,0.15)" }} />
-            <p className="font-mono-num" style={{ fontSize: 32, fontWeight: 500, color: "#FAF8F5", lineHeight: 1 }}>
+            <kpi.icon className="absolute right-3 top-3 h-4 w-4 sm:right-4 sm:top-4 sm:h-5 sm:w-5" style={{ color: "rgba(250,248,245,0.15)" }} />
+            <p className="font-mono-num" style={{ fontSize: 26, fontWeight: 500, color: "#FAF8F5", lineHeight: 1 }}>
               {kpi.value}
             </p>
-            <p className="mt-2 text-label-tech text-muted-foreground">{kpi.label}</p>
+            <p className="mt-2 text-[10px] sm:text-label-tech text-muted-foreground truncate tracking-[0.12em] uppercase">{kpi.label}</p>
           </div>
         ))}
       </div>
 
       {/* Recent Users Table */}
-      <div className="mt-10">
+      <div className="mt-8 sm:mt-10">
         <span className="eyebrow-label">ÚLTIMOS 10 REGISTROS</span>
         <div className="mt-4 overflow-hidden rounded-xl" style={{ background: "#1C1C1E", border: "1px solid rgba(250,248,245,0.08)" }}>
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[520px] text-sm">
             <thead>
               <tr style={{ borderBottom: "1px solid rgba(250,248,245,0.06)" }}>
                 <th className="px-5 py-3 text-left text-label-tech text-muted-foreground font-normal">Nombre</th>
@@ -135,6 +136,7 @@ export default function AdminDashboard() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     </div>
