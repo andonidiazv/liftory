@@ -3,8 +3,8 @@ import type { Milestone, PRDetail } from "@/components/celebrations/MilestoneCel
 
 // Brand colors
 const SAGE = "#7A8B5C";
-const TERRACOTTA = "#D4FF00";
-const GOLD = "#D4FF00";
+const TERRACOTTA = "#E63946";
+const GOLD = "#E63946";
 const DARK = "#E8E8E8";
 
 interface MilestoneCheckData {
