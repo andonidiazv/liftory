@@ -4,85 +4,109 @@
 
 @layer base {
   :root {
-    /* Mallorquina DIA (light) */
-    --background: 33 33% 96%;        /* #FAF6F1 Mallorcan Cream */
-    --foreground: 16 25% 19%;        /* #3D2B24 Chocolate */
+    /* FORGED Alta — Encendido */
+    --background: 240 11% 3%;          /* #08080A Forge Black */
+    --foreground: 0 0% 91%;            /* #E8E8E8 Steel White */
 
-    --card: 0 0% 100%;               /* #FFFFFF White */
-    --card-foreground: 16 25% 19%;   /* #3D2B24 */
+    --card: 240 8% 8%;                 /* #141416 Iron */
+    --card-foreground: 0 0% 91%;
 
-    --popover: 0 0% 100%;            /* #FFFFFF */
-    --popover-foreground: 16 25% 19%;/* #3D2B24 */
+    --popover: 240 8% 8%;
+    --popover-foreground: 0 0% 91%;
 
-    --primary: 11 49% 27%;           /* #652F23 Burgundy Clay */
-    --primary-foreground: 33 33% 96%;/* #FAF6F1 */
+    --primary: 73 100% 50%;            /* #D4FF00 Neon Forge */
+    --primary-foreground: 240 11% 3%;  /* #08080A */
 
-    --secondary: 35 24% 91%;         /* #EDE8E1 Sandstone */
-    --secondary-foreground: 16 25% 19%;/* #3D2B24 */
+    --secondary: 240 7% 11%;           /* #2A2A2E Anvil */
+    --secondary-foreground: 0 0% 91%;
 
-    --muted: 35 24% 91%;             /* #EDE8E1 */
-    --muted-foreground: 15 12% 45%;  /* #816D66 Taupe */
+    --muted: 240 7% 11%;
+    --muted-foreground: 240 3% 42%;    /* #6B6B6F Graphite */
 
-    --accent: 25 27% 58%;            /* #B19176 Camel Sand */
-    --accent-foreground: 16 25% 19%;
+    --accent: 240 7% 11%;              /* #2A2A2E */
+    --accent-foreground: 0 0% 91%;
 
-    --destructive: 4 53% 47%;        /* #C0392B */
-    --destructive-foreground: 33 33% 96%;
+    --destructive: 4 53% 47%;          /* #C0392B */
+    --destructive-foreground: 0 0% 91%;
 
-    --border: 35 24% 91%;            /* #EDE8E1 */
-    --input: 35 24% 91%;
-    --ring: 11 49% 27%;              /* #652F23 */
+    --border: 240 7% 13%;              /* #202024 Seam */
+    --input: 240 7% 13%;
+    --ring: 73 100% 50%;               /* #D4FF00 */
 
     --radius: 0.5rem;
 
-    --success: 90 22% 45%;           /* #7A8B5C */
-    --success-foreground: 16 25% 19%;
+    --success: 90 22% 45%;             /* #7A8B5C */
+    --success-foreground: 0 0% 91%;
     --warning: 38 69% 50%;
-    --gold: 25 27% 58%;              /* #B19176 Camel Sand */
+    --gold: 73 100% 50%;               /* #D4FF00 (use neon as gold equivalent) */
 
-    --sidebar-background: 33 33% 96%;
-    --sidebar-foreground: 16 25% 19%;
-    --sidebar-primary: 11 49% 27%;
-    --sidebar-primary-foreground: 33 33% 96%;
-    --sidebar-accent: 35 24% 91%;
-    --sidebar-accent-foreground: 16 25% 19%;
-    --sidebar-border: 35 24% 91%;
-    --sidebar-ring: 11 49% 27%;
+    --sidebar-background: 240 11% 3%;
+    --sidebar-foreground: 0 0% 91%;
+    --sidebar-primary: 73 100% 50%;
+    --sidebar-primary-foreground: 240 11% 3%;
+    --sidebar-accent: 240 7% 11%;
+    --sidebar-accent-foreground: 0 0% 91%;
+    --sidebar-border: 240 7% 13%;
+    --sidebar-ring: 73 100% 50%;
   }
 
-  /* Dark Mode + Workout Mode — Mallorquina NOCHE */
-  .dark-mode,
-  .workout-mode {
-    --background: 30 19% 3%;         /* #0D0B09 Espresso Black */
-    --foreground: 33 27% 92%;        /* #F0EBE5 Warm Ash */
+  /* Baja mode — Apagado (cooled forge) */
+  .dark-mode {
+    --background: 240 4% 18%;          /* #2C2C30 Warm Gunmetal */
+    --foreground: 0 0% 91%;            /* #E8E8E8 Steel White */
 
-    --card: 30 14% 9%;               /* #1A1714 Dark Walnut */
-    --card-foreground: 33 27% 92%;
+    --card: 240 4% 23%;                /* #38383C Tempered Steel */
+    --card-foreground: 0 0% 91%;
 
-    --popover: 30 14% 9%;
-    --popover-foreground: 33 27% 92%;
+    --popover: 240 4% 23%;
+    --popover-foreground: 0 0% 91%;
 
-    --primary: 25 40% 60%;           /* #C4956E Aged Camel */
-    --primary-foreground: 30 19% 3%;
+    --primary: 76 69% 56%;             /* #B8D940 Dimmed Forge */
+    --primary-foreground: 240 11% 7%;  /* #1A1A1E */
 
-    --secondary: 30 13% 15%;         /* #2A2520 Dark Sand */
-    --secondary-foreground: 33 27% 92%;
+    --secondary: 240 4% 28%;           /* #44444A Cool Iron */
+    --secondary-foreground: 0 0% 91%;
 
-    --muted: 30 13% 15%;
-    --muted-foreground: 30 10% 49%;  /* #8A7E72 Pewter */
+    --muted: 240 4% 28%;
+    --muted-foreground: 240 2% 55%;    /* #8A8A8E Ash */
 
-    --accent: 11 49% 27%;            /* #652F23 Burgundy as tint */
-    --accent-foreground: 33 27% 92%;
+    --accent: 240 4% 28%;
+    --accent-foreground: 0 0% 91%;
 
     --destructive: 4 53% 47%;
-    --destructive-foreground: 33 27% 92%;
+    --destructive-foreground: 0 0% 91%;
 
-    --border: 30 13% 15%;            /* #2A2520 */
-    --input: 30 13% 15%;
-    --ring: 25 40% 60%;              /* #C4956E */
+    --border: 240 4% 28%;              /* #44444A */
+    --input: 240 4% 28%;
+    --ring: 76 69% 56%;
 
     --success: 90 22% 45%;
-    --success-foreground: 33 27% 92%;
+    --success-foreground: 0 0% 91%;
+  }
+
+  /* Workout Mode — Always Alta (full intensity during training) */
+  .workout-mode {
+    --background: 240 11% 3%;
+    --foreground: 0 0% 91%;
+    --card: 240 8% 8%;
+    --card-foreground: 0 0% 91%;
+    --popover: 240 8% 8%;
+    --popover-foreground: 0 0% 91%;
+    --primary: 73 100% 50%;
+    --primary-foreground: 240 11% 3%;
+    --secondary: 240 7% 11%;
+    --secondary-foreground: 0 0% 91%;
+    --muted: 240 7% 11%;
+    --muted-foreground: 240 3% 42%;
+    --accent: 240 7% 11%;
+    --accent-foreground: 0 0% 91%;
+    --destructive: 4 53% 47%;
+    --destructive-foreground: 0 0% 91%;
+    --border: 240 7% 13%;
+    --input: 240 7% 13%;
+    --ring: 73 100% 50%;
+    --success: 90 22% 45%;
+    --success-foreground: 0 0% 91%;
   }
 }
 
@@ -189,13 +213,13 @@
   .card-fbb {
     @apply bg-card rounded-xl p-5;
     border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(61, 43, 36, 0.06);
+    box-shadow: 0 1px 3px rgba(212, 255, 0, 0.06);
   }
 
   .card-hero {
     @apply bg-card rounded-xl p-6;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(61, 43, 36, 0.06);
+    box-shadow: 0 4px 12px rgba(212, 255, 0, 0.06);
   }
 
   /* ═══ PILL / TAG ═══ */
@@ -215,7 +239,7 @@
 
   /* ═══ GLOW EFFECTS ═══ */
   .glow-primary {
-    box-shadow: 0 0 20px hsl(11 49% 27% / 0.3);
+    box-shadow: 0 0 20px hsl(73 100% 50% / 0.3);
   }
 
   .glow-success {
@@ -223,7 +247,7 @@
   }
 
   .glow-gold {
-    box-shadow: 0 0 16px hsl(25 27% 58% / 0.25);
+    box-shadow: 0 0 16px hsl(73 100% 50% / 0.25);
   }
 
   /* ═══ SAFE AREA ═══ */
@@ -233,7 +257,7 @@
 
   /* ═══ WORKOUT MODE GLOWS ═══ */
   .workout-mode .glow-primary {
-    box-shadow: 0 0 24px hsl(11 49% 27% / 0.4);
+    box-shadow: 0 0 24px hsl(73 100% 50% / 0.4);
   }
 
   .workout-mode .glow-success {
@@ -274,30 +298,30 @@
   font-weight: 400;
   letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: #652F23;
+  color: #D4FF00;
 }
 .eyebrow-label::before {
   content: '';
   width: 24px;
   height: 1px;
-  background: #652F23;
+  background: #D4FF00;
   flex-shrink: 0;
 }
 
 /* ═══ ACCENT BORDERS ═══ */
 .card-accent-terracotta {
-  border-left: 3px solid hsl(11, 49%, 27%);
+  border-left: 3px solid hsl(73, 100%, 50%);
 }
 .card-accent-gold {
-  border-left: 3px solid hsl(25, 27%, 58%);
+  border-left: 3px solid hsl(73, 100%, 50%);
 }
 
 /* ═══ SEPARATORS ═══ */
 .separator-dark {
-  border-bottom: 1px solid rgba(61,43,36,0.06);
+  border-bottom: 1px solid rgba(212,255,0,0.06);
 }
 .separator-light {
-  border-bottom: 1px solid rgba(61,43,36,0.06);
+  border-bottom: 1px solid rgba(212,255,0,0.06);
 }
 
 /* ═══ STAGGERED FADE-IN ═══ */
@@ -336,9 +360,9 @@
 
 /* ═══ ANIMATIONS ═══ */
 @keyframes pulse-ring {
-  0% { box-shadow: 0 0 0 0 hsl(11 49% 27% / 0.4); }
-  70% { box-shadow: 0 0 0 8px hsl(11 49% 27% / 0); }
-  100% { box-shadow: 0 0 0 0 hsl(11 49% 27% / 0); }
+  0% { box-shadow: 0 0 0 0 hsl(73 100% 50% / 0.4); }
+  70% { box-shadow: 0 0 0 8px hsl(73 100% 50% / 0); }
+  100% { box-shadow: 0 0 0 0 hsl(73 100% 50% / 0); }
 }
 
 .animate-pulse-ring {
@@ -416,6 +440,6 @@
 
 /* ═══ CTA PULSE GLOW ═══ */
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 24px rgba(101,47,35,0.3); }
-  50% { box-shadow: 0 0 40px rgba(101,47,35,0.5), 0 0 60px rgba(101,47,35,0.2); }
+  0%, 100% { box-shadow: 0 0 24px rgba(212,255,0,0.3); }
+  50% { box-shadow: 0 0 40px rgba(212,255,0,0.5), 0 0 60px rgba(212,255,0,0.2); }
 }

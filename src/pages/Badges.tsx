@@ -16,7 +16,7 @@ import { dia, noche } from "@/lib/colors";
 const ICON_MAP = BADGE_ICON_MAP;
 
 // ── Constants ──
-const TIER_COLORS: Record<string, string> = { longevity: "#7A8B5C", excelente: "#652F23", elite: "#652F23" };
+const TIER_COLORS: Record<string, string> = { longevity: "#7A8B5C", excelente: "#D4FF00", elite: "#D4FF00" };
 const TIER_LABELS: Record<string, string> = { longevity: "LONGEVITY", excelente: "EXCELENTE", elite: "ELITE" };
 const TIER_DESCS: Record<string, string> = {
   longevity: "Top 50% entrenados",
@@ -30,7 +30,7 @@ const CATEGORIES = [
   { key: "olympic", label: "Olympic" },
   { key: "bodyweight", label: "Bodyweight" },
 ];
-const CAT_COLORS: Record<string, string> = { compound: "#652F23", olympic: "#652F23", bodyweight: "#7A8B5C" };
+const CAT_COLORS: Record<string, string> = { compound: "#D4FF00", olympic: "#D4FF00", bodyweight: "#7A8B5C" };
 
 // ── Types ──
 interface BadgeTier {
@@ -208,7 +208,7 @@ export default function Badges() {
           const claimable = nextClaim(badge);
           const anyEarned = badge.user_badges?.some(u => u.status === "approved");
           const isExpanded = expandedId === badge.id;
-          const catColor = CAT_COLORS[badge.category || "compound"] || "#652F23";
+          const catColor = CAT_COLORS[badge.category || "compound"] || "#D4FF00";
           // Get elite tier max weights for bar chart scaling
           const eliteTier = badge.badge_tiers?.find(t => t.tier === "elite");
           const eliteM = eliteTier?.weight_male ?? 0;
@@ -527,7 +527,7 @@ export default function Badges() {
           ref={cardRef}
           badgeName={cardData?.badgeName || ""}
           tierLabel={cardData?.tierLabel || ""}
-          tierColor={cardData?.tierColor || "#652F23"}
+          tierColor={cardData?.tierColor || "#D4FF00"}
           exerciseName={cardData?.exerciseName || ""}
           iconName={cardData?.iconName ?? null}
           athleteName={athleteName}

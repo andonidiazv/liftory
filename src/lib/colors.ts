@@ -1,49 +1,53 @@
-/** Mallorquina Unificada — Centralized color tokens */
+/** FORGED Camino C — Centralized color tokens */
 
-export const dia = {
-  bg: "#FAF6F1",
-  card: "#FFFFFF",
-  text: "#3D2B24",
-  muted: "#816D66",
-  subtle: "#B5ADA8",
-  border: "#EDE8E1",
-  accent: "#652F23",
-  accentSecondary: "#B19176",
-  accentBg: "rgba(101,47,35,0.06)",
-  accentBgStrong: "rgba(101,47,35,0.15)",
-  btnText: "#FAF6F1",
-  shadow: "rgba(61,43,36,0.06)",
-  overlay: "rgba(61,43,36,0.4)",
+export const alta = {
+  bg: "#08080A",
+  card: "#141416",
+  text: "#E8E8E8",
+  muted: "#6B6B6F",
+  subtle: "#4A4A4E",
+  border: "#202024",
+  accent: "#D4FF00",
+  accentSecondary: "#2A2A2E",
+  accentBg: "rgba(212,255,0,0.08)",
+  accentBgStrong: "rgba(212,255,0,0.15)",
+  btnText: "#08080A",
+  shadow: "rgba(212,255,0,0.15)",
+  overlay: "rgba(0,0,0,0.6)",
   success: "#7A8B5C",
   destructive: "#C0392B",
-  wordmark: "#3D2B24",
+  wordmark: "#D4FF00",
 } as const;
 
-export const noche = {
-  bg: "#0D0B09",
-  card: "#1A1714",
-  text: "#F0EBE5",
-  muted: "#8A7E72",
-  subtle: "#4A4744",
-  border: "#2A2520",
-  accent: "#C4956E",
-  accentSecondary: "#652F23",
-  accentBg: "rgba(196,149,110,0.08)",
-  accentBgStrong: "rgba(196,149,110,0.15)",
-  btnText: "#0D0B09",
+export const baja = {
+  bg: "#2C2C30",
+  card: "#38383C",
+  text: "#E8E8E8",
+  muted: "#8A8A8E",
+  subtle: "#5A5A5E",
+  border: "#44444A",
+  accent: "#B8D940",
+  accentSecondary: "#44444A",
+  accentBg: "rgba(184,217,64,0.10)",
+  accentBgStrong: "rgba(184,217,64,0.15)",
+  btnText: "#1A1A1E",
   shadow: "rgba(0,0,0,0.3)",
   overlay: "rgba(0,0,0,0.6)",
   success: "#7A8B5C",
   destructive: "#C0392B",
-  wordmark: "#C4956E",
+  wordmark: "#B8D940",
 } as const;
 
+// Keep backward-compatible aliases
+export const dia = alta;
+export const noche = baja;
+
 /** Returns the active palette based on dark-mode class */
-export function getTheme(): typeof dia {
+export function getTheme(): typeof alta {
   if (typeof document !== "undefined" && document.documentElement.classList.contains("dark-mode")) {
-    return noche;
+    return baja;
   }
-  return dia;
+  return alta;
 }
 
 /** Hook-friendly: check if dark mode is active */

@@ -14,7 +14,6 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
-import { Moon, Sun } from "lucide-react";
 
 interface OnboardingData {
   experience_level: string;
@@ -68,7 +67,7 @@ export default function Profile() {
             slug: b.badge_tiers?.badge_definitions?.slug || "",
             tier: b.badge_tiers?.tier || "",
             tier_label: b.badge_tiers?.tier_label || "",
-            color: b.badge_tiers?.color || "#652F23",
+            color: b.badge_tiers?.color || "#D4FF00",
             earned_at: b.earned_at || "",
             proof_url: b.proof_url || null,
             icon_name: b.badge_tiers?.badge_definitions?.icon_name || null,
@@ -264,14 +263,14 @@ export default function Profile() {
         <div className="mt-3 card-fbb flex items-center justify-between">
           <div>
             <p className="text-sm font-body font-medium text-foreground">Apariencia</p>
-            <p className="text-xs text-muted-foreground">{isDark ? "Modo Noche" : "Modo Dia"}</p>
+            <p className="text-xs text-muted-foreground">{isDark ? "Baja" : "Alta"}</p>
           </div>
           <button
             onClick={toggleDarkMode}
             className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-primary bg-primary/10 press-scale"
           >
-            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            {isDark ? "Cambiar a Dia" : "Cambiar a Noche"}
+            {isDark ? <Zap className="h-4 w-4" /> : <Flame className="h-4 w-4" />}
+            {isDark ? "Cambiar a Alta" : "Cambiar a Baja"}
           </button>
         </div>
 

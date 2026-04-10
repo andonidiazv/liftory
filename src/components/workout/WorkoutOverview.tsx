@@ -26,10 +26,10 @@ const BLOCK_LABEL_COLORS: Record<string, string> = {
   'DYNAMIC FLOW': '#7A8B5C',
   'ATHLETIC INTEGRATION': '#7A8B5C',
   'POWER BLOCK': '#D45555',
-  'HEAVY BLOCK — A': '#652F23',
-  'HEAVY BLOCK — B': '#652F23',
-  'BUILD BLOCK — A': '#652F23',
-  'BUILD BLOCK — B': '#652F23',
+  'HEAVY BLOCK — A': '#D4FF00',
+  'HEAVY BLOCK — B': '#D4FF00',
+  'BUILD BLOCK — A': '#D4FF00',
+  'BUILD BLOCK — B': '#D4FF00',
   'ATHLETIC HINGE': '#D4896B',
   'ENGINE BLOCK': '#D45555',
   'RECOVERY BLOCK': '#7A8B5C',
@@ -39,13 +39,13 @@ const BLOCK_LABEL_COLORS: Record<string, string> = {
 const BLOCK_TYPE_COLORS: Record<string, string> = {
   mobility: "#7A8B5C",
   cooldown: "#7A8B5C",
-  strength: "#652F23",
-  sculpt: "#652F23",
+  strength: "#D4FF00",
+  sculpt: "#D4FF00",
   conditioning: "#D45555",
 };
 
 function getBlockColor(block: WorkoutBlock): string {
-  return BLOCK_LABEL_COLORS[block.name] || BLOCK_TYPE_COLORS[block.type] || "#652F23";
+  return BLOCK_LABEL_COLORS[block.name] || BLOCK_TYPE_COLORS[block.type] || "#D4FF00";
 }
 
 const INSTRUCTION_BLOCK_LABELS = ['ENGINE BLOCK', 'RECOVERY BLOCK', 'PRIME BLOCK', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION'];

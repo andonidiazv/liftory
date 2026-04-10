@@ -44,9 +44,8 @@ const VIP_EMAILS = new Set([
   "victor.vega.0495@gmail.com",
 ]);
 
-/* ───────── palette (Mallorquina Unificada) ───────── */
-const cream = "#3D2B24";
-const charcoal = "#3D2B24";
+/* ───────── palette (FORGED Camino C) ───────── */
+const charcoal = "#202024";
 
 /* ───────── theme system ───────── */
 type Theme = {
@@ -56,18 +55,18 @@ type Theme = {
   accent: string; accentMuted: string;
 };
 
-const mallorquinaTheme: Theme = {
-  bg: "#FAF6F1", text: "#3D2B24", textMuted: "#816D66", textSubtle: "#816D66",
-  cardBg: "#FFFFFF", border: "#EDE8E1", btnBg: "#652F23", btnText: "#FAF6F1",
-  inputBg: "#FFFFFF", inputBorder: "#EDE8E1", inputText: "#3D2B24",
-  accent: "#652F23", accentMuted: "rgba(101,47,35,0.06)",
+const altaTheme: Theme = {
+  bg: "#08080A", text: "#E8E8E8", textMuted: "#6B6B6F", textSubtle: "#4A4A4E",
+  cardBg: "#141416", border: "#202024", btnBg: "#D4FF00", btnText: "#08080A",
+  inputBg: "#141416", inputBorder: "#202024", inputText: "#E8E8E8",
+  accent: "#D4FF00", accentMuted: "rgba(212,255,0,0.10)",
 };
 
-const nocheTheme: Theme = {
-  bg: "#0D0B09", text: "#F0EBE5", textMuted: "#8A7E72", textSubtle: "#4A4744",
-  cardBg: "#1A1714", border: "#2A2520", btnBg: "#C4956E", btnText: "#0D0B09",
-  inputBg: "#1A1714", inputBorder: "#2A2520", inputText: "#F0EBE5",
-  accent: "#C4956E", accentMuted: "rgba(196,149,110,0.08)",
+const bajaTheme: Theme = {
+  bg: "#2C2C30", text: "#E8E8E8", textMuted: "#8A8A8E", textSubtle: "#5A5A5E",
+  cardBg: "#38383C", border: "#44444A", btnBg: "#B8D940", btnText: "#1A1A1E",
+  inputBg: "#38383C", inputBorder: "#44444A", inputText: "#E8E8E8",
+  accent: "#B8D940", accentMuted: "rgba(184,217,64,0.10)",
 };
 
 /* ───────── global animations ───────── */
@@ -148,13 +147,13 @@ export default function Onboarding() {
   const programStarted = useRef(false);
 
   const { isDark } = useDarkMode();
-  const t: Theme = isDark ? nocheTheme : mallorquinaTheme;
+  const t: Theme = isDark ? bajaTheme : altaTheme;
 
   /* Icon box: secondary bg + light icon for contrast */
   const iconBox = (size: number, rounded = "rounded-2xl") =>
     `flex items-center justify-center ${rounded} shrink-0`;
   const iconBoxStyle = (size: number): React.CSSProperties => ({
-    width: size, height: size, background: isDark ? "#2A2520" : "#EDE8E1",
+    width: size, height: size, background: isDark ? "#44444A" : "#2A2A2E",
   });
 
   useEffect(() => {
@@ -344,7 +343,7 @@ export default function Onboarding() {
   if (step === 0) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center px-6" style={{ background: t.bg }}>
-        <h1 className="font-display splash-fade-in" style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-0.04em", color: isDark ? "#C4956E" : "#3D2B24", animationDelay: "0s" }}>LIFTORY</h1>
+        <h1 className="font-display splash-fade-in" style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-0.04em", color: "#D4FF00", animationDelay: "0s" }}>LIFTORY</h1>
         <p className="mt-3 font-body splash-reveal" style={{ fontSize: 14, color: t.textMuted, letterSpacing: "0.04em" }}>The Wellness Community</p>
         <div className="mt-14 w-full max-w-sm splash-fade-in" style={{ animationDelay: "2s" }}>
           <button onClick={next}

@@ -110,10 +110,10 @@ function getScoreLabel(score: number): string {
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 85) return "#652F23"; // gold
-  if (score >= 70) return "#652F23"; // terracotta
+  if (score >= 85) return "#D4FF00"; // neon forge
+  if (score >= 70) return "#D4FF00"; // neon forge
   if (score >= 50) return "#7A8B5C"; // sage
-  return "#816D66"; // muted
+  return "#6B6B6F"; // graphite
 }
 
 function getPhaseForWeek(week: number): string {
@@ -533,7 +533,7 @@ export default function WorkoutComplete() {
           ref={scoreCardRef}
           className="w-full max-w-md"
           style={{
-            background: "linear-gradient(170deg, #FFFFFF 0%, #FAF6F1 50%, #FFFFFF 100%)",
+            background: "linear-gradient(170deg, #08080A 0%, #141416 50%, #08080A 100%)",
             padding: "32px 24px 24px",
             borderRadius: 16,
             overflow: "hidden",
@@ -541,10 +541,10 @@ export default function WorkoutComplete() {
         >
           {/* Top: PRIME SCORE centered + date */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 22, color: "#3D2B24", fontWeight: 800, letterSpacing: "-0.03em" }}>
+            <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 22, color: "#D4FF00", fontWeight: 800, letterSpacing: "-0.03em" }}>
               PRIME SCORE
             </span>
-            <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", marginTop: 4, fontSize: 9, color: "rgba(61,43,36,0.3)", letterSpacing: "0.1em" }}>
+            <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", marginTop: 4, fontSize: 9, color: "rgba(232,232,232,0.3)", letterSpacing: "0.1em" }}>
               {dateStr}
             </span>
           </div>
@@ -564,7 +564,7 @@ export default function WorkoutComplete() {
               />
               {/* Ring SVG */}
               <svg width="150" height="150" style={{ position: "absolute" }}>
-                <circle cx="75" cy="75" r="62" fill="none" stroke="rgba(61,43,36,0.06)" strokeWidth="5" />
+                <circle cx="75" cy="75" r="62" fill="none" stroke="rgba(232,232,232,0.06)" strokeWidth="5" />
                 <circle
                   cx="75" cy="75" r="62"
                   fill="none"
@@ -579,10 +579,10 @@ export default function WorkoutComplete() {
               </svg>
               {/* Score number */}
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", position: "relative", zIndex: 10 }}>
-                <span style={{ fontFamily: "'DM Mono', monospace", fontWeight: 700, fontSize: 48, color: "#3D2B24", letterSpacing: "-0.03em", lineHeight: 1 }}>
+                <span style={{ fontFamily: "'DM Mono', monospace", fontWeight: 700, fontSize: 48, color: "#E8E8E8", letterSpacing: "-0.03em", lineHeight: 1 }}>
                   {animatedScore}
                 </span>
-                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 14, color: "rgba(61,43,36,0.3)", marginLeft: 2 }}>
+                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 14, color: "rgba(232,232,232,0.3)", marginLeft: 2 }}>
                   /100
                 </span>
               </div>
@@ -609,11 +609,11 @@ export default function WorkoutComplete() {
             </div>
 
             {/* Workout name + phase */}
-            <p style={{ fontFamily: "'Syne', sans-serif", marginTop: 8, textAlign: "center", fontSize: 16, color: "rgba(61,43,36,0.85)", fontWeight: 600, letterSpacing: "-0.01em" }}>
+            <p style={{ fontFamily: "'Syne', sans-serif", marginTop: 8, textAlign: "center", fontSize: 16, color: "rgba(232,232,232,0.85)", fontWeight: 600, letterSpacing: "-0.01em" }}>
               {workout?.day_label ?? "Workout"}
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-              <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", borderRadius: 9999, padding: "2px 10px", fontSize: 9, letterSpacing: "0.12em", fontWeight: 700, color: "#652F23", background: "rgba(101,47,35,0.15)", border: "1px solid rgba(101,47,35,0.25)" }}>
+              <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", borderRadius: 9999, padding: "2px 10px", fontSize: 9, letterSpacing: "0.12em", fontWeight: 700, color: "#D4FF00", background: "rgba(212,255,0,0.15)", border: "1px solid rgba(212,255,0,0.25)" }}>
                 SEMANA {weekNumber} · {phaseLabel}
               </span>
             </div>
@@ -629,13 +629,13 @@ export default function WorkoutComplete() {
             ].map((stat) => (
               <div
                 key={stat.label}
-                style={{ background: "rgba(61,43,36,0.04)", border: "1px solid rgba(61,43,36,0.06)", borderRadius: 12, textAlign: "center", padding: "12px 8px" }}
+                style={{ background: "rgba(232,232,232,0.04)", border: "1px solid rgba(232,232,232,0.06)", borderRadius: 12, textAlign: "center", padding: "12px 8px" }}
               >
-                <stat.Icon style={{ width: 16, height: 16, margin: "0 auto", color: "rgba(61,43,36,0.4)" }} />
-                <p style={{ fontFamily: "'DM Mono', monospace", fontWeight: 600, marginTop: 6, fontSize: 18, color: "#3D2B24", letterSpacing: "0.02em", fontVariantNumeric: "tabular-nums" }}>
+                <stat.Icon style={{ width: 16, height: 16, margin: "0 auto", color: "rgba(232,232,232,0.4)" }} />
+                <p style={{ fontFamily: "'DM Mono', monospace", fontWeight: 600, marginTop: 6, fontSize: 18, color: "#E8E8E8", letterSpacing: "0.02em", fontVariantNumeric: "tabular-nums" }}>
                   {stat.value}
                 </p>
-                <p style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", marginTop: 2, fontSize: 8, color: "rgba(61,43,36,0.35)", letterSpacing: "0.15em" }}>
+                <p style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", marginTop: 2, fontSize: 8, color: "rgba(232,232,232,0.35)", letterSpacing: "0.15em" }}>
                   {stat.label}
                 </p>
               </div>
@@ -645,17 +645,17 @@ export default function WorkoutComplete() {
           {/* Badges row */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 20 }}>
             {stats.prs > 0 && (
-              <span style={{ display: "flex", alignItems: "center", gap: 4, borderRadius: 9999, padding: "4px 12px", background: "rgba(101,47,35,0.15)", border: "1px solid rgba(101,47,35,0.3)" }}>
-                <Star style={{ width: 12, height: 12, color: "#652F23" }} />
-                <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", fontSize: 9, color: "#652F23", fontWeight: 600, letterSpacing: "0.1em" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 4, borderRadius: 9999, padding: "4px 12px", background: "rgba(212,255,0,0.15)", border: "1px solid rgba(212,255,0,0.3)" }}>
+                <Star style={{ width: 12, height: 12, color: "#D4FF00" }} />
+                <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", fontSize: 9, color: "#D4FF00", fontWeight: 600, letterSpacing: "0.1em" }}>
                   {stats.prs} PR{stats.prs > 1 ? "s" : ""}
                 </span>
               </span>
             )}
             {primeScore >= 85 && (
-              <span style={{ display: "flex", alignItems: "center", gap: 4, borderRadius: 9999, padding: "4px 12px", background: "rgba(101,47,35,0.15)", border: "1px solid rgba(101,47,35,0.3)" }}>
-                <Trophy style={{ width: 12, height: 12, color: "#652F23" }} />
-                <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", fontSize: 9, color: "#652F23", fontWeight: 600, letterSpacing: "0.1em" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 4, borderRadius: 9999, padding: "4px 12px", background: "rgba(212,255,0,0.15)", border: "1px solid rgba(212,255,0,0.3)" }}>
+                <Trophy style={{ width: 12, height: 12, color: "#D4FF00" }} />
+                <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", fontSize: 9, color: "#D4FF00", fontWeight: 600, letterSpacing: "0.1em" }}>
                   ÉLITE
                 </span>
               </span>
@@ -663,11 +663,11 @@ export default function WorkoutComplete() {
           </div>
 
           {/* Bottom branding */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 20, paddingTop: 16, borderTop: "1px solid rgba(61,43,36,0.06)" }}>
-            <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", fontSize: 8, color: "rgba(61,43,36,0.65)", letterSpacing: "0.2em" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 20, paddingTop: 16, borderTop: "1px solid rgba(232,232,232,0.06)" }}>
+            <span style={{ fontFamily: "'DM Mono', monospace", textTransform: "uppercase", fontSize: 8, color: "rgba(232,232,232,0.65)", letterSpacing: "0.2em" }}>
               POWERED BY
             </span>
-            <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 10, color: "#652F23", fontWeight: 800, letterSpacing: "-0.02em" }}>
+            <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 10, color: "#D4FF00", fontWeight: 800, letterSpacing: "-0.02em" }}>
               LIFTORY
             </span>
           </div>

@@ -3,9 +3,9 @@ import type { Milestone, PRDetail } from "@/components/celebrations/MilestoneCel
 
 // Brand colors
 const SAGE = "#7A8B5C";
-const TERRACOTTA = "#652F23";
-const GOLD = "#652F23";
-const DARK = "#FAF6F1";
+const TERRACOTTA = "#D4FF00";
+const GOLD = "#D4FF00";
+const DARK = "#E8E8E8";
 
 interface MilestoneCheckData {
   totalCompleted: number; // lifetime completed workouts

@@ -29,7 +29,7 @@ export default function TabBar() {
       <div className="flex items-center justify-around h-[60px] px-2">
         {tabs.map((tab) => {
           const isActive = location.pathname === tab.path;
-          const color = isActive ? t.text : t.muted;
+          const color = isActive ? t.accent : t.muted;
 
           return (
             <button
