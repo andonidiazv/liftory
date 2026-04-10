@@ -54,11 +54,18 @@ function isInstructionBlock(block: WorkoutBlock): boolean {
   return INSTRUCTION_BLOCK_LABELS.includes(block.name);
 }
 
+/** Check if a block is EMOM-based (weight logged globally, not per set) */
+function isEmomBlock(block: WorkoutBlock): boolean {
+  return block.groups.some(g => g.sets.some(s => s.set_type === 'emom'));
+}
+
 /** Check if a strength block has sets completed but missing weight data */
 function getBlockWarnings(block: WorkoutBlock): { unloggedSets: number; missingWeights: number } {
   let unloggedSets = 0;
   let missingWeights = 0;
-  const isStrength = !isInstructionBlock(block);
+  // EMOM blocks use global "peso de la barra" only persisted on the primary exercise.
+  // Skip missing-weight checks to avoid false warnings on complex EMOM blocks (POWER BLOCK, etc.)
+  const isStrength = !isInstructionBlock(block) && !isEmomBlock(block);
   for (const g of block.groups) {
     for (const s of g.sets) {
       if (!s.is_completed) unloggedSets++;

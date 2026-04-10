@@ -22,8 +22,16 @@ function getBlockType(label: string): WorkoutBlock["type"] {
   return 'strength';
 }
 
-/** Check if a block needs weight logging (strength/sculpt types) */
+/** Check if a block is EMOM-based (time-driven, weight logged globally/per-round, not per set) */
+function isEmomBlock(block: WorkoutBlock): boolean {
+  return block.groups.some(g => g.sets.some(s => s.set_type === 'emom'));
+}
+
+/** Check if a block needs weight logging (strength/sculpt types).
+ *  EMOM blocks are excluded because weight is logged via a global "peso de la barra"
+ *  control that only persists on the primary exercise's sets (complex mode). */
 function blockNeedsWeights(block: WorkoutBlock): boolean {
+  if (isEmomBlock(block)) return false;
   return block.type === 'strength' || block.type === 'sculpt';
 }
 
