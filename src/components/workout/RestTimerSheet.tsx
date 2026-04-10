@@ -26,31 +26,39 @@ export default function RestTimerSheet({
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const endTimeRef = useRef<number>(0); // absolute timestamp (ms) when timer should hit 0
   const lastBeepSecRef = useRef<number>(-1); // dedupe beeps if tick fires multiple times
+  const wasVisibleRef = useRef(false); // tracks false→true transitions so we only init once per session
 
-  // Reset state when timer becomes visible — set absolute end time
+  // Initialize the timer ONCE per visible session (and on remounts while visible).
+  // We intentionally do NOT re-init when initialEndTime changes mid-session,
+  // because +15s updates the parent's endTime and we don't want that to reset local state.
   useEffect(() => {
-    if (visible) {
-      // Unlock audio as a safety net (parent should have unlocked via tap already)
-      unlockAudio();
-
-      if (initialEndTime && initialEndTime > Date.now()) {
-        // Resume existing timer (page reload / remount)
-        endTimeRef.current = initialEndTime;
-        const msLeft = initialEndTime - Date.now();
-        const secsLeft = Math.max(0, Math.ceil(msLeft / 1000));
-        setRemaining(secsLeft);
-        setTotal(durationSeconds);
-      } else {
-        const end = Date.now() + durationSeconds * 1000;
-        endTimeRef.current = end;
-        setRemaining(durationSeconds);
-        setTotal(durationSeconds);
-        onTimerStart?.(end);
-      }
-      setFlash(false);
-      setDone(false);
-      lastBeepSecRef.current = -1;
+    if (!visible) {
+      wasVisibleRef.current = false;
+      return;
     }
+    if (wasVisibleRef.current) return; // already initialized this session
+    wasVisibleRef.current = true;
+
+    // Unlock audio as a safety net (parent should have unlocked via tap already)
+    unlockAudio();
+
+    if (initialEndTime && initialEndTime > Date.now()) {
+      // Resume existing timer (remount after refetch/loading, page reload, etc.)
+      endTimeRef.current = initialEndTime;
+      const msLeft = initialEndTime - Date.now();
+      const secsLeft = Math.max(0, Math.ceil(msLeft / 1000));
+      setRemaining(secsLeft);
+      setTotal(durationSeconds);
+    } else {
+      const end = Date.now() + durationSeconds * 1000;
+      endTimeRef.current = end;
+      setRemaining(durationSeconds);
+      setTotal(durationSeconds);
+      onTimerStart?.(end);
+    }
+    setFlash(false);
+    setDone(false);
+    lastBeepSecRef.current = -1;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, durationSeconds, initialEndTime]);
 

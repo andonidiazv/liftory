@@ -316,12 +316,20 @@ export default function Workout() {
   const handleRestStart = useCallback((seconds: number) => {
     // Unlock audio on this synchronous user-gesture path so countdown beeps work on iOS
     unlockAudio();
-    setRestTimerEndTime(null); // fresh timer (not a resume)
+    // Parent OWNS the endTime from the very first render so any remount
+    // (e.g. refetch-triggered loading=true after user returns from background)
+    // resumes the same timer instead of starting a fresh one.
+    const endTime = Date.now() + seconds * 1000;
     setRestTimerDuration(seconds);
+    setRestTimerEndTime(endTime);
     setRestTimerVisible(true);
-  }, []);
+    if (id) saveStoredRestTimer({ workoutId: id, endTime, duration: seconds });
+  }, [id]);
 
+  // Called by RestTimerSheet when the timer is (re)started or extended (+15s)
+  // so the parent + localStorage stay in sync with the absolute end time.
   const handleRestTimerStart = useCallback((endTime: number) => {
+    setRestTimerEndTime(endTime);
     if (!id) return;
     saveStoredRestTimer({ workoutId: id, endTime, duration: restTimerDuration });
   }, [id, restTimerDuration]);
