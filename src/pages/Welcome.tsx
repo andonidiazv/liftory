@@ -14,6 +14,8 @@ import {
   Clock,
   Zap,
 } from "lucide-react";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 
 /* ─────────────── CONSTANTS ─────────────── */
 const FOUNDERS_SPOTS = 100;
@@ -130,20 +132,22 @@ function useStagger(count: number, delayMs = 120) {
 function Section({
   children,
   className = "",
-  dark = false,
+  alt = false,
   id,
+  t,
 }: {
   children: React.ReactNode;
   className?: string;
-  dark?: boolean;
+  alt?: boolean;
   id?: string;
+  t: typeof dia;
 }) {
   const fade = useFadeIn();
   return (
     <section
       id={id}
       ref={fade.ref}
-      style={{ ...fade.style, background: dark ? "#0F0F0F" : "#FAF8F5" }}
+      style={{ ...fade.style, background: alt ? t.card : t.bg }}
       className={`w-full px-6 py-16 md:py-24 ${className}`}
     >
       <div className="mx-auto max-w-3xl">{children}</div>
@@ -152,11 +156,11 @@ function Section({
 }
 
 /* ─────────────── EYEBROW ─────────────── */
-function Eyebrow({ children, light = false }: { children: React.ReactNode; light?: boolean }) {
+function Eyebrow({ children, t }: { children: React.ReactNode; t: typeof dia }) {
   return (
     <span
       className="eyebrow-label mb-4 block"
-      style={light ? { color: "#C75B39" } : { color: "#C75B39" }}
+      style={{ color: t.accent }}
     >
       {children}
     </span>
@@ -164,27 +168,27 @@ function Eyebrow({ children, light = false }: { children: React.ReactNode; light
 }
 
 /* ─────────────── PROBLEM CARDS (stagger in) ─────────────── */
-function ProblemCards() {
+function ProblemCards({ t }: { t: typeof dia }) {
   const stagger = useStagger(3, 150);
   return (
     <div ref={stagger.ref} className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
       {[
-        { icon: Clock, label: "Horas perdidas", desc: "Sin estructura ni dirección" },
-        { icon: TrendingUp, label: "Cero progreso", desc: "Rutinas sin periodización" },
+        { icon: Clock, label: "Horas perdidas", desc: "Sin estructura ni direccion" },
+        { icon: TrendingUp, label: "Cero progreso", desc: "Rutinas sin periodizacion" },
         { icon: Target, label: "Sin feedback", desc: "No sabes si vas bien" },
       ].map((item, i) => (
         <div
           key={item.label}
           className="rounded-xl p-5"
           style={{
-            background: "#1A1A1A",
-            border: "1px solid #2A2A2A",
+            background: t.card,
+            border: `1px solid ${t.border}`,
             ...stagger.getItemStyle(i),
           }}
         >
-          <item.icon className="mb-3 h-5 w-5" style={{ color: "#C75B39" }} />
-          <p className="font-display text-[14px] font-semibold text-white">{item.label}</p>
-          <p className="mt-1 font-body text-[13px]" style={{ color: "#888" }}>{item.desc}</p>
+          <item.icon className="mb-3 h-5 w-5" style={{ color: t.accent }} />
+          <p className="font-display text-[14px] font-semibold" style={{ color: t.text }}>{item.label}</p>
+          <p className="mt-1 font-body text-[13px]" style={{ color: t.muted }}>{item.desc}</p>
         </div>
       ))}
     </div>
@@ -192,41 +196,36 @@ function ProblemCards() {
 }
 
 /* ─────────────── SOLUTION BLOCKS (slide in from left, staggered) ─────────────── */
-const solutionData = [
-  {
-    icon: Calendar,
-    title: "Programas de 6 semanas",
-    desc: "Periodización real con mesociclos, deloads y progresión lineal/ondulante. Nada de rutinas aleatorias.",
-    accent: "#C75B39",
-  },
-  {
-    icon: Play,
-    title: "Videos demostrativos de cada ejercicio",
-    desc: "120+ videos filmados con técnica correcta, coaching cues y tempo indicado en los ejercicios que lo requieren.",
-    accent: "#C9A96E",
-  },
-  {
-    icon: TrendingUp,
-    title: "Progresión estructurada",
-    desc: "Cada semana sube el volumen y la intensidad de forma planificada. Sabes exactamente qué toca y por qué.",
-    accent: "#7A8B5C",
-  },
-  {
-    icon: Dumbbell,
-    title: "8 patrones de movimiento",
-    desc: "Push, pull, squat, hinge, core, rotation, carry y locomotion. Entrenamiento balanceado y funcional.",
-    accent: "#C75B39",
-  },
-  {
-    icon: BarChart3,
-    title: "Tracking y métricas reales",
-    desc: "Volumen total, tonelaje, PRs personales y tendencias para que veas tu progreso con datos concretos.",
-    accent: "#C9A96E",
-  },
-];
-
-function SolutionBlocks() {
+function SolutionBlocks({ t }: { t: typeof dia }) {
   const stagger = useStagger(5, 130);
+  const solutionData = [
+    {
+      icon: Calendar,
+      title: "Programas de 6 semanas",
+      desc: "Periodizacion real con mesociclos, deloads y progresion lineal/ondulante. Nada de rutinas aleatorias.",
+    },
+    {
+      icon: Play,
+      title: "Videos demostrativos de cada ejercicio",
+      desc: "120+ videos filmados con tecnica correcta, coaching cues y tempo indicado en los ejercicios que lo requieren.",
+    },
+    {
+      icon: TrendingUp,
+      title: "Progresion estructurada",
+      desc: "Cada semana sube el volumen y la intensidad de forma planificada. Sabes exactamente que toca y por que.",
+    },
+    {
+      icon: Dumbbell,
+      title: "8 patrones de movimiento",
+      desc: "Push, pull, squat, hinge, core, rotation, carry y locomotion. Entrenamiento balanceado y funcional.",
+    },
+    {
+      icon: BarChart3,
+      title: "Tracking y metricas reales",
+      desc: "Volumen total, tonelaje, PRs personales y tendencias para que veas tu progreso con datos concretos.",
+    },
+  ];
+
   return (
     <div ref={stagger.ref} className="mt-10 space-y-6">
       {solutionData.map((block, i) => (
@@ -234,23 +233,23 @@ function SolutionBlocks() {
           key={block.title}
           className="flex gap-5 rounded-xl p-5"
           style={{
-            background: "#FFFFFF",
-            boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
-            borderLeft: `3px solid ${block.accent}`,
+            background: t.card,
+            border: `1px solid ${t.border}`,
+            borderLeft: `3px solid ${t.accent}`,
             ...stagger.getItemStyle(i),
           }}
         >
           <div
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
-            style={{ background: `${block.accent}12` }}
+            style={{ background: t.accentBg }}
           >
-            <block.icon className="h-5 w-5" style={{ color: block.accent }} />
+            <block.icon className="h-5 w-5" style={{ color: t.accent }} />
           </div>
           <div>
-            <p className="font-display text-[15px] font-semibold" style={{ color: "#1C1C1E" }}>
+            <p className="font-display text-[15px] font-semibold" style={{ color: t.text }}>
               {block.title}
             </p>
-            <p className="mt-1 font-body text-[13px] leading-relaxed" style={{ color: "#8A8A8E" }}>
+            <p className="mt-1 font-body text-[13px] leading-relaxed" style={{ color: t.muted }}>
               {block.desc}
             </p>
           </div>
@@ -265,21 +264,21 @@ const stepsData = [
   {
     step: "01",
     title: "Crea tu perfil",
-    desc: "Nivel de experiencia, equipo disponible y objetivos. En 2 minutos, LIFTORY sabe qué necesitas.",
+    desc: "Nivel de experiencia, equipo disponible y objetivos. En 2 minutos, LIFTORY sabe que necesitas.",
   },
   {
     step: "02",
     title: "Recibe tu programa",
-    desc: "Un programa de 6 semanas con progresión semana a semana, videos y coaching cues en cada ejercicio.",
+    desc: "Un programa de 6 semanas con progresion semana a semana, videos y coaching cues en cada ejercicio.",
   },
   {
     step: "03",
     title: "Entrena y progresa",
-    desc: "Registra tus sets en tiempo real, ve tus PRs y sigue la progresión de cargas y volumen semana a semana.",
+    desc: "Registra tus sets en tiempo real, ve tus PRs y sigue la progresion de cargas y volumen semana a semana.",
   },
 ];
 
-function HowItWorksSteps() {
+function HowItWorksSteps({ t }: { t: typeof dia }) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
@@ -305,7 +304,7 @@ function HowItWorksSteps() {
       <div
         className="absolute left-[19px] top-0 w-[2px]"
         style={{
-          background: "linear-gradient(180deg, rgba(184,98,47,0.3), rgba(184,98,47,0.05))",
+          background: `linear-gradient(180deg, ${t.accent}44, ${t.accent}0D)`,
           height: visible ? "100%" : "0%",
           transition: "height 1.2s ease-out 0.3s",
         }}
@@ -324,19 +323,19 @@ function HowItWorksSteps() {
           <div
             className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-mono text-[12px] font-medium"
             style={{
-              background: visible ? "rgba(184,98,47,0.15)" : "rgba(184,98,47,0.05)",
-              color: "#B8622F",
+              background: visible ? t.accentBgStrong : t.accentBg,
+              color: t.accent,
               transition: `background 0.4s ease-out ${300 + i * 250}ms`,
-              boxShadow: visible ? "0 0 12px rgba(184,98,47,0.2)" : "none",
+              boxShadow: visible ? `0 0 12px ${t.shadow}` : "none",
             }}
           >
             {item.step}
           </div>
           <div>
-            <p className="font-display text-[15px] font-semibold" style={{ color: "#1C1C1E" }}>
+            <p className="font-display text-[15px] font-semibold" style={{ color: t.text }}>
               {item.title}
             </p>
-            <p className="mt-1 font-body text-[13px] leading-relaxed" style={{ color: "#8A8A8E" }}>
+            <p className="mt-1 font-body text-[13px] leading-relaxed" style={{ color: t.muted }}>
               {item.desc}
             </p>
           </div>
@@ -347,7 +346,7 @@ function HowItWorksSteps() {
 }
 
 /* ─────────────── PRICING CARD (glow pulse + staggered benefits) ─────────────── */
-function PricingCard({ navigate, claimFounder }: { navigate: (path: string) => void; claimFounder: () => void }) {
+function PricingCard({ navigate, claimFounder, t }: { navigate: (path: string) => void; claimFounder: () => void; t: typeof dia }) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
@@ -370,7 +369,7 @@ function PricingCard({ navigate, claimFounder }: { navigate: (path: string) => v
   const benefits = [
     "Programas periodizados de 6 semanas",
     "120+ ejercicios con video demostrativo",
-    "Progresión estructurada de cargas y volumen",
+    "Progresion estructurada de cargas y volumen",
     "Tracking de volumen, tonelaje y PRs",
     "Coaching cues en cada ejercicio",
     "Acceso a todas las actualizaciones futuras",
@@ -382,8 +381,8 @@ function PricingCard({ navigate, claimFounder }: { navigate: (path: string) => v
       ref={ref}
       className="relative mx-auto mt-8 max-w-sm overflow-hidden rounded-2xl"
       style={{
-        background: "#1A1A1A",
-        border: "1px solid rgba(199,91,57,0.3)",
+        background: t.card,
+        border: `1px solid ${t.accent}44`,
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0) scale(1)" : "translateY(32px) scale(0.96)",
         transition: "opacity 0.6s ease-out, transform 0.6s cubic-bezier(0.34, 1.2, 0.64, 1)",
@@ -393,7 +392,7 @@ function PricingCard({ navigate, claimFounder }: { navigate: (path: string) => v
       <div
         className="h-[2px] w-full"
         style={{
-          background: "linear-gradient(90deg, transparent, #C75B39, transparent)",
+          background: `linear-gradient(90deg, transparent, ${t.accent}, transparent)`,
           animation: visible ? "glow-slide 2s ease-in-out 0.6s 1" : "none",
         }}
       />
@@ -402,7 +401,7 @@ function PricingCard({ navigate, claimFounder }: { navigate: (path: string) => v
         {/* Badge */}
         <span
           className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-mono text-[9px] uppercase tracking-[0.2em]"
-          style={{ background: "rgba(199,91,57,0.12)", color: "#C75B39" }}
+          style={{ background: t.accentBg, color: t.accent }}
         >
           <Zap className="h-3 w-3" style={{
             animation: visible ? "flicker 1s ease-in-out 0.8s 1" : "none",
@@ -410,7 +409,7 @@ function PricingCard({ navigate, claimFounder }: { navigate: (path: string) => v
           Solo {FOUNDERS_SPOTS} lugares
         </span>
 
-        {/* Price — scale pop */}
+        {/* Price -- scale pop */}
         <div
           className="mt-6"
           style={{
@@ -419,26 +418,26 @@ function PricingCard({ navigate, claimFounder }: { navigate: (path: string) => v
             transition: "opacity 0.4s ease-out 0.4s, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s",
           }}
         >
-          <span className="font-body text-[16px] line-through" style={{ color: "#666" }}>
+          <span className="font-body text-[16px] line-through" style={{ color: t.muted }}>
             ${REGULAR_PRICE} MXN
           </span>
           <div className="mt-1 flex items-baseline justify-center gap-1">
             <span
               className="font-display text-[48px] font-bold"
-              style={{ color: "#FFFFFF", letterSpacing: "-0.03em" }}
+              style={{ color: t.text, letterSpacing: "-0.03em" }}
             >
               ${FOUNDERS_PRICE}
             </span>
-            <span className="font-body text-[14px]" style={{ color: "#888" }}>
+            <span className="font-body text-[14px]" style={{ color: t.muted }}>
               MXN/mes
             </span>
           </div>
-          <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.15em]" style={{ color: "#C75B39" }}>
-            50% de descuento — para siempre
+          <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.15em]" style={{ color: t.accent }}>
+            50% de descuento -- para siempre
           </p>
         </div>
 
-        {/* Benefits — staggered check marks */}
+        {/* Benefits -- staggered check marks */}
         <div className="mt-8 space-y-3 text-left">
           {benefits.map((benefit, i) => (
             <div
@@ -450,28 +449,29 @@ function PricingCard({ navigate, claimFounder }: { navigate: (path: string) => v
                 transition: `opacity 0.3s ease-out ${600 + i * 80}ms, transform 0.3s ease-out ${600 + i * 80}ms`,
               }}
             >
-              <Check className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "#7A8B5C" }} />
-              <span className="font-body text-[13px]" style={{ color: "#DEDAD4" }}>{benefit}</span>
+              <Check className="mt-0.5 h-4 w-4 shrink-0" style={{ color: t.accent }} />
+              <span className="font-body text-[13px]" style={{ color: t.text }}>{benefit}</span>
             </div>
           ))}
         </div>
 
-        {/* CTA — pulses after everything loads */}
+        {/* CTA -- pulses after everything loads */}
         <button
           onClick={claimFounder}
-          className="press-scale mt-8 w-full font-display text-[15px] font-semibold text-white"
+          className="press-scale mt-8 w-full font-display text-[15px] font-semibold"
           style={{
-            background: "#C75B39",
+            background: t.accent,
+            color: t.btnText,
             borderRadius: 12,
             height: 52,
-            boxShadow: "0 0 24px rgba(199,91,57,0.3)",
+            boxShadow: `0 0 24px ${t.shadow}`,
             animation: visible ? "pulse-glow 2s ease-in-out 1.8s 2" : "none",
           }}
         >
           Reclamar mi lugar de Founder
         </button>
 
-        <p className="mt-3 font-body text-[11px]" style={{ color: "#666" }}>
+        <p className="mt-3 font-body text-[11px]" style={{ color: t.muted }}>
           Cancela cuando quieras. Sin contratos. Sin sorpresas.
         </p>
       </div>
@@ -480,7 +480,7 @@ function PricingCard({ navigate, claimFounder }: { navigate: (path: string) => v
 }
 
 /* ─────────────── FINAL CTA (text reveal) ─────────────── */
-function FinalCTA({ navigate, claimFounder }: { navigate: (path: string) => void; claimFounder: () => void }) {
+function FinalCTA({ navigate, claimFounder, t }: { navigate: (path: string) => void; claimFounder: () => void; t: typeof dia }) {
   const fade = useFadeIn();
 
   return (
@@ -488,14 +488,14 @@ function FinalCTA({ navigate, claimFounder }: { navigate: (path: string) => void
       ref={fade.ref}
       className="relative w-full px-6 py-20"
       style={{
-        background: "linear-gradient(180deg, #0F0F0F 0%, #1A1008 100%)",
+        background: `linear-gradient(180deg, ${t.bg} 0%, ${t.card} 100%)`,
       }}
     >
       <div className="mx-auto max-w-3xl text-center">
         <h3
           className="font-display text-[24px] font-bold md:text-[32px]"
           style={{
-            color: "#FAF8F5",
+            color: t.text,
             letterSpacing: "-0.02em",
             lineHeight: 1.2,
             opacity: fade.visible ? 1 : 0,
@@ -507,7 +507,7 @@ function FinalCTA({ navigate, claimFounder }: { navigate: (path: string) => void
           <br />
           <span
             style={{
-              color: "#C75B39",
+              color: t.accent,
               display: "inline-block",
               opacity: fade.visible ? 1 : 0,
               transform: fade.visible ? "translateY(0) scale(1)" : "translateY(8px) scale(0.95)",
@@ -520,7 +520,7 @@ function FinalCTA({ navigate, claimFounder }: { navigate: (path: string) => void
         <p
           className="mx-auto mt-4 max-w-md font-body text-[15px]"
           style={{
-            color: "#A89F95",
+            color: t.muted,
             opacity: fade.visible ? 1 : 0,
             transition: "opacity 0.5s ease-out 0.5s",
           }}
@@ -531,12 +531,13 @@ function FinalCTA({ navigate, claimFounder }: { navigate: (path: string) => void
 
         <button
           onClick={claimFounder}
-          className="press-scale mt-8 inline-flex items-center gap-2 font-display text-[15px] font-semibold text-white"
+          className="press-scale mt-8 inline-flex items-center gap-2 font-display text-[15px] font-semibold"
           style={{
-            background: "#C75B39",
+            background: t.accent,
+            color: t.btnText,
             borderRadius: 12,
             padding: "14px 40px",
-            boxShadow: "0 0 24px rgba(199,91,57,0.3)",
+            boxShadow: `0 0 24px ${t.shadow}`,
             opacity: fade.visible ? 1 : 0,
             transform: fade.visible ? "translateY(0)" : "translateY(12px)",
             transition: "opacity 0.5s ease-out 0.65s, transform 0.5s ease-out 0.65s",
@@ -556,9 +557,9 @@ function FinalCTA({ navigate, claimFounder }: { navigate: (path: string) => void
           <button
             onClick={() => navigate("/onboarding")}
             className="font-body text-[13px] transition-colors hover:underline"
-            style={{ color: "#A89F95" }}
+            style={{ color: t.muted }}
           >
-            ¿Ya tienes cuenta? Inicia sesión
+            Ya tienes cuenta? Inicia sesion
           </button>
         </div>
       </div>
@@ -566,12 +567,12 @@ function FinalCTA({ navigate, claimFounder }: { navigate: (path: string) => void
       {/* Footer */}
       <div
         className="mt-16 border-t pt-6 text-center"
-        style={{ borderColor: "rgba(255,255,255,0.06)" }}
+        style={{ borderColor: t.border }}
       >
-        <p className="font-display text-[14px] font-bold" style={{ color: "#FFFFFF", letterSpacing: "-0.02em" }}>
+        <p className="font-display text-[14px] font-[800]" style={{ color: t.accent, letterSpacing: "-0.03em" }}>
           LIFTORY
         </p>
-        <p className="mt-1 font-body text-[11px]" style={{ color: "#666" }}>
+        <p className="mt-1 font-body text-[11px]" style={{ color: t.muted }}>
           Move Better. Lift Stronger. Live Longer.
         </p>
       </div>
@@ -585,6 +586,8 @@ function FinalCTA({ navigate, claimFounder }: { navigate: (path: string) => void
 export default function Welcome() {
   const navigate = useNavigate();
   const [heroReady, setHeroReady] = useState(false);
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
 
   useEffect(() => {
     requestAnimationFrame(() => setHeroReady(true));
@@ -605,22 +608,22 @@ export default function Welcome() {
   const patternsCounter = useCountUp(8, 1100);
 
   return (
-    <div className="grain-overlay min-h-screen w-full overflow-x-hidden" style={{ background: "#0F0F0F" }}>
+    <div className="grain-overlay min-h-screen w-full overflow-x-hidden" style={{ background: t.bg }}>
       {/* ════════════════════════════════════════ */}
-      {/* SECTION 1 — HERO                        */}
+      {/* SECTION 1 -- HERO                        */}
       {/* ════════════════════════════════════════ */}
-      <section className="relative flex min-h-screen flex-col items-center justify-center px-6" style={{ background: "#0F0F0F" }}>
+      <section className="relative flex min-h-screen flex-col items-center justify-center px-6" style={{ background: t.bg }}>
         {/* Gradient accent */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse 60% 40% at 50% 0%, rgba(199,91,57,0.12) 0%, transparent 70%)",
+              `radial-gradient(ellipse 60% 40% at 50% 0%, ${t.accent}1A 0%, transparent 70%)`,
           }}
         />
 
         <div className="relative z-10 flex flex-col items-center text-center">
-          {/* Badge — slides in from left with bounce */}
+          {/* Badge -- slides in from left with bounce */}
           <div
             className="overflow-hidden"
             style={{
@@ -632,10 +635,10 @@ export default function Welcome() {
             <span
               className="inline-flex items-center gap-2 rounded-full px-5 py-2 font-mono text-[10px] uppercase tracking-[0.2em]"
               style={{
-                background: "rgba(199,91,57,0.12)",
-                color: "#C75B39",
-                border: "1px solid rgba(199,91,57,0.25)",
-                boxShadow: heroReady ? "0 0 20px rgba(199,91,57,0.15)" : "none",
+                background: t.accentBg,
+                color: t.accent,
+                border: `1px solid ${t.accent}40`,
+                boxShadow: heroReady ? `0 0 20px ${t.shadow}` : "none",
                 transform: heroReady ? "translateX(0) scale(1)" : "translateX(-120%) scale(0.8)",
                 transition: "transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.5s ease-out",
                 transitionDelay: "300ms",
@@ -644,7 +647,7 @@ export default function Welcome() {
               <Flame className="h-3.5 w-3.5" style={{
                 animation: heroReady ? "flicker 1.5s ease-in-out 1s 1" : "none",
               }} />
-              Founder's Access — Lugares Limitados
+              Founder's Access -- Lugares Limitados
             </span>
           </div>
 
@@ -655,7 +658,7 @@ export default function Welcome() {
               fontSize: 48,
               fontWeight: 800,
               letterSpacing: "-0.03em",
-              color: "#FFFFFF",
+              color: t.accent,
               lineHeight: 1,
               opacity: heroReady ? 1 : 0,
               transform: heroReady ? "translateY(0)" : "translateY(12px)",
@@ -672,7 +675,7 @@ export default function Welcome() {
               fontSize: 26,
               fontWeight: 700,
               letterSpacing: "-0.02em",
-              color: "#FAF8F5",
+              color: t.text,
               lineHeight: 1.25,
               maxWidth: 480,
               opacity: heroReady ? 1 : 0,
@@ -682,7 +685,7 @@ export default function Welcome() {
           >
             Entrena con estructura.
             <br />
-            Progresa con intención.
+            Progresa con intencion.
           </h2>
 
           {/* Sub-headline */}
@@ -691,7 +694,7 @@ export default function Welcome() {
             style={{
               fontSize: 15,
               fontWeight: 400,
-              color: "#A89F95",
+              color: t.muted,
               lineHeight: 1.6,
               maxWidth: 420,
               opacity: heroReady ? 1 : 0,
@@ -714,14 +717,14 @@ export default function Welcome() {
           >
             <button
               onClick={scrollToPrice}
-              className="press-scale flex items-center gap-2 font-display text-[15px] font-semibold text-white"
-              style={{ background: "#C75B39", borderRadius: 12, padding: "14px 40px" }}
+              className="press-scale flex items-center gap-2 font-display text-[15px] font-semibold"
+              style={{ background: t.accent, color: t.btnText, borderRadius: 12, padding: "14px 40px" }}
             >
               Quiero mi lugar
               <ArrowRight className="h-4 w-4" />
             </button>
-            <span className="font-mono text-[10px] uppercase tracking-[0.15em]" style={{ color: "#666" }}>
-              $199 MXN/mes — solo primeros {FOUNDERS_SPOTS}
+            <span className="font-mono text-[10px] uppercase tracking-[0.15em]" style={{ color: t.muted }}>
+              $199 MXN/mes -- solo primeros {FOUNDERS_SPOTS}
             </span>
           </div>
         </div>
@@ -731,53 +734,53 @@ export default function Welcome() {
           className="absolute bottom-8 animate-gentle-pulse transition-all duration-700"
           style={{ opacity: heroReady ? 0.4 : 0 }}
         >
-          <ChevronDown className="h-5 w-5" style={{ color: "#A89F95" }} />
+          <ChevronDown className="h-5 w-5" style={{ color: t.muted }} />
         </div>
       </section>
 
       {/* ════════════════════════════════════════ */}
-      {/* SECTION 2 — THE PROBLEM                 */}
+      {/* SECTION 2 -- THE PROBLEM                 */}
       {/* ════════════════════════════════════════ */}
-      <Section dark>
-        <Eyebrow light>El problema</Eyebrow>
+      <Section alt t={t}>
+        <Eyebrow t={t}>El problema</Eyebrow>
         <h3
           className="font-display text-[22px] font-bold leading-tight md:text-[28px]"
-          style={{ color: "#FAF8F5", letterSpacing: "-0.02em" }}
+          style={{ color: t.text, letterSpacing: "-0.02em" }}
         >
           El 80% de la gente entrena sin un plan real.
         </h3>
-        <p className="mt-4 font-body text-[15px] leading-relaxed" style={{ color: "#A89F95" }}>
+        <p className="mt-4 font-body text-[15px] leading-relaxed" style={{ color: t.muted }}>
           Copian rutinas de Instagram, cambian de programa cada dos semanas y nunca
-          saben si están progresando. El resultado: meses en el gym sin resultados visibles,
-          lesiones por mala técnica y cero motivación.
+          saben si estan progresando. El resultado: meses en el gym sin resultados visibles,
+          lesiones por mala tecnica y cero motivacion.
         </p>
 
-        <ProblemCards />
+        <ProblemCards t={t} />
       </Section>
 
       {/* ════════════════════════════════════════ */}
-      {/* SECTION 3 — THE SOLUTION (5 BLOCKS)     */}
+      {/* SECTION 3 -- THE SOLUTION (5 BLOCKS)     */}
       {/* ════════════════════════════════════════ */}
-      <Section>
-        <Eyebrow>La solución</Eyebrow>
+      <Section t={t}>
+        <Eyebrow t={t}>La solucion</Eyebrow>
         <h3
           className="font-display text-[22px] font-bold leading-tight md:text-[28px]"
-          style={{ color: "#1C1C1E", letterSpacing: "-0.02em" }}
+          style={{ color: t.text, letterSpacing: "-0.02em" }}
         >
-          Tu entrenamiento, con ciencia detrás.
+          Tu entrenamiento, con ciencia detras.
         </h3>
-        <p className="mt-3 font-body text-[15px] leading-relaxed" style={{ color: "#8A8A8E" }}>
-          LIFTORY combina programación periodizada, biomecánica y tecnología para que
-          cada sesión tenga propósito.
+        <p className="mt-3 font-body text-[15px] leading-relaxed" style={{ color: t.muted }}>
+          LIFTORY combina programacion periodizada, biomecanica y tecnologia para que
+          cada sesion tenga proposito.
         </p>
 
-        <SolutionBlocks />
+        <SolutionBlocks t={t} />
       </Section>
 
       {/* ════════════════════════════════════════ */}
-      {/* SECTION 4 — STATS / SOCIAL PROOF        */}
+      {/* SECTION 4 -- STATS / SOCIAL PROOF        */}
       {/* ════════════════════════════════════════ */}
-      <Section dark>
+      <Section alt t={t}>
         <div className="grid grid-cols-3 gap-4 text-center">
           {[
             { counter: exercisesCounter, suffix: "+", label: "Ejercicios", sub: "con video" },
@@ -790,7 +793,7 @@ export default function Welcome() {
                   className="font-mono font-medium leading-none transition-all"
                   style={{
                     fontSize: 48,
-                    color: "#C75B39",
+                    color: t.accent,
                     letterSpacing: "0.04em",
                     filter: stat.counter.rolling ? "blur(1px)" : "blur(0px)",
                     transform: stat.counter.rolling ? "translateY(-2px)" : "translateY(0)",
@@ -801,60 +804,60 @@ export default function Welcome() {
                   <span style={{ fontSize: 32 }}>{stat.suffix}</span>
                 </p>
               </div>
-              <p className="mt-3 font-display text-[13px] font-semibold text-white tracking-wide">{stat.label}</p>
-              <p className="font-body text-[11px]" style={{ color: "#888" }}>{stat.sub}</p>
+              <p className="mt-3 font-display text-[13px] font-semibold tracking-wide" style={{ color: t.text }}>{stat.label}</p>
+              <p className="font-body text-[11px]" style={{ color: t.muted }}>{stat.sub}</p>
             </div>
           ))}
         </div>
       </Section>
 
       {/* ════════════════════════════════════════ */}
-      {/* SECTION 5 — HOW IT WORKS (3 STEPS)      */}
+      {/* SECTION 5 -- HOW IT WORKS (3 STEPS)      */}
       {/* ════════════════════════════════════════ */}
-      <Section>
-        <Eyebrow>Cómo funciona</Eyebrow>
+      <Section t={t}>
+        <Eyebrow t={t}>Como funciona</Eyebrow>
         <h3
           className="font-display text-[22px] font-bold leading-tight md:text-[28px]"
-          style={{ color: "#1C1C1E", letterSpacing: "-0.02em" }}
+          style={{ color: t.text, letterSpacing: "-0.02em" }}
         >
           De cero a entrenar en 3 pasos.
         </h3>
 
-        <HowItWorksSteps />
+        <HowItWorksSteps t={t} />
       </Section>
 
       {/* ════════════════════════════════════════ */}
-      {/* SECTION 6 — PRICING (FOUNDER'S ACCESS)  */}
+      {/* SECTION 6 -- PRICING (FOUNDER'S ACCESS)  */}
       {/* ════════════════════════════════════════ */}
-      <Section dark id="pricing">
+      <Section alt id="pricing" t={t}>
         <div className="text-center">
-          <Eyebrow light>Precio de lanzamiento</Eyebrow>
+          <Eyebrow t={t}>Precio de lanzamiento</Eyebrow>
           <h3
             className="font-display text-[22px] font-bold leading-tight md:text-[28px]"
-            style={{ color: "#FAF8F5", letterSpacing: "-0.02em" }}
+            style={{ color: t.text, letterSpacing: "-0.02em" }}
           >
             Founder's Access
           </h3>
-          <p className="mt-3 font-body text-[15px] leading-relaxed" style={{ color: "#A89F95" }}>
-            Sé de los primeros {FOUNDERS_SPOTS}. Precio exclusivo de por vida.
+          <p className="mt-3 font-body text-[15px] leading-relaxed" style={{ color: t.muted }}>
+            Se de los primeros {FOUNDERS_SPOTS}. Precio exclusivo de por vida.
           </p>
         </div>
 
-        <PricingCard navigate={navigate} claimFounder={claimFounder} />
+        <PricingCard navigate={navigate} claimFounder={claimFounder} t={t} />
 
         {/* Social proof */}
         <p
           className="mt-6 text-center font-serif text-[18px] italic"
-          style={{ color: "#C9A96E", lineHeight: 1.4 }}
+          style={{ color: t.accent, lineHeight: 1.4 }}
         >
           "Crafted by movement scientists."
         </p>
       </Section>
 
       {/* ════════════════════════════════════════ */}
-      {/* SECTION 7 — FINAL CTA                   */}
+      {/* SECTION 7 -- FINAL CTA                   */}
       {/* ════════════════════════════════════════ */}
-      <FinalCTA navigate={navigate} claimFounder={claimFounder} />
+      <FinalCTA navigate={navigate} claimFounder={claimFounder} t={t} />
     </div>
   );
 }

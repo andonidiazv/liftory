@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 
 export default function Index() {
   const navigate = useNavigate();
   const [showContent, setShowContent] = useState(false);
   const [showCta, setShowCta] = useState(false);
   const [checking, setChecking] = useState(true);
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -56,13 +60,13 @@ export default function Index() {
   }, [navigate]);
 
   if (checking) {
-    return <div className="min-h-screen" style={{ background: "#FAF8F5" }} />;
+    return <div className="min-h-screen" style={{ background: t.bg }} />;
   }
 
   return (
     <div
       className="grain-overlay flex min-h-screen flex-col items-center justify-center px-6"
-      style={{ background: "#FAF8F5" }}
+      style={{ background: t.bg }}
     >
       <div className="relative z-10 flex flex-col items-center">
         <div
@@ -74,13 +78,13 @@ export default function Index() {
         >
           <h1
             className="font-display"
-            style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-0.02em", color: "#1C1C1E", lineHeight: 1 }}
+            style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-0.03em", color: t.accent, lineHeight: 1 }}
           >
             LIFTORY
           </h1>
           <p
             className="mt-3 text-center font-body"
-            style={{ fontSize: 14, fontWeight: 400, color: "#8A8580", lineHeight: 1.5 }}
+            style={{ fontSize: 14, fontWeight: 400, color: t.muted, lineHeight: 1.5 }}
           >
             Move Better. Lift Stronger. Live Longer.
           </p>
@@ -97,8 +101,8 @@ export default function Index() {
             onClick={() => navigate("/onboarding")}
             className="press-scale font-body"
             style={{
-              background: "#1C1C1E",
-              color: "#FAF8F5",
+              background: t.accent,
+              color: t.btnText,
               borderRadius: 50,
               padding: "14px 48px",
               fontWeight: 600,
@@ -111,11 +115,11 @@ export default function Index() {
           <button
             onClick={() => navigate("/login")}
             className="mt-4 font-body transition-colors"
-            style={{ fontSize: 14, fontWeight: 400, color: "#8A8580", background: "none", border: "none", cursor: "pointer" }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#1C1C1E")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#8A8580")}
+            style={{ fontSize: 14, fontWeight: 400, color: t.muted, background: "none", border: "none", cursor: "pointer" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = t.text)}
+            onMouseLeave={(e) => (e.currentTarget.style.color = t.muted)}
           >
-            ¿Ya tienes cuenta? Inicia sesión
+            Ya tienes cuenta? Inicia sesion
           </button>
         </div>
       </div>

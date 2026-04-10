@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import TabBar from "@/components/TabBar";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 
 // ── Types ──
 interface TierData {
@@ -47,6 +49,8 @@ export default function BadgeClaim() {
   const { user, profile } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const libraryInputRef = useRef<HTMLInputElement>(null);
+  const { isDark } = useDarkMode();
+  const t = isDark ? noche : dia;
 
   const [badge, setBadge] = useState<BadgeData | null>(null);
   const [userStatuses, setUserStatuses] = useState<UserBadgeStatus[]>([]);
@@ -111,9 +115,9 @@ export default function BadgeClaim() {
   // ── Derived data ──
   const selectedTier = urlTier || "longevity";
   const selectedTierData = badge?.badge_tiers.find(
-    (t) => t.tier === selectedTier
+    (td) => td.tier === selectedTier
   );
-  const selectedColor = selectedTierData?.color || "#C75B39";
+  const selectedColor = selectedTierData?.color || t.accent;
   const selectedStatus = selectedTierData
     ? (userStatuses.find((u) => u.badge_tier_id === selectedTierData.id)
         ?.status as "pending" | "approved" | "rejected" | undefined) ?? "locked"
@@ -223,7 +227,7 @@ export default function BadgeClaim() {
       let error: any = null;
 
       if (existing && existing.status === "rejected") {
-        // Resubmission — update the rejected claim back to pending
+        // Resubmission -- update the rejected claim back to pending
         const result = await (supabase as any)
           .from("user_badges")
           .update({
@@ -238,7 +242,7 @@ export default function BadgeClaim() {
           .eq("id", existing.id);
         error = result.error;
       } else if (existing) {
-        // Already pending or approved — don't allow duplicate
+        // Already pending or approved -- don't allow duplicate
         toast({
           title: "Ya enviaste este tier",
           description: "Revisa tu perfil para ver el estado.",
@@ -247,7 +251,7 @@ export default function BadgeClaim() {
         setUploadProgress(0);
         return;
       } else {
-        // First submission — insert new claim
+        // First submission -- insert new claim
         const result = await (supabase as any).from("user_badges").insert({
           user_id: user.id,
           badge_tier_id: selectedTierData.id,
@@ -270,7 +274,7 @@ export default function BadgeClaim() {
         return;
       }
 
-      // Notify admin (non-blocking — don't await)
+      // Notify admin (non-blocking -- don't await)
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       if (supabaseUrl) {
         fetch(`${supabaseUrl}/functions/v1/notify-badge-submission`, {
@@ -302,7 +306,7 @@ export default function BadgeClaim() {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
-        style={{ background: "#0D0C0A" }}
+        style={{ background: t.bg }}
       >
         <Loader2
           className="w-8 h-8 animate-spin"
@@ -319,7 +323,7 @@ export default function BadgeClaim() {
     return (
       <div
         className="min-h-screen flex flex-col items-center justify-center px-6"
-        style={{ background: "#0D0C0A" }}
+        style={{ background: t.bg }}
       >
         <div
           className="w-20 h-20 rounded-full flex items-center justify-center mb-6"
@@ -332,20 +336,20 @@ export default function BadgeClaim() {
         </div>
         <h1
           className="font-display text-[24px] font-[800] text-center"
-          style={{ color: "#FAF8F5", letterSpacing: "-0.03em" }}
+          style={{ color: t.text, letterSpacing: "-0.03em" }}
         >
           Badge en revision
         </h1>
         <p
           className="font-body text-[14px] text-center mt-2 max-w-xs leading-relaxed"
-          style={{ color: "#8A8A8E" }}
+          style={{ color: t.muted }}
         >
           Tu video fue enviado. Te notificaremos cuando sea aprobado.
         </p>
         <button
           onClick={() => navigate(-1)}
           className="mt-8 flex items-center gap-2 font-display text-[13px] font-[700] px-6 py-3 rounded-xl"
-          style={{ background: selectedColor, color: "#FAF8F5" }}
+          style={{ background: t.accent, color: t.btnText }}
         >
           <ChevronLeft className="w-4 h-4" />
           Volver
@@ -360,28 +364,28 @@ export default function BadgeClaim() {
     return (
       <div
         className="min-h-screen flex flex-col items-center justify-center px-6"
-        style={{ background: "#0D0C0A" }}
+        style={{ background: t.bg }}
       >
         {selectedStatus === "pending" ? (
           <>
             <div
               className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
-              style={{ background: "rgba(234,179,8,0.1)" }}
+              style={{ background: `${t.accent}18` }}
             >
               <Loader2
                 className="w-7 h-7 animate-spin"
-                style={{ color: "#EAB308" }}
+                style={{ color: t.accent }}
               />
             </div>
             <h1
               className="font-display text-[20px] font-[800] text-center"
-              style={{ color: "#FAF8F5", letterSpacing: "-0.03em" }}
+              style={{ color: t.text, letterSpacing: "-0.03em" }}
             >
               En revision
             </h1>
             <p
               className="font-body text-[13px] text-center mt-2"
-              style={{ color: "#8A8A8E" }}
+              style={{ color: t.muted }}
             >
               Ya enviaste tu video para{" "}
               <span style={{ color: selectedColor }}>
@@ -409,7 +413,7 @@ export default function BadgeClaim() {
             </h1>
             <p
               className="font-body text-[13px] text-center mt-2"
-              style={{ color: "#8A8A8E" }}
+              style={{ color: t.muted }}
             >
               Ya tienes {selectedTierData?.tier_label} aprobado.
             </p>
@@ -419,8 +423,9 @@ export default function BadgeClaim() {
           onClick={() => navigate(-1)}
           className="mt-6 flex items-center gap-2 font-body text-[13px] px-5 py-2.5 rounded-xl"
           style={{
-            background: "rgba(255,255,255,0.06)",
-            color: "#8A8A8E",
+            background: t.card,
+            color: t.muted,
+            border: `1px solid ${t.border}`,
           }}
         >
           <ChevronLeft className="w-4 h-4" />
@@ -431,25 +436,25 @@ export default function BadgeClaim() {
     );
   }
 
-  // ── Main claim flow — IG-story style ──
+  // ── Main claim flow -- IG-story style ──
   return (
     <div
       className="min-h-screen flex flex-col"
-      style={{ background: "#0D0C0A" }}
+      style={{ background: t.bg }}
     >
       {/* Compact header */}
       <div className="flex items-center gap-3 px-4 pt-14 pb-3">
         <button
           onClick={() => navigate(-1)}
           className="flex h-8 w-8 items-center justify-center rounded-full"
-          style={{ background: "rgba(255,255,255,0.08)" }}
+          style={{ background: t.card, border: `1px solid ${t.border}` }}
         >
-          <ChevronLeft className="h-4 w-4" style={{ color: "#FAF8F5" }} />
+          <ChevronLeft className="h-4 w-4" style={{ color: t.text }} />
         </button>
         <div className="flex-1 min-w-0">
           <h1
             className="font-display text-[16px] font-[800] truncate"
-            style={{ color: "#FAF8F5", letterSpacing: "-0.03em" }}
+            style={{ color: t.text, letterSpacing: "-0.03em" }}
           >
             {badge.name}
           </h1>
@@ -464,13 +469,13 @@ export default function BadgeClaim() {
               <>
                 <span
                   className="font-mono text-[10px]"
-                  style={{ color: "#444" }}
+                  style={{ color: t.border }}
                 >
                   /
                 </span>
                 <span
                   className="font-mono text-[10px]"
-                  style={{ color: "#8A8A8E" }}
+                  style={{ color: t.muted }}
                 >
                   {metricText}
                 </span>
@@ -501,7 +506,7 @@ export default function BadgeClaim() {
         />
 
         {!videoFile ? (
-          /* ── No video yet — two options ── */
+          /* ── No video yet -- two options ── */
           <div className="flex-1 flex flex-col">
             {/* Record / Upload area */}
             <div
@@ -516,7 +521,7 @@ export default function BadgeClaim() {
                 <p
                   className="font-display text-[16px] font-[800]"
                   style={{
-                    color: "#FAF8F5",
+                    color: t.text,
                     letterSpacing: "-0.03em",
                   }}
                 >
@@ -524,9 +529,9 @@ export default function BadgeClaim() {
                 </p>
                 <p
                   className="font-body text-[12px] mt-1"
-                  style={{ color: "#666" }}
+                  style={{ color: t.muted }}
                 >
-                  MP4, MOV o WebM — max 50MB
+                  MP4, MOV o WebM -- max 50MB
                 </p>
               </div>
 
@@ -561,7 +566,7 @@ export default function BadgeClaim() {
 
                 <span
                   className="font-mono text-[10px] uppercase"
-                  style={{ color: "#555" }}
+                  style={{ color: t.muted }}
                 >
                   o
                 </span>
@@ -572,23 +577,23 @@ export default function BadgeClaim() {
                   onClick={() => libraryInputRef.current?.click()}
                   className="flex flex-col items-center gap-2 rounded-2xl px-5 py-4 transition-all active:scale-[0.97]"
                   style={{
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1.5px solid rgba(255,255,255,0.08)",
+                    background: t.card,
+                    border: `1.5px solid ${t.border}`,
                     minWidth: 120,
                   }}
                 >
                   <div
                     className="h-12 w-12 rounded-full flex items-center justify-center"
-                    style={{ background: "rgba(255,255,255,0.06)" }}
+                    style={{ background: `${t.text}0A` }}
                   >
                     <Video
                       className="h-6 w-6"
-                      style={{ color: "#8A8A8E" }}
+                      style={{ color: t.muted }}
                     />
                   </div>
                   <span
                     className="font-mono text-[11px] uppercase tracking-wider font-medium"
-                    style={{ color: "#8A8A8E" }}
+                    style={{ color: t.muted }}
                   >
                     Subir
                   </span>
@@ -596,25 +601,25 @@ export default function BadgeClaim() {
               </div>
             </div>
 
-            {/* Tips — compact, non-intrusive */}
+            {/* Tips -- compact, non-intrusive */}
             <div
               className="mt-3 rounded-xl px-4 py-3 flex flex-col gap-2"
-              style={{ background: "rgba(255,255,255,0.03)" }}
+              style={{ background: t.card, border: `1px solid ${t.border}` }}
             >
               <p
                 className="font-mono text-[9px] uppercase tracking-[1.5px]"
-                style={{ color: "#555" }}
+                style={{ color: t.muted }}
               >
                 Tips para aprobacion rapida
               </p>
               <div className="flex items-start gap-2.5">
                 <Video
                   className="h-3.5 w-3.5 shrink-0 mt-px"
-                  style={{ color: "#555" }}
+                  style={{ color: t.muted }}
                 />
                 <p
                   className="font-body text-[11px] leading-snug"
-                  style={{ color: "#777" }}
+                  style={{ color: t.muted }}
                 >
                   Muestra el movimiento completo de inicio a fin
                 </p>
@@ -622,11 +627,11 @@ export default function BadgeClaim() {
               <div className="flex items-start gap-2.5">
                 <Eye
                   className="h-3.5 w-3.5 shrink-0 mt-px"
-                  style={{ color: "#555" }}
+                  style={{ color: t.muted }}
                 />
                 <p
                   className="font-body text-[11px] leading-snug"
-                  style={{ color: "#777" }}
+                  style={{ color: t.muted }}
                 >
                   Grabate desde un angulo lateral, no de frente
                 </p>
@@ -634,11 +639,11 @@ export default function BadgeClaim() {
               <div className="flex items-start gap-2.5">
                 <Dumbbell
                   className="h-3.5 w-3.5 shrink-0 mt-px"
-                  style={{ color: "#555" }}
+                  style={{ color: t.muted }}
                 />
                 <p
                   className="font-body text-[11px] leading-snug"
-                  style={{ color: "#777" }}
+                  style={{ color: t.muted }}
                 >
                   Que se vea el peso usado (kg o lbs) en la barra
                 </p>
@@ -646,12 +651,12 @@ export default function BadgeClaim() {
             </div>
           </div>
         ) : (
-          /* ── Video selected — preview + send ── */
+          /* ── Video selected -- preview + send ── */
           <div className="flex-1 flex flex-col">
             {/* Video preview */}
             <div
               className="relative flex-1 rounded-2xl overflow-hidden"
-              style={{ background: "#111", minHeight: 280 }}
+              style={{ background: t.card, minHeight: 280 }}
             >
               <video
                 src={videoPreview || undefined}
@@ -667,9 +672,9 @@ export default function BadgeClaim() {
                 type="button"
                 onClick={clearVideo}
                 className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full"
-                style={{ background: "rgba(0,0,0,0.6)" }}
+                style={{ background: t.overlay }}
               >
-                <X className="h-4 w-4" style={{ color: "#FAF8F5" }} />
+                <X className="h-4 w-4" style={{ color: t.text }} />
               </button>
             </div>
 
@@ -678,7 +683,7 @@ export default function BadgeClaim() {
               <div className="mt-3">
                 <div
                   className="h-1 rounded-full overflow-hidden"
-                  style={{ background: "rgba(255,255,255,0.06)" }}
+                  style={{ background: t.border }}
                 >
                   <div
                     className="h-full rounded-full transition-all duration-300"
@@ -697,14 +702,14 @@ export default function BadgeClaim() {
               </div>
             )}
 
-            {/* Send button — prominent, one tap */}
+            {/* Send button -- prominent, one tap */}
             <button
               onClick={handleSubmit}
               disabled={submitting}
               className="mt-3 w-full flex items-center justify-center gap-2.5 font-display text-[14px] font-[800] py-4 rounded-xl transition-all disabled:opacity-50 active:scale-[0.98]"
               style={{
-                background: selectedColor,
-                color: "#FAF8F5",
+                background: t.accent,
+                color: t.btnText,
                 letterSpacing: "-0.02em",
               }}
             >
@@ -724,7 +729,7 @@ export default function BadgeClaim() {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="mt-2 w-full py-2 font-body text-[12px]"
-                style={{ color: "#666" }}
+                style={{ color: t.muted }}
               >
                 Elegir otro video
               </button>

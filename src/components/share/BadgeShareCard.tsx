@@ -1,5 +1,6 @@
 import { forwardRef } from "react";
 import { getBadgeIcon } from "@/lib/badgeIcons";
+import { alta } from "@/lib/colors";
 
 export interface BadgeShareCardProps {
   badgeName: string;
@@ -12,9 +13,10 @@ export interface BadgeShareCardProps {
 }
 
 /**
- * Hidden off-screen card rendered at 360×640 px.
- * html2canvas captures it at scale 3 → 1080×1920 (Instagram Story).
- * Uses ONLY inline styles — html2canvas doesn't reliably capture Tailwind.
+ * Hidden off-screen card rendered at 360x640 px.
+ * html2canvas captures it at scale 3 -> 1080x1920 (Instagram Story).
+ * Uses ONLY inline styles -- html2canvas doesn't reliably capture Tailwind.
+ * Always uses Alta (dark) theme since this is a static share image.
  */
 const BadgeShareCard = forwardRef<HTMLDivElement, BadgeShareCardProps>(
   ({ badgeName, tierLabel, tierColor, exerciseName, iconName, athleteName, avatarUrl }, ref) => {
@@ -27,7 +29,7 @@ const BadgeShareCard = forwardRef<HTMLDivElement, BadgeShareCardProps>(
         style={{
           width: 360,
           height: 640,
-          background: "linear-gradient(170deg, #1C1C1E 0%, #0D0D0F 40%, #1A1614 100%)",
+          background: `linear-gradient(170deg, ${alta.card} 0%, ${alta.bg} 40%, #0D0D0F 100%)`,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -58,7 +60,7 @@ const BadgeShareCard = forwardRef<HTMLDivElement, BadgeShareCardProps>(
             style={{
               fontFamily: "'DM Mono', monospace",
               fontSize: 9,
-              color: "rgba(250,248,245,0.35)",
+              color: alta.muted,
               letterSpacing: "0.2em",
               textTransform: "uppercase",
             }}
@@ -124,7 +126,7 @@ const BadgeShareCard = forwardRef<HTMLDivElement, BadgeShareCardProps>(
           style={{
             fontFamily: "'Syne', sans-serif",
             fontSize: 26,
-            color: "#FAF8F5",
+            color: alta.text,
             fontWeight: 800,
             letterSpacing: "-0.03em",
             marginTop: 24,
@@ -161,7 +163,7 @@ const BadgeShareCard = forwardRef<HTMLDivElement, BadgeShareCardProps>(
           style={{
             fontFamily: "'Inter', sans-serif",
             fontSize: 13,
-            color: "#8A8A8E",
+            color: alta.muted,
             marginTop: 8,
             textAlign: "center",
             zIndex: 1,
@@ -235,7 +237,7 @@ const BadgeShareCard = forwardRef<HTMLDivElement, BadgeShareCardProps>(
               style={{
                 fontFamily: "'Syne', sans-serif",
                 fontSize: 14,
-                color: "#FAF8F5",
+                color: alta.text,
                 fontWeight: 700,
                 letterSpacing: "-0.02em",
               }}
@@ -246,7 +248,7 @@ const BadgeShareCard = forwardRef<HTMLDivElement, BadgeShareCardProps>(
               style={{
                 fontFamily: "'DM Mono', monospace",
                 fontSize: 8,
-                color: tierColor,
+                color: alta.accent,
                 letterSpacing: "0.15em",
                 textTransform: "uppercase",
                 marginTop: 1,
@@ -273,7 +275,7 @@ const BadgeShareCard = forwardRef<HTMLDivElement, BadgeShareCardProps>(
             style={{
               fontFamily: "'DM Mono', monospace",
               fontSize: 8,
-              color: "rgba(250,248,245,0.65)",
+              color: alta.muted,
               letterSpacing: "0.2em",
               textTransform: "uppercase",
             }}
@@ -284,9 +286,9 @@ const BadgeShareCard = forwardRef<HTMLDivElement, BadgeShareCardProps>(
             style={{
               fontFamily: "'Syne', sans-serif",
               fontSize: 11,
-              color: "#FAF8F5",
+              color: alta.accent,
               fontWeight: 800,
-              letterSpacing: "-0.02em",
+              letterSpacing: "-0.03em",
             }}
           >
             LIFTORY

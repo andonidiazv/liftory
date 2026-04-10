@@ -1,7 +1,10 @@
 /**
  * Canvas-based Prime Score share card renderer.
  * Draws everything pixel-perfect without html2canvas.
+ * Always uses Alta (dark) theme since this generates static share images.
  */
+
+import { alta } from "@/lib/colors";
 
 interface ShareCardOpts {
   score: number;
@@ -66,7 +69,7 @@ function drawCenteredText(
   }
 }
 
-// ── Lucide SVG icon rendering — exact same icons as the app ──
+// ── Lucide SVG icon rendering -- exact same icons as the app ──
 
 const LUCIDE_SVGS: Record<string, string> = {
   clock: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="COLOR" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
@@ -143,14 +146,14 @@ export async function renderShareCard(
 
   // Pre-load Lucide icons as SVG images (larger for crispness, drawn at iconPx)
   const iconPx = 18 * S;
-  const icons = await loadIcons(iconPx * 2, "rgba(250,248,245,0.45)");
+  const icons = await loadIcons(iconPx * 2, `${alta.text}73`);
 
   // ── Story background ──
   if (mode === "story") {
     const bg = ctx.createLinearGradient(0, 0, canvasW * 0.15, canvasH);
-    bg.addColorStop(0, "#1C1C1E");
-    bg.addColorStop(0.5, "#0D0D0F");
-    bg.addColorStop(1, "#1A1614");
+    bg.addColorStop(0, alta.card);
+    bg.addColorStop(0.5, alta.bg);
+    bg.addColorStop(1, "#0D0D0F");
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, canvasW, canvasH);
   }
@@ -162,9 +165,9 @@ export async function renderShareCard(
     offsetX + cw * 0.15,
     offsetY + ch,
   );
-  cardGrad.addColorStop(0, "#1C1C1E");
-  cardGrad.addColorStop(0.5, "#0D0D0F");
-  cardGrad.addColorStop(1, "#1A1614");
+  cardGrad.addColorStop(0, alta.card);
+  cardGrad.addColorStop(0.5, alta.bg);
+  cardGrad.addColorStop(1, "#0D0D0F");
   ctx.fillStyle = cardGrad;
   roundRect(ctx, offsetX, offsetY, cw, ch, 16 * S);
   ctx.fill();
@@ -176,11 +179,11 @@ export async function renderShareCard(
 
   // ── PRIME SCORE title ──
   let y = y0 + 44 * S;
-  drawCenteredText(ctx, "PRIME SCORE", centerX, y, `800 ${22 * S}px Syne`, "#FAF8F5", -0.7 * S);
+  drawCenteredText(ctx, "PRIME SCORE", centerX, y, `800 ${22 * S}px Syne`, alta.text, -0.7 * S);
 
   // ── Date ──
   y += 18 * S;
-  drawCenteredText(ctx, opts.dateStr, centerX, y, `400 ${9 * S}px "DM Mono"`, "rgba(250,248,245,0.3)", 1 * S);
+  drawCenteredText(ctx, opts.dateStr, centerX, y, `400 ${9 * S}px "DM Mono"`, `${alta.text}4D`, 1 * S);
 
   // ── Score ring ──
   const ringCY = y + 62 * S;
@@ -193,7 +196,7 @@ export async function renderShareCard(
   // Background ring
   ctx.beginPath();
   ctx.arc(centerX, ringCY, ringR, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(255,255,255,0.06)";
+  ctx.strokeStyle = `${alta.text}0F`;
   ctx.lineWidth = 5 * S;
   ctx.stroke();
   ctx.restore();
@@ -211,7 +214,7 @@ export async function renderShareCard(
   ctx.stroke();
   ctx.restore();
 
-  // Score number + "/100" — baseline-aligned, centered as a group inside the ring
+  // Score number + "/100" -- baseline-aligned, centered as a group inside the ring
   ctx.font = `700 ${46 * S}px "DM Mono"`;
   const scoreStr = String(opts.score);
   const scoreTextW = ctx.measureText(scoreStr).width;
@@ -223,13 +226,13 @@ export async function renderShareCard(
 
   // Score digits
   ctx.font = `700 ${46 * S}px "DM Mono"`;
-  ctx.fillStyle = "#FAF8F5";
+  ctx.fillStyle = alta.text;
   ctx.textAlign = "left";
   ctx.fillText(scoreStr, groupStartX, scoreBaselineY);
 
   // "/100"
   ctx.font = `500 ${14 * S}px "DM Mono"`;
-  ctx.fillStyle = "rgba(250,248,245,0.35)";
+  ctx.fillStyle = `${alta.text}59`;
   ctx.fillText("/100", Math.round(groupStartX + scoreTextW + 2 * S), scoreBaselineY);
 
   // ── Sticker label ──
@@ -242,7 +245,7 @@ export async function renderShareCard(
 
   // ── Workout name ──
   y += 22 * S;
-  drawCenteredText(ctx, opts.dayLabel, centerX, y, `600 ${15 * S}px Syne`, "rgba(250,248,245,0.85)", -0.2 * S);
+  drawCenteredText(ctx, opts.dayLabel, centerX, y, `600 ${15 * S}px Syne`, `${alta.text}D9`, -0.2 * S);
 
   // ── Phase pill ──
   y += 20 * S;
@@ -253,18 +256,18 @@ export async function renderShareCard(
   const pillX = centerX - pillW / 2;
   const pillY = y - pillH * 0.65;
 
-  ctx.strokeStyle = "rgba(199,91,57,0.25)";
+  ctx.strokeStyle = `${alta.accent}40`;
   ctx.lineWidth = 1 * S;
-  ctx.fillStyle = "rgba(199,91,57,0.15)";
+  ctx.fillStyle = `${alta.accent}26`;
   roundRect(ctx, pillX, pillY, pillW, pillH, pillH / 2);
   ctx.fill();
   ctx.stroke();
 
-  ctx.fillStyle = "#C75B39";
+  ctx.fillStyle = alta.accent;
   ctx.textAlign = "center";
   ctx.fillText(pillText, centerX, y);
 
-  // ── Stats grid (2×2) — centered ──
+  // ── Stats grid (2x2) -- centered ──
   y += 20 * S;
   const gridGap = 10 * S;
   const gridPad = 24 * S; // padding each side
@@ -287,14 +290,14 @@ export async function renderShareCard(
     const stat = statsData[i];
 
     // Box background
-    ctx.fillStyle = "rgba(255,255,255,0.04)";
-    ctx.strokeStyle = "rgba(255,255,255,0.06)";
+    ctx.fillStyle = `${alta.text}0A`;
+    ctx.strokeStyle = `${alta.text}0F`;
     ctx.lineWidth = 1 * S;
     roundRect(ctx, bx, by, boxW, boxH, 12 * S);
     ctx.fill();
     ctx.stroke();
 
-    // Lucide icon — rendered from 2× SVG for crispness, drawn at target size
+    // Lucide icon -- rendered from 2x SVG for crispness, drawn at target size
     const iconImg = icons[stat.iconKey];
     if (iconImg) {
       const ix = Math.round(bx + boxW / 2 - iconPx / 2);
@@ -302,16 +305,16 @@ export async function renderShareCard(
       ctx.drawImage(iconImg, ix, iy, iconPx, iconPx);
     }
 
-    // Value — 700 weight for sharper rendering
+    // Value -- 700 weight for sharper rendering
     const valueFont = `700 ${17 * S}px "DM Mono"`;
     ctx.font = valueFont;
-    ctx.fillStyle = "#FAF8F5";
+    ctx.fillStyle = alta.text;
     ctx.textAlign = "center";
     ctx.fillText(stat.value, Math.round(bx + boxW / 2), Math.round(by + 42 * S));
 
     // Label
     const labelFont = `500 ${8 * S}px "DM Mono"`;
-    drawCenteredText(ctx, stat.label, Math.round(bx + boxW / 2), Math.round(by + 58 * S), labelFont, "rgba(250,248,245,0.4)", 1.5 * S);
+    drawCenteredText(ctx, stat.label, Math.round(bx + boxW / 2), Math.round(by + 58 * S), labelFont, `${alta.text}66`, 1.5 * S);
   }
 
   // ── Badges row ──
@@ -321,18 +324,18 @@ export async function renderShareCard(
   if (opts.prs > 0) {
     badges.push({
       text: `${opts.prs} PR${opts.prs > 1 ? "s" : ""}`,
-      color: "#C9A96E",
-      bg: "rgba(201,169,110,0.15)",
-      border: "rgba(201,169,110,0.3)",
+      color: alta.accent,
+      bg: alta.accentBg,
+      border: `${alta.accent}4D`,
       hasIcon: true,
     });
   }
   if (opts.score >= 85) {
     badges.push({
       text: "\u00C9LITE",
-      color: "#C75B39",
-      bg: "rgba(199,91,57,0.15)",
-      border: "rgba(199,91,57,0.3)",
+      color: alta.accent,
+      bg: alta.accentBg,
+      border: `${alta.accent}4D`,
       hasIcon: true,
     });
   }
@@ -385,7 +388,7 @@ export async function renderShareCard(
   }
 
   // ── Divider + POWERED BY LIFTORY ──
-  ctx.strokeStyle = "rgba(255,255,255,0.06)";
+  ctx.strokeStyle = `${alta.text}0F`;
   ctx.lineWidth = 1 * S;
   ctx.beginPath();
   ctx.moveTo(x0 + 24 * S, y);
@@ -394,12 +397,12 @@ export async function renderShareCard(
 
   y += 20 * S;
   ctx.font = `400 ${8 * S}px "DM Mono"`;
-  ctx.fillStyle = "rgba(250,248,245,0.65)";
+  ctx.fillStyle = alta.muted;
   ctx.textAlign = "right";
   ctx.fillText("POWERED BY  ", centerX + 2 * S, y);
 
   ctx.font = `800 ${10 * S}px Syne`;
-  ctx.fillStyle = "#FAF8F5";
+  ctx.fillStyle = alta.accent;
   ctx.textAlign = "left";
   ctx.fillText("LIFTORY", centerX + 2 * S, y);
 
