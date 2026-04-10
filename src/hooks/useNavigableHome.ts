@@ -135,15 +135,22 @@ async function fetchHomeData(userId: string): Promise<HomeServerData> {
     is_rest_day: boolean; workout_type: string; day_label: string; week_number: number;
   }>) ?? [];
 
-  const allWorkouts: AllWorkoutDay[] = wks.map((w) => ({
-    date: w.scheduled_date,
-    workoutId: w.id,
-    isCompleted: w.is_completed,
-    isRestDay: w.is_rest_day,
-    workoutType: w.workout_type,
-    dayLabel: w.day_label,
-    weekNumber: w.week_number,
-  }));
+  // Deduplicate by date — keep the first (oldest) workout per date
+  const seenDates = new Set<string>();
+  const allWorkouts: AllWorkoutDay[] = [];
+  for (const w of wks) {
+    if (seenDates.has(w.scheduled_date)) continue;
+    seenDates.add(w.scheduled_date);
+    allWorkouts.push({
+      date: w.scheduled_date,
+      workoutId: w.id,
+      isCompleted: w.is_completed,
+      isRestDay: w.is_rest_day,
+      workoutType: w.workout_type,
+      dayLabel: w.day_label,
+      weekNumber: w.week_number,
+    });
+  }
 
   // Determine current week from workouts near today
   let currentWeekNumber = 1;
@@ -244,13 +251,16 @@ async function fetchHomeData(userId: string): Promise<HomeServerData> {
 
 // ── Query function: fetch single day workout detail ──
 async function fetchDayWorkout(userId: string, date: string): Promise<DayWorkout | null> {
-  const { data } = await supabase
+  // Use limit(1) instead of maybeSingle() to handle duplicate workouts gracefully
+  const { data: rows } = await supabase
     .from("workouts")
     .select("id, day_label, workout_type, estimated_duration, is_rest_day, is_completed, coach_note, short_on_time_note, scheduled_date, week_number, workout_sets(id, exercise_id)")
     .eq("user_id", userId)
     .eq("scheduled_date", date)
-    .maybeSingle();
+    .order("created_at", { ascending: true })
+    .limit(1);
 
+  const data = rows?.[0] ?? null;
   if (!data) return null;
 
   const sets = (data.workout_sets as Array<{ id: string; exercise_id: string }>) ?? [];
