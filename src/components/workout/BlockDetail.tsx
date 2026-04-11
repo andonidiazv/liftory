@@ -83,14 +83,14 @@ interface Props {
   onFinishWorkout?: () => void;
 }
 
-function formatPrescription(sets: WorkoutSetData[]): string {
+function formatPrescription(sets: WorkoutSetData[], hideRest = false): string {
   const first = sets[0];
   if (!first) return "";
   const parts: string[] = [];
   const repsStr = formatReps(first.planned_reps, first.coaching_cue_override);
   parts.push(`${sets.length} × ${repsStr}`);
   if (first.planned_tempo) parts.push(`Tempo ${first.planned_tempo}`);
-  if (first.planned_rest_seconds) {
+  if (!hideRest && first.planned_rest_seconds) {
     const s = first.planned_rest_seconds;
     parts.push(`Descanso ${s >= 60 ? `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}` : `${s}s`}`);
   }
@@ -317,7 +317,12 @@ export default function BlockDetail({
   const isCompleted = (set: WorkoutSetData) => optimisticCompleted.has(set.id);
 
   const isSupersetBlock = block.supersetGroup && block.supersetGroup.type !== "single";
-  const restInfo = block.groups[0]?.sets[0]?.planned_rest_seconds;
+  // In a superset/triserie the rest is the one fired AFTER the LAST exercise of the round
+  // (see handleComplete: shouldRest only fires when isLastInSuperset). The header must
+  // reflect the same value, otherwise the displayed rest contradicts the timer.
+  const restInfo = isSupersetBlock
+    ? block.groups[block.groups.length - 1]?.sets[0]?.planned_rest_seconds
+    : block.groups[0]?.sets[0]?.planned_rest_seconds;
   const restDisplay = restInfo
     ? restInfo >= 60
       ? `Descanso ${Math.floor(restInfo / 60)}:${(restInfo % 60).toString().padStart(2, "0")}`
@@ -625,6 +630,7 @@ function SupersetContent({
             onSwapExercise={onSwapExercise}
             localUnit={localUnit}
             onToggleUnit={onToggleUnit}
+            hideRest
           />
         ))}
       </div>
@@ -636,7 +642,7 @@ function SupersetContent({
 function ExerciseCard({
   group, weightUnit, saving, getInputs, updateInput, onToggle,
   updateCompletedWeight, updateCompletedReps, getSuggestedWeight, prFlash, justCompleted, isCompleted, onOpenVideo,
-  workoutId, userId, onSwapExercise, localUnit, onToggleUnit,
+  workoutId, userId, onSwapExercise, localUnit, onToggleUnit, hideRest = false,
 }: {
   group: ExerciseGroup; weightUnit: string; saving: boolean;
   getInputs: (s: WorkoutSetData) => SetInputs;
@@ -653,6 +659,7 @@ function ExerciseCard({
   onSwapExercise?: () => void;
   localUnit: string;
   onToggleUnit: () => void;
+  hideRest?: boolean;
 }) {
   const { isDark } = useDarkMode();
   const tc = isDark ? noche : dia;
@@ -770,7 +777,7 @@ function ExerciseCard({
             )}
           </div>
           <p className="font-mono text-muted-foreground mt-0.5" style={{ fontSize: 11 }}>
-            {formatPrescription(sets)}
+            {formatPrescription(sets, hideRest)}
           </p>
         </div>
         <span className="font-mono text-muted-foreground shrink-0" style={{ fontSize: 12 }}>
