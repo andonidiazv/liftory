@@ -100,7 +100,7 @@ export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpe
   const progress = totalDurationSec > 0 ? 1 - (timeRemaining / totalDurationSec) : 0;
 
   return (
-    <div className="flex min-h-screen flex-col bg-background animate-slide-in-right">
+    <div className="flex min-h-dvh flex-col bg-background animate-slide-in-right">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm px-5 pb-3 pt-14">
         <div className="flex items-center gap-3">

@@ -392,7 +392,7 @@ export default function Workout() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col bg-background px-5 pt-14">
+      <div className="flex min-h-dvh flex-col bg-background px-5 pt-14">
         <Skeleton className="h-6 w-48 bg-muted" />
         <Skeleton className="mt-4 h-4 w-32 bg-muted" />
         <Skeleton className="mt-8 h-32 w-full rounded-xl bg-muted" />
@@ -404,7 +404,7 @@ export default function Workout() {
 
   if (!workout || sets.length === 0) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-background px-5">
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-background px-5">
         <p className="text-muted-foreground font-body">No se encontró este workout.</p>
         <button onClick={() => navigate("/home")} className="mt-4 text-primary font-body font-medium">
           Volver al inicio

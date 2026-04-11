@@ -189,7 +189,7 @@ export default function WorkoutOverview({
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-dvh flex-col bg-background">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm px-5 pb-4 pt-14">
         <div className="flex items-center gap-3">
