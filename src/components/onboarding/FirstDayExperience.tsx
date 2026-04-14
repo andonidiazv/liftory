@@ -285,7 +285,7 @@ export default function FirstDayExperience({
                   {day.dayLabel}
                 </span>
                 <div
-                  className="w-[38px] h-[38px] rounded-[11px] flex items-center justify-center"
+                  className="w-[38px] h-[38px] rounded-xl flex items-center justify-center"
                   style={{ background: getIconWrapBg(day.workoutType) }}
                 >
                   <DayIcon type={day.workoutType} />
@@ -473,7 +473,7 @@ export default function FirstDayExperience({
 
           {/* RPE Card */}
           <div
-            className="rounded-[14px] p-[18px] mb-3.5"
+            className="rounded-2xl p-[18px] mb-3.5"
             style={{ background: t.card, border: `1px solid ${t.border}`, ...anim(current === 4, 4) }}
           >
             <div
@@ -510,7 +510,7 @@ export default function FirstDayExperience({
 
           {/* Tempo Card */}
           <div
-            className="rounded-[14px] p-[18px] mb-3.5"
+            className="rounded-2xl p-[18px] mb-3.5"
             style={{ background: t.card, border: `1px solid ${t.border}`, ...anim(current === 4, 5) }}
           >
             <div
@@ -588,7 +588,7 @@ export default function FirstDayExperience({
 
           {/* Tu data importa Card */}
           <div
-            className="rounded-[14px] p-[18px]"
+            className="rounded-2xl p-[18px]"
             style={{
               background: t.accentBg,
               border: `1px solid ${t.accent}33`,

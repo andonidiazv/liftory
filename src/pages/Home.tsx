@@ -678,7 +678,7 @@ export default function Home() {
           ].map((s) => (
             <div
               key={s.label}
-              className="flex-1 rounded-[20px] px-3 py-2.5 flex flex-col items-center gap-1"
+              className="flex-1 rounded-2xl px-3 py-2.5 flex flex-col items-center gap-1"
               style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
             >
               <span className="text-primary">{s.icon}</span>

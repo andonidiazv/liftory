@@ -134,7 +134,7 @@ export default function Exercises() {
               className={`press-scale shrink-0 px-4 py-2 text-xs font-body font-medium transition-all ${
                 muscleFilter === f ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
               }`}
-              style={{ borderRadius: 4 }}
+              style={{ borderRadius: 9999 }}
             >
               {f}
             </button>
@@ -150,7 +150,7 @@ export default function Exercises() {
               className={`press-scale shrink-0 px-3 py-1.5 text-xs font-body font-medium transition-all ${
                 difficultyFilter === f ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
               }`}
-              style={{ borderRadius: 4 }}
+              style={{ borderRadius: 9999 }}
             >
               {f === "All" ? "Level" : difficultyLabels[f]}
             </button>
@@ -161,7 +161,7 @@ export default function Exercises() {
         <div className="mt-6 grid grid-cols-2 gap-3 pb-4">
           {loading ? (
             Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="overflow-hidden bg-card" style={{ borderRadius: 12 }}>
+              <div key={i} className="overflow-hidden rounded-2xl bg-card">
                 <Skeleton className="w-full bg-muted" style={{ aspectRatio: "9/10" }} />
                 <div className="p-3 space-y-2">
                   <Skeleton className="h-4 w-3/4 bg-muted" />
@@ -182,8 +182,8 @@ export default function Exercises() {
               <button
                 key={ex.id}
                 onClick={() => setSelectedExercise(ex)}
-                className="press-scale overflow-hidden bg-card text-left relative"
-                style={{ borderRadius: 12, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+                className="press-scale overflow-hidden rounded-2xl bg-card text-left relative"
+                style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
               >
                 {ex.thumbnail_url ? (
                   <img

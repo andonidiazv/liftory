@@ -285,7 +285,7 @@ export default function Profile() {
           </div>
           <button
             onClick={handleToggleUnit}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-primary bg-primary/10 press-scale"
+            className="rounded-xl px-4 py-2 text-sm font-medium text-primary bg-primary/10 press-scale"
           >
             {profile?.weight_unit === "kg" ? "Cambiar a lb" : "Cambiar a kg"}
           </button>
@@ -299,7 +299,7 @@ export default function Profile() {
           </div>
           <button
             onClick={toggleDarkMode}
-            className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-primary bg-primary/10 press-scale"
+            className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-primary bg-primary/10 press-scale"
           >
             {isDark ? <Zap className="h-4 w-4" /> : <Flame className="h-4 w-4" />}
             {isDark ? "Cambiar a Alta" : "Cambiar a Baja"}

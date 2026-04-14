@@ -511,7 +511,7 @@ export default function Onboarding() {
           <div className="mt-6 flex flex-col gap-2.5">
             {pillars.map((p, i) => (
               <div key={p.name} className={`flex items-center gap-3 anim-in-d${i + 1}`}
-                style={{ background: t.cardBg, borderRadius: 14, padding: "14px 16px", border: `1px solid ${t.border}` }}>
+                style={{ background: t.cardBg, borderRadius: 16, padding: "14px 16px", border: `1px solid ${t.border}` }}>
                 <div className={iconBox(40, "rounded-xl")} style={iconBoxStyle(40)}>
                   <p.Icon className="h-[18px] w-[18px]" style={{ color: t.accent }} />
                 </div>
