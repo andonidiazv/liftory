@@ -948,7 +948,7 @@ function ExerciseCard({
                     <span>
                       {displayVal}
                       {isPerSide(setCue) ? <span className="text-muted-foreground" style={{ fontSize: 9 }}>/l</span> : null}
-                      {isPrFlash && <span className="ml-1 font-mono" style={{ fontSize: 9, color: tc.accent }}>PR</span>}
+                      {(isPrFlash || set.is_pr) && <span className={`ml-1 font-mono ${isPrFlash ? "animate-pr-pulse" : ""}`} style={{ fontSize: 9, color: "#D4A03C", fontWeight: 700 }}>PR</span>}
                     </span>
                   ) : (
                     <span className="text-muted-foreground" style={{ fontSize: 12 }}>reps</span>

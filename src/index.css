@@ -430,6 +430,9 @@
   50% { transform: scale(1.15) rotate(5deg); opacity: 0.9; }
   75% { transform: scale(1.25) rotate(-3deg); opacity: 1; }
 }
+.animate-flicker {
+  animation: flicker 2s ease-in-out infinite;
+}
 
 /* ═══ PRICING GLOW SLIDE ═══ */
 @keyframes glow-slide {
@@ -442,4 +445,7 @@
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 24px rgba(230,57,70,0.35); }
   50% { box-shadow: 0 0 40px rgba(230,57,70,0.55), 0 0 60px rgba(230,57,70,0.2); }
+}
+.animate-pulse-glow {
+  animation: pulse-glow 2.5s ease-in-out infinite;
 }
