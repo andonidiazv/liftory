@@ -47,7 +47,7 @@ export default function Profile() {
   useEffect(() => {
     if (!user) return;
     Promise.all([
-      supabase.from("workout_schedules").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("is_completed", true).neq("is_rest_day", true),
+      supabase.from("workouts").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("is_completed", true),
       supabase.from("workout_sets").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("is_pr", true),
     ]).then(([wRes, prRes]) => {
       setHeroStats({ workouts: wRes.count ?? 0, prs: prRes.count ?? 0 });
