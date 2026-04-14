@@ -497,11 +497,10 @@ function CoachNote({ note, shortOnTimeNote, weekNumber, totalWeeks }: { note: st
           NOTA DEL COACH
         </p>
         <p
-          className="mt-1.5 font-serif italic text-foreground"
+          className="mt-1 font-body text-foreground"
           style={{
-            fontSize: 14,
-            lineHeight: 1.6,
-            fontWeight: 300,
+            fontSize: 13,
+            lineHeight: 1.5,
             display: "-webkit-box",
             WebkitLineClamp: expanded ? undefined : 3,
             WebkitBoxOrient: "vertical",
