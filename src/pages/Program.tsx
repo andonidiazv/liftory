@@ -82,6 +82,27 @@ export default function Program() {
           >
             {getPhaseForWeek(program.current_week)}
           </span>
+
+          {/* Progress bar */}
+          {(() => {
+            const totalWorkouts = workouts.filter(w => !w.is_rest_day && w.workout_type === "strength").length;
+            const completedWorkouts = workouts.filter(w => !w.is_rest_day && w.workout_type === "strength" && w.is_completed).length;
+            const pct = totalWorkouts > 0 ? Math.round((completedWorkouts / totalWorkouts) * 100) : 0;
+            return (
+              <div className="mt-4">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="font-mono text-[10px] text-muted-foreground">{completedWorkouts}/{totalWorkouts} sesiones</span>
+                  <span className="font-mono text-[10px] text-muted-foreground">{pct}%</span>
+                </div>
+                <div className="h-2 w-full rounded-full overflow-hidden" style={{ backgroundColor: "hsl(var(--border))" }}>
+                  <div
+                    className="h-full rounded-full transition-all duration-700"
+                    style={{ width: `${pct}%`, backgroundColor: "hsl(var(--primary))" }}
+                  />
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Weeks */}

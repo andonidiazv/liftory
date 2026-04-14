@@ -42,6 +42,17 @@ export default function Profile() {
     category: string | null; status: string; slug: string;
   }[]>([]);
   const [videoModal, setVideoModal] = useState<{ url: string; name: string; tier_label: string; color: string } | null>(null);
+  const [heroStats, setHeroStats] = useState<{ workouts: number; prs: number } | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    Promise.all([
+      supabase.from("workout_schedules").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("is_completed", true).neq("is_rest_day", true),
+      supabase.from("workout_sets").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("is_pr", true),
+    ]).then(([wRes, prRes]) => {
+      setHeroStats({ workouts: wRes.count ?? 0, prs: prRes.count ?? 0 });
+    });
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -244,6 +255,27 @@ export default function Profile() {
             </div>
           </div>
         </div>
+
+        {/* Hero Stats */}
+        {heroStats && (
+          <div className="mt-5 flex gap-2">
+            {[
+              { value: heroStats.workouts, label: "Workouts", icon: <Dumbbell className="h-3.5 w-3.5" /> },
+              { value: heroStats.prs, label: "PRs totales", icon: <TrendingUp className="h-3.5 w-3.5" /> },
+              { value: earnedBadges.length, label: "Badges", icon: <Award className="h-3.5 w-3.5" /> },
+            ].map((s) => (
+              <div
+                key={s.label}
+                className="flex-1 rounded-2xl px-3 py-3 flex flex-col items-center gap-1"
+                style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+              >
+                <span className="text-primary">{s.icon}</span>
+                <span className="font-mono text-[20px] font-bold tabular-nums text-foreground">{s.value}</span>
+                <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{s.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Weight unit toggle */}
         <div className="mt-6 card-fbb flex items-center justify-between">

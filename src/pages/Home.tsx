@@ -271,6 +271,23 @@ export default function Home() {
             const rOffset = rCirc - (pct / 100) * rCirc;
             const ringColor = allDone ? "#7A8B5C" : "hsl(var(--primary))";
 
+            // Find tomorrow's workout for previews
+            const tomorrowDate = new Date(new Date(selectedDate + "T12:00:00").getTime() + 86400000).toISOString().slice(0, 10);
+            const tomorrowDay = weekDays.find(d => d.date === tomorrowDate);
+            const tomorrowLabel = tomorrowDay
+              ? tomorrowDay.isRestDay ? "Descanso" : tomorrowDay.workoutLabel || "Entrenamiento"
+              : null;
+
+            // Rest day messages rotation based on day of week
+            const restMessages = [
+              "Tu cuerpo se adapta cuando descansas. Hoy creces.",
+              "Cada dia de descanso es una inversion en tu rendimiento.",
+              "Descansa con la misma intencion con la que entrenas.",
+              "Hoy se reparan las fibras que rompiste esta semana.",
+              "El descanso no es opcional. Es parte del plan.",
+            ];
+            const restMsgIndex = new Date(selectedDate + "T12:00:00").getDay() % restMessages.length;
+
             // Rest day card (fallback for non-Sunday rest days)
             if (workout?.is_rest_day) {
               return (
@@ -278,11 +295,24 @@ export default function Home() {
                   className="rounded-2xl p-5"
                   style={{
                     background: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
+                    borderLeft: "4px solid #7A8B5C",
+                    borderTop: "1px solid hsl(var(--border))",
+                    borderRight: "1px solid hsl(var(--border))",
+                    borderBottom: "1px solid hsl(var(--border))",
                   }}
                 >
-                  <p className="font-display text-[16px] font-semibold text-foreground">Dia de descanso</p>
-                  <p className="mt-1 text-[13px] text-muted-foreground font-body">Recuperate bien.</p>
+                  <div className="flex items-center gap-2">
+                    <Leaf className="h-5 w-5" style={{ color: "#7A8B5C" }} />
+                    <p className="font-display text-[16px] font-semibold text-foreground">Dia de descanso</p>
+                  </div>
+                  <p className="mt-2 text-[13px] text-muted-foreground font-body leading-relaxed">
+                    {restMessages[restMsgIndex]}
+                  </p>
+                  {tomorrowLabel && (
+                    <p className="mt-3 font-mono text-[10px] uppercase tracking-[1.5px] text-muted-foreground">
+                      Mañana: {tomorrowLabel}
+                    </p>
+                  )}
                 </div>
               );
             }
@@ -428,13 +458,20 @@ export default function Home() {
                 {/* Action button */}
                 <div className="px-5 pb-5">
                   {workout.is_completed ? (
-                    <button
-                      onClick={() => navigate(`/workout/${workout.id}`)}
-                      className="flex w-full items-center justify-center gap-2 rounded-xl py-3 font-display text-[13px] font-semibold text-muted-foreground"
-                      style={{ border: "1px solid hsl(var(--border))" }}
-                    >
-                      VER RESUMEN <ChevronRight className="h-4 w-4" />
-                    </button>
+                    <>
+                      <button
+                        onClick={() => navigate(`/workout/${workout.id}`)}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl py-3 font-display text-[13px] font-semibold text-muted-foreground"
+                        style={{ border: "1px solid hsl(var(--border))" }}
+                      >
+                        VER RESUMEN <ChevronRight className="h-4 w-4" />
+                      </button>
+                      {tomorrowLabel && (
+                        <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-[1.5px] text-muted-foreground">
+                          Mañana: {tomorrowLabel}
+                        </p>
+                      )}
+                    </>
                   ) : (
                     <button
                       onClick={() => navigate(`/workout/${workout.id}`)}

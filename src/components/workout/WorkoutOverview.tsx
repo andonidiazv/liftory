@@ -1,4 +1,4 @@
-import { ChevronLeft, Check, Clock, ChevronRight, AlertCircle } from "lucide-react";
+import { ChevronLeft, Check, Clock, ChevronRight, AlertCircle, PersonStanding } from "lucide-react";
 import type { WorkoutData, ExerciseGroup, SupersetGroup } from "@/hooks/useWorkoutData";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useDarkMode } from "@/hooks/useDarkMode";
@@ -222,6 +222,7 @@ export default function WorkoutOverview({
             const done = block.completedSets >= block.totalSets && block.totalSets > 0;
             const color = getBlockColor(block);
             const isRecovery = block.name === 'RECOVERY BLOCK';
+            const isMobility = block.type === 'mobility' || block.type === 'cooldown';
             const isActive = blockIdx === firstPendingIdx;
             const nextBlock = blockIdx < blocks.length - 1 ? blocks[blockIdx + 1] : null;
 
@@ -269,8 +270,12 @@ export default function WorkoutOverview({
                 className={`press-scale flex w-full items-stretch gap-0 text-left transition-all ${isActive ? "block-breathing" : ""}`}
                 style={{
                   borderRadius: 16,
-                  border: isActive ? `1.5px solid ${t.accent}66` : `1px solid ${t.border}`,
-                  backgroundColor: isActive ? t.accentBg : t.card,
+                  border: isActive
+                    ? `1.5px solid ${isMobility ? "rgba(122,139,92,0.4)" : `${t.accent}66`}`
+                    : `1px solid ${isMobility ? "rgba(122,139,92,0.2)" : t.border}`,
+                  backgroundColor: isActive
+                    ? (isMobility ? "rgba(122,139,92,0.06)" : t.accentBg)
+                    : (isMobility ? "rgba(122,139,92,0.03)" : t.card),
                   overflow: "hidden",
                 }}
               >
@@ -280,6 +285,7 @@ export default function WorkoutOverview({
                 <div className="flex flex-1 items-center gap-3 p-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
+                      {isMobility && <PersonStanding className="h-4 w-4 shrink-0" style={{ color: "#7A8B5C" }} />}
                       <BlockNameDisplay name={block.name} />
                       {block.formatBadge && (
                         <span
