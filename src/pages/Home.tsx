@@ -203,47 +203,91 @@ export default function Home() {
           )}
         </div>
 
-        {/* NEW CYCLE PROMPT */}
-        {showNextCyclePrompt && nextCycleInfo && (
-          <div
-            className="rounded-2xl p-5 space-y-3"
-            style={{
-              background: "linear-gradient(135deg, hsl(var(--card)), hsl(var(--primary) / 0.06))",
-              border: "1px solid hsl(var(--primary) / 0.3)",
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <Rocket className="h-4 w-4 text-primary" />
-              <span className="font-display text-[16px] font-semibold text-foreground">
-                ¡Nuevo ciclo disponible!
-              </span>
-            </div>
-            <p className="text-[13px] text-muted-foreground font-body">
-              El Ciclo {nextCycleInfo.cycleNumber} está listo. Tus datos del ciclo anterior quedan guardados.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={transitionToCycle}
-                disabled={transitioning}
-                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-primary py-3 font-display text-[13px] font-semibold text-primary-foreground disabled:opacity-60"
+        {/* NEW CYCLE PROMPT — with celebration of completed cycle */}
+        {showNextCyclePrompt && nextCycleInfo && (() => {
+          const completedCycle = nextCycleInfo.cycleNumber - 1;
+          const cycleTitle = completedCycle === 1
+            ? "6 semanas. Más fuerte que cuando empezaste."
+            : completedCycle === 2
+            ? "Dos ciclos. Esto ya es disciplina, no motivación."
+            : completedCycle === 3
+            ? "3 ciclos. El hierro ya te conoce."
+            : `Ciclo ${completedCycle}. Esto es lo que te separa.`;
+          const subtitles = [
+            "Construiste esto rep por rep. Sin atajos.",
+            "El trabajo pesado da resultados pesados.",
+            "Hiciste lo que dijiste que ibas a hacer.",
+            "Nadie te regaló esto. Te lo ganaste.",
+            "El hierro no miente. Tu progreso tampoco.",
+            "Entrena duro. Recupera bien. Repite.",
+          ];
+          const subtitle = subtitles[completedCycle % subtitles.length];
+
+          return (
+            <div className="space-y-3">
+              {/* Celebration card */}
+              <div
+                className="rounded-2xl p-6 text-center"
+                style={{
+                  background: "linear-gradient(135deg, hsl(var(--card)), hsl(var(--primary) / 0.08))",
+                  border: "1px solid hsl(var(--primary) / 0.25)",
+                }}
               >
-                {transitioning ? (
-                  <><Loader2 className="h-4 w-4 animate-spin" /> Preparando...</>
-                ) : (
-                  <>Empezar Ciclo {nextCycleInfo.cycleNumber} <ChevronRight className="h-4 w-4" /></>
-                )}
-              </button>
-              <button
-                onClick={dismissCycle}
-                disabled={transitioning}
-                className="px-4 py-3 rounded-xl font-body text-[13px] text-muted-foreground"
-                style={{ border: "1px solid hsl(var(--border))" }}
+                <div className="flex justify-center mb-3">
+                  <div className="h-12 w-12 rounded-full flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.12)" }}>
+                    <Trophy className="h-6 w-6 text-primary" />
+                  </div>
+                </div>
+                <p className="font-display text-[17px] font-bold text-foreground" style={{ letterSpacing: "-0.02em" }}>
+                  {cycleTitle}
+                </p>
+                <p className="mt-2 text-[13px] text-muted-foreground font-body">
+                  {subtitle}
+                </p>
+              </div>
+
+              {/* Action card */}
+              <div
+                className="rounded-2xl p-5 space-y-3"
+                style={{
+                  background: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--primary) / 0.3)",
+                }}
               >
-                Ahora no
-              </button>
+                <div className="flex items-center gap-2">
+                  <Rocket className="h-4 w-4 text-primary" />
+                  <span className="font-display text-[15px] font-semibold text-foreground">
+                    Ciclo {nextCycleInfo.cycleNumber} listo
+                  </span>
+                </div>
+                <p className="text-[13px] text-muted-foreground font-body">
+                  Tus datos del ciclo anterior quedan guardados.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={transitionToCycle}
+                    disabled={transitioning}
+                    className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-primary py-3 font-display text-[13px] font-semibold text-primary-foreground disabled:opacity-60"
+                  >
+                    {transitioning ? (
+                      <><Loader2 className="h-4 w-4 animate-spin" /> Preparando...</>
+                    ) : (
+                      <>Empezar Ciclo {nextCycleInfo.cycleNumber} <ChevronRight className="h-4 w-4" /></>
+                    )}
+                  </button>
+                  <button
+                    onClick={dismissCycle}
+                    disabled={transitioning}
+                    className="px-4 py-3 rounded-xl font-body text-[13px] text-muted-foreground"
+                    style={{ border: "1px solid hsl(var(--border))" }}
+                  >
+                    Ahora no
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* 2. Fused Workout + Weekly Progress Card */}
         {programInfo ? (
@@ -270,6 +314,12 @@ export default function Home() {
             const rCirc = 2 * Math.PI * rRadius;
             const rOffset = rCirc - (pct / 100) * rCirc;
             const ringColor = allDone ? "#7A8B5C" : "hsl(var(--primary))";
+
+            // Perfect week banner — only show once per week via sessionStorage
+            const perfectWeekKey = `liftory-perfect-week-${viewingWeekNumber}`;
+            const perfectWeekSeen = sessionStorage.getItem(perfectWeekKey);
+            const showPerfectWeek = allDone && viewingWeekNumber === currentWeekNumber && !perfectWeekSeen;
+            if (showPerfectWeek) sessionStorage.setItem(perfectWeekKey, "true");
 
             // Find tomorrow's workout for previews
             const tomorrowDate = new Date(new Date(selectedDate + "T12:00:00").getTime() + 86400000).toISOString().slice(0, 10);
@@ -373,6 +423,23 @@ export default function Home() {
 
             // Training day card (fused: ring + workout info + progress bars)
             return (
+              <>
+              {showPerfectWeek && (
+                <div
+                  className="rounded-2xl p-4 mb-3 text-center sticker-slam"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(122,139,92,0.08), rgba(122,139,92,0.15))",
+                    border: "1px solid rgba(122,139,92,0.3)",
+                  }}
+                >
+                  <p className="font-display text-[16px] font-bold text-foreground" style={{ letterSpacing: "-0.02em" }}>
+                    SEMANA PERFECTA
+                  </p>
+                  <p className="mt-1 text-[12px] text-muted-foreground font-body">
+                    Completaste todas las sesiones. Eso es consistencia.
+                  </p>
+                </div>
+              )}
               <div
                 className="rounded-2xl overflow-hidden"
                 style={{
@@ -482,6 +549,7 @@ export default function Home() {
                   )}
                 </div>
               </div>
+              </>
             );
           })()
         ) : (

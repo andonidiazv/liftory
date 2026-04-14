@@ -78,6 +78,25 @@ export function playTick(): void {
   } catch {}
 }
 
+/** Micro-click for set completion — subtle tactile feedback for iOS */
+export function playSetClick(): void {
+  try {
+    const ctx = getCtx();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = "sine";
+    osc.frequency.value = 440; // A4
+    gain.gain.setValueAtTime(0.03, now); // very quiet — tactile, not audible
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.008);
+    osc.start(now);
+    osc.stop(now + 0.01);
+  } catch {}
+}
+
 /** Double finish beep — same 1046.5Hz as EMOM */
 export function playFinishBeep(): void {
   try {

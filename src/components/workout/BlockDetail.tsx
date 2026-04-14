@@ -17,6 +17,7 @@ import { useAuth } from "@/context/AuthContext";
 import IntervalTimerBlock from "./IntervalTimerBlock";
 import EmomTimerBlock from "./EmomTimerBlock";
 import { TimerErrorBoundary } from "./TimerErrorBoundary";
+import { playSetClick } from "@/lib/audio";
 
 /** Block types by render mode */
 const CARDIO_BLOCKS = ['ENGINE BLOCK'];
@@ -271,6 +272,7 @@ export default function BlockDetail({
     setOptimisticCompleted((prev) => new Set(prev).add(set.id));
     setJustCompleted(set.id);
     setTimeout(() => setJustCompleted(null), 1500);
+    playSetClick();
 
     const shouldRest = block.supersetGroup ? isLastInSuperset : true;
     if (shouldRest && set.planned_rest_seconds) {
