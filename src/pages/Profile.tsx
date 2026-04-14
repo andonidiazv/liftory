@@ -78,7 +78,7 @@ export default function Profile() {
             slug: b.badge_tiers?.badge_definitions?.slug || "",
             tier: b.badge_tiers?.tier || "",
             tier_label: b.badge_tiers?.tier_label || "",
-            color: b.badge_tiers?.color || "#E63946",
+            color: b.badge_tiers?.color || "#C4A24E",
             earned_at: b.earned_at || "",
             proof_url: b.proof_url || null,
             icon_name: b.badge_tiers?.badge_definitions?.icon_name || null,

@@ -14,8 +14,8 @@
     --popover: 240 5% 11%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 355 79% 56%;            /* #E63946 Ignite */
-    --primary-foreground: 0 0% 100%;   /* #FFFFFF */
+    --primary: 43 50% 54%;             /* #C4A24E Gold */
+    --primary-foreground: 0 0% 4%;     /* #0A0A0A Dark on gold */
 
     --secondary: 240 4% 16%;           /* #27272A */
     --secondary-foreground: 0 0% 98%;
@@ -31,23 +31,23 @@
 
     --border: 240 4% 16%;              /* #27272A */
     --input: 240 4% 16%;
-    --ring: 355 79% 56%;               /* #E63946 */
+    --ring: 43 50% 54%;                /* #C4A24E Gold */
 
     --radius: 0.5rem;
 
     --success: 90 22% 45%;             /* #7A8B5C */
     --success-foreground: 0 0% 98%;
     --warning: 38 69% 50%;
-    --gold: 355 79% 56%;               /* #E63946 (use ignite as gold equivalent) */
+    --gold: 43 50% 54%;                /* #C4A24E Gold */
 
     --sidebar-background: 240 7% 5%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 355 79% 56%;
-    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-primary: 43 50% 54%;
+    --sidebar-primary-foreground: 0 0% 4%;
     --sidebar-accent: 240 4% 16%;
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 240 4% 16%;
-    --sidebar-ring: 355 79% 56%;
+    --sidebar-ring: 43 50% 54%;
   }
 
   /* Baja mode — Dimmed Ignite */
@@ -61,8 +61,8 @@
     --popover: 240 4% 16%;
     --popover-foreground: 0 0% 91%;
 
-    --primary: 354 59% 47%;            /* #C0313C Ignite Dimmed */
-    --primary-foreground: 0 0% 100%;   /* #FFFFFF */
+    --primary: 42 46% 45%;             /* #A8893E Gold Dimmed */
+    --primary-foreground: 0 0% 4%;     /* #0A0A0A Dark on gold */
 
     --secondary: 240 4% 22%;           /* #38383C */
     --secondary-foreground: 0 0% 91%;
@@ -78,7 +78,7 @@
 
     --border: 240 4% 22%;              /* #38383C */
     --input: 240 4% 22%;
-    --ring: 354 59% 47%;
+    --ring: 42 46% 45%;
 
     --success: 90 22% 45%;
     --success-foreground: 0 0% 91%;
@@ -92,8 +92,8 @@
     --card-foreground: 0 0% 98%;
     --popover: 240 5% 11%;
     --popover-foreground: 0 0% 98%;
-    --primary: 355 79% 56%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 43 50% 54%;
+    --primary-foreground: 0 0% 4%;
     --secondary: 240 4% 16%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 4% 16%;
@@ -104,7 +104,7 @@
     --destructive-foreground: 0 0% 98%;
     --border: 240 4% 16%;
     --input: 240 4% 16%;
-    --ring: 355 79% 56%;
+    --ring: 43 50% 54%;
     --success: 90 22% 45%;
     --success-foreground: 0 0% 98%;
   }
@@ -213,13 +213,13 @@
   .card-fbb {
     @apply bg-card rounded-xl p-5;
     border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(230, 57, 70, 0.08);
+    box-shadow: 0 1px 3px rgba(196, 162, 78, 0.08);
   }
 
   .card-hero {
     @apply bg-card rounded-xl p-6;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(230, 57, 70, 0.08);
+    box-shadow: 0 4px 12px rgba(196, 162, 78, 0.08);
   }
 
   /* ═══ PILL / TAG ═══ */
@@ -239,7 +239,7 @@
 
   /* ═══ GLOW EFFECTS ═══ */
   .glow-primary {
-    box-shadow: 0 0 20px hsl(355 79% 56% / 0.35);
+    box-shadow: 0 0 20px hsl(43 50% 54% / 0.35);
   }
 
   .glow-success {
@@ -247,7 +247,7 @@
   }
 
   .glow-gold {
-    box-shadow: 0 0 16px hsl(355 79% 56% / 0.3);
+    box-shadow: 0 0 16px hsl(43 50% 54% / 0.3);
   }
 
   /* ═══ SAFE AREA ═══ */
@@ -257,7 +257,7 @@
 
   /* ═══ WORKOUT MODE GLOWS ═══ */
   .workout-mode .glow-primary {
-    box-shadow: 0 0 24px hsl(355 79% 56% / 0.45);
+    box-shadow: 0 0 24px hsl(43 50% 54% / 0.45);
   }
 
   .workout-mode .glow-success {
@@ -298,30 +298,30 @@
   font-weight: 400;
   letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: #E63946;
+  color: #C4A24E;
 }
 .eyebrow-label::before {
   content: '';
   width: 24px;
   height: 1px;
-  background: #E63946;
+  background: #C4A24E;
   flex-shrink: 0;
 }
 
 /* ═══ ACCENT BORDERS ═══ */
 .card-accent-terracotta {
-  border-left: 3px solid hsl(355, 79%, 56%);
+  border-left: 3px solid hsl(43, 50%, 54%);
 }
 .card-accent-gold {
-  border-left: 3px solid hsl(355, 79%, 56%);
+  border-left: 3px solid hsl(43, 50%, 54%);
 }
 
 /* ═══ SEPARATORS ═══ */
 .separator-dark {
-  border-bottom: 1px solid rgba(230,57,70,0.08);
+  border-bottom: 1px solid rgba(196,162,78,0.08);
 }
 .separator-light {
-  border-bottom: 1px solid rgba(230,57,70,0.08);
+  border-bottom: 1px solid rgba(196,162,78,0.08);
 }
 
 /* ═══ STAGGERED FADE-IN ═══ */
@@ -360,9 +360,9 @@
 
 /* ═══ ANIMATIONS ═══ */
 @keyframes pulse-ring {
-  0% { box-shadow: 0 0 0 0 hsl(355 79% 56% / 0.45); }
-  70% { box-shadow: 0 0 0 8px hsl(355 79% 56% / 0); }
-  100% { box-shadow: 0 0 0 0 hsl(355 79% 56% / 0); }
+  0% { box-shadow: 0 0 0 0 hsl(43 50% 54% / 0.45); }
+  70% { box-shadow: 0 0 0 8px hsl(43 50% 54% / 0); }
+  100% { box-shadow: 0 0 0 0 hsl(43 50% 54% / 0); }
 }
 
 .animate-pulse-ring {
@@ -443,8 +443,8 @@
 
 /* ═══ CTA PULSE GLOW ═══ */
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 24px rgba(230,57,70,0.35); }
-  50% { box-shadow: 0 0 40px rgba(230,57,70,0.55), 0 0 60px rgba(230,57,70,0.2); }
+  0%, 100% { box-shadow: 0 0 24px rgba(196,162,78,0.35); }
+  50% { box-shadow: 0 0 40px rgba(196,162,78,0.55), 0 0 60px rgba(196,162,78,0.2); }
 }
 .animate-pulse-glow {
   animation: pulse-glow 2.5s ease-in-out infinite;

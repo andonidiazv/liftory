@@ -14,12 +14,12 @@ const difficultyLabels: Record<string, string> = {
 };
 const difficultyColors: Record<string, string> = {
   beginner: "bg-[#7A8B5C]/20 text-[#7A8B5C]",
-  intermediate: "bg-[#E63946]/20 text-[#E63946]",
-  advanced: "bg-[#E63946]/20 text-[#E63946]",
+  intermediate: "bg-[#C4A24E]/20 text-[#C4A24E]",
+  advanced: "bg-[#C4A24E]/20 text-[#C4A24E]",
   all_levels: "bg-secondary text-muted-foreground",
 };
 const priorityLabels: Record<number, { label: string; sublabel: string; color?: string }> = {
-  0: { label: "Original", sublabel: "Volver al ejercicio del programa", color: "#E63946" },
+  0: { label: "Original", sublabel: "Volver al ejercicio del programa", color: "#C4A24E" },
   1: { label: "Opción 1", sublabel: "Regresión más cercana" },
   2: { label: "Opción 2", sublabel: "Alternativa más accesible" },
 };

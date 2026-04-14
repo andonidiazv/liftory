@@ -57,16 +57,16 @@ type Theme = {
 
 const altaTheme: Theme = {
   bg: "#0D0D0F", text: "#FAFAFA", textMuted: "#71717A", textSubtle: "#52525B",
-  cardBg: "#1A1A1D", border: "#27272A", btnBg: "#E63946", btnText: "#FFFFFF",
+  cardBg: "#1A1A1D", border: "#27272A", btnBg: "#C4A24E", btnText: "#0A0A0A",
   inputBg: "#1A1A1D", inputBorder: "#27272A", inputText: "#FAFAFA",
-  accent: "#E63946", accentMuted: "rgba(230,57,70,0.10)",
+  accent: "#C4A24E", accentMuted: "rgba(196,162,78,0.10)",
 };
 
 const bajaTheme: Theme = {
   bg: "#1A1A1D", text: "#E8E8E8", textMuted: "#8A8A8E", textSubtle: "#5A5A5E",
-  cardBg: "#27272A", border: "#38383C", btnBg: "#C0313C", btnText: "#FFFFFF",
+  cardBg: "#27272A", border: "#38383C", btnBg: "#A8893E", btnText: "#0A0A0A",
   inputBg: "#27272A", inputBorder: "#38383C", inputText: "#E8E8E8",
-  accent: "#C0313C", accentMuted: "rgba(192,49,60,0.10)",
+  accent: "#A8893E", accentMuted: "rgba(168,137,62,0.10)",
 };
 
 /* ───────── global animations ───────── */
@@ -343,7 +343,7 @@ export default function Onboarding() {
   if (step === 0) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center px-6" style={{ background: t.bg }}>
-        <h1 className="font-display splash-fade-in" style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-0.04em", color: "#E63946", animationDelay: "0s" }}>LIFTORY</h1>
+        <h1 className="font-display splash-fade-in" style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-0.04em", color: "#C4A24E", animationDelay: "0s" }}>LIFTORY</h1>
         <p className="mt-3 font-body splash-reveal" style={{ fontSize: 14, color: t.textMuted, letterSpacing: "0.04em" }}>The Wellness Community</p>
         <div className="mt-14 w-full max-w-sm splash-fade-in" style={{ animationDelay: "2s" }}>
           <button onClick={next}

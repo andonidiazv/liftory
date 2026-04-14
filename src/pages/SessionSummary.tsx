@@ -17,11 +17,11 @@ import Layout from "@/components/Layout";
 
 /* ── Block metadata ── */
 const BLOCK_META: Record<string, { icon: React.ElementType; accentColor: string; label: string }> = {
-  warmup:  { icon: Sun,        accentColor: "#E63946", label: "CALENTAMIENTO" },
-  working: { icon: Zap,        accentColor: "#E63946", label: "FUERZA" },
+  warmup:  { icon: Sun,        accentColor: "#C4A24E", label: "CALENTAMIENTO" },
+  working: { icon: Zap,        accentColor: "#C4A24E", label: "FUERZA" },
   backoff: { icon: Leaf,       accentColor: "#6B6B6F", label: "SCULPT" },
-  emom:    { icon: HeartPulse, accentColor: "#E63946", label: "FINISHER" },
-  amrap:   { icon: HeartPulse, accentColor: "#E63946", label: "FINISHER" },
+  emom:    { icon: HeartPulse, accentColor: "#C4A24E", label: "FINISHER" },
+  amrap:   { icon: HeartPulse, accentColor: "#C4A24E", label: "FINISHER" },
 };
 
 interface SessionBlock {

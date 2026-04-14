@@ -38,7 +38,7 @@ const plans: {
     detail: "cada 6 meses · $349 MXN/mes",
     savings: "Ahorras $300",
     badge: "POPULAR",
-    badgeColor: "#E63946",
+    badgeColor: "#C4A24E",
     btnLabel: "Suscribirse · $2,094 MXN/semestre",
   },
   {
@@ -48,7 +48,7 @@ const plans: {
     detail: "cada 12 meses · $299 MXN/mes",
     savings: "Ahorras $1,200",
     badge: "MEJOR PRECIO",
-    badgeColor: "#E63946",
+    badgeColor: "#C4A24E",
     btnLabel: "Suscribirse · $3,588 MXN/año",
   },
 ];
