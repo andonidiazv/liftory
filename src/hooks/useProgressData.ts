@@ -2,6 +2,14 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
+import {
+  setMacroGroups,
+  volumeStatus,
+  ALL_MACRO_GROUPS,
+  SETS_PER_WEEK_MAX,
+  type MacroGroup,
+  type VolumeStatus,
+} from "@/utils/muscleGroups";
 
 export interface PRRecord {
   actual_weight: number;
@@ -16,9 +24,16 @@ export interface DailyVolume {
   volume: number;
 }
 
-export interface MuscleVolume {
-  group: string;
-  volume: number;
+/**
+ * Effective sets per muscle group over the last 7 days.
+ * Replaces the old volume-based radar which was biased by muscle size.
+ */
+export interface MuscleSets {
+  group: MacroGroup;
+  sets: number; // completed working sets in past 7 days
+  status: VolumeStatus; // vs target range (10-20)
+  targetMin: number;
+  targetMax: number;
 }
 
 export interface ProgressStats {
@@ -47,7 +62,7 @@ function getMonday(d: Date): Date {
 interface ProgressServerData {
   prs: PRRecord[];
   weeklyVolume: DailyVolume[];
-  muscleData: MuscleVolume[];
+  muscleData: MuscleSets[];
   stats: ProgressStats;
 }
 
@@ -176,28 +191,52 @@ async function fetchProgressData(userId: string): Promise<ProgressServerData> {
     volume: Math.round(volByDay[formatDate(dd.date)] ?? 0),
   }));
 
-  // Muscle volume
-  const { data: muscleSets } = await supabase
+  // Muscle balance: effective sets per macro group over the past 7 days.
+  // A "set" counts once per macro group — a deadlift tagged with
+  // ["hamstrings", "glutes", "erector_spinae"] adds 1 set to Hamstrings,
+  // Gluteos, and Lumbar. Synonyms (biceps + biceps_brachii) are
+  // deduplicated so they don't double-count.
+  // Excludes warmup and cooldown set types — only working volume counts.
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const { data: recentSets } = await supabase
     .from("workout_sets")
-    .select("actual_weight, actual_reps, exercise:exercises(primary_muscles)")
+    .select("set_type, actual_weight, logged_at, exercise:exercises(primary_muscles)")
     .eq("user_id", userId)
-    .eq("is_completed", true);
+    .eq("is_completed", true)
+    .gte("logged_at", sevenDaysAgo.toISOString());
 
-  const muscleMap: Record<string, number> = {};
-  ((muscleSets as Array<{ actual_weight: number | null; actual_reps: number | null; exercise: { primary_muscles: string[] | null } | null }>) ?? []).forEach((s) => {
-    const vol = (s.actual_weight ?? 0) * (s.actual_reps ?? 0);
-    const muscles: string[] = s.exercise?.primary_muscles ?? [];
-    muscles.forEach((m: string) => {
-      muscleMap[m] = (muscleMap[m] ?? 0) + vol;
-    });
-  });
+  const setCounts: Record<MacroGroup, number> = ALL_MACRO_GROUPS.reduce(
+    (acc, g) => ({ ...acc, [g]: 0 }),
+    {} as Record<MacroGroup, number>
+  );
 
-  const muscleArr = Object.entries(muscleMap)
-    .map(([group, volume]) => ({ group, volume: Math.round(volume) }))
-    .sort((a, b) => b.volume - a.volume);
+  type RecentSet = {
+    set_type: string;
+    actual_weight: number | null;
+    exercise: { primary_muscles: string[] | null } | null;
+  };
+  for (const s of (recentSets as RecentSet[] | null) ?? []) {
+    // Skip warmups, cooldowns, and sets with no meaningful load (ignore 0
+    // but keep the bodyweight sentinel -1)
+    if (s.set_type === "warmup" || s.set_type === "cooldown") continue;
+    const w = s.actual_weight;
+    if (w == null || w === 0) continue;
 
-  const maxVol = muscleArr[0]?.volume || 1;
-  const muscleData = muscleArr.map((m) => ({ ...m, volume: Math.round((m.volume / maxVol) * 100) }));
+    const macros = setMacroGroups(s.exercise?.primary_muscles ?? null);
+    for (const macro of macros) {
+      setCounts[macro] += 1;
+    }
+  }
+
+  const muscleData: MuscleSets[] = ALL_MACRO_GROUPS.map((group) => ({
+    group,
+    sets: setCounts[group],
+    status: volumeStatus(setCounts[group]),
+    targetMin: 10,
+    targetMax: SETS_PER_WEEK_MAX,
+  }));
 
   return { prs, weeklyVolume, muscleData, stats };
 }

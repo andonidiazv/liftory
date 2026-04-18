@@ -2,16 +2,12 @@ import Layout from "@/components/Layout";
 import { useAuth } from "@/context/AuthContext";
 import { useProgressData } from "@/hooks/useProgressData";
 import { toDisplayWeight } from "@/utils/weightConversion";
-import { TrendingUp, Trophy, Flame, Dumbbell } from "lucide-react";
+import { TrendingUp, Trophy, Flame, Dumbbell, AlertTriangle, Check } from "lucide-react";
 import {
   XAxis,
   YAxis,
   ResponsiveContainer,
   Tooltip,
-  RadarChart,
-  Radar,
-  PolarGrid,
-  PolarAngleAxis,
   BarChart,
   Bar,
 } from "recharts";
@@ -182,28 +178,85 @@ export default function Progress() {
           ))}
         </div>
 
-        {/* Radar Chart - Muscle Balance */}
+        {/* Muscle Balance — effective sets per week */}
         {muscleData.length > 0 && (
           <div className="mt-8 mb-4">
             <span className="eyebrow-label">BALANCE MUSCULAR</span>
-            <p className="text-xs font-body" style={{ color: t.muted, marginTop: 2 }}>Volumen relativo por grupo muscular</p>
-            <div className="mt-4 card-fbb">
-              <ResponsiveContainer width="100%" height={260}>
-                <RadarChart data={muscleData} cx="50%" cy="50%" outerRadius="75%">
-                  <PolarGrid stroke={t.border} />
-                  <PolarAngleAxis dataKey="group" tick={{ fontSize: 11, fill: t.muted }} />
-                  <Radar name="Volumen" dataKey="volume" stroke={t.accent} fill={t.accent} fillOpacity={0.5} strokeWidth={2} />
-                </RadarChart>
-              </ResponsiveContainer>
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                {muscleData.slice(0, 6).map((d) => (
-                  <div key={d.group} className="card-fbb flex flex-col items-center py-3">
-                    <span className="font-body text-xs" style={{ color: t.muted }}>{d.group}</span>
-                    <span className="font-mono text-sm font-semibold mt-1 text-foreground">{d.volume}%</span>
+            <p className="text-xs font-body" style={{ color: t.muted, marginTop: 2 }}>
+              Sets efectivos últimos 7 días · meta 10-20 por grupo
+            </p>
+            <div className="mt-4 card-fbb space-y-3">
+              {muscleData.map((m) => {
+                // Status → accent color
+                const statusColor =
+                  m.status === "in_range" ? "#7A8B5C" :   // sage (on target)
+                  m.status === "high" ? t.accent :         // gold (junk volume risk)
+                  m.status === "low" ? "#D4896B" :         // amber (under target)
+                  t.subtle;                                 // gray (none)
+
+                // Bar width: fill up to target max; clamp 0-100%
+                const pct = Math.min(100, Math.round((m.sets / m.targetMax) * 100));
+                const badgeText =
+                  m.status === "none" ? "Sin trabajar" :
+                  m.status === "low" ? "Bajo" :
+                  m.status === "in_range" ? "En rango" :
+                  "Alto volumen";
+
+                return (
+                  <div key={m.group} className="flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-display text-[14px] font-semibold text-foreground">
+                          {m.group}
+                        </span>
+                        {m.status === "low" && m.sets > 0 && (
+                          <AlertTriangle className="h-3 w-3" style={{ color: "#D4896B" }} />
+                        )}
+                        {m.status === "in_range" && (
+                          <Check className="h-3 w-3" style={{ color: "#7A8B5C" }} />
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="font-mono tabular-nums"
+                          style={{ fontSize: 12, color: statusColor, fontWeight: 600 }}
+                        >
+                          {m.sets} {m.sets === 1 ? "set" : "sets"}
+                        </span>
+                        <span
+                          className="font-mono uppercase"
+                          style={{ fontSize: 9, letterSpacing: "0.08em", color: t.muted }}
+                        >
+                          {badgeText}
+                        </span>
+                      </div>
+                    </div>
+                    <div
+                      className="h-1.5 w-full rounded-full overflow-hidden relative"
+                      style={{ background: t.border }}
+                    >
+                      {/* Target range markers (min–max) */}
+                      <div
+                        className="absolute top-0 h-full"
+                        style={{
+                          left: `${(m.targetMin / m.targetMax) * 100}%`,
+                          width: `${100 - (m.targetMin / m.targetMax) * 100}%`,
+                          background: "rgba(122,139,92,0.10)",
+                        }}
+                      />
+                      {/* Current fill */}
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{ width: `${pct}%`, background: statusColor }}
+                      />
+                    </div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
+            <p className="mt-2 text-[10px] font-body" style={{ color: t.muted, lineHeight: 1.4 }}>
+              Sets efectivos = sets working/backoff completados con carga. La meta de 10-20 sets por semana se basa en evidencia de hipertrofia (Schoenfeld et al.).
+            </p>
           </div>
         )}
       </div>
