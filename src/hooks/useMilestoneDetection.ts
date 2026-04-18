@@ -3,7 +3,6 @@ import type { Milestone, PRDetail } from "@/components/celebrations/MilestoneCel
 
 // Brand colors
 const SAGE = "#7A8B5C";
-const TERRACOTTA = "#C4A24E";
 const GOLD = "#C4A24E";
 const DARK = "#E8E8E8";
 
@@ -70,7 +69,7 @@ function detectMilestone(data: MilestoneCheckData): Milestone | null {
       id: "perfect_week",
       title: "Semana perfecta",
       subtitle: "5 de 5 sesiones de fuerza completadas. Consistencia de elite.",
-      accentColor: TERRACOTTA,
+      accentColor: GOLD,
     };
   }
 
@@ -89,7 +88,7 @@ function detectMilestone(data: MilestoneCheckData): Milestone | null {
   const streakMilestones = [
     { days: 3, title: "3 dias seguidos", subtitle: "Tres dias sin fallar. El habito se esta formando.", color: SAGE },
     { days: 7, title: "1 semana de streak", subtitle: "7 dias consecutivos entrenando. Ya eres imparable.", color: SAGE },
-    { days: 14, title: "2 semanas de streak", subtitle: "14 dias sin parar. Esto ya es disciplina.", color: TERRACOTTA },
+    { days: 14, title: "2 semanas de streak", subtitle: "14 dias sin parar. Esto ya es disciplina.", color: GOLD },
     { days: 30, title: "30 dias de streak", subtitle: "Un mes entero sin fallar. Eres de otro nivel.", color: GOLD },
   ];
 
@@ -108,8 +107,8 @@ function detectMilestone(data: MilestoneCheckData): Milestone | null {
   // 6. Workout count milestones
   const countMilestones = [
     { count: 10, title: "10 workouts", subtitle: "Ya llevas 10 sesiones completadas. La base se esta construyendo.", color: SAGE },
-    { count: 25, title: "25 workouts", subtitle: "Un cuarto de centenar. Tu cuerpo ya esta cambiando.", color: TERRACOTTA },
-    { count: 50, title: "50 workouts", subtitle: "Medio centenar de sesiones. Veterano.", color: TERRACOTTA },
+    { count: 25, title: "25 workouts", subtitle: "Un cuarto de centenar. Tu cuerpo ya esta cambiando.", color: GOLD },
+    { count: 50, title: "50 workouts", subtitle: "Medio centenar de sesiones. Veterano.", color: GOLD },
     { count: 100, title: "100 workouts", subtitle: "Triple digitos. Eres parte del 1% que llega aqui.", color: GOLD },
   ];
 
@@ -129,8 +128,8 @@ function detectMilestone(data: MilestoneCheckData): Milestone | null {
   const phaseCompletions: Record<number, { title: string; subtitle: string; color: string }> = {
     1: { title: "Fase BASE completada", subtitle: "Los cimientos estan listos. Ahora a construir.", color: SAGE },
     2: { title: "Fase BASE+ completada", subtitle: "El volumen sube. Tu cuerpo se esta adaptando.", color: SAGE },
-    3: { title: "ACUMULACION completada", subtitle: "Volumen acumulado. La fuerza real viene ahora.", color: TERRACOTTA },
-    4: { title: "INTENSIFICACION completada", subtitle: "La intensidad maxima esta cerca. Preparado para el peak.", color: TERRACOTTA },
+    3: { title: "ACUMULACION completada", subtitle: "Volumen acumulado. La fuerza real viene ahora.", color: GOLD },
+    4: { title: "INTENSIFICACION completada", subtitle: "La intensidad maxima esta cerca. Preparado para el peak.", color: GOLD },
     5: { title: "PEAK completado", subtitle: "Alcanzaste tu maximo rendimiento en este ciclo.", color: GOLD },
     6: { title: "Ciclo completado", subtitle: "6 semanas de transformacion. Nuevo ciclo, nuevo nivel.", color: DARK },
   };
