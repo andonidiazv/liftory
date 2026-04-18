@@ -9,6 +9,7 @@ import { useMilestoneDetection } from "@/hooks/useMilestoneDetection";
 import MilestoneCelebration from "@/components/celebrations/MilestoneCelebration";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
+import { toDisplayWeight } from "@/utils/weightConversion";
 
 // ── Question pool ──────────────────────────────────────────────
 interface FeedbackQuestion {
@@ -408,12 +409,14 @@ export default function WorkoutComplete() {
                 previousBest = prevData[0].actual_weight;
               }
             } catch {}
+            // actual_weight is stored in kg (canonical); convert to display unit
+            const displayUnit = weightUnit || "kg";
             prDetail = {
               exerciseName: bestPR.exercise.name,
-              weight: bestPR.actual_weight!,
+              weight: toDisplayWeight(bestPR.actual_weight!, displayUnit),
               reps: bestPR.actual_reps ?? 0,
-              unit: weightUnit || "kg",
-              previousBest,
+              unit: displayUnit,
+              previousBest: previousBest != null ? toDisplayWeight(previousBest, displayUnit) : null,
             };
           }
         }

@@ -53,7 +53,9 @@ export default function MilestoneCelebration({
 
   const isPR = !!milestone.prDetail;
   const pr = milestone.prDetail;
-  const improvement = pr && pr.previousBest != null ? pr.weight - pr.previousBest : null;
+  const improvementRaw = pr && pr.previousBest != null ? pr.weight - pr.previousBest : null;
+  // Round to 1 decimal — removes floating-point noise like 0.41000000000000014
+  const improvement = improvementRaw != null ? Math.round(improvementRaw * 10) / 10 : null;
 
   // PR milestones use dark card, others use light card
   if (isPR && pr) {
