@@ -96,6 +96,7 @@ export default function Workout() {
     finishWorkout,
     getSuggestedWeight,
     exerciseE1RM,
+    exerciseDeltas,
     refetch,
   } = useWorkoutData(id);
 
@@ -448,6 +449,7 @@ export default function Workout() {
           saving={saving}
           workoutId={id}
           nextBlockName={nextBlock?.name ?? null}
+          exerciseDeltas={exerciseDeltas}
           onBack={() => {
             setActiveBlock(null);
             refetch();
@@ -610,6 +612,7 @@ export default function Workout() {
         completedSets={completedSets}
         programTotalWeeks={programTotalWeeks}
         scrollToBlockId={lastVisitedBlockId}
+        exerciseDeltas={exerciseDeltas}
         onBack={() => navigate("/home")}
         onBlockSelect={handleBlockSelect}
         onFinish={() => {

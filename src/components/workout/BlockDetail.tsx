@@ -9,7 +9,7 @@ import RepsPickerSheet from "./RepsPickerSheet";
 
 import type { WorkoutBlock } from "./WorkoutOverview";
 import ExerciseVideoOverlay from "./ExerciseVideoOverlay";
-import type { WorkoutSetData, ExerciseGroup } from "@/hooks/useWorkoutData";
+import type { WorkoutSetData, ExerciseGroup, ExerciseDelta } from "@/hooks/useWorkoutData";
 import { toDisplayWeight, toStorageWeight } from "@/utils/weightConversion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -82,6 +82,16 @@ interface Props {
   onSwapExercise?: () => void;
   onNextBlock?: () => void;
   onFinishWorkout?: () => void;
+  exerciseDeltas?: Record<string, ExerciseDelta>;
+}
+
+/** Format a delta into a human-readable chip label for an exercise */
+function formatDelta(d: ExerciseDelta): string[] {
+  const parts: string[] = [];
+  if (d.setsDelta !== 0) parts.push(`${d.setsDelta > 0 ? "+" : ""}${d.setsDelta} set${Math.abs(d.setsDelta) !== 1 ? "s" : ""}`);
+  if (d.repsFrom != null && d.repsTo != null) parts.push(`${d.repsFrom}→${d.repsTo} reps`);
+  if (d.rpeFrom != null && d.rpeTo != null) parts.push(`RPE ${d.rpeFrom}→${d.rpeTo}`);
+  return parts;
 }
 
 function formatPrescription(sets: WorkoutSetData[], hideRest = false): string {
@@ -123,6 +133,7 @@ export default function BlockDetail({
   onSwapExercise,
   onNextBlock,
   onFinishWorkout,
+  exerciseDeltas,
 }: Props) {
   const { user, refreshProfile } = useAuth();
   const { isDark } = useDarkMode();
@@ -512,6 +523,7 @@ export default function BlockDetail({
             onSwapExercise={onSwapExercise}
             localUnit={localUnit}
             onToggleUnit={handleToggleUnit}
+            exerciseDeltas={exerciseDeltas}
           />
         ) : (
           <div className="flex flex-col gap-6">
@@ -536,6 +548,7 @@ export default function BlockDetail({
                 onSwapExercise={onSwapExercise}
                 localUnit={localUnit}
                 onToggleUnit={handleToggleUnit}
+                delta={exerciseDeltas?.[group.exercise.id]}
               />
             ))}
           </div>
@@ -585,7 +598,7 @@ export default function BlockDetail({
 function SupersetContent({
   block, weightUnit, saving, getInputs, updateInput, handleToggle,
   updateCompletedWeight, updateCompletedReps, getSuggestedWeight, prFlash, justCompleted, isCompleted, onOpenVideo,
-  workoutId, userId, onSwapExercise, localUnit, onToggleUnit,
+  workoutId, userId, onSwapExercise, localUnit, onToggleUnit, exerciseDeltas,
 }: {
   block: WorkoutBlock; weightUnit: string; saving: boolean;
   getInputs: (s: WorkoutSetData) => SetInputs;
@@ -600,6 +613,7 @@ function SupersetContent({
   workoutId?: string; userId?: string; onSwapExercise?: () => void;
   localUnit: string;
   onToggleUnit: () => void;
+  exerciseDeltas?: Record<string, ExerciseDelta>;
 }) {
   const label = block.supersetGroup?.label || "SUPERSET";
   return (
@@ -632,6 +646,7 @@ function SupersetContent({
             onSwapExercise={onSwapExercise}
             localUnit={localUnit}
             onToggleUnit={onToggleUnit}
+            delta={exerciseDeltas?.[group.exercise.id]}
             hideRest
           />
         ))}
@@ -644,7 +659,7 @@ function SupersetContent({
 function ExerciseCard({
   group, weightUnit, saving, getInputs, updateInput, onToggle,
   updateCompletedWeight, updateCompletedReps, getSuggestedWeight, prFlash, justCompleted, isCompleted, onOpenVideo,
-  workoutId, userId, onSwapExercise, localUnit, onToggleUnit, hideRest = false,
+  workoutId, userId, onSwapExercise, localUnit, onToggleUnit, hideRest = false, delta,
 }: {
   group: ExerciseGroup; weightUnit: string; saving: boolean;
   getInputs: (s: WorkoutSetData) => SetInputs;
@@ -662,6 +677,7 @@ function ExerciseCard({
   localUnit: string;
   onToggleUnit: () => void;
   hideRest?: boolean;
+  delta?: ExerciseDelta;
 }) {
   const { isDark } = useDarkMode();
   const tc = isDark ? noche : dia;
@@ -781,6 +797,18 @@ function ExerciseCard({
           <p className="font-mono text-muted-foreground mt-0.5" style={{ fontSize: 11 }}>
             {formatPrescription(sets, hideRest)}
           </p>
+          {delta && (() => {
+            const parts = formatDelta(delta);
+            if (parts.length === 0) return null;
+            return (
+              <p
+                className="font-mono mt-1"
+                style={{ fontSize: 10, color: tc.accent, letterSpacing: "0.03em", fontWeight: 600 }}
+              >
+                vs semana pasada: {parts.join(" · ")}
+              </p>
+            );
+          })()}
         </div>
         <span className="font-mono text-muted-foreground shrink-0" style={{ fontSize: 12 }}>
           {completedCount}/{sets.length}

@@ -1,5 +1,5 @@
 import { ChevronLeft, Check, Clock, ChevronRight, AlertCircle, PersonStanding } from "lucide-react";
-import type { WorkoutData, ExerciseGroup, SupersetGroup } from "@/hooks/useWorkoutData";
+import type { WorkoutData, ExerciseGroup, SupersetGroup, ExerciseDelta } from "@/hooks/useWorkoutData";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
@@ -102,10 +102,43 @@ interface Props {
   completedSets: number;
   programTotalWeeks: number;
   scrollToBlockId?: string | null;
+  exerciseDeltas?: Record<string, ExerciseDelta>;
   onBack: () => void;
   onBlockSelect: (block: WorkoutBlock) => void;
   onFinish: () => void;
   saving: boolean;
+}
+
+/** Aggregate deltas across all exercises in a block into short chip labels */
+function getBlockDeltaChips(block: WorkoutBlock, deltas: Record<string, ExerciseDelta>): string[] {
+  const chips: string[] = [];
+  let setsDelta = 0;
+  const repsChanges: Array<{ from: number; to: number }> = [];
+  const rpeChanges: Array<{ from: number; to: number }> = [];
+
+  for (const g of block.groups) {
+    const d = deltas[g.exercise.id];
+    if (!d) continue;
+    setsDelta += d.setsDelta;
+    if (d.repsFrom != null && d.repsTo != null) repsChanges.push({ from: d.repsFrom, to: d.repsTo });
+    if (d.rpeFrom != null && d.rpeTo != null) rpeChanges.push({ from: d.rpeFrom, to: d.rpeTo });
+  }
+
+  if (setsDelta !== 0) chips.push(`${setsDelta > 0 ? "+" : ""}${setsDelta} set${Math.abs(setsDelta) !== 1 ? "s" : ""}`);
+  if (repsChanges.length > 0) {
+    const from = repsChanges[0].from;
+    const to = repsChanges[0].to;
+    const uniform = repsChanges.every((c) => c.from === from && c.to === to);
+    chips.push(uniform ? `${from}→${to} reps` : `reps cambiaron`);
+  }
+  if (rpeChanges.length > 0) {
+    const from = rpeChanges[0].from;
+    const to = rpeChanges[0].to;
+    const uniform = rpeChanges.every((c) => c.from === from && c.to === to);
+    chips.push(uniform ? `RPE ${from}→${to}` : `RPE cambio`);
+  }
+
+  return chips;
 }
 
 export default function WorkoutOverview({
@@ -115,6 +148,7 @@ export default function WorkoutOverview({
   completedSets,
   programTotalWeeks,
   scrollToBlockId,
+  exerciseDeltas,
   onBack,
   onBlockSelect,
   onFinish,
@@ -315,6 +349,29 @@ export default function WorkoutOverview({
                         {block.totalSets} sets · ~{block.estimatedMinutes} min
                       </p>
                     )}
+                    {exerciseDeltas && !isMobility && (() => {
+                      const chips = getBlockDeltaChips(block, exerciseDeltas);
+                      if (chips.length === 0) return null;
+                      return (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {chips.map((chip, idx) => (
+                            <span
+                              key={idx}
+                              className="font-mono rounded-full px-2 py-0.5"
+                              style={{
+                                fontSize: 9,
+                                letterSpacing: "0.05em",
+                                backgroundColor: t.accentBgStrong,
+                                color: t.accent,
+                                fontWeight: 600,
+                              }}
+                            >
+                              {chip}
+                            </span>
+                          ))}
+                        </div>
+                      );
+                    })()}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="font-mono text-muted-foreground" style={{ fontSize: 12 }}>

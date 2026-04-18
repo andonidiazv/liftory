@@ -71,6 +71,16 @@ export interface SupersetGroup {
   groups: ExerciseGroup[];
 }
 
+/** Week-over-week delta for a single exercise */
+export interface ExerciseDelta {
+  setsDelta: number; // +1, -1, 0
+  repsFrom: number | null;
+  repsTo: number | null;
+  rpeFrom: number | null;
+  rpeTo: number | null;
+  hasChange: boolean;
+}
+
 export function useWorkoutData(workoutId: string | undefined) {
   const { user, profile } = useAuth();
   const [workout, setWorkout] = useState<WorkoutData | null>(null);
@@ -81,6 +91,7 @@ export function useWorkoutData(workoutId: string | undefined) {
   const [saving, setSaving] = useState(false);
   const [exerciseE1RM, setExerciseE1RM] = useState<Record<string, number>>({});
   const [avgRirByExercise, setAvgRirByExercise] = useState<Record<string, number>>({});
+  const [exerciseDeltas, setExerciseDeltas] = useState<Record<string, ExerciseDelta>>({});
 
   const weightUnit = profile?.weight_unit || "kg";
 
@@ -194,7 +205,10 @@ export function useWorkoutData(workoutId: string | undefined) {
       setSupersetGroups(ssGroups);
 
       // Fetch historical performance and compute e1RM per exercise
+      // Window: last 42 days (6 weeks) — keeps suggestions relevant to current fitness
       const exerciseIds = [...new Set(rawSets.map((s) => s.exercise_id))];
+      const windowStart = new Date();
+      windowStart.setDate(windowStart.getDate() - 42);
       if (exerciseIds.length > 0) {
         const { data: pastSets } = await supabase
           .from("workout_sets")
@@ -206,6 +220,7 @@ export function useWorkoutData(workoutId: string | undefined) {
           .gt("actual_weight", 0)
           .not("actual_reps", "is", null)
           .gt("actual_reps", 0)
+          .gte("logged_at", windowStart.toISOString())
           .order("logged_at", { ascending: false });
 
         if (pastSets && pastSets.length > 0) {
@@ -239,6 +254,90 @@ export function useWorkoutData(workoutId: string | undefined) {
       } else {
         setExerciseE1RM({});
         setAvgRirByExercise({});
+      }
+
+      // ── Week-over-week deltas ──
+      // Fetch same day_label in same program for the previous week to compare programming changes.
+      if (w.week_number > 1 && w.program_id && w.day_label) {
+        const { data: prevWk } = await supabase
+          .from("workouts")
+          .select("id, workout_sets(exercise_id, planned_reps, planned_rpe, set_type)")
+          .eq("user_id", user.id)
+          .eq("program_id", w.program_id)
+          .eq("day_label", w.day_label)
+          .eq("week_number", w.week_number - 1)
+          .maybeSingle();
+
+        if (prevWk && Array.isArray(prevWk.workout_sets)) {
+          // Group previous-week sets by exercise_id (only strength-type sets count)
+          type PrevSet = { exercise_id: string; planned_reps: number | null; planned_rpe: number | null; set_type: string };
+          const prevByExercise: Record<string, PrevSet[]> = {};
+          for (const ps of prevWk.workout_sets as PrevSet[]) {
+            if (ps.set_type === "cooldown" || ps.set_type === "warmup") continue;
+            if (!prevByExercise[ps.exercise_id]) prevByExercise[ps.exercise_id] = [];
+            prevByExercise[ps.exercise_id].push(ps);
+          }
+
+          // Group current sets the same way
+          const currByExercise: Record<string, PrevSet[]> = {};
+          for (const cs of rawSets) {
+            if (cs.set_type === "cooldown" || cs.set_type === "warmup") continue;
+            if (!currByExercise[cs.exercise_id]) currByExercise[cs.exercise_id] = [];
+            currByExercise[cs.exercise_id].push({
+              exercise_id: cs.exercise_id,
+              planned_reps: cs.planned_reps,
+              planned_rpe: cs.planned_rpe,
+              set_type: cs.set_type,
+            });
+          }
+
+          const deltas: Record<string, ExerciseDelta> = {};
+          const mode = (arr: (number | null)[]): number | null => {
+            const counts = new Map<number, number>();
+            for (const v of arr) {
+              if (v == null) continue;
+              counts.set(v, (counts.get(v) || 0) + 1);
+            }
+            let best: number | null = null;
+            let bestCount = 0;
+            for (const [val, c] of counts) {
+              if (c > bestCount) { best = val; bestCount = c; }
+            }
+            return best;
+          };
+
+          for (const exId of Object.keys(currByExercise)) {
+            const curr = currByExercise[exId];
+            const prev = prevByExercise[exId];
+            if (!prev || prev.length === 0) continue; // no prior reference — skip
+
+            const setsDelta = curr.length - prev.length;
+            const repsFrom = mode(prev.map((s) => s.planned_reps));
+            const repsTo = mode(curr.map((s) => s.planned_reps));
+            const rpeFrom = mode(prev.map((s) => s.planned_rpe));
+            const rpeTo = mode(curr.map((s) => s.planned_rpe));
+
+            const repsChanged = repsFrom != null && repsTo != null && repsFrom !== repsTo;
+            const rpeChanged = rpeFrom != null && rpeTo != null && rpeFrom !== rpeTo;
+            const hasChange = setsDelta !== 0 || repsChanged || rpeChanged;
+
+            if (hasChange) {
+              deltas[exId] = {
+                setsDelta,
+                repsFrom: repsChanged ? repsFrom : null,
+                repsTo: repsChanged ? repsTo : null,
+                rpeFrom: rpeChanged ? rpeFrom : null,
+                rpeTo: rpeChanged ? rpeTo : null,
+                hasChange: true,
+              };
+            }
+          }
+          setExerciseDeltas(deltas);
+        } else {
+          setExerciseDeltas({});
+        }
+      } else {
+        setExerciseDeltas({});
       }
     } catch (err) {
       // Network error or auth refresh failure — don't crash, just stop loading
@@ -477,5 +576,6 @@ export function useWorkoutData(workoutId: string | undefined) {
     exerciseE1RM,
     getProjectedWeight,
     getSuggestedWeight,
+    exerciseDeltas,
   };
 }
