@@ -69,7 +69,14 @@ function getBlockWarnings(block: WorkoutBlock): { unloggedSets: number; missingW
   for (const g of block.groups) {
     for (const s of g.sets) {
       if (!s.is_completed) unloggedSets++;
-      else if (isStrength && (s.actual_weight == null || s.actual_weight === 0)) missingWeights++;
+      else if (
+        isStrength &&
+        // Timed sets (planks, holds) legitimately have actual_weight=0 — skip check
+        (s.planned_duration_seconds ?? 0) === 0 &&
+        (s.actual_weight == null || s.actual_weight === 0)
+      ) {
+        missingWeights++;
+      }
     }
   }
   return { unloggedSets, missingWeights };

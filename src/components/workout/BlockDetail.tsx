@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Check, Dumbbell, Loader2, Quote, Trophy, Shuffle, X } from "lucide-react";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { ChevronLeft, ChevronRight, Check, Dumbbell, Loader2, Quote, Trophy, Shuffle, X, Play, Pause, Timer } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
 import ExerciseThumbnail from "./ExerciseThumbnail";
@@ -290,13 +290,17 @@ export default function BlockDetail({
       onRestStart(set.planned_rest_seconds);
     }
 
-    const actualWeight = inputs.weight === "BW"
+    // Timed sets (planks, holds) don't have weight/reps inputs — use sentinel
+    const isTimed = (set.planned_duration_seconds ?? 0) > 0;
+    const actualWeight = isTimed
+      ? 0
+      : inputs.weight === "BW"
       ? BODYWEIGHT_SENTINEL
       : toStorageWeight(parseFloat(inputs.weight) || 0, localUnit);
 
     const result = await onCompleteSet(set, {
       actual_weight: actualWeight,
-      actual_reps: parseInt(inputs.reps) || 0,
+      actual_reps: isTimed ? 1 : (parseInt(inputs.reps) || 0),
     });
 
     if (!result) {
@@ -925,6 +929,28 @@ function ExerciseCard({
           const isJustDone = justCompleted === set.id;
           const rpeHigh = (set.planned_rpe ?? 0) >= 9;
           const setCue = set.coaching_cue_override;
+          const isTimed = (set.planned_duration_seconds ?? 0) > 0;
+
+          // Timed sets (planks, holds, etc.): render a timer instead of weight/reps inputs
+          if (isTimed) {
+            return (
+              <TimedSetRow
+                key={set.id}
+                set={set}
+                index={si}
+                completed={completed}
+                isJustDone={isJustDone}
+                rpeHigh={rpeHigh}
+                accent={tc.accent}
+                accentBg={tc.accentBg}
+                accentBgStrong={tc.accentBgStrong}
+                muted={tc.muted}
+                isDark={isDark}
+                onComplete={() => onToggle(set)}
+                saving={saving}
+              />
+            );
+          }
 
           return (
             <div
@@ -1221,6 +1247,159 @@ function CardioCard({
           </button>
         </>
       )}
+    </div>
+  );
+}
+
+/* ═══════ TIMED SET ROW (for planks, dead hangs, L-sit holds, etc.) ═══════
+ * Renders a countdown timer instead of weight/reps inputs when a set has
+ * planned_duration_seconds > 0. Auto-completes the set when the timer
+ * reaches zero. User can also manually complete by tapping the check.
+ * Tap the timer to start/pause. Stored value uses actual_weight=0,
+ * actual_reps=1 (sentinel for "held once").
+ */
+function TimedSetRow({
+  set, index, completed, isJustDone, rpeHigh, accent, accentBg, accentBgStrong, muted, isDark, onComplete, saving,
+}: {
+  set: WorkoutSetData;
+  index: number;
+  completed: boolean;
+  isJustDone: boolean;
+  rpeHigh: boolean;
+  accent: string;
+  accentBg: string;
+  accentBgStrong: string;
+  muted: string;
+  isDark: boolean;
+  onComplete: () => void;
+  saving: boolean;
+}) {
+  const targetSec = set.planned_duration_seconds ?? 60;
+  const [remaining, setRemaining] = useState(targetSec);
+  const [running, setRunning] = useState(false);
+  const tickRef = useRef<number | null>(null);
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
+  const completedRef = useRef(completed);
+  useEffect(() => { completedRef.current = completed; }, [completed]);
+
+  // Countdown — only depends on `running`, uses refs for stable callbacks
+  useEffect(() => {
+    if (!running) return;
+    const intervalId = window.setInterval(() => {
+      setRemaining((r) => {
+        if (r <= 1) {
+          setRunning(false);
+          if (!completedRef.current) onCompleteRef.current();
+          return 0;
+        }
+        return r - 1;
+      });
+    }, 1000);
+    tickRef.current = intervalId;
+    return () => { window.clearInterval(intervalId); };
+  }, [running]);
+
+  // Reset timer when the set gets uncompleted externally
+  useEffect(() => {
+    if (!completed) {
+      setRemaining(targetSec);
+      setRunning(false);
+    }
+  }, [completed, targetSec]);
+
+  const mmss = (s: number) => {
+    const m = Math.floor(s / 60);
+    const r = s % 60;
+    return `${m}:${r.toString().padStart(2, "0")}`;
+  };
+
+  const handleTimerTap = () => {
+    if (completed) return;
+    if (remaining === 0) {
+      setRemaining(targetSec);
+      setRunning(true);
+    } else {
+      setRunning((r) => !r);
+    }
+  };
+
+  const pct = completed ? 100 : ((targetSec - remaining) / targetSec) * 100;
+
+  return (
+    <div
+      className="flex items-center gap-2 px-1 py-1.5 rounded-lg transition-all"
+      style={{
+        opacity: completed ? 0.8 : 1,
+        backgroundColor: isJustDone ? accentBg : undefined,
+      }}
+    >
+      <span
+        className="flex h-5 w-5 items-center justify-center rounded-full font-mono text-foreground shrink-0"
+        style={{ fontSize: 11, backgroundColor: "hsl(var(--secondary))" }}
+      >
+        {index + 1}
+      </span>
+
+      <span
+        className="font-mono rounded-full px-1.5 py-0.5 text-center shrink-0"
+        style={{
+          fontSize: 9,
+          backgroundColor: rpeHigh ? accentBgStrong : (isDark ? "rgba(138,126,114,0.15)" : "rgba(129,109,102,0.1)"),
+          color: rpeHigh ? accent : muted,
+        }}
+      >
+        {set.planned_rpe ? `RPE ${set.planned_rpe}` : "—"}
+      </span>
+
+      <button
+        onClick={handleTimerTap}
+        disabled={completed}
+        className="flex-1 relative overflow-hidden rounded-lg px-3 py-2 transition-all"
+        style={{
+          background: completed ? accentBg : "hsl(var(--border))",
+          border: `1px solid ${running ? accent : "transparent"}`,
+        }}
+      >
+        {/* Progress bar fill */}
+        <div
+          className="absolute inset-y-0 left-0 transition-all"
+          style={{
+            width: `${pct}%`,
+            background: completed ? accent : accentBgStrong,
+            opacity: completed ? 0.35 : 0.25,
+          }}
+        />
+        <div className="relative flex items-center justify-center gap-2">
+          {running ? (
+            <Pause className="h-3.5 w-3.5" style={{ color: accent }} />
+          ) : completed ? (
+            <Check className="h-3.5 w-3.5" style={{ color: accent }} />
+          ) : remaining < targetSec ? (
+            <Play className="h-3.5 w-3.5" style={{ color: accent }} />
+          ) : (
+            <Timer className="h-3.5 w-3.5 text-muted-foreground" />
+          )}
+          <span
+            className="font-mono text-foreground tabular-nums"
+            style={{ fontSize: 14, fontWeight: 600 }}
+          >
+            {mmss(remaining)}
+          </span>
+        </div>
+      </button>
+
+      <button
+        onClick={onComplete}
+        disabled={saving}
+        className="flex h-7 w-7 items-center justify-center rounded-full border-2 transition-all mx-auto shrink-0"
+        style={{
+          borderColor: completed ? "hsl(var(--primary))" : "hsl(var(--border))",
+          backgroundColor: completed ? "hsl(var(--primary))" : "transparent",
+        }}
+      >
+        {completed ? <Check className="h-3.5 w-3.5 text-primary-foreground" /> : null}
+      </button>
     </div>
   );
 }
