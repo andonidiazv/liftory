@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { usePrimeWeeklyReset, PrevWeekMetrics } from "@/hooks/usePrimeWeeklyReset";
 import { useDarkMode } from "@/hooks/useDarkMode";
+import { useAuth } from "@/context/AuthContext";
+import { toDisplayWeight } from "@/utils/weightConversion";
 import { dia, noche } from "@/lib/colors";
 import {
   Loader2,
@@ -50,10 +52,10 @@ function AnimatedScore({ target }: { target: number }) {
   return <>{current}</>;
 }
 
-const metricCards = [
+const buildMetricCards = (weightUnit: string) => [
   { key: "sets", icon: <Repeat className="h-4 w-4" />, label: "Sets", comparable: true },
   { key: "reps", icon: <Hash className="h-4 w-4" />, label: "Repeticiones", comparable: true },
-  { key: "volume", icon: <Weight className="h-4 w-4" />, label: "Volumen (kg)", comparable: true },
+  { key: "volume", icon: <Weight className="h-4 w-4" />, label: `Volumen (${weightUnit})`, comparable: true },
   { key: "consistency", icon: <Target className="h-4 w-4" />, label: "Consistencia", comparable: true },
   { key: "streak", icon: <Flame className="h-4 w-4" />, label: "Racha", comparable: false },
 ] as const;
@@ -142,6 +144,9 @@ function Footer() {
 
 export default function PrimeWeeklyReset({ selectedDate }: PrimeWeeklyResetProps) {
   const { metrics, loading } = usePrimeWeeklyReset(selectedDate);
+  const { profile } = useAuth();
+  const weightUnit = profile?.weight_unit || "kg";
+  const metricCards = buildMetricCards(weightUnit);
 
   if (loading) {
     return (
@@ -198,10 +203,11 @@ export default function PrimeWeeklyReset({ selectedDate }: PrimeWeeklyResetProps
   }
 
   // ── Full PRIME Weekly Reset with metrics ──
+  const displayVolume = toDisplayWeight(metrics.totalVolume, weightUnit);
   const metricValues: Record<string, string> = {
     sets: String(metrics.totalSets),
     reps: String(metrics.totalReps),
-    volume: metrics.totalVolume.toLocaleString("es-MX"),
+    volume: displayVolume.toLocaleString("es-MX"),
     consistency: `${metrics.consistency}%`,
     streak: `${metrics.weekStreak} sem`,
   };
@@ -274,16 +280,18 @@ export default function PrimeWeeklyReset({ selectedDate }: PrimeWeeklyResetProps
         const bottomRow = metricCards.slice(3);
 
         const renderCard = (card: typeof metricCards[number]) => {
-          const numericCurrent = card.key === "volume" ? metrics.totalVolume
+          // Volume values are in kg (storage); convert to display unit for comparison too
+          const numericCurrent = card.key === "volume" ? displayVolume
             : card.key === "sets" ? metrics.totalSets
             : card.key === "reps" ? metrics.totalReps
             : card.key === "consistency" ? metrics.consistency
             : 0;
 
           const showComparison = card.comparable && metrics.prevWeek && !metrics.isFirstWeek;
-          const prevValue = showComparison
+          const rawPrev = showComparison
             ? metrics.prevWeek![prevKeyMap[card.key as ComparableKey]]
             : 0;
+          const prevValue = card.key === "volume" ? toDisplayWeight(rawPrev, weightUnit) : rawPrev;
 
           return (
             <div
@@ -334,7 +342,7 @@ export default function PrimeWeeklyReset({ selectedDate }: PrimeWeeklyResetProps
             </p>
           </div>
           <span className="font-display text-[18px] font-bold text-primary">
-            {metrics.bestPR.weight} kg
+            {toDisplayWeight(metrics.bestPR.weight, weightUnit)} {weightUnit}
           </span>
         </div>
       )}

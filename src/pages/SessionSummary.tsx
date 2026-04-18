@@ -14,6 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import Layout from "@/components/Layout";
+import { toDisplayWeight } from "@/utils/weightConversion";
 
 /* ── Block metadata ── */
 const BLOCK_META: Record<string, { icon: React.ElementType; accentColor: string; label: string }> = {
@@ -100,7 +101,7 @@ export default function SessionSummary() {
   const fromWorkout = searchParams.get("from") === "workout";
   const { startWorkout, workoutActive } = useApp();
 
-  const { workout, sets, loading } = useWorkoutData(workoutId);
+  const { workout, sets, loading, weightUnit } = useWorkoutData(workoutId);
 
   const [expanded, setExpanded] = useState<string[]>(["working-1"]);
 
@@ -282,7 +283,7 @@ export default function SessionSummary() {
                                   </span>
                                   {ex.weight != null && ex.weight > 0 && (
                                     <span className="font-mono text-xs text-foreground font-medium" style={{ letterSpacing: "0.05em" }}>
-                                      {ex.weight} kg
+                                      {toDisplayWeight(ex.weight, weightUnit)} {weightUnit}
                                     </span>
                                   )}
                                   {ex.tempo && (

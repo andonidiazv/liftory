@@ -1,6 +1,7 @@
 import Layout from "@/components/Layout";
 import { useAuth } from "@/context/AuthContext";
 import { useProgressData } from "@/hooks/useProgressData";
+import { toDisplayWeight } from "@/utils/weightConversion";
 import { TrendingUp, Trophy, Flame, Dumbbell } from "lucide-react";
 import {
   XAxis,
@@ -59,6 +60,7 @@ export default function Progress() {
   const { prs, weeklyVolume, muscleData, stats, loading } = useProgressData();
   const { isDark } = useDarkMode();
   const t = isDark ? noche : dia;
+  const weightUnit = profile?.weight_unit || "kg";
 
   if (loading) {
     return (
@@ -105,7 +107,7 @@ export default function Progress() {
                     <YAxis hide />
                     <Tooltip
                       contentStyle={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: 12, fontSize: 12, color: t.text }}
-                      formatter={(value: number) => [`${value.toLocaleString()} kg`, "Volumen"]}
+                      formatter={(value: number) => [`${toDisplayWeight(value, weightUnit).toLocaleString()} ${weightUnit}`, "Volumen"]}
                     />
                     <Bar dataKey="volume" fill={t.accent} radius={[4, 4, 0, 0]} />
                   </BarChart>
@@ -139,10 +141,10 @@ export default function Progress() {
                   </div>
                   <div className="text-right">
                     <p className="font-mono text-[28px] font-medium text-foreground" style={{ letterSpacing: "0.05em", lineHeight: 1 }}>
-                      {pr.actual_weight}
+                      {toDisplayWeight(pr.actual_weight, weightUnit)}
                     </p>
                     <p className="font-mono text-muted-foreground" style={{ fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase" }}>
-                      KG{pr.actual_reps ? ` ×${pr.actual_reps}` : ""}
+                      {weightUnit.toUpperCase()}{pr.actual_reps ? ` ×${pr.actual_reps}` : ""}
                     </p>
                   </div>
                 </div>
@@ -161,7 +163,7 @@ export default function Progress() {
             { icon: Dumbbell, label: "TOTAL WORKOUTS", value: String(stats.totalWorkouts), unit: "" },
             { icon: Flame, label: "RACHA ACTUAL", value: String(stats.streak), unit: "DÍAS" },
             { icon: TrendingUp, label: "CONSISTENCIA", value: `${stats.consistency}`, unit: "%" },
-            { icon: Trophy, label: "VOLUMEN LIFETIME", value: stats.lifetimeVolume > 1000 ? `${(stats.lifetimeVolume / 1000).toFixed(1)}k` : String(stats.lifetimeVolume), unit: "KG" },
+            { icon: Trophy, label: "VOLUMEN LIFETIME", value: (() => { const v = toDisplayWeight(stats.lifetimeVolume, weightUnit); return v > 1000 ? `${(v / 1000).toFixed(1)}k` : String(v); })(), unit: weightUnit.toUpperCase() },
           ].map((stat) => (
             <div key={stat.label} className="card-fbb">
               <stat.icon className="h-5 w-5 text-primary" />

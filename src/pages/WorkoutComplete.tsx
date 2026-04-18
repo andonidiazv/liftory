@@ -627,7 +627,7 @@ export default function WorkoutComplete() {
             {[
               { Icon: Clock, label: "DURACIÓN", value: formatAnimDuration(animatedStats.durationSec) },
               { Icon: Dumbbell, label: "SETS", value: `${animatedStats.completedSets}/${stats.totalSets}` },
-              { Icon: TrendingUp, label: "VOLUMEN", value: `${animatedStats.volume.toLocaleString()} ${weightUnit}` },
+              { Icon: TrendingUp, label: "VOLUMEN", value: `${toDisplayWeight(animatedStats.volume, weightUnit).toLocaleString()} ${weightUnit}` },
               { Icon: Trophy, label: "PRs", value: String(animatedStats.prs) },
             ].map((stat) => (
               <div
