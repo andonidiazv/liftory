@@ -380,7 +380,7 @@ export default function BlockDetail({
                 const rounds = roundsMatch?.[1] ?? '2-3 rondas';
                 return <>{block.groups.length} ejercicios · {rounds}</>;
               })()}
-              {blockMode === 'cooldown' && <>{block.groups.length} estiramientos · 2 rondas</>}
+              {blockMode === 'cooldown' && <>{block.groups.length} estiramientos</>}
               {blockMode === 'cardio' && <>Cardio</>}
               {blockMode === 'emom' && <>EMOM</>}
             </p>
@@ -1095,18 +1095,29 @@ function MobilityContent({
               </button>
               <div className="flex-1 min-w-0">
                 <p className="font-body text-[14px] font-medium text-foreground">{ex.name}</p>
-                <div className="flex items-center gap-2 mt-0.5">
-                  {sets[0]?.planned_reps && (
-                    <span className="font-mono text-muted-foreground" style={{ fontSize: 11 }}>
-                      {formatReps(sets[0].planned_reps, cleanCue)}
-                    </span>
-                  )}
-                  {cleanCue && (
-                    <span className="font-body text-muted-foreground" style={{ fontSize: 11 }}>
-                      · {cleanCue}
-                    </span>
-                  )}
-                </div>
+                {(() => {
+                  const repsLabel = sets[0]?.planned_reps ? formatReps(sets[0].planned_reps, cleanCue) : null;
+                  // Timed sets (cooldowns with duration) show duration as the primary label
+                  const durSec = sets[0]?.planned_duration_seconds;
+                  const durLabel = durSec ? (durSec >= 60 ? `${Math.round(durSec / 60)} min` : `${durSec} seg`) : null;
+                  const primary = durLabel || repsLabel;
+                  // Cue is verbose? Show on its own line
+                  const cueIsVerbose = cleanCue && cleanCue.length > 20;
+                  return (
+                    <>
+                      {primary && (
+                        <p className="font-mono text-muted-foreground mt-0.5" style={{ fontSize: 11 }}>
+                          {primary}{!cueIsVerbose && cleanCue ? ` · ${cleanCue}` : ''}
+                        </p>
+                      )}
+                      {cueIsVerbose && (
+                        <p className="font-body text-muted-foreground mt-1" style={{ fontSize: 11, lineHeight: 1.4 }}>
+                          {cleanCue}
+                        </p>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
 
               <div className="flex gap-1 shrink-0">
@@ -1148,28 +1159,42 @@ function CooldownCard({
   const ex = group.exercise;
   const sets = group.sets;
   const cueOverride = sets[0]?.coaching_cue_override;
+  const durSec = sets[0]?.planned_duration_seconds;
   const allDone = sets.every((s) => isCompleted(s));
+
+  // Short duration label (e.g., "60 seg", "45 seg", "1 min") extracted from data
+  const durLabel = durSec ? (durSec >= 60 && durSec % 60 === 0 ? `${durSec / 60} min` : `${durSec} seg`) : null;
+  // Use the cue as descriptive text on its own line when present
+  const cueText = cueOverride?.trim() || null;
+  const cueIsShort = cueText && cueText.length <= 12;
 
   return (
     <div
-      className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 transition-opacity"
+      className="flex items-start gap-3 rounded-xl border border-border bg-card px-4 py-3 transition-opacity"
       style={{ opacity: allDone ? 0.6 : 1 }}
     >
       <button
         onClick={() => onOpenVideo({ name: ex.name, videoUrl: ex.video_url, coachingCue: cueOverride })}
-        className="shrink-0 overflow-hidden rounded-lg"
+        className="shrink-0 overflow-hidden rounded-lg mt-0.5"
         style={{ width: 36, height: 28 }}
       >
         <ExerciseThumbnail thumbnailUrl={ex.thumbnail_url} videoUrl={ex.video_url} name={ex.name} width={36} height={28} />
       </button>
       <div className="flex-1 min-w-0">
-        <p className="font-body text-[13px] font-medium text-foreground">{ex.name}</p>
+        <div className="flex items-baseline justify-between gap-2">
+          <p className="font-body text-[13px] font-medium text-foreground">{ex.name}</p>
+          {(durLabel || cueIsShort) && (
+            <span className="font-mono text-muted-foreground shrink-0" style={{ fontSize: 11 }}>
+              {cueIsShort ? cueText : durLabel}
+            </span>
+          )}
+        </div>
+        {cueText && !cueIsShort && (
+          <p className="font-body text-muted-foreground mt-1" style={{ fontSize: 11, lineHeight: 1.4 }}>
+            {cueText}
+          </p>
+        )}
       </div>
-      {cueOverride && (
-        <span className="font-mono text-muted-foreground shrink-0" style={{ fontSize: 11 }}>
-          {cueOverride}
-        </span>
-      )}
       {sets.map((set) => {
         const done = isCompleted(set);
         return (
@@ -1177,7 +1202,7 @@ function CooldownCard({
             key={set.id}
             onClick={() => onToggle(set)}
             disabled={saving}
-            className="flex h-6 w-6 items-center justify-center rounded-full border-2 transition-all shrink-0"
+            className="flex h-6 w-6 items-center justify-center rounded-full border-2 transition-all shrink-0 mt-0.5"
             style={{
               borderColor: done ? "hsl(var(--primary))" : "hsl(var(--border))",
               backgroundColor: done ? "hsl(var(--primary))" : "transparent",
