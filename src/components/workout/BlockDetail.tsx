@@ -363,7 +363,13 @@ export default function BlockDetail({
               {blockMode === 'strength' && (
                 <>{block.totalSets} sets{restDisplay ? ` · ${restDisplay}` : ""}{block.formatBadge ? ` · ${block.formatBadge}` : ""}</>
               )}
-              {blockMode === 'mobility' && <>{block.groups.length} ejercicios · 2-3 rondas</>}
+              {blockMode === 'mobility' && (() => {
+                // Infer rounds from first set's coaching cue — fallback to "2-3 rondas"
+                const firstCue = block.groups[0]?.sets[0]?.coaching_cue_override ?? '';
+                const roundsMatch = firstCue.match(/(\d+(?:-\d+)?\s*rondas?)/i);
+                const rounds = roundsMatch?.[1] ?? '2-3 rondas';
+                return <>{block.groups.length} ejercicios · {rounds}</>;
+              })()}
               {blockMode === 'cooldown' && <>{block.groups.length} estiramientos · 2 rondas</>}
               {blockMode === 'cardio' && <>Cardio</>}
               {blockMode === 'emom' && <>EMOM</>}
