@@ -111,9 +111,19 @@ function formatPrescription(sets: WorkoutSetData[], hideRest = false): string {
 /** Parse sub-group header from coaching cue (e.g. "2-3 rondas | cue text") */
 function parseSubGroupHeader(cue: string | null | undefined): { header: string | null; cleanCue: string | null } {
   if (!cue) return { header: null, cleanCue: null };
-  const match = cue.match(/^(\d+(?:-\d+)?\s*rondas?)\s*\|\s*(.*)/i);
-  if (match) {
-    return { header: match[1].toUpperCase(), cleanCue: match[2] || null };
+  // "N rondas | actual cue"
+  const withCue = cue.match(/^(\d+(?:-\d+)?\s*rondas?)\s*\|\s*(.*)/i);
+  if (withCue) {
+    const header = withCue[1].toUpperCase();
+    const rest = (withCue[2] || '').trim();
+    // If the text after "|" is just "N rondas" again, it's redundant — drop it
+    const redundant = /^\d+(?:-\d+)?\s*rondas?$/i.test(rest);
+    return { header, cleanCue: redundant || !rest ? null : rest };
+  }
+  // Cue is just "N rondas" with no pipe → treat as header only, no cue
+  const onlyHeader = cue.match(/^(\d+(?:-\d+)?\s*rondas?)\s*$/i);
+  if (onlyHeader) {
+    return { header: onlyHeader[1].toUpperCase(), cleanCue: null };
   }
   return { header: null, cleanCue: cue };
 }
