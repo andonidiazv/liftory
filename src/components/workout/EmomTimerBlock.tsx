@@ -71,8 +71,9 @@ function parseEmomConfig(block: WorkoutBlock): EmomConfig {
       break;
     }
 
-    // Legacy format: "EMOM 75s x 8 rounds" or "EMOM 90s x 5 rondas"
-    const legacyMatch = cue.match(/EMOM\s+(\d+)s?\s*x\s*(\d+)\s*(?:rounds?|rondas?)/i);
+    // Legacy format: "EMOM 75s x 8 rounds" or "EMOM 90s x 5 rondas" (with "x")
+    // Also: "EMOM 60s. 3 rondas" (with period instead of x)
+    const legacyMatch = cue.match(/EMOM\s+(\d+)s?[.\s]*(?:x\s*)?(\d+)\s*(?:rounds?|rondas?)/i);
     if (legacyMatch) {
       windowSeconds = parseInt(legacyMatch[1], 10);
       const totalWindows = parseInt(legacyMatch[2], 10);
@@ -204,6 +205,18 @@ function isComplexBlock(block: WorkoutBlock): boolean {
 }
 
 /**
+ * Does this EMOM block use a shared barbell? Determines whether to show the
+ * "Peso de la barra" tracker and "COMPLEX" tag. True when at least one
+ * exercise has 'barbell' in equipment_required.
+ */
+function requiresBarbell(block: WorkoutBlock): boolean {
+  return block.groups.some((g) => {
+    const eq = g.exercise?.equipment_required || [];
+    return eq.some((e) => e?.toLowerCase() === "barbell");
+  });
+}
+
+/**
  * Detect if the EMOM alternates R/L sides (bilateral work).
  * Returns true if Alterna items contain both "R" and "L" variants.
  */
@@ -271,6 +284,10 @@ export default function EmomTimerBlock({
   );
   const bilateral = useMemo(() => isBilateral(block), [block]);
   const complexMode = useMemo(() => isComplexBlock(block), [block]);
+  const barbellMode = useMemo(() => requiresBarbell(block), [block]);
+  // Complex UI only applies when multiple exercises share a barbell.
+  // Bodyweight/DB multi-exercise EMOMs (e.g. Shrimp Squat + Plyo BSS) render as plain alternating.
+  const barbellComplex = complexMode && barbellMode;
   const allSets = useMemo(() => block.groups.flatMap((g) => g.sets), [block]);
   const firstCue = allSets[0]?.coaching_cue_override;
   const allDone = allSets.length > 0 && allSets.every((s) => isCompleted(s));
@@ -687,7 +704,7 @@ export default function EmomTimerBlock({
           <span className="font-mono text-xs text-muted-foreground tracking-wider">
             EMOM {formatTime(windowSeconds)} · {totalRondas} RONDAS{!complexMode && ` x ${ventanasPerRonda} VENTANAS`}
           </span>
-          {complexMode && (
+          {barbellComplex && (
             <span
               className="font-mono text-[10px] tracking-wider uppercase px-1.5 py-0.5 rounded font-medium"
               style={{ backgroundColor: t.accentBgStrong, color: t.accent }}
@@ -701,8 +718,8 @@ export default function EmomTimerBlock({
       {/* Exercise list — idle + done */}
       {(phase === "idle" || phase === "done") && (
         <div className="px-5 pb-3 flex flex-col gap-2">
-          {complexMode ? (
-            /* ─── Complex mode: clean exercise list + global weight section ─── */
+          {barbellComplex ? (
+            /* ─── Barbell complex: shared-barbell exercise list + global weight section ─── */
             <>
               <p className="font-body text-[13px] text-muted-foreground leading-relaxed mb-1">
                 Ejecuta los {block.groups.length} movimientos seguidos sin soltar la barra, con las reps indicadas en cada uno.
