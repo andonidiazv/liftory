@@ -71,8 +71,8 @@ function parseEmomConfig(block: WorkoutBlock): EmomConfig {
       break;
     }
 
-    // Legacy format: "EMOM 75s x 8 rounds"
-    const legacyMatch = cue.match(/EMOM\s+(\d+)s?\s*x\s*(\d+)\s*rounds?/i);
+    // Legacy format: "EMOM 75s x 8 rounds" or "EMOM 90s x 5 rondas"
+    const legacyMatch = cue.match(/EMOM\s+(\d+)s?\s*x\s*(\d+)\s*(?:rounds?|rondas?)/i);
     if (legacyMatch) {
       windowSeconds = parseInt(legacyMatch[1], 10);
       const totalWindows = parseInt(legacyMatch[2], 10);
