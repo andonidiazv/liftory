@@ -49,6 +49,13 @@ export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpe
   // Only AMRAPs use this timer now (EMOMs are handled as instruction blocks)
   const totalDurationSec = parseDurationFromCue(block);
 
+  // Extract coaching cue and meta rounds for display
+  const rawCue = (block.groups[0]?.sets[0]?.coaching_cue_override ?? '') as string;
+  // Strip the "AMRAP X min:" prefix since it's already shown in the header
+  const cleanCue = rawCue.replace(/^AMRAP\s+\d+\s*min\s*:?\s*/i, '').trim();
+  const metaMatch = cleanCue.match(/Meta:\s*(\d+(?:-\d+)?\s*rondas?)/i);
+  const metaRounds = metaMatch?.[1] ?? null;
+
   const [timeRemaining, setTimeRemaining] = useState(totalDurationSec);
   const [running, setRunning] = useState(false);
   const [completed, setCompleted] = useState(false);
@@ -117,6 +124,23 @@ export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpe
           </div>
         </div>
       </div>
+
+      {/* Coaching cue + meta rondas */}
+      {cleanCue && (
+        <div className="px-5 pt-2 pb-1">
+          <div
+            className="rounded-xl p-3"
+            style={{ background: "hsl(var(--secondary))", borderLeft: `3px solid hsl(var(--primary))` }}
+          >
+            {metaRounds && (
+              <p className="font-mono uppercase mb-1" style={{ fontSize: 9, letterSpacing: "2px", color: "hsl(var(--primary))" }}>
+                META · {metaRounds}
+              </p>
+            )}
+            <p className="font-body text-[13px] text-foreground leading-relaxed">{cleanCue}</p>
+          </div>
+        </div>
+      )}
 
       {/* Timer section */}
       <div className="flex flex-col items-center justify-center px-5 py-8" style={{ minHeight: "38vh" }}>
