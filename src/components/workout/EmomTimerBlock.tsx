@@ -385,7 +385,7 @@ export default function EmomTimerBlock({
 
         const now = ctx.currentTime;
 
-        const SAFE = 0.15; // hard volume cap — never exceed
+        const SAFE = 0.25; // hard volume cap — never exceed
 
         if (type === "tick") {
           // Short high beep — Tabata countdown style

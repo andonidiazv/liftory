@@ -21,7 +21,8 @@ function parseDurationFromCue(block: WorkoutBlock): number {
   return 12 * 60; // default 12 min
 }
 
-const SAFE_VOLUME = 0.15; // hard cap — never exceed this
+const SAFE_VOLUME = 0.25; // hard cap — never exceed this
+const COUNTDOWN_SECONDS = 10;
 
 const playBeep = (freq = 800, duration = 100) => {
   try {
@@ -60,7 +61,33 @@ export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpe
   const [running, setRunning] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [rounds, setRounds] = useState(0);
+  const [countdown, setCountdown] = useState<number | null>(null); // null = no countdown, N = N seconds left
+  const [hasStarted, setHasStarted] = useState(false); // true once the first countdown finishes
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Countdown tick
+  useEffect(() => {
+    if (countdown === null) return;
+    if (countdown <= 0) {
+      // Final "GO" beep (longer, slightly higher)
+      playBeep(1000, 300);
+      vibrate(200);
+      setCountdown(null);
+      setHasStarted(true);
+      setRunning(true);
+      return;
+    }
+    // Short tick each second (final 3 are louder/higher)
+    if (countdown <= 3) {
+      playBeep(900, 120);
+      vibrate(50);
+    } else {
+      playBeep(700, 80);
+    }
+    countdownRef.current = setTimeout(() => setCountdown((c) => (c == null ? null : c - 1)), 1000);
+    return () => { if (countdownRef.current) clearTimeout(countdownRef.current); };
+  }, [countdown]);
 
   useEffect(() => {
     if (!running || completed) return;
@@ -156,6 +183,33 @@ export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpe
               Continuar
             </button>
           </div>
+        ) : countdown !== null ? (
+          /* Countdown phase — 10s prep */
+          <div className="flex flex-col items-center gap-3">
+            <p className="font-mono uppercase text-muted-foreground" style={{ fontSize: 10, letterSpacing: "2px" }}>
+              Preparate
+            </p>
+            <p
+              className="font-mono font-bold text-primary"
+              style={{
+                fontSize: 120,
+                lineHeight: 1,
+                letterSpacing: "-0.04em",
+                animation: countdown <= 3 ? "pulse 0.8s infinite" : undefined,
+              }}
+            >
+              {countdown}
+            </p>
+            <p className="font-body text-muted-foreground" style={{ fontSize: 13 }}>
+              Empieza el AMRAP en {countdown} {countdown === 1 ? 'segundo' : 'segundos'}
+            </p>
+            <button
+              onClick={() => setCountdown(null)}
+              className="mt-4 press-scale font-body text-sm text-muted-foreground underline"
+            >
+              Cancelar
+            </button>
+          </div>
         ) : (
           <>
             <p
@@ -181,7 +235,14 @@ export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpe
             <div className="mt-6 flex items-center gap-6">
               <button onClick={() => adjustTime(-15)} className="font-body text-sm text-muted-foreground">-15s</button>
               <button
-                onClick={() => setRunning(r => !r)}
+                onClick={() => {
+                  // First press on a fresh timer → start countdown
+                  if (!hasStarted && !running) {
+                    setCountdown(COUNTDOWN_SECONDS);
+                  } else {
+                    setRunning(r => !r);
+                  }
+                }}
                 className="flex h-[60px] w-[60px] items-center justify-center rounded-full bg-primary"
               >
                 {running ? (

@@ -12,7 +12,7 @@
  *     once audio has been unlocked at least once.
  */
 
-const SAFE_VOLUME = 0.15; // hard cap — never exceed
+const SAFE_VOLUME = 0.25; // hard cap — never exceed
 
 let ctxSingleton: AudioContext | null = null;
 let unlocked = false;
