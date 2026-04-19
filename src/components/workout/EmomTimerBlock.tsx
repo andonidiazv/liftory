@@ -119,13 +119,16 @@ function parseRoundRpe(block: WorkoutBlock): RoundRpe[] {
 
   const results: RoundRpe[] = [];
 
-  const todosMatch = cue.match(/Todos\s+a\s+RPE\s+([\d.]+(?:-[\d.]+)?)/i);
+  // RPE pattern: number with optional decimal, optionally followed by "-N.N" for ranges
+  const rpeNum = '\\d+(?:\\.\\d+)?(?:-\\d+(?:\\.\\d+)?)?';
+
+  const todosMatch = cue.match(new RegExp(`Todos\\s+a\\s+RPE\\s+(${rpeNum})`, 'i'));
   if (todosMatch) {
     return [{ fromRound: 1, toRound: 999, rpe: todosMatch[1] }];
   }
 
   // "R1-2: RPE 8.5" or "R3: RPE 9"
-  const shortRegex = /R(\d+)(?:-(\d+))?\s*:\s*RPE\s+([\d.]+(?:-[\d.]+)?)/gi;
+  const shortRegex = new RegExp(`R(\\d+)(?:-(\\d+))?\\s*:\\s*RPE\\s+(${rpeNum})`, 'gi');
   let shortMatch;
   while ((shortMatch = shortRegex.exec(cue)) !== null) {
     results.push({
@@ -136,7 +139,8 @@ function parseRoundRpe(block: WorkoutBlock): RoundRpe[] {
   }
   if (results.length > 0) return results;
 
-  const longRegex = /Rounds?\s+(\d+)(?:-(\d+))?\s*:\s*RPE\s+([\d.]+(?:-[\d.]+)?)/gi;
+  // Support Spanish "Rondas" and English "Rounds"
+  const longRegex = new RegExp(`(?:Rounds?|Rondas?)\\s+(\\d+)(?:-(\\d+))?\\s*:\\s*RPE\\s+(${rpeNum})`, 'gi');
   let longMatch;
   while ((longMatch = longRegex.exec(cue)) !== null) {
     results.push({
