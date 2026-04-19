@@ -1301,14 +1301,14 @@ export default function EmomTimerBlock({
             </div>
           )}
 
-          {/* Next ventana preview */}
-          {phase === "active" && hasNextVentana && (nextExercise || rpeChanges) && (
+          {/* Next ventana preview — show if there's any meaningful info (new exercise, RPE change, or new ronda) */}
+          {phase === "active" && hasNextVentana && (nextExercise || rpeChanges || isNextNewRonda) && (
             <div
               className="flex items-center justify-center gap-2 mt-3 px-4 py-2 rounded-xl mx-auto"
               style={{ backgroundColor: t.accentBg, maxWidth: "fit-content" }}
             >
               <span className="font-mono text-[10px] tracking-wider uppercase" style={{ color: t.muted }}>
-                {isNextNewRonda ? "NUEVA RONDA:" : "SIGUIENTE:"}
+                {isNextNewRonda ? `RONDA ${nextRonda + 1}:` : "SIGUIENTE:"}
               </span>
               {nextExercise && (
                 <span className="font-body text-xs font-medium text-foreground">
@@ -1323,7 +1323,7 @@ export default function EmomTimerBlock({
                   RPE {nextRpe}
                 </span>
               )}
-              {nextRpe && !rpeChanges && !nextExercise && (
+              {nextRpe && !rpeChanges && (
                 <span className="font-mono text-xs" style={{ color: t.muted }}>
                   RPE {nextRpe}
                 </span>
