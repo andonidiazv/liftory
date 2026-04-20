@@ -345,9 +345,6 @@ export default function WorkoutOverview({
                         </span>
                       )}
                     </div>
-                    {isRecovery && (
-                      <p className="mt-0.5 font-mono text-muted-foreground" style={{ fontSize: 10 }}>2 rondas</p>
-                    )}
                     <p className="mt-0.5 font-body text-muted-foreground truncate" style={{ fontSize: 12 }}>
                       {block.exerciseNames.join(" · ")}
                     </p>
