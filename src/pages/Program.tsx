@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProgramData } from "@/hooks/useProgramData";
 import Layout from "@/components/Layout";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Check, Leaf } from "lucide-react";
+import { Check, Leaf, BookOpen } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
+import MesocycleManual from "@/components/program/MesocycleManual";
+import { M2_MANUAL_CONTENT, getMesoForDate } from "@/lib/mesocycle-content";
 
 const BLOCK_LABELS: Record<string, string> = {
   accumulation: "BASE",
@@ -42,6 +45,43 @@ export default function Program() {
   const { program, workouts, loading, getBlockLabel, getWeekWorkouts, getWeekNumbers, todayStr } = useProgramData();
   const { isDark } = useDarkMode();
   const t = isDark ? noche : dia;
+  const [showManual, setShowManual] = useState(false);
+
+  // Detect which meso the user is "actively in" using the workout the athlete is about to do.
+  // Strategy: prefer the next non-rest workout scheduled on/after today. If none (e.g. program
+  // already finished), fall back to the most recent past workout. This is the cleanest signal —
+  // it's "what comes next" from the athlete's perspective, regardless of stale skipped workouts.
+  const currentMeso = (() => {
+    const todayStr = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD in local TZ
+    const realWorkouts = workouts.filter((w) => !w.is_rest_day);
+    if (realWorkouts.length === 0) return null;
+
+    // Next upcoming workout (on/after today)
+    const upcoming = realWorkouts
+      .filter((w) => w.scheduled_date >= todayStr)
+      .sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))[0];
+
+    // Fallback: most recent past workout (program ended)
+    const recent = realWorkouts
+      .filter((w) => w.scheduled_date < todayStr)
+      .sort((a, b) => b.scheduled_date.localeCompare(a.scheduled_date))[0];
+
+    const reference = upcoming ?? recent;
+    return reference ? getMesoForDate(reference.scheduled_date) : null;
+  })();
+  const hasManualForCurrentMeso = currentMeso === "M2"; // Only M2 has manual content for now
+
+  // Scope ALL workout-derived UI (counter, grid, weeks list) to the current meso.
+  // Without this, M1 + M2 collide: the counter shows M1+M2 sums (e.g. 17/60), and the
+  // grid mixes weeks because M1 W1 and M2 W1 share week_number=1.
+  const mesoWorkouts = currentMeso
+    ? workouts.filter((w) => getMesoForDate(w.scheduled_date) === currentMeso)
+    : workouts;
+  const mesoWeekNumbers = Array.from(
+    new Set(mesoWorkouts.map((w) => w.week_number))
+  ).sort((a, b) => a - b);
+  const getMesoWeekWorkouts = (week: number) =>
+    mesoWorkouts.filter((w) => w.week_number === week);
 
   if (loading) return <Layout><ProgramSkeleton /></Layout>;
 
@@ -63,8 +103,8 @@ export default function Program() {
     );
   }
 
-  const weeks = getWeekNumbers().length > 0
-    ? getWeekNumbers()
+  const weeks = mesoWeekNumbers.length > 0
+    ? mesoWeekNumbers
     : Array.from({ length: program.total_weeks }, (_, i) => i + 1);
 
   return (
@@ -74,7 +114,7 @@ export default function Program() {
         <div>
           <h1 className="font-display text-[22px] font-bold text-foreground">{program.name}</h1>
           <p className="mt-1 text-[13px] text-muted-foreground font-body">
-            Mesociclo 1 · Semana {program.current_week} de {program.total_weeks}
+            {currentMeso ? `Mesociclo ${currentMeso.replace(/\D/g, "")}` : "Mesociclo"} · Semana {program.current_week} de {program.total_weeks}
           </p>
           <span
             className="mt-2 inline-block rounded-full px-3 py-1 font-mono text-[9px] uppercase tracking-wider"
@@ -83,10 +123,10 @@ export default function Program() {
             {getPhaseForWeek(program.current_week)}
           </span>
 
-          {/* Progress bar */}
+          {/* Progress bar — scoped to currentMeso so M1 completions don't pollute M2 progress */}
           {(() => {
-            const totalWorkouts = workouts.filter(w => !w.is_rest_day && w.workout_type === "strength").length;
-            const completedWorkouts = workouts.filter(w => !w.is_rest_day && w.workout_type === "strength" && w.is_completed).length;
+            const totalWorkouts = mesoWorkouts.filter(w => !w.is_rest_day && w.workout_type === "strength").length;
+            const completedWorkouts = mesoWorkouts.filter(w => !w.is_rest_day && w.workout_type === "strength" && w.is_completed).length;
             const pct = totalWorkouts > 0 ? Math.round((completedWorkouts / totalWorkouts) * 100) : 0;
             return (
               <div className="mt-4">
@@ -103,12 +143,46 @@ export default function Program() {
               </div>
             );
           })()}
+
+          {/* Manual button — only visible during the current meso's active date range */}
+          {hasManualForCurrentMeso && (
+            <button
+              onClick={() => setShowManual(true)}
+              className="press-scale w-full mt-5 flex items-center gap-3 rounded-xl px-4 py-3.5 text-left"
+              style={{
+                backgroundColor: t.accentBg,
+                border: `1px solid ${t.accentBgStrong}`,
+              }}
+            >
+              <BookOpen className="h-4 w-4 shrink-0" style={{ color: t.accent }} />
+              <div className="flex-1 min-w-0">
+                <p
+                  className="font-display text-[13px] font-semibold leading-tight"
+                  style={{ color: t.text }}
+                >
+                  Manual de {currentMeso}
+                </p>
+                <p
+                  className="font-body text-[11px] leading-tight mt-0.5"
+                  style={{ color: t.muted }}
+                >
+                  Ejemplos paso a paso de cada formato
+                </p>
+              </div>
+              <span
+                className="font-mono text-[16px] shrink-0"
+                style={{ color: t.accent }}
+              >
+                →
+              </span>
+            </button>
+          )}
         </div>
 
         {/* Weeks */}
         <div className="space-y-6">
           {weeks.map((week) => {
-            const weekWorkouts = getWeekWorkouts(week);
+            const weekWorkouts = getMesoWeekWorkouts(week);
             const isCurrent = week === program.current_week;
 
             // Build a map: day index (0=Mon..6=Sun) -> workout
@@ -187,6 +261,14 @@ export default function Program() {
           })}
         </div>
       </div>
+
+      {/* Manual de M2 modal */}
+      {showManual && (
+        <MesocycleManual
+          content={M2_MANUAL_CONTENT}
+          onClose={() => setShowManual(false)}
+        />
+      )}
     </Layout>
   );
 }

@@ -169,28 +169,45 @@ async function fetchHomeData(userId: string): Promise<HomeServerData> {
     }
   }
 
-  // Streak
+  // Streak — counts consecutive completed training days, transparently skipping
+  // scheduled rest days. Without this, a planned rest day breaks the streak even when
+  // the athlete is fully adherent (e.g. completed every non-rest day for 2 weeks).
   const { data: recentWorkouts } = await supabase
     .from("workouts")
-    .select("scheduled_date, is_completed")
+    .select("scheduled_date, is_completed, is_rest_day")
     .eq("user_id", userId)
-    .eq("is_completed", true)
     .lte("scheduled_date", formatDate(today))
     .order("scheduled_date", { ascending: false })
-    .limit(30);
+    .limit(60);
 
   let streak = 0;
   if (recentWorkouts?.length) {
+    const byDate = new Map<string, { is_completed: boolean; is_rest_day: boolean }>();
+    recentWorkouts.forEach((w) =>
+      byDate.set(w.scheduled_date, { is_completed: w.is_completed, is_rest_day: w.is_rest_day })
+    );
+
     const check = new Date(today);
-    if (!recentWorkouts.find((w) => w.scheduled_date === formatDate(today))) {
+    const todayInfo = byDate.get(formatDate(today));
+    // If today is a non-rest day not yet completed, start checking from yesterday
+    if (!todayInfo || (!todayInfo.is_rest_day && !todayInfo.is_completed)) {
       check.setDate(check.getDate() - 1);
     }
-    const completedDates = new Set(recentWorkouts.map((w) => w.scheduled_date));
-    for (let i = 0; i < 30; i++) {
-      if (completedDates.has(formatDate(check))) {
+
+    for (let i = 0; i < 60; i++) {
+      const info = byDate.get(formatDate(check));
+      if (!info) break; // outside program range
+      if (info.is_rest_day) {
+        // Adherence to rest = streak preserved, but doesn't increment
+        check.setDate(check.getDate() - 1);
+        continue;
+      }
+      if (info.is_completed) {
         streak++;
         check.setDate(check.getDate() - 1);
-      } else break;
+      } else {
+        break; // missed a training day
+      }
     }
   }
 
