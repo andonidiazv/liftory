@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useProgramData } from "@/hooks/useProgramData";
 import Layout from "@/components/Layout";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Check, Leaf, BookOpen } from "lucide-react";
+import { Check, BatteryCharging, BookOpen } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
 import MesocycleManual from "@/components/program/MesocycleManual";
@@ -244,7 +244,7 @@ export default function Program() {
                           {isCompleted ? (
                             <Check className="h-4 w-4" style={{ color: t.btnText }} />
                           ) : isRest ? (
-                            <Leaf className="h-3.5 w-3.5" style={{ color: "#7A8B5C" }} />
+                            <BatteryCharging className="h-3.5 w-3.5" style={{ color: "#7A8B5C" }} />
                           ) : null}
                         </div>
                         {shortLabel && (

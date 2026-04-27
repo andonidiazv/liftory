@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Dumbbell,
   Wind,
-  Leaf,
+  BatteryCharging,
   Home,
   Calendar,
   TrendingUp,
@@ -154,14 +154,14 @@ export default function FirstDayExperience({
     const stroke = getDayIconStroke(type);
     if (type === "strength") return <Dumbbell className="w-[17px] h-[17px]" style={{ color: stroke }} />;
     if (type === "mobility") return <Wind className="w-[17px] h-[17px]" style={{ color: stroke }} />;
-    return <Leaf className="w-[17px] h-[17px]" style={{ color: stroke }} />;
+    return <BatteryCharging className="w-[17px] h-[17px]" style={{ color: stroke }} />;
   }
 
   function SplitIcon({ type }: { type: string }) {
     const stroke = getDayIconStroke(type);
     if (type === "strength") return <Dumbbell className="w-[14px] h-[14px]" style={{ color: stroke }} />;
     if (type === "mobility") return <Wind className="w-[14px] h-[14px]" style={{ color: "#fff" }} />;
-    return <Leaf className="w-[14px] h-[14px]" style={{ color: "#fff" }} />;
+    return <BatteryCharging className="w-[14px] h-[14px]" style={{ color: "#fff" }} />;
   }
 
   // Nav icon colors for the "Tu App" slide
