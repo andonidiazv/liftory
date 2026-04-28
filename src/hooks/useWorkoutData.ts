@@ -57,6 +57,7 @@ export interface WorkoutData {
   coach_note: string | null;
   short_on_time_note: string | null;
   program_id: string;
+  user_id: string | null;
 }
 
 export interface ExerciseGroup {
@@ -145,6 +146,7 @@ export function useWorkoutData(workoutId: string | undefined) {
         coach_note: (data as Record<string, unknown>).coach_note as string | null ?? null,
         short_on_time_note: (data as Record<string, unknown>).short_on_time_note as string | null ?? null,
         program_id: data.program_id,
+        user_id: (data as Record<string, unknown>).user_id as string | null ?? null,
       };
       setWorkout(w);
 
@@ -229,6 +231,8 @@ export function useWorkoutData(workoutId: string | undefined) {
           const rirAccum: Record<string, number[]> = {};
 
           for (const ps of pastSets) {
+            // Skip bodyweight (-1) and 0 weight sets — e1RM only valid for loaded lifts
+            if ((ps.actual_weight ?? 0) <= 0) continue;
             const e1rm = ps.actual_weight * (1 + ps.actual_reps / 30);
             if (!maxE1RM[ps.exercise_id] || e1rm > maxE1RM[ps.exercise_id]) {
               maxE1RM[ps.exercise_id] = Math.round(e1rm * 10) / 10;

@@ -3,6 +3,7 @@ import type { WorkoutData, ExerciseGroup, SupersetGroup, ExerciseDelta } from "@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
+import { BLOCK_LABEL_COLORS } from "@/constants/blocks";
 
 /** A "block" is a visual grouping of exercises for the overview */
 export interface WorkoutBlock {
@@ -17,23 +18,6 @@ export interface WorkoutBlock {
   groups: ExerciseGroup[];
   supersetGroup?: SupersetGroup;
 }
-
-/** Color mapping by block label name */
-const BLOCK_LABEL_COLORS: Record<string, string> = {
-  'PRIME BLOCK': '#7A8B5C',
-  'RESET & BREATHE': '#7A8B5C',
-  'SPINE & HIPS': '#7A8B5C',
-  'DYNAMIC FLOW': '#7A8B5C',
-  'ATHLETIC INTEGRATION': '#7A8B5C',
-  'POWER BLOCK': '#D45555',
-  'HEAVY BLOCK — A': '#C4A24E',
-  'HEAVY BLOCK — B': '#C4A24E',
-  'BUILD BLOCK — A': '#C4A24E',
-  'BUILD BLOCK — B': '#C4A24E',
-  'ATHLETIC HINGE': '#D4896B',
-  'ENGINE BLOCK': '#D45555',
-  'RECOVERY BLOCK': '#7A8B5C',
-};
 
 /** Fallback colors by block type */
 const BLOCK_TYPE_COLORS: Record<string, string> = {
@@ -51,6 +35,13 @@ function getBlockColor(block: WorkoutBlock): string {
 const INSTRUCTION_BLOCK_LABELS = ['ENGINE BLOCK', 'RECOVERY BLOCK', 'PRIME BLOCK', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION'];
 
 function isInstructionBlock(block: WorkoutBlock): boolean {
+  // ATHLETIC INTEGRATION is dual-purpose: instruction-style for warmup flows (M1),
+  // strength-style for sub-maximal work like Pause Box Squat (M2+). When the block
+  // contains 'working' sets, treat it as a strength block (warnings + tracking).
+  if (block.name === 'ATHLETIC INTEGRATION') {
+    const hasWorking = block.groups.some(g => g.sets.some(s => s.set_type === 'working'));
+    if (hasWorking) return false;
+  }
   return INSTRUCTION_BLOCK_LABELS.includes(block.name);
 }
 
@@ -263,7 +254,9 @@ export default function WorkoutOverview({
             const done = block.completedSets >= block.totalSets && block.totalSets > 0;
             const color = getBlockColor(block);
             const isRecovery = block.name === 'RECOVERY BLOCK';
-            const isMobility = block.type === 'mobility' || block.type === 'cooldown';
+            // Use isInstructionBlock() so dual-purpose ATHLETIC INTEGRATION blocks with
+            // 'working' sets render as strength (with reps/weight) instead of mobility.
+            const isMobility = isInstructionBlock(block) || block.type === 'cooldown';
             const isActive = blockIdx === firstPendingIdx;
             const nextBlock = blockIdx < blocks.length - 1 ? blocks[blockIdx + 1] : null;
 

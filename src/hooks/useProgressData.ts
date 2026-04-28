@@ -143,9 +143,9 @@ async function fetchProgressData(userId: string): Promise<ProgressServerData> {
   const completed = completedRes.count ?? 0;
   const consistency = programmed > 0 ? Math.round((completed / programmed) * 100) : 0;
 
-  // Lifetime volume
+  // Lifetime volume — bodyweight sentinel (-1) and 0 weight contribute no volume
   const lifetimeVol = ((lifetimeRes.data as Array<{ actual_weight: number | null; actual_reps: number | null }>) ?? []).reduce(
-    (acc: number, s: { actual_weight: number | null; actual_reps: number | null }) => acc + (s.actual_weight ?? 0) * (s.actual_reps ?? 0),
+    (acc: number, s: { actual_weight: number | null; actual_reps: number | null }) => acc + Math.max(s.actual_weight ?? 0, 0) * (s.actual_reps ?? 0),
     0
   );
 
@@ -182,7 +182,8 @@ async function fetchProgressData(userId: string): Promise<ProgressServerData> {
   const volByDay: Record<string, number> = {};
   ((weekSets as Array<{ actual_weight: number | null; actual_reps: number | null; logged_at: string | null }>) ?? []).forEach((s) => {
     const d = s.logged_at?.split("T")[0];
-    if (d) volByDay[d] = (volByDay[d] ?? 0) + (s.actual_weight ?? 0) * (s.actual_reps ?? 0);
+    // Bodyweight sentinel (-1) and 0 weight contribute no volume
+    if (d) volByDay[d] = (volByDay[d] ?? 0) + Math.max(s.actual_weight ?? 0, 0) * (s.actual_reps ?? 0);
   });
 
   const weeklyVolume: DailyVolume[] = dayDates.map((dd) => ({
@@ -218,11 +219,14 @@ async function fetchProgressData(userId: string): Promise<ProgressServerData> {
     exercise: { primary_muscles: string[] | null } | null;
   };
   for (const s of (recentSets as RecentSet[] | null) ?? []) {
-    // Skip warmups, cooldowns, and sets with no meaningful load (ignore 0
-    // but keep the bodyweight sentinel -1)
+    // Muscle balance counts EXPOSURE per set, not tonnage. Every completed
+    // working set that trains a muscle counts — regardless of whether it's
+    // weighted, bodyweight (sentinel -1), or timed/plyometric (weight 0).
+    // A plank, sprint, muscle-up, or heavy back squat each adds 1 set of
+    // exposure to their tagged muscles. Schoenfeld's "effective sets" model
+    // does not require external load.
+    // Only exclude warmups and cooldowns (ramping prep + decompression work).
     if (s.set_type === "warmup" || s.set_type === "cooldown") continue;
-    const w = s.actual_weight;
-    if (w == null || w === 0) continue;
 
     const macros = setMacroGroups(s.exercise?.primary_muscles ?? null);
     for (const macro of macros) {

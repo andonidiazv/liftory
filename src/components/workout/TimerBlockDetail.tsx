@@ -1,12 +1,16 @@
 import { useState, useEffect, useRef } from "react";
-import { ChevronLeft, Play, Pause, Minus, Plus, Dumbbell } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play, Pause, Minus, Plus, Dumbbell, RotateCcw } from "lucide-react";
 import type { WorkoutBlock } from "./WorkoutOverview";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 
 interface Props {
   block: WorkoutBlock;
   onBack: () => void;
   onCompleteBlock: (roundsCompleted: number) => Promise<void>;
   onOpenVideo: (exercise: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
+  nextBlockName?: string | null;
+  onNextBlock?: () => void;
 }
 
 /** Parse duration from coaching cue like "AMRAP 16 min" or "16 min" */
@@ -46,7 +50,9 @@ const vibrate = (ms: number) => {
   try { navigator.vibrate?.(ms); } catch {}
 };
 
-export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpenVideo }: Props) {
+export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpenVideo, nextBlockName, onNextBlock }: Props) {
+  const { isDark } = useDarkMode();
+  const tc = isDark ? noche : dia;
   // Only AMRAPs use this timer now (EMOMs are handled as instruction blocks)
   const totalDurationSec = parseDurationFromCue(block);
 
@@ -129,6 +135,17 @@ export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpe
   const handleFinish = async () => {
     await onCompleteBlock(rounds);
     onBack();
+  };
+
+  const handleRestart = () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (countdownRef.current) clearTimeout(countdownRef.current);
+    setRunning(false);
+    setCompleted(false);
+    setHasStarted(false);
+    setCountdown(null);
+    setTimeRemaining(totalDurationSec);
+    setRounds(0);
   };
 
   const progress = totalDurationSec > 0 ? 1 - (timeRemaining / totalDurationSec) : 0;
@@ -254,6 +271,19 @@ export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpe
               <button onClick={() => adjustTime(15)} className="font-body text-sm text-muted-foreground">+15s</button>
             </div>
 
+            {/* Restart button — only show after timer has started or is running */}
+            {(hasStarted || running) && (
+              <button
+                onClick={handleRestart}
+                className="press-scale mt-4 flex items-center gap-2 rounded-full px-4 py-2 font-body text-xs text-muted-foreground"
+                style={{ background: "hsl(var(--secondary))" }}
+                title="Reiniciar timer"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Reiniciar
+              </button>
+            )}
+
             {/* AMRAP round counter */}
             <div className="mt-6 flex items-center gap-5">
               <button
@@ -278,7 +308,7 @@ export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpe
       </div>
 
       {/* Exercise list */}
-      <div className="flex-1 px-5 pb-8">
+      <div className="flex-1 px-5 pb-4">
         <p className="font-mono uppercase text-muted-foreground mb-3" style={{ fontSize: 9, letterSpacing: "2px" }}>
           EJERCICIOS
         </p>
@@ -321,6 +351,19 @@ export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpe
           })}
         </div>
       </div>
+
+      {/* Next block button */}
+      {onNextBlock && nextBlockName && (
+        <div className="px-5 pb-8">
+          <button
+            onClick={onNextBlock}
+            className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-display text-[14px] font-semibold transition-colors"
+            style={{ background: tc.accentBgStrong, color: tc.accent, border: `1px solid ${tc.accentBgStrong}` }}
+          >
+            Siguiente: {nextBlockName} <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -9,11 +9,15 @@ import WorkoutOverview, { type WorkoutBlock } from "@/components/workout/Workout
 import BlockDetail from "@/components/workout/BlockDetail";
 import RestTimerSheet from "@/components/workout/RestTimerSheet";
 import TimerBlockDetail from "@/components/workout/TimerBlockDetail";
+import ForTimeTimerBlock from "@/components/workout/ForTimeTimerBlock";
+import DeathByTimerBlock from "@/components/workout/DeathByTimerBlock";
 import ExerciseVideoOverlay from "@/components/workout/ExerciseVideoOverlay";
 import BadgeQualificationToast from "@/components/workout/BadgeQualificationToast";
+import MesocycleWelcomeCard from "@/components/workout/MesocycleWelcomeCard";
 import { useBadgeDetection, type BadgeMatch } from "@/hooks/useBadgeDetection";
 import { BLOCK_ORDER, BLOCK_LABEL_COLORS } from "@/constants/blocks";
 import { unlockAudio } from "@/lib/audio";
+import { M2_INTRO_CONTENT, welcomeCardSeenKey } from "@/lib/mesocycle-content";
 
 // ─── Rest timer persistence ───
 // Survives app backgrounding AND full page reloads (iOS memory eviction).
@@ -59,9 +63,14 @@ function isEmomBlock(block: WorkoutBlock): boolean {
 
 /** Check if a block needs weight logging (strength/sculpt types).
  *  EMOM blocks are excluded because weight is logged via a global "peso de la barra"
- *  control that only persists on the primary exercise's sets (complex mode). */
+ *  control that only persists on the primary exercise's sets (complex mode).
+ *  ATHLETIC INTEGRATION is dual-purpose: warmup flow (no weights) vs sub-maximal
+ *  strength like Pause Box Squat (with weights) — detected via set_type='working'. */
 function blockNeedsWeights(block: WorkoutBlock): boolean {
   if (isEmomBlock(block)) return false;
+  if (block.name === 'ATHLETIC INTEGRATION') {
+    return block.groups.some(g => g.sets.some(s => s.set_type === 'working'));
+  }
   return block.type === 'strength' || block.type === 'sculpt';
 }
 
@@ -72,7 +81,14 @@ function getBlockWarnings(block: WorkoutBlock): { unloggedSets: number; missingW
   for (const g of block.groups) {
     for (const s of g.sets) {
       if (!s.is_completed) unloggedSets++;
-      else if (blockNeedsWeights(block) && (s.actual_weight == null || s.actual_weight === 0)) missingWeights++;
+      else if (
+        blockNeedsWeights(block) &&
+        // Timed sets (planks, holds) legitimately have actual_weight=0 — skip check
+        (s.planned_duration_seconds ?? 0) === 0 &&
+        (s.actual_weight == null || s.actual_weight === 0)
+      ) {
+        missingWeights++;
+      }
     }
   }
   return { unloggedSets, missingWeights };
@@ -108,6 +124,8 @@ export default function Workout() {
 
   const [activeBlock, setActiveBlock] = useState<WorkoutBlock | null>(null);
   const [timerBlock, setTimerBlock] = useState<WorkoutBlock | null>(null);
+  const [forTimeBlock, setForTimeBlock] = useState<WorkoutBlock | null>(null);
+  const [deathByBlock, setDeathByBlock] = useState<WorkoutBlock | null>(null);
   const [lastVisitedBlockId, setLastVisitedBlockId] = useState<string | null>(null);
   const [detailSoftGate, setDetailSoftGate] = useState<{ currentBlock: WorkoutBlock; nextBlock: WorkoutBlock } | null>(null);
   const [videoOverlay, setVideoOverlay] = useState<{ name: string; videoUrl: string | null; coachingCue: string | null } | null>(null);
@@ -118,7 +136,38 @@ export default function Workout() {
   const [finishNotes, setFinishNotes] = useState("");
   const [programTotalWeeks, setProgramTotalWeeks] = useState(6);
   const [badgeMatch, setBadgeMatch] = useState<BadgeMatch | null>(null);
+  const [showM2Welcome, setShowM2Welcome] = useState(false);
   const { checkForBadge, checkBlockForBadges } = useBadgeDetection();
+
+  // ─── Mesocycle Welcome Card trigger ───
+  // Show first time user opens an M2 workout (per-user, persisted via localStorage).
+  // Detection: workout's coach_note mentions "M2" OR scheduled_date in M2 range (Apr 27 - Jun 7 2026).
+  useEffect(() => {
+    if (!workout) return;
+    const userId = workout.user_id;
+    if (!userId) return; // template workouts have user_id=null — no card
+
+    const isM2 =
+      (workout.coach_note?.includes("M2") ?? false) ||
+      (workout.scheduled_date >= "2026-04-27" && workout.scheduled_date <= "2026-06-07");
+    if (!isM2) return;
+
+    try {
+      const seenKey = welcomeCardSeenKey(userId, "M2");
+      const seen = localStorage.getItem(seenKey);
+      if (!seen) setShowM2Welcome(true);
+    } catch { /* localStorage unavailable — skip silently */ }
+  }, [workout?.id]);
+
+  const handleM2WelcomeDismiss = useCallback(() => {
+    try {
+      const userId = workout?.user_id;
+      if (userId) {
+        localStorage.setItem(welcomeCardSeenKey(userId, "M2"), new Date().toISOString());
+      }
+    } catch { /* noop */ }
+    setShowM2Welcome(false);
+  }, [workout?.user_id]);
 
   // ─── FIX 1: Refetch from DB when user returns from another app ───
   useEffect(() => {
@@ -159,6 +208,14 @@ export default function Workout() {
     if (activeBlock) {
       const fresh = blocks.find((b) => b.id === activeBlock.id);
       if (fresh && fresh !== activeBlock) setActiveBlock(fresh);
+    }
+    if (forTimeBlock) {
+      const fresh = blocks.find((b) => b.id === forTimeBlock.id);
+      if (fresh && fresh !== forTimeBlock) setForTimeBlock(fresh);
+    }
+    if (deathByBlock) {
+      const fresh = blocks.find((b) => b.id === deathByBlock.id);
+      if (fresh && fresh !== deathByBlock) setDeathByBlock(fresh);
     }
     if (timerBlock) {
       const fresh = blocks.find((b) => b.id === timerBlock.id);
@@ -368,7 +425,13 @@ export default function Workout() {
   const handleBlockSelect = useCallback((block: WorkoutBlock) => {
     setLastVisitedBlockId(block.id);
     const badge = block.formatBadge?.toUpperCase();
-    if (badge === "AMRAP") {
+    // Detect metcon formats by coaching_cue prefix — must come BEFORE AMRAP check
+    const firstCue = (block.groups[0]?.sets[0]?.coaching_cue_override ?? "").toUpperCase();
+    if (firstCue.startsWith("DEATH BY") || firstCue.includes("DEATH BY:")) {
+      setDeathByBlock(block);
+    } else if (firstCue.startsWith("FOR TIME") || firstCue.includes("FOR TIME:")) {
+      setForTimeBlock(block);
+    } else if (badge === "AMRAP") {
       setTimerBlock(block);
     } else {
       setActiveBlock(block);
@@ -414,8 +477,54 @@ export default function Workout() {
     );
   }
 
-  // ─── LEVEL 2: Timer block ───
+  // ─── LEVEL 2: For Time block (metcons For Time) ───
+  if (forTimeBlock) {
+    return (
+      <>
+        <ForTimeTimerBlock
+          block={forTimeBlock}
+          onBack={() => { setForTimeBlock(null); refetch(); }}
+          onCompleteBlock={(elapsedSec) => handleCompleteTimerBlock(forTimeBlock, elapsedSec)}
+          onOpenVideo={(v) => setVideoOverlay(v)}
+        />
+        <ExerciseVideoOverlay
+          videoUrl={videoOverlay?.videoUrl ?? null}
+          exerciseName={videoOverlay?.name ?? ""}
+          coachingCue={videoOverlay?.coachingCue ?? null}
+          visible={!!videoOverlay}
+          onClose={() => setVideoOverlay(null)}
+        />
+        <BadgeQualificationToast match={badgeMatch} onDismiss={() => setBadgeMatch(null)} />
+      </>
+    );
+  }
+
+  // ─── LEVEL 2: Death By block (metcon EMOM progresivo) ───
+  if (deathByBlock) {
+    return (
+      <>
+        <DeathByTimerBlock
+          block={deathByBlock}
+          onBack={() => { setDeathByBlock(null); refetch(); }}
+          onCompleteBlock={(minutes) => handleCompleteTimerBlock(deathByBlock, minutes)}
+          onOpenVideo={(v) => setVideoOverlay(v)}
+        />
+        <ExerciseVideoOverlay
+          videoUrl={videoOverlay?.videoUrl ?? null}
+          exerciseName={videoOverlay?.name ?? ""}
+          coachingCue={videoOverlay?.coachingCue ?? null}
+          visible={!!videoOverlay}
+          onClose={() => setVideoOverlay(null)}
+        />
+        <BadgeQualificationToast match={badgeMatch} onDismiss={() => setBadgeMatch(null)} />
+      </>
+    );
+  }
+
+  // ─── LEVEL 2: Timer block (AMRAP) ───
   if (timerBlock) {
+    const timerIdx = blocks.findIndex(b => b.id === timerBlock.id);
+    const timerNextBlock = timerIdx >= 0 && timerIdx < blocks.length - 1 ? blocks[timerIdx + 1] : null;
     return (
       <>
         <TimerBlockDetail
@@ -423,6 +532,15 @@ export default function Workout() {
           onBack={() => { setTimerBlock(null); refetch(); }}
           onCompleteBlock={(rounds) => handleCompleteTimerBlock(timerBlock, rounds)}
           onOpenVideo={(v) => setVideoOverlay(v)}
+          nextBlockName={timerNextBlock?.name ?? null}
+          onNextBlock={timerNextBlock ? () => {
+            setLastVisitedBlockId(timerNextBlock.id);
+            refetch().then(() => {
+              setTimerBlock(null);
+              // Use handleBlockSelect to properly route to the correct timer/detail view
+              handleBlockSelect(timerNextBlock);
+            });
+          } : undefined}
         />
         <ExerciseVideoOverlay
           videoUrl={videoOverlay?.videoUrl ?? null}
@@ -469,11 +587,16 @@ export default function Workout() {
               const setIds = activeBlock.groups.flatMap(g => g.sets.map(s => s.id));
               const { data: freshSets } = await supabase
                 .from("workout_sets")
-                .select("id, is_completed, actual_weight")
+                .select("id, is_completed, actual_weight, planned_duration_seconds")
                 .in("id", setIds);
               if (freshSets) {
                 const unlogged = freshSets.filter(s => !s.is_completed).length;
-                const missingW = freshSets.filter(s => s.is_completed && (s.actual_weight == null || s.actual_weight === 0)).length;
+                const missingW = freshSets.filter(s =>
+                  s.is_completed &&
+                  // Timed sets (planks, holds) legitimately have actual_weight=0 — skip check
+                  (s.planned_duration_seconds ?? 0) === 0 &&
+                  (s.actual_weight == null || s.actual_weight === 0)
+                ).length;
                 if (unlogged > 0 || missingW > 0) {
                   // Build a patched block for the dialog message
                   const patchedBlock = {
@@ -494,8 +617,13 @@ export default function Workout() {
             setLastVisitedBlockId(nextBlock.id);
             refetch().then(() => {
               const badge = nextBlock.formatBadge?.toUpperCase();
-              if (badge === "AMRAP") {
-                setActiveBlock(null);
+              const nextCue = (nextBlock.groups[0]?.sets[0]?.coaching_cue_override ?? "").toUpperCase();
+              setActiveBlock(null);
+              if (nextCue.startsWith("DEATH BY") || nextCue.includes("DEATH BY:")) {
+                setDeathByBlock(nextBlock);
+              } else if (nextCue.startsWith("FOR TIME") || nextCue.includes("FOR TIME:")) {
+                setForTimeBlock(nextBlock);
+              } else if (badge === "AMRAP") {
                 setTimerBlock(nextBlock);
               } else {
                 setActiveBlock(nextBlock);
@@ -578,8 +706,13 @@ export default function Workout() {
                     setLastVisitedBlockId(next.id);
                     refetch().then(() => {
                       const badge = next.formatBadge?.toUpperCase();
-                      if (badge === "AMRAP") {
-                        setActiveBlock(null);
+                      const nextCue = (next.groups[0]?.sets[0]?.coaching_cue_override ?? "").toUpperCase();
+                      setActiveBlock(null);
+                      if (nextCue.startsWith("DEATH BY") || nextCue.includes("DEATH BY:")) {
+                        setDeathByBlock(next);
+                      } else if (nextCue.startsWith("FOR TIME") || nextCue.includes("FOR TIME:")) {
+                        setForTimeBlock(next);
+                      } else if (badge === "AMRAP") {
                         setTimerBlock(next);
                       } else {
                         setActiveBlock(next);
@@ -605,6 +738,15 @@ export default function Workout() {
   // ─── LEVEL 1: Overview ───
   return (
     <>
+      {/* Mesocycle Welcome Card — shown once per user per mesocycle */}
+      {showM2Welcome && (
+        <MesocycleWelcomeCard
+          content={M2_INTRO_CONTENT}
+          onContinue={handleM2WelcomeDismiss}
+          onSkip={handleM2WelcomeDismiss}
+        />
+      )}
+
       <WorkoutOverview
         workout={workout}
         blocks={blocks}

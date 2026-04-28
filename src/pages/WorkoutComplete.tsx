@@ -222,9 +222,15 @@ export default function WorkoutComplete() {
     );
     const prs = completedSets.filter((s) => s.is_pr).length;
 
-    // Strength sets = non-mobility, non-cooldown
-    const mobilityBlocks = ['PRIME BLOCK', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION', 'RECOVERY BLOCK'];
-    const strengthSets = completedSets.filter(s => !mobilityBlocks.includes(s.block_label || ''));
+    // Strength sets = non-mobility, non-cooldown.
+    // ATHLETIC INTEGRATION is dual-purpose: warmup-flow (excluded) vs sub-maximal strength
+    // like Pause Box Squat (included). Differentiate via set_type='working'.
+    const mobilityBlocks = ['PRIME BLOCK', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'RECOVERY BLOCK'];
+    const strengthSets = completedSets.filter(s => {
+      if (mobilityBlocks.includes(s.block_label || '')) return false;
+      if (s.block_label === 'ATHLETIC INTEGRATION') return s.set_type === 'working';
+      return true;
+    });
     // Count sets with weight logged: actual_weight > 0 OR bodyweight sentinel (-1)
     const setsWithWeight = strengthSets.filter(s => s.actual_weight != null && (s.actual_weight > 0 || s.actual_weight === -1)).length;
 

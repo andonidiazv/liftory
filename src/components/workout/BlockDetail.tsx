@@ -30,7 +30,21 @@ function getBlockMode(block: WorkoutBlock): BlockMode {
   // Check if EMOM — render as instruction block
   if (block.groups.some(g => g.sets.some(s => s.set_type === 'emom'))) return 'emom';
   if (CARDIO_BLOCKS.includes(block.name)) return 'cardio';
+  // Tabata-style intervals (set_type='interval' with work + rest durations)
+  // render as cardio → IntervalTimerBlock per group, regardless of block name.
+  // This enables Tabata in METCON BLOCK or FINISHER BLOCK without affecting M1.
+  if (block.groups.some(g => g.sets.some(s => s.set_type === 'interval'))) return 'cardio';
   if (COOLDOWN_BLOCKS.includes(block.name)) return 'cooldown';
+
+  // ATHLETIC INTEGRATION: dual-purpose block.
+  //  - M1 used it for warmup flows (set_type='warmup') → render as mobility (cue-only)
+  //  - M2+ uses it for sub-maximal strength work like Pause Box Squat (set_type='working')
+  //    → render as strength so inputs (weight/reps/RPE/rest) appear.
+  if (block.name === 'ATHLETIC INTEGRATION') {
+    const hasWorking = block.groups.some(g => g.sets.some(s => s.set_type === 'working'));
+    return hasWorking ? 'strength' : 'mobility';
+  }
+
   if (MOBILITY_BLOCKS.includes(block.name)) return 'mobility';
   return 'strength';
 }

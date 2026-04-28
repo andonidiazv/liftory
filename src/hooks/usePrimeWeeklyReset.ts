@@ -119,7 +119,8 @@ export function usePrimeWeeklyReset(selectedDate: string) {
           prevTotalSets = prevSets.length;
           prevTotalReps = prevSets.reduce((sum, s) => sum + (s.actual_reps ?? 0), 0);
           prevVolume = prevSets.reduce(
-            (sum, s) => sum + (s.actual_weight ?? 0) * (s.actual_reps ?? 0),
+            // Bodyweight sentinel (-1) and 0 weight contribute no volume
+            (sum, s) => sum + Math.max(s.actual_weight ?? 0, 0) * (s.actual_reps ?? 0),
             0
           );
         }
@@ -220,7 +221,8 @@ export function usePrimeWeeklyReset(selectedDate: string) {
     const totalSets = sets.length;
     const totalReps = sets.reduce((sum, s) => sum + (s.actual_reps ?? 0), 0);
     const totalVolume = sets.reduce(
-      (sum, s) => sum + (s.actual_weight ?? 0) * (s.actual_reps ?? 0),
+      // Bodyweight sentinel (-1) and 0 weight contribute no volume
+      (sum, s) => sum + Math.max(s.actual_weight ?? 0, 0) * (s.actual_reps ?? 0),
       0
     );
     const consistency =
