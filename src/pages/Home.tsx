@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Leaf, ChevronRight, ChevronLeft, Flame, Dumbbell, Trophy, Check, Rocket, Loader2, Wind } from "lucide-react";
+import { BatteryCharging, ChevronRight, ChevronLeft, Flame, Dumbbell, Trophy, Check, Rocket, Loader2, Wind } from "lucide-react";
 import Layout from "@/components/Layout";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigableHome } from "@/hooks/useNavigableHome";
@@ -9,9 +9,12 @@ import PrimeWeeklyReset from "@/components/home/PrimeWeeklyReset";
 import FirstDayExperience from "@/components/onboarding/FirstDayExperience";
 import { useBadgeReviewNotification } from "@/hooks/useBadgeReviewNotification";
 import BadgeReviewCelebration from "@/components/celebrations/BadgeReviewCelebration";
+import MesocycleClosingCard from "@/components/celebrations/MesocycleClosingCard";
 import PushPermissionPrompt from "@/components/notifications/PushPermissionPrompt";
 import { useDarkMode } from "@/hooks/useDarkMode";
+import { useMesocycleTransition } from "@/hooks/useMesocycleTransition";
 import { dia, noche } from "@/lib/colors";
+import { getMesoForDate } from "@/lib/mesocycle-content";
 
 const BLOCK_LABELS: Record<string, string> = {
   accumulation: "BASE",
@@ -86,6 +89,10 @@ export default function Home() {
   const { isDark } = useDarkMode();
   const t = isDark ? noche : dia;
   const displayName = profile?.full_name || "Atleta";
+
+  // Mesocycle closing card — fires on the first Home visit after a meso transition.
+  // Shows once per (user, ending meso) via localStorage. Generic across M1→M2, M2→M3, etc.
+  const transition = useMesocycleTransition(user?.id ?? null);
 
   // First Day Experience onboarding — keyed to user, not program
   // Uses localStorage as fast cache + completed workouts as DB-backed fallback
@@ -181,6 +188,15 @@ export default function Home() {
           programName={programInfo.name}
           weekSchedule={buildWeekSchedule()}
           onComplete={handleOnboardingComplete}
+        />
+      )}
+      {transition.shouldShow && transition.closingContent && transition.stats && (
+        <MesocycleClosingCard
+          closingContent={transition.closingContent}
+          stats={transition.stats}
+          userName={profile?.full_name ?? undefined}
+          onContinue={transition.markSeen}
+          onSkip={transition.markSeen}
         />
       )}
       <BadgeReviewCelebration
@@ -352,7 +368,7 @@ export default function Home() {
                   }}
                 >
                   <div className="flex items-center gap-2">
-                    <Leaf className="h-5 w-5" style={{ color: "#7A8B5C" }} />
+                    <BatteryCharging className="h-5 w-5" style={{ color: "#7A8B5C" }} />
                     <p className="font-display text-[16px] font-semibold text-foreground">Dia de descanso</p>
                   </div>
                   <p className="mt-2 text-[13px] text-muted-foreground font-body leading-relaxed">
@@ -642,7 +658,7 @@ export default function Home() {
                       {day.isCompleted ? (
                         <Check className="h-3.5 w-3.5 text-primary-foreground" strokeWidth={3} />
                       ) : day.isRestDay ? (
-                        <Leaf className="h-3.5 w-3.5 text-muted-foreground" />
+                        <BatteryCharging className="h-3.5 w-3.5 text-muted-foreground" />
                       ) : day.workoutType === "mobility" ? (
                         <Wind className="h-3.5 w-3.5" style={{ color: "rgba(122, 139, 92, 0.55)" }} />
                       ) : day.workoutType === "strength" ? (
@@ -691,7 +707,18 @@ export default function Home() {
 
         {/* 5. Mesocycle Workout Tracker */}
         {programInfo && (() => {
-          const trainingDays = allWorkouts.filter(w => !w.isRestDay && w.workoutType === "strength");
+          // Detect which meso the user is currently viewing (based on the navigated week's date).
+          // Use this to scope the entire widget — grid, counter, labels — to a single meso.
+          // This prevents M1+M2 collision (both have week_numbers 1-6).
+          const sampleDate = weekDays.find((d) => d.date)?.date;
+          const viewingMeso = sampleDate ? getMesoForDate(sampleDate) : null;
+
+          // Filter workouts to ONLY the viewing meso. If we can't detect a meso, show everything.
+          const trainingDays = allWorkouts.filter((w) => {
+            if (w.isRestDay || w.workoutType !== "strength") return false;
+            if (!viewingMeso) return true;
+            return getMesoForDate(w.date) === viewingMeso;
+          });
           const totalCount = trainingDays.length;
           const currentDayNumber = trainingDays.filter(w => w.date <= todayStr).length;
           const pct = totalCount > 0 ? Math.round((currentDayNumber / totalCount) * 100) : 0;
@@ -760,22 +787,22 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Info */}
+                {/* Info — follows viewingWeekNumber so user navigation drives the widget */}
                 <div className="flex-1 min-w-0">
                   <p className="font-display text-[15px] font-semibold text-foreground">
-                    Mesociclo
+                    {viewingMeso ? `Mesociclo ${viewingMeso.replace(/\D/g, "")}` : "Mesociclo"}
                   </p>
                   <span
                     className="inline-block mt-1 rounded-full px-2.5 py-0.5 font-mono text-[8px] uppercase tracking-[1.5px]"
                     style={{ background: "hsl(var(--primary) / 0.08)", color: "hsl(var(--primary))" }}
                   >
-                    {getPhaseForWeek(currentWeekNumber)}
+                    {getPhaseForWeek(viewingWeekNumber)}
                   </span>
                   <p className="mt-1.5 font-mono text-[10px] text-muted-foreground">
-                    Semana {currentWeekNumber} de {programInfo.total_weeks}
+                    Semana {viewingWeekNumber} de {programInfo.total_weeks}
                   </p>
                   <p className="mt-1.5 font-body text-[11px] text-muted-foreground leading-snug">
-                    {getPhaseDescription(currentWeekNumber)}
+                    {getPhaseDescription(viewingWeekNumber)}
                   </p>
                 </div>
               </div>
