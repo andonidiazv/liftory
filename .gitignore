@@ -27,3 +27,9 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# Local-only / claude / supabase cache / data backups
+.claude
+supabase/.temp
+block_labels_backup.json
+
