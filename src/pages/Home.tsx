@@ -107,6 +107,12 @@ export default function Home() {
       const seen = localStorage.getItem(onboardingKey);
       if (seen) return;
 
+      // VIP joiners get their own welcome card — don't double-onboard them
+      if (user && isVipJoiner(user.email)) {
+        localStorage.setItem(onboardingKey, "true");
+        return;
+      }
+
       // Fallback check: if user has completed workouts, they've used the app before
       // (handles cache clearing / new device without needing a DB column)
       if (quickStats && quickStats.totalCompleted > 0) {
@@ -118,7 +124,7 @@ export default function Home() {
       localStorage.setItem(onboardingKey, "true");
       setShowOnboarding(true);
     }
-  }, [loading, programInfo, onboardingKey, quickStats]);
+  }, [loading, programInfo, onboardingKey, quickStats, user]);
 
   const handleOnboardingComplete = () => {
     if (onboardingKey) {
