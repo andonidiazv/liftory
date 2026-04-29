@@ -10,11 +10,13 @@ import FirstDayExperience from "@/components/onboarding/FirstDayExperience";
 import { useBadgeReviewNotification } from "@/hooks/useBadgeReviewNotification";
 import BadgeReviewCelebration from "@/components/celebrations/BadgeReviewCelebration";
 import MesocycleClosingCard from "@/components/celebrations/MesocycleClosingCard";
+import VipJoinerWelcomeCard from "@/components/celebrations/VipJoinerWelcomeCard";
 import PushPermissionPrompt from "@/components/notifications/PushPermissionPrompt";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { useMesocycleTransition } from "@/hooks/useMesocycleTransition";
 import { dia, noche } from "@/lib/colors";
 import { getMesoForDate } from "@/lib/mesocycle-content";
+import { isVipJoiner } from "@/lib/vip-emails";
 
 const BLOCK_LABELS: Record<string, string> = {
   accumulation: "BASE",
@@ -125,6 +127,22 @@ export default function Home() {
     setShowOnboarding(false);
   };
 
+  // VIP joiner welcome (César and similar) — shown once per user, gated by email + localStorage
+  const vipJoinerKey = user ? `liftory_vip_joiner_welcome_M2_${user.id}` : null;
+  const [showVipJoinerWelcome, setShowVipJoinerWelcome] = useState(false);
+
+  useEffect(() => {
+    if (!user || !vipJoinerKey) return;
+    if (!isVipJoiner(user.email)) return;
+    if (localStorage.getItem(vipJoinerKey)) return;
+    setShowVipJoinerWelcome(true);
+  }, [user, vipJoinerKey]);
+
+  const dismissVipJoinerWelcome = () => {
+    if (vipJoinerKey) localStorage.setItem(vipJoinerKey, "true");
+    setShowVipJoinerWelcome(false);
+  };
+
   // Build week schedule for FirstDayExperience from weekDays
   const buildWeekSchedule = () => {
     const DAY_LABELS_FULL = ["D", "L", "M", "M", "J", "V", "S"];
@@ -197,6 +215,13 @@ export default function Home() {
           userName={profile?.full_name ?? undefined}
           onContinue={transition.markSeen}
           onSkip={transition.markSeen}
+        />
+      )}
+      {showVipJoinerWelcome && (
+        <VipJoinerWelcomeCard
+          firstName={(profile?.full_name || "Atleta").split(" ")[0]}
+          onStart={dismissVipJoinerWelcome}
+          onSkip={dismissVipJoinerWelcome}
         />
       )}
       <BadgeReviewCelebration

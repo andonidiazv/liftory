@@ -5,6 +5,7 @@ import { useDarkMode } from "@/hooks/useDarkMode";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { assignProgram } from "@/lib/assignProgram";
+import { VIP_EMAILS } from "@/lib/vip-emails";
 import {
   ChevronLeft,
   Zap,
@@ -38,11 +39,6 @@ type Objective = "muscle_strength" | "athletic_performance" | "look_feel_better"
 const TOTAL_STEPS = 12;
 const PROGRESS_STEPS = 7;
 const STORAGE_KEY = "liftory_onboarding";
-
-/** VIP beta invites — these users skip paywall and get full access */
-const VIP_EMAILS = new Set([
-  "victor.vega.0495@gmail.com",
-]);
 
 /* ───────── palette (FORGED Camino C) ───────── */
 const charcoal = "#202024";

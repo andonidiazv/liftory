@@ -7,9 +7,10 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-/* Hardcoded VIP emails — must match the frontend list */
+/* Hardcoded VIP emails — must match the frontend list at src/lib/vip-emails.ts */
 const VIP_EMAILS = new Set([
   "victor.vega.0495@gmail.com",
+  "cesar.acerosaranda@gmail.com",
 ]);
 
 serve(async (req) => {
