@@ -2,7 +2,9 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useWorkoutData, type WorkoutSetData, type ExerciseGroup, type SupersetGroup } from "@/hooks/useWorkoutData";
 import { useApp } from "@/context/AppContext";
+import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { isVipJoiner } from "@/lib/vip-emails";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import WorkoutOverview, { type WorkoutBlock } from "@/components/workout/WorkoutOverview";
@@ -138,6 +140,7 @@ export default function Workout() {
   const [badgeMatch, setBadgeMatch] = useState<BadgeMatch | null>(null);
   const [showM2Welcome, setShowM2Welcome] = useState(false);
   const { checkForBadge, checkBlockForBadges } = useBadgeDetection();
+  const { user } = useAuth();
 
   // ─── Mesocycle Welcome Card trigger ───
   // Show first time user opens an M2 workout (per-user, persisted via localStorage).
@@ -154,10 +157,15 @@ export default function Workout() {
 
     try {
       const seenKey = welcomeCardSeenKey(userId, "M2");
+      // VIP joiners already saw their dedicated welcome card — don't double-onboard them.
+      if (isVipJoiner(user?.email)) {
+        localStorage.setItem(seenKey, new Date().toISOString());
+        return;
+      }
       const seen = localStorage.getItem(seenKey);
       if (!seen) setShowM2Welcome(true);
     } catch { /* localStorage unavailable — skip silently */ }
-  }, [workout?.id]);
+  }, [workout?.id, user?.email]);
 
   const handleM2WelcomeDismiss = useCallback(() => {
     try {
