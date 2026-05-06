@@ -143,8 +143,11 @@ export default function Workout() {
   const { user } = useAuth();
 
   // ─── Mesocycle Welcome Card trigger ───
-  // Show first time user opens an M2 workout (per-user, persisted via localStorage).
+  // Show first time user opens an M2 workout, before they've started training in M2.
   // Detection: workout's coach_note mentions "M2" OR scheduled_date in M2 range (Apr 27 - Jun 7 2026).
+  // Persistence: localStorage as fast cache + DB-derived fallback (any completed M2 workout = already started).
+  // The DB fallback is critical because localStorage is fragile (Safari Private mode, clearing site data,
+  // device switching, etc. wipe it). Without it, the card reappears on every login.
   useEffect(() => {
     if (!workout) return;
     const userId = workout.user_id;
@@ -155,16 +158,41 @@ export default function Workout() {
       (workout.scheduled_date >= "2026-04-27" && workout.scheduled_date <= "2026-06-07");
     if (!isM2) return;
 
-    try {
-      const seenKey = welcomeCardSeenKey(userId, "M2");
-      // VIP joiners already saw their dedicated welcome card — don't double-onboard them.
-      if (isVipJoiner(user?.email)) {
-        localStorage.setItem(seenKey, new Date().toISOString());
-        return;
-      }
-      const seen = localStorage.getItem(seenKey);
-      if (!seen) setShowM2Welcome(true);
-    } catch { /* localStorage unavailable — skip silently */ }
+    let cancelled = false;
+    (async () => {
+      try {
+        const seenKey = welcomeCardSeenKey(userId, "M2");
+
+        // VIP joiners already saw their dedicated welcome card — don't double-onboard them.
+        if (isVipJoiner(user?.email)) {
+          localStorage.setItem(seenKey, new Date().toISOString());
+          return;
+        }
+
+        // Fast path: localStorage says seen
+        if (localStorage.getItem(seenKey)) return;
+
+        // Fallback: did the user already complete any M2 workout? If yes, they've already started M2,
+        // so the intro card is no longer relevant. This survives localStorage wipes / device switches.
+        const { count, error } = await supabase
+          .from("workouts")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .eq("is_completed", true)
+          .gte("scheduled_date", "2026-04-27")
+          .lte("scheduled_date", "2026-06-07");
+        if (cancelled) return;
+        if (!error && (count ?? 0) > 0) {
+          localStorage.setItem(seenKey, new Date().toISOString());
+          return;
+        }
+
+        // Truly first M2 workout for this user: show the card.
+        if (!cancelled) setShowM2Welcome(true);
+      } catch { /* localStorage unavailable / fetch failed — skip silently */ }
+    })();
+
+    return () => { cancelled = true; };
   }, [workout?.id, user?.email]);
 
   const handleM2WelcomeDismiss = useCallback(() => {
