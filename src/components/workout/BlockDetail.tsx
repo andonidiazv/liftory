@@ -238,11 +238,15 @@ export default function BlockDetail({
       const updated = { ...prev };
       for (const g of block.groups) {
         for (const s of g.sets) {
-          if (!prev[s.id] || s.is_completed) {
+          // Only seed local input from server when there's NO local input yet.
+          // Removing the "|| s.is_completed" branch — that branch was causing data loss:
+          // a refetch (visibility change, completeSet response, network ping) would
+          // overwrite a value the athlete was actively editing on top of a completed set.
+          if (!prev[s.id]) {
             if (s.actual_weight != null || s.actual_reps != null) {
               updated[s.id] = {
-                weight: s.actual_weight != null ? String(toDisplayWeight(s.actual_weight, localUnit)) : prev[s.id]?.weight ?? "",
-                reps: s.actual_reps != null ? String(s.actual_reps) : prev[s.id]?.reps ?? "",
+                weight: s.actual_weight != null ? String(toDisplayWeight(s.actual_weight, localUnit)) : "",
+                reps: s.actual_reps != null ? String(s.actual_reps) : "",
               };
             }
           }
@@ -272,35 +276,82 @@ export default function BlockDetail({
     [setInputs, getSuggestedWeight]
   );
 
+  // Debounce DB writes per (setId, dbField) so rapid taps on the picker don't
+  // create races where reordered network requests overwrite the latest value.
+  // Local UI state updates immediately — only the network call is debounced.
+  // Pending writes are flushed on unmount so the user never loses the last value
+  // typed before navigating back.
+  type PendingWrite = {
+    timer: ReturnType<typeof setTimeout>;
+    setId: string;
+    field: "actual_weight" | "actual_reps";
+    value: number;
+  };
+  const pendingWritesRef = useRef<Map<string, PendingWrite>>(new Map());
+  const WRITE_DEBOUNCE_MS = 400;
+
+  const scheduleWrite = useCallback(
+    (setId: string, dbField: "actual_weight" | "actual_reps", value: number) => {
+      const key = `${setId}:${dbField}`;
+      const existing = pendingWritesRef.current.get(key);
+      if (existing) clearTimeout(existing.timer);
+      const timer = setTimeout(() => {
+        onUpdateSetField(setId, dbField, value);
+        pendingWritesRef.current.delete(key);
+      }, WRITE_DEBOUNCE_MS);
+      pendingWritesRef.current.set(key, { timer, setId, field: dbField, value });
+    },
+    [onUpdateSetField]
+  );
+
+  // Flush all pending writes when the block unmounts (back, navigate, complete workout).
+  // We read onUpdateSetField via a ref so the cleanup only fires on real unmount,
+  // not whenever the parent re-renders with a new callback identity.
+  const onUpdateSetFieldRef = useRef(onUpdateSetField);
+  useEffect(() => { onUpdateSetFieldRef.current = onUpdateSetField; }, [onUpdateSetField]);
+  useEffect(() => {
+    return () => {
+      const pending = pendingWritesRef.current;
+      for (const [, p] of pending) {
+        clearTimeout(p.timer);
+        // Fire-and-forget — last value the athlete entered for this set+field.
+        onUpdateSetFieldRef.current(p.setId, p.field, p.value);
+      }
+      pending.clear();
+    };
+  }, []);
+
   const updateInput = (setId: string, field: keyof SetInputs, value: string) => {
     const existing = setInputs[setId] || getInputs(block.groups.flatMap(g => g.sets).find(s => s.id === setId)!);
     setSetInputs((prev) => ({ ...prev, [setId]: { ...existing, [field]: value } }));
 
-    // Always persist to DB immediately (convert display unit → kg for storage)
+    // Schedule debounced DB write (convert display unit → kg for storage)
     if (field === "weight") {
       if (value === "BW") {
-        onUpdateSetField(setId, "actual_weight", BODYWEIGHT_SENTINEL);
+        scheduleWrite(setId, "actual_weight", BODYWEIGHT_SENTINEL);
       } else {
         const w = parseFloat(value);
-        if (!isNaN(w)) onUpdateSetField(setId, "actual_weight", toStorageWeight(w, localUnit));
+        if (!isNaN(w)) scheduleWrite(setId, "actual_weight", toStorageWeight(w, localUnit));
       }
     } else if (field === "reps") {
       const r = parseInt(value);
-      if (!isNaN(r)) onUpdateSetField(setId, "actual_reps", r);
+      if (!isNaN(r)) scheduleWrite(setId, "actual_reps", r);
     }
   };
 
-  const updateCompletedWeight = useCallback(async (setId: string, newWeight: string) => {
+  // Edits to already-completed sets also go through the debounced writer to
+  // avoid races when the athlete spins the picker fast on a logged set.
+  const updateCompletedWeight = useCallback((setId: string, newWeight: string) => {
     const w = parseFloat(newWeight);
     if (isNaN(w)) return;
-    await onUpdateSetField(setId, "actual_weight", toStorageWeight(w, localUnit));
-  }, [onUpdateSetField, localUnit]);
+    scheduleWrite(setId, "actual_weight", toStorageWeight(w, localUnit));
+  }, [scheduleWrite, localUnit]);
 
-  const updateCompletedReps = useCallback(async (setId: string, newReps: string) => {
+  const updateCompletedReps = useCallback((setId: string, newReps: string) => {
     const r = parseInt(newReps);
     if (isNaN(r)) return;
-    await onUpdateSetField(setId, "actual_reps", r);
-  }, [onUpdateSetField]);
+    scheduleWrite(setId, "actual_reps", r);
+  }, [scheduleWrite]);
 
   const handleComplete = async (set: WorkoutSetData, groupIndex: number, isLastInSuperset: boolean) => {
     const inputs = getInputs(set);
