@@ -355,6 +355,43 @@ export function useWorkoutData(workoutId: string | undefined) {
     fetchWorkout();
   }, [fetchWorkout]);
 
+  // ── PR detection (client-side, A2: per-rep-range, strict >) ──
+  // A legacy DB trigger sets is_pr based on a >= comparison that doesn't
+  // exclude same-session sets, so 3 sets at the same weight all get marked PR.
+  // We override it: after the trigger runs (during the main UPDATE), we issue
+  // a second UPDATE that only touches is_pr — the trigger doesn't fire when
+  // weight/reps don't change, so our value sticks.
+  // Definition of PR (A2): actual_weight strictly greater than the prior best
+  // weight at the SAME actual_reps for this user+exercise. First-ever set at
+  // a given rep range counts as a PR (establishes the baseline).
+  // Bodyweight sentinel (-1) and zero/negative weights are never PRs.
+  const computeIsPrA2 = useCallback(
+    async (
+      setId: string,
+      userId: string,
+      exerciseId: string,
+      actualWeight: number,
+      actualReps: number
+    ): Promise<boolean> => {
+      if (actualWeight <= 0 || actualReps <= 0) return false;
+      const { data: prior } = await supabase
+        .from("workout_sets")
+        .select("actual_weight")
+        .eq("user_id", userId)
+        .eq("exercise_id", exerciseId)
+        .eq("actual_reps", actualReps)
+        .eq("is_completed", true)
+        .neq("id", setId)
+        .gt("actual_weight", 0)
+        .order("actual_weight", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!prior) return true; // first effort at this rep range — establishes baseline
+      return actualWeight > prior.actual_weight;
+    },
+    []
+  );
+
   const completeSet = useCallback(
     async (
       setId: string,
@@ -384,11 +421,32 @@ export function useWorkoutData(workoutId: string | undefined) {
         return null;
       }
 
+      // Read the current set (post-trigger) to learn exercise_id + user_id
       const { data: updated } = await supabase
         .from("workout_sets")
         .select("*")
         .eq("id", setId)
         .maybeSingle();
+
+      // Override the buggy trigger value with our A2 calculation.
+      // Skip this for bodyweight/zero-weight sets — they're never PRs.
+      let correctedIsPr = updated?.is_pr ?? false;
+      if (updated && data.actual_weight > 0 && data.actual_reps > 0) {
+        correctedIsPr = await computeIsPrA2(
+          setId,
+          updated.user_id,
+          updated.exercise_id,
+          data.actual_weight,
+          data.actual_reps
+        );
+        if (correctedIsPr !== (updated.is_pr ?? false)) {
+          // Touch only is_pr so the trigger doesn't recompute (verified probe).
+          await supabase
+            .from("workout_sets")
+            .update({ is_pr: correctedIsPr })
+            .eq("id", setId);
+        }
+      }
 
       const serverLoggedAt = updated?.logged_at ?? new Date().toISOString();
 
@@ -402,7 +460,7 @@ export function useWorkoutData(workoutId: string | undefined) {
                 actual_rpe: null,
                 actual_rir: null,
                 is_completed: true,
-                is_pr: updated?.is_pr ?? false,
+                is_pr: correctedIsPr,
                 logged_at: serverLoggedAt,
               }
             : s
@@ -421,7 +479,7 @@ export function useWorkoutData(workoutId: string | undefined) {
                   actual_rpe: null,
                   actual_rir: null,
                   is_completed: true,
-                  is_pr: updated?.is_pr ?? false,
+                  is_pr: correctedIsPr,
                   logged_at: serverLoggedAt,
                 }
               : s
@@ -430,9 +488,11 @@ export function useWorkoutData(workoutId: string | undefined) {
       );
 
       setSaving(false);
-      return updated;
+      // Patch the returned object so the caller (e.g. PR flash animation) sees
+      // the corrected is_pr, not the trigger's buggy value.
+      return updated ? { ...updated, is_pr: correctedIsPr } : updated;
     },
-    [setSets, setExerciseGroups, setSaving]
+    [setSets, setExerciseGroups, setSaving, computeIsPrA2]
   );
 
   const updateSetField = useCallback(
