@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { syncQueue } from "@/lib/syncQueue";
+import type { Database } from "@/integrations/supabase/types";
 
 export interface WorkoutExercise {
   id: string;
@@ -403,35 +405,55 @@ export function useWorkoutData(workoutId: string | undefined) {
       }
     ) => {
       setSaving(true);
-      const { error } = await supabase
-        .from("workout_sets")
-        .update({
-          actual_weight: data.actual_weight,
-          actual_reps: data.actual_reps,
-          actual_rpe: null,
-          actual_rir: null,
-          is_completed: true,
-          logged_at: new Date().toISOString(),
-        })
-        .eq("id", setId);
 
-      if (error) {
-        toast({ title: "Error al guardar", description: error.message, variant: "destructive" });
-        setSaving(false);
-        return null;
+      const loggedAt = new Date().toISOString();
+      const completionPayload = {
+        actual_weight: data.actual_weight,
+        actual_reps: data.actual_reps,
+        actual_rpe: null,
+        actual_rir: null,
+        is_completed: true,
+        logged_at: loggedAt,
+      };
+
+      // Try the write directly. If it fails (offline, network), persist to
+      // the offline queue. PR detection requires network (queries history),
+      // so when offline we mark is_pr=false placeholder and let the queue
+      // recompute on sync.
+      let writeOnline = false;
+      try {
+        const { error } = await supabase
+          .from("workout_sets")
+          .update(completionPayload)
+          .eq("id", setId);
+        if (error) throw new Error(error.message);
+        writeOnline = true;
+      } catch {
+        await syncQueue.enqueueWrite({
+          kind: "update_set",
+          setId,
+          changes: completionPayload,
+        });
       }
 
-      // Read the current set (post-trigger) to learn exercise_id + user_id
-      const { data: updated } = await supabase
-        .from("workout_sets")
-        .select("*")
-        .eq("id", setId)
-        .maybeSingle();
+      // Find the current set in local state to get exercise_id + user_id
+      // for PR computation (works offline; read from in-memory state).
+      const localSet = sets.find((s) => s.id === setId);
+      let updated: Database["public"]["Tables"]["workout_sets"]["Row"] | null = null;
+
+      if (writeOnline) {
+        const { data: fresh } = await supabase
+          .from("workout_sets")
+          .select("*")
+          .eq("id", setId)
+          .maybeSingle();
+        updated = fresh ?? null;
+      }
 
       // Override the buggy trigger value with our A2 calculation.
       // Skip this for bodyweight/zero-weight sets — they're never PRs.
       let correctedIsPr = updated?.is_pr ?? false;
-      if (updated && data.actual_weight > 0 && data.actual_reps > 0) {
+      if (writeOnline && updated && data.actual_weight > 0 && data.actual_reps > 0) {
         correctedIsPr = await computeIsPrA2(
           setId,
           updated.user_id,
@@ -447,8 +469,10 @@ export function useWorkoutData(workoutId: string | undefined) {
             .eq("id", setId);
         }
       }
+      // Note: when offline, is_pr stays false until the next online recompute.
+      // Sprint 2 (read cache) will allow accurate offline PR detection.
 
-      const serverLoggedAt = updated?.logged_at ?? new Date().toISOString();
+      const serverLoggedAt = updated?.logged_at ?? loggedAt;
 
       setSets((prev) =>
         prev.map((s) =>
@@ -488,11 +512,22 @@ export function useWorkoutData(workoutId: string | undefined) {
       );
 
       setSaving(false);
-      // Patch the returned object so the caller (e.g. PR flash animation) sees
-      // the corrected is_pr, not the trigger's buggy value.
-      return updated ? { ...updated, is_pr: correctedIsPr } : updated;
+      // Always return a non-null object so callers don't treat offline writes
+      // as failures (the BlockDetail handler toasts on null). When offline,
+      // synthesize a minimal row from local state + the just-applied data.
+      if (updated) return { ...updated, is_pr: correctedIsPr };
+      return {
+        id: setId,
+        exercise_id: localSet?.exercise_id ?? "",
+        user_id: user?.id ?? "",
+        actual_weight: data.actual_weight,
+        actual_reps: data.actual_reps,
+        is_completed: true,
+        is_pr: correctedIsPr,
+        logged_at: loggedAt,
+      } as Database["public"]["Tables"]["workout_sets"]["Row"];
     },
-    [setSets, setExerciseGroups, setSaving, computeIsPrA2]
+    [sets, setSets, setExerciseGroups, setSaving, computeIsPrA2, user?.id]
   );
 
   /** Recompute is_pr for an already-completed set whose weight or reps just changed.
@@ -526,30 +561,32 @@ export function useWorkoutData(workoutId: string | undefined) {
       field: "actual_weight" | "actual_reps",
       value: number
     ): Promise<boolean> => {
-      const { error } = await supabase
-        .from("workout_sets")
-        .update({ [field]: value })
-        .eq("id", setId);
-
-      if (error) {
-        toast({
-          title: "Error al guardar",
-          description: error.message,
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      // Update local state so UI stays in sync
+      // Optimistic local update first — UI feels instant regardless of network.
       const updater = (s: WorkoutSetData) =>
         s.id === setId ? { ...s, [field]: value } : s;
-
       setSets((prev) => prev.map(updater));
       setExerciseGroups((prev) =>
         prev.map((g) => ({ ...g, sets: g.sets.map(updater) }))
       );
 
-      return true;
+      // Try to write directly. If anything goes wrong (no network, supabase
+      // hiccup, RLS), persist the mutation in the offline queue so it survives
+      // app close and replays when connectivity returns.
+      try {
+        const { error } = await supabase
+          .from("workout_sets")
+          .update({ [field]: value })
+          .eq("id", setId);
+        if (error) throw new Error(error.message);
+        return true;
+      } catch {
+        await syncQueue.enqueueWrite({
+          kind: "update_set",
+          setId,
+          changes: { [field]: value },
+        });
+        return true;
+      }
     },
     [setSets, setExerciseGroups]
   );

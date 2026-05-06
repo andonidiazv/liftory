@@ -36,6 +36,7 @@ import AdminBadges from "./pages/admin/AdminBadges";
 import AdminPayments from "./pages/admin/AdminPayments";
 import Badges from "./pages/Badges";
 import BadgeClaim from "./pages/BadgeClaim";
+import SyncStatusBadge from "./components/SyncStatusBadge";
 
 // Apply dark mode preference on load (before render)
 if (localStorage.getItem("liftory-dark-mode") === "true") {
@@ -58,6 +59,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <SyncStatusBadge />
       <BrowserRouter>
         <AuthProvider>
           <AppProvider>

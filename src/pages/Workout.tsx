@@ -5,6 +5,7 @@ import { useApp } from "@/context/AppContext";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { isVipJoiner } from "@/lib/vip-emails";
+import { syncQueue } from "@/lib/syncQueue";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import WorkoutOverview, { type WorkoutBlock } from "@/components/workout/WorkoutOverview";
@@ -401,19 +402,28 @@ export default function Workout() {
     async (setId: string) => {
       // Also clear is_pr — leaving it true on an uncompleted set creates an
       // invalid state (no weight + flagged PR) and inflates PR counters.
-      const { error } = await supabase
-        .from("workout_sets")
-        .update({
-          is_completed: false,
-          actual_weight: null,
-          actual_reps: null,
-          actual_rpe: null,
-          actual_rir: null,
-          is_pr: false,
-          logged_at: null,
-        })
-        .eq("id", setId);
-      return !error;
+      const payload = {
+        is_completed: false,
+        actual_weight: null,
+        actual_reps: null,
+        actual_rpe: null,
+        actual_rir: null,
+        is_pr: false,
+        logged_at: null,
+      };
+      try {
+        const { error } = await supabase
+          .from("workout_sets")
+          .update(payload)
+          .eq("id", setId);
+        if (error) throw new Error(error.message);
+        return true;
+      } catch {
+        // Network/transient error — queue for retry. The optimistic UI
+        // update in BlockDetail already reflects the uncomplete.
+        await syncQueue.enqueueWrite({ kind: "update_set", setId, changes: payload });
+        return true;
+      }
     },
     []
   );
