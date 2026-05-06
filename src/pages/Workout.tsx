@@ -111,6 +111,7 @@ export default function Workout() {
     allSetsCompleted,
     completeSet,
     updateSetField,
+    recomputeIsPr,
     finishWorkout,
     getSuggestedWeight,
     exerciseE1RM,
@@ -398,9 +399,19 @@ export default function Workout() {
 
   const handleUncompleteSet = useCallback(
     async (setId: string) => {
+      // Also clear is_pr — leaving it true on an uncompleted set creates an
+      // invalid state (no weight + flagged PR) and inflates PR counters.
       const { error } = await supabase
         .from("workout_sets")
-        .update({ is_completed: false, actual_weight: null, actual_reps: null, actual_rpe: null, actual_rir: null, logged_at: null })
+        .update({
+          is_completed: false,
+          actual_weight: null,
+          actual_reps: null,
+          actual_rpe: null,
+          actual_rir: null,
+          is_pr: false,
+          logged_at: null,
+        })
         .eq("id", setId);
       return !error;
     },
@@ -611,6 +622,7 @@ export default function Workout() {
           onCompleteSet={handleCompleteSet}
           onUncompleteSet={handleUncompleteSet}
           onUpdateSetField={updateSetField}
+          onRecomputeIsPr={recomputeIsPr}
           getSuggestedWeight={getSuggestedWeight}
           onRestStart={handleRestStart}
           onSwapExercise={() => {

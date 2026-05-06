@@ -91,6 +91,7 @@ interface Props {
   onCompleteSet: (set: WorkoutSetData, data: { actual_weight: number; actual_reps: number }) => Promise<unknown>;
   onUncompleteSet: (setId: string) => Promise<boolean>;
   onUpdateSetField: (setId: string, field: "actual_weight" | "actual_reps", value: number) => Promise<boolean>;
+  onRecomputeIsPr?: (setId: string) => Promise<void>;
   getSuggestedWeight: (exerciseId: string, plannedReps: number | null) => { weightKg: number | null; hint: string | null };
   onRestStart: (seconds: number) => void;
   onSwapExercise?: () => void;
@@ -152,6 +153,7 @@ export default function BlockDetail({
   onCompleteSet,
   onUncompleteSet,
   onUpdateSetField,
+  onRecomputeIsPr,
   getSuggestedWeight,
   onRestStart,
   onSwapExercise,
@@ -286,20 +288,27 @@ export default function BlockDetail({
     setId: string;
     field: "actual_weight" | "actual_reps";
     value: number;
+    onComplete?: () => void;
   };
   const pendingWritesRef = useRef<Map<string, PendingWrite>>(new Map());
   const WRITE_DEBOUNCE_MS = 400;
 
   const scheduleWrite = useCallback(
-    (setId: string, dbField: "actual_weight" | "actual_reps", value: number) => {
+    (
+      setId: string,
+      dbField: "actual_weight" | "actual_reps",
+      value: number,
+      onComplete?: () => void
+    ) => {
       const key = `${setId}:${dbField}`;
       const existing = pendingWritesRef.current.get(key);
       if (existing) clearTimeout(existing.timer);
-      const timer = setTimeout(() => {
-        onUpdateSetField(setId, dbField, value);
+      const timer = setTimeout(async () => {
+        await onUpdateSetField(setId, dbField, value);
         pendingWritesRef.current.delete(key);
+        if (onComplete) onComplete();
       }, WRITE_DEBOUNCE_MS);
-      pendingWritesRef.current.set(key, { timer, setId, field: dbField, value });
+      pendingWritesRef.current.set(key, { timer, setId, field: dbField, value, onComplete });
     },
     [onUpdateSetField]
   );
@@ -315,7 +324,11 @@ export default function BlockDetail({
       for (const [, p] of pending) {
         clearTimeout(p.timer);
         // Fire-and-forget — last value the athlete entered for this set+field.
-        onUpdateSetFieldRef.current(p.setId, p.field, p.value);
+        // Note: we don't await; if there was an onComplete (e.g. recompute is_pr)
+        // we still trigger it so post-edit consistency follows the user.
+        onUpdateSetFieldRef.current(p.setId, p.field, p.value).then(() => {
+          if (p.onComplete) p.onComplete();
+        });
       }
       pending.clear();
     };
@@ -341,17 +354,23 @@ export default function BlockDetail({
 
   // Edits to already-completed sets also go through the debounced writer to
   // avoid races when the athlete spins the picker fast on a logged set.
+  // After the write commits, we trigger onRecomputeIsPr so the PR flag
+  // stays accurate when the athlete corrects a logged value later.
   const updateCompletedWeight = useCallback((setId: string, newWeight: string) => {
     const w = parseFloat(newWeight);
     if (isNaN(w)) return;
-    scheduleWrite(setId, "actual_weight", toStorageWeight(w, localUnit));
-  }, [scheduleWrite, localUnit]);
+    scheduleWrite(setId, "actual_weight", toStorageWeight(w, localUnit), () => {
+      onRecomputeIsPr?.(setId);
+    });
+  }, [scheduleWrite, localUnit, onRecomputeIsPr]);
 
   const updateCompletedReps = useCallback((setId: string, newReps: string) => {
     const r = parseInt(newReps);
     if (isNaN(r)) return;
-    scheduleWrite(setId, "actual_reps", r);
-  }, [scheduleWrite]);
+    scheduleWrite(setId, "actual_reps", r, () => {
+      onRecomputeIsPr?.(setId);
+    });
+  }, [scheduleWrite, onRecomputeIsPr]);
 
   const handleComplete = async (set: WorkoutSetData, groupIndex: number, isLastInSuperset: boolean) => {
     const inputs = getInputs(set);

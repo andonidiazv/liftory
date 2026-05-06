@@ -495,6 +495,31 @@ export function useWorkoutData(workoutId: string | undefined) {
     [setSets, setExerciseGroups, setSaving, computeIsPrA2]
   );
 
+  /** Recompute is_pr for an already-completed set whose weight or reps just changed.
+   *  Called by BlockDetail after a post-completion edit (picker on a logged set).
+   *  Reads the current row from DB to get user_id/exercise_id and current values,
+   *  then reapplies A2 logic. Updates DB + local state if the result changed.
+   */
+  const recomputeIsPr = useCallback(async (setId: string) => {
+    const { data: set } = await supabase
+      .from("workout_sets")
+      .select("user_id, exercise_id, actual_weight, actual_reps, is_completed, is_pr")
+      .eq("id", setId)
+      .maybeSingle();
+    if (!set || !set.is_completed) return;
+
+    let newIsPr = false;
+    if ((set.actual_weight ?? 0) > 0 && (set.actual_reps ?? 0) > 0) {
+      newIsPr = await computeIsPrA2(setId, set.user_id, set.exercise_id, set.actual_weight, set.actual_reps);
+    }
+    if (newIsPr === (set.is_pr ?? false)) return;
+
+    await supabase.from("workout_sets").update({ is_pr: newIsPr }).eq("id", setId);
+    const updater = (s: WorkoutSetData) => s.id === setId ? { ...s, is_pr: newIsPr } : s;
+    setSets((prev) => prev.map(updater));
+    setExerciseGroups((prev) => prev.map((g) => ({ ...g, sets: g.sets.map(updater) })));
+  }, [computeIsPrA2, setSets, setExerciseGroups]);
+
   const updateSetField = useCallback(
     async (
       setId: string,
@@ -635,6 +660,7 @@ export function useWorkoutData(workoutId: string | undefined) {
     allSetsCompleted,
     completeSet,
     updateSetField,
+    recomputeIsPr,
     finishWorkout,
     refetch: fetchWorkout,
     exerciseE1RM,
