@@ -4,8 +4,8 @@
   "description": "Move Better. Lift Stronger. Live Longer.",
   "start_url": "/",
   "display": "standalone",
-  "theme_color": "#1A1A1A",
-  "background_color": "#FAF8F5",
+  "theme_color": "#0D0D0F",
+  "background_color": "#0D0D0F",
   "orientation": "portrait-primary",
   "icons": [
     {
