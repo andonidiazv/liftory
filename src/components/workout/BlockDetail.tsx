@@ -1403,7 +1403,7 @@ function CardioCard({
  *
  * Stored value uses actual_weight=0, actual_reps=1 (sentinel for "held once").
  */
-const PREP_SECONDS = 3;
+const PREP_SECONDS = 10;
 
 type TimerPhase = "idle" | "prep" | "running" | "paused" | "done";
 
