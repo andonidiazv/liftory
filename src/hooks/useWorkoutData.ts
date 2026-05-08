@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { syncQueue } from "@/lib/syncQueue";
+import { cacheWorkout, getCachedWorkout } from "@/lib/workoutCache";
 import type { Database } from "@/integrations/supabase/types";
 
 export interface WorkoutExercise {
@@ -98,6 +99,29 @@ export function useWorkoutData(workoutId: string | undefined) {
 
   const weightUnit = profile?.weight_unit || "kg";
 
+  /** Snapshot of the full computed state — what we cache locally to recover
+   *  the screen offline. Server is always the source of truth; this snapshot
+   *  is only read when the network fetch fails. */
+  type WorkoutCacheSnapshot = {
+    workout: WorkoutData;
+    sets: WorkoutSetData[];
+    exerciseGroups: ExerciseGroup[];
+    supersetGroups: SupersetGroup[];
+    exerciseE1RM: Record<string, number>;
+    avgRirByExercise: Record<string, number>;
+    exerciseDeltas: Record<string, ExerciseDelta>;
+  };
+
+  const applySnapshot = useCallback((snap: WorkoutCacheSnapshot) => {
+    setWorkout(snap.workout);
+    setSets(snap.sets);
+    setExerciseGroups(snap.exerciseGroups);
+    setSupersetGroups(snap.supersetGroups);
+    setExerciseE1RM(snap.exerciseE1RM);
+    setAvgRirByExercise(snap.avgRirByExercise);
+    setExerciseDeltas(snap.exerciseDeltas);
+  }, []);
+
   const fetchWorkout = useCallback(async () => {
     if (!user || !workoutId) {
       setWorkout(null);
@@ -109,6 +133,10 @@ export function useWorkoutData(workoutId: string | undefined) {
     }
 
     setLoading(true);
+
+    // Track whether we managed to populate state from the server. If we didn't,
+    // we'll fall back to a cached snapshot after the try/catch.
+    let populatedFromServer = false;
 
     try {
       const { data, error } = await supabase
@@ -127,10 +155,14 @@ export function useWorkoutData(workoutId: string | undefined) {
         .eq("id", workoutId)
         .maybeSingle();
 
-      if (error || !data) {
+      if (error) throw new Error(error.message);
+      if (!data) {
+        // Workout id doesn't exist server-side. Don't fall back to cache —
+        // an old cached row would be misleading (workout may have been deleted).
         setWorkout(null);
         setSets([]);
         setExerciseGroups([]);
+        populatedFromServer = true; // we got a definitive "not found" answer
         return;
       }
 
@@ -213,6 +245,8 @@ export function useWorkoutData(workoutId: string | undefined) {
       const exerciseIds = [...new Set(rawSets.map((s) => s.exercise_id))];
       const windowStart = new Date();
       windowStart.setDate(windowStart.getDate() - 42);
+      let computedE1RM: Record<string, number> = {};
+      let computedAvgRir: Record<string, number> = {};
       if (exerciseIds.length > 0) {
         const { data: pastSets } = await supabase
           .from("workout_sets")
@@ -229,15 +263,14 @@ export function useWorkoutData(workoutId: string | undefined) {
 
         if (pastSets && pastSets.length > 0) {
           // Compute max e1RM per exercise (Epley formula: weight × (1 + reps / 30))
-          const maxE1RM: Record<string, number> = {};
           const rirAccum: Record<string, number[]> = {};
 
           for (const ps of pastSets) {
             // Skip bodyweight (-1) and 0 weight sets — e1RM only valid for loaded lifts
             if ((ps.actual_weight ?? 0) <= 0) continue;
             const e1rm = ps.actual_weight * (1 + ps.actual_reps / 30);
-            if (!maxE1RM[ps.exercise_id] || e1rm > maxE1RM[ps.exercise_id]) {
-              maxE1RM[ps.exercise_id] = Math.round(e1rm * 10) / 10;
+            if (!computedE1RM[ps.exercise_id] || e1rm > computedE1RM[ps.exercise_id]) {
+              computedE1RM[ps.exercise_id] = Math.round(e1rm * 10) / 10;
             }
             if (ps.actual_rir != null) {
               if (!rirAccum[ps.exercise_id]) rirAccum[ps.exercise_id] = [];
@@ -246,24 +279,18 @@ export function useWorkoutData(workoutId: string | undefined) {
               }
             }
           }
-          setExerciseE1RM(maxE1RM);
 
-          const avgRir: Record<string, number> = {};
           for (const [exId, rirs] of Object.entries(rirAccum)) {
-            avgRir[exId] = rirs.reduce((a, b) => a + b, 0) / rirs.length;
+            computedAvgRir[exId] = rirs.reduce((a, b) => a + b, 0) / rirs.length;
           }
-          setAvgRirByExercise(avgRir);
-        } else {
-          setExerciseE1RM({});
-          setAvgRirByExercise({});
         }
-      } else {
-        setExerciseE1RM({});
-        setAvgRirByExercise({});
       }
+      setExerciseE1RM(computedE1RM);
+      setAvgRirByExercise(computedAvgRir);
 
       // ── Week-over-week deltas ──
       // Fetch same day_label in same program for the previous week to compare programming changes.
+      let computedDeltas: Record<string, ExerciseDelta> = {};
       if (w.week_number > 1 && w.program_id && w.day_label) {
         const { data: prevWk } = await supabase
           .from("workouts")
@@ -297,7 +324,6 @@ export function useWorkoutData(workoutId: string | undefined) {
             });
           }
 
-          const deltas: Record<string, ExerciseDelta> = {};
           const mode = (arr: (number | null)[]): number | null => {
             const counts = new Map<number, number>();
             for (const v of arr) {
@@ -328,7 +354,7 @@ export function useWorkoutData(workoutId: string | undefined) {
             const hasChange = setsDelta !== 0 || repsChanged || rpeChanged;
 
             if (hasChange) {
-              deltas[exId] = {
+              computedDeltas[exId] = {
                 setsDelta,
                 repsFrom: repsChanged ? repsFrom : null,
                 repsTo: repsChanged ? repsTo : null,
@@ -338,20 +364,47 @@ export function useWorkoutData(workoutId: string | undefined) {
               };
             }
           }
-          setExerciseDeltas(deltas);
-        } else {
-          setExerciseDeltas({});
         }
-      } else {
-        setExerciseDeltas({});
+      }
+      setExerciseDeltas(computedDeltas);
+
+      // Server fetch fully succeeded. Persist a snapshot for offline reload.
+      // This is the moment to commit the cache — everything is computed.
+      populatedFromServer = true;
+      try {
+        await cacheWorkout<WorkoutCacheSnapshot>(workoutId, user.id, {
+          workout: w,
+          sets: rawSets,
+          exerciseGroups: groups,
+          supersetGroups: ssGroups,
+          exerciseE1RM: computedE1RM,
+          avgRirByExercise: computedAvgRir,
+          exerciseDeltas: computedDeltas,
+        });
+      } catch {
+        // Cache writes are best-effort — don't fail the workout fetch over them.
       }
     } catch (err) {
-      // Network error or auth refresh failure — don't crash, just stop loading
+      // Network error or auth refresh failure — don't crash, fall back to cache below.
       console.warn("fetchWorkout error:", err);
-    } finally {
-      setLoading(false);
     }
-  }, [workoutId, user]);
+
+    // Fallback: if we didn't populate from server, try the offline cache.
+    // Cache is namespaced per user so we never show another athlete's data.
+    if (!populatedFromServer) {
+      try {
+        const cached = await getCachedWorkout<WorkoutCacheSnapshot>(workoutId, user.id);
+        if (cached) {
+          applySnapshot(cached.data);
+        }
+      } catch {
+        // Cache read errors → leave the empty state. The user just sees a
+        // blank workout view, same as before this sprint.
+      }
+    }
+
+    setLoading(false);
+  }, [workoutId, user, applySnapshot]);
 
   useEffect(() => {
     fetchWorkout();

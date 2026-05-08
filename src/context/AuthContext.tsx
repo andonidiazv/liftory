@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useState, useCallback, type React
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session, AuthError, AuthResponse, AuthTokenResponsePassword } from "@supabase/supabase-js";
 import type { UserProfile } from "@/lib/types";
+import { clearWorkoutCache } from "@/lib/workoutCache";
+import { offlineStorage } from "@/lib/offlineStorage";
 
 type AuthContextType = {
   user: User | null;
@@ -119,6 +121,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSession(null);
     setProfile(null);
+    // Wipe offline cache + pending writes — never leak one athlete's data
+    // into another's session on a shared device. Best-effort: don't fail
+    // signOut over storage errors.
+    try {
+      await clearWorkoutCache();
+      await offlineStorage.clearPendingWrites();
+    } catch { /* noop */ }
   };
 
   const signInWithGoogle = async () => {

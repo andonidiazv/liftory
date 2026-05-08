@@ -16,6 +16,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { offlineStorage, type QueuedWrite } from "@/lib/offlineStorage";
+import { recomputeIsPrForSet } from "@/lib/prDetection";
 
 export type SyncState =
   | { kind: "idle" }
@@ -144,6 +145,12 @@ class SyncQueueManager {
         .update(write.changes)
         .eq("id", write.setId);
       if (error) throw new Error(error.message);
+      // If this write was an offline completion, recompute is_pr now that
+      // we're online and can query history. Best-effort — failure here
+      // doesn't requeue the write (the data already landed correctly).
+      if (write.changes.is_completed === true) {
+        try { await recomputeIsPrForSet(write.setId); } catch { /* noop */ }
+      }
       return;
     }
     throw new Error(`Unknown write kind: ${(write as { kind: string }).kind}`);
