@@ -6,6 +6,7 @@ import ExerciseThumbnail from "./ExerciseThumbnail";
 import SwapBottomSheet from "./SwapBottomSheet";
 import WeightPickerSheet, { BODYWEIGHT_SENTINEL } from "./WeightPickerSheet";
 import RepsPickerSheet from "./RepsPickerSheet";
+import ExpandableNote from "./ExpandableNote";
 
 import type { WorkoutBlock } from "./WorkoutOverview";
 import ExerciseVideoOverlay from "./ExerciseVideoOverlay";
@@ -935,11 +936,15 @@ function ExerciseCard({
       )}
 
       {cueOverride && (
-        <div className="mt-2 flex items-start gap-1.5">
-          <Quote className="h-3 w-3 mt-0.5 shrink-0" style={{ color: "#7A8B5C" }} />
-          <p className="font-body italic" style={{ fontSize: 12, color: "#7A8B5C", lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-            {cueOverride}
-          </p>
+        <div className="mt-2">
+          <ExpandableNote
+            text={cueOverride}
+            clampLines={2}
+            className="font-body italic"
+            style={{ fontSize: 12, color: "#7A8B5C", lineHeight: 1.4 }}
+            toggleColor="#7A8B5C"
+            leadingIcon={<Quote className="h-3 w-3 mt-0.5 shrink-0" style={{ color: "#7A8B5C" }} />}
+          />
         </div>
       )}
 

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
 import { BLOCK_LABEL_COLORS } from "@/constants/blocks";
+import ExpandableNote from "./ExpandableNote";
 
 /** A "block" is a visual grouping of exercises for the overview */
 export interface WorkoutBlock {
@@ -539,10 +540,8 @@ function cleanCoachNote(raw: string, weekNumber: number, totalWeeks: number): st
 function CoachNote({ note, shortOnTimeNote, weekNumber, totalWeeks }: { note: string; shortOnTimeNote: string | null; weekNumber: number; totalWeeks: number }) {
   const { isDark } = useDarkMode();
   const t = isDark ? noche : dia;
-  const [expanded, setExpanded] = useState(false);
   const [showShortNote, setShowShortNote] = useState(false);
   const displayNote = cleanCoachNote(note, weekNumber, totalWeeks);
-  const isLong = displayNote.length > 120;
 
   return (
     <div className="px-5 mb-4 space-y-3">
@@ -556,24 +555,12 @@ function CoachNote({ note, shortOnTimeNote, weekNumber, totalWeeks }: { note: st
         <p className="font-mono uppercase text-primary" style={{ fontSize: 9, letterSpacing: "2px" }}>
           NOTA DEL COACH
         </p>
-        <p
+        <ExpandableNote
+          text={displayNote}
+          clampLines={3}
           className="mt-1 font-body text-foreground"
-          style={{
-            fontSize: 13,
-            lineHeight: 1.5,
-            display: "-webkit-box",
-            WebkitLineClamp: expanded ? undefined : 3,
-            WebkitBoxOrient: "vertical",
-            overflow: expanded ? undefined : "hidden",
-          }}
-        >
-          {displayNote}
-        </p>
-        {isLong && !expanded && (
-          <button onClick={() => setExpanded(true)} className="mt-1 font-body text-sm font-medium text-primary">
-            Leer más
-          </button>
-        )}
+          style={{ fontSize: 13, lineHeight: 1.5 }}
+        />
       </div>
 
       {/* Short on time pill */}
