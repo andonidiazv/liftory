@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight, Check, Dumbbell, Loader2, Quote, Trophy, Shuffle, X, Play, Pause, Timer } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Dumbbell, Loader2, Quote, Trophy, Shuffle, X, Play, Pause, Timer, RotateCcw } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
 import ExerciseThumbnail from "./ExerciseThumbnail";
@@ -1381,13 +1381,32 @@ function CardioCard({
   );
 }
 
-/* ═══════ TIMED SET ROW (for planks, dead hangs, L-sit holds, etc.) ═══════
+/* ═══════ TIMED SET ROW (for planks, dead hangs, L-sit holds, farmer carries) ═══════
  * Renders a countdown timer instead of weight/reps inputs when a set has
- * planned_duration_seconds > 0. Auto-completes the set when the timer
- * reaches zero. User can also manually complete by tapping the check.
- * Tap the timer to start/pause. Stored value uses actual_weight=0,
- * actual_reps=1 (sentinel for "held once").
+ * planned_duration_seconds > 0.
+ *
+ * Phase machine:
+ *   idle      Timer at full duration, ready to start. Tap to begin.
+ *   prep      3-2-1 countdown so the athlete has time to set up
+ *             (grip the bar, get into plank position, etc.). Tap to cancel.
+ *   running   Actual timer counting down. Tap to pause.
+ *   paused    Paused mid-run. Tap to resume.
+ *   done      Timer hit 0 — auto-completes the set.
+ *
+ * A small reset button appears whenever there's something to reset
+ * (prep / running / paused) so the athlete can bail out of a bad rep
+ * setup or restart for any reason. Reset returns to `idle` and clears
+ * the remaining time back to the full target.
+ *
+ * Auto-completes the set when the timer reaches zero. User can also
+ * manually complete by tapping the check.
+ *
+ * Stored value uses actual_weight=0, actual_reps=1 (sentinel for "held once").
  */
+const PREP_SECONDS = 3;
+
+type TimerPhase = "idle" | "prep" | "running" | "paused" | "done";
+
 function TimedSetRow({
   set, index, completed, isJustDone, rpeHigh, accent, accentBg, accentBgStrong, muted, isDark, onComplete, saving,
 }: {
@@ -1405,36 +1424,49 @@ function TimedSetRow({
   saving: boolean;
 }) {
   const targetSec = set.planned_duration_seconds ?? 60;
+  const [phase, setPhase] = useState<TimerPhase>(completed ? "done" : "idle");
   const [remaining, setRemaining] = useState(targetSec);
-  const [running, setRunning] = useState(false);
-  const tickRef = useRef<number | null>(null);
+  const [prepRemaining, setPrepRemaining] = useState(PREP_SECONDS);
   const onCompleteRef = useRef(onComplete);
   useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
   const completedRef = useRef(completed);
   useEffect(() => { completedRef.current = completed; }, [completed]);
 
-  // Countdown — only depends on `running`, uses refs for stable callbacks
+  // Tick: drives both the prep 3-2-1 and the actual timer based on phase.
   useEffect(() => {
-    if (!running) return;
+    if (phase !== "prep" && phase !== "running") return;
     const intervalId = window.setInterval(() => {
-      setRemaining((r) => {
-        if (r <= 1) {
-          setRunning(false);
-          if (!completedRef.current) onCompleteRef.current();
-          return 0;
-        }
-        return r - 1;
-      });
+      if (phase === "prep") {
+        setPrepRemaining((p) => {
+          if (p <= 1) {
+            // Prep finished — start the real timer next tick.
+            setPhase("running");
+            return PREP_SECONDS; // reset for any future restart
+          }
+          return p - 1;
+        });
+      } else {
+        setRemaining((r) => {
+          if (r <= 1) {
+            setPhase("done");
+            if (!completedRef.current) onCompleteRef.current();
+            return 0;
+          }
+          return r - 1;
+        });
+      }
     }, 1000);
-    tickRef.current = intervalId;
     return () => { window.clearInterval(intervalId); };
-  }, [running]);
+  }, [phase]);
 
-  // Reset timer when the set gets uncompleted externally
+  // Reset state when the set gets uncompleted externally (e.g. user untaps the check).
   useEffect(() => {
     if (!completed) {
+      setPhase("idle");
       setRemaining(targetSec);
-      setRunning(false);
+      setPrepRemaining(PREP_SECONDS);
+    } else {
+      setPhase("done");
     }
   }, [completed, targetSec]);
 
@@ -1446,15 +1478,61 @@ function TimedSetRow({
 
   const handleTimerTap = () => {
     if (completed) return;
-    if (remaining === 0) {
+    if (phase === "idle") {
+      // Start with a 3-2-1 setup window before the real timer.
+      setPrepRemaining(PREP_SECONDS);
       setRemaining(targetSec);
-      setRunning(true);
-    } else {
-      setRunning((r) => !r);
+      setPhase("prep");
+    } else if (phase === "prep") {
+      // Tap during prep → cancel and go back to idle.
+      setPhase("idle");
+      setPrepRemaining(PREP_SECONDS);
+    } else if (phase === "running") {
+      setPhase("paused");
+    } else if (phase === "paused") {
+      setPhase("running");
+    } else if (phase === "done") {
+      // Tap a finished timer to restart.
+      setRemaining(targetSec);
+      setPrepRemaining(PREP_SECONDS);
+      setPhase("prep");
     }
   };
 
+  const handleReset = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPhase("idle");
+    setRemaining(targetSec);
+    setPrepRemaining(PREP_SECONDS);
+  };
+
+  const isActive = phase === "prep" || phase === "running" || phase === "paused";
   const pct = completed ? 100 : ((targetSec - remaining) / targetSec) * 100;
+
+  // What to show in the timer button:
+  //   prep    → big number "3" / "2" / "1"
+  //   running → mm:ss + Pause icon
+  //   paused  → mm:ss + Play icon
+  //   idle    → mm:ss + Timer icon
+  //   done    → mm:ss (0:00) + Check
+  let timerIcon: React.ReactNode;
+  let timerLabel: string;
+  if (phase === "prep") {
+    timerIcon = null;
+    timerLabel = String(prepRemaining);
+  } else if (phase === "running") {
+    timerIcon = <Pause className="h-3.5 w-3.5" style={{ color: accent }} />;
+    timerLabel = mmss(remaining);
+  } else if (phase === "paused") {
+    timerIcon = <Play className="h-3.5 w-3.5" style={{ color: accent }} />;
+    timerLabel = mmss(remaining);
+  } else if (phase === "done" || completed) {
+    timerIcon = <Check className="h-3.5 w-3.5" style={{ color: accent }} />;
+    timerLabel = mmss(remaining);
+  } else {
+    timerIcon = <Timer className="h-3.5 w-3.5 text-muted-foreground" />;
+    timerLabel = mmss(remaining);
+  }
 
   return (
     <div
@@ -1484,40 +1562,56 @@ function TimedSetRow({
 
       <button
         onClick={handleTimerTap}
-        disabled={completed}
+        disabled={completed && phase !== "done"}
         className="flex-1 relative overflow-hidden rounded-lg px-3 py-2 transition-all"
         style={{
           background: completed ? accentBg : "hsl(var(--border))",
-          border: `1px solid ${running ? accent : "transparent"}`,
+          border: `1px solid ${phase === "running" || phase === "prep" ? accent : "transparent"}`,
         }}
       >
-        {/* Progress bar fill */}
-        <div
-          className="absolute inset-y-0 left-0 transition-all"
-          style={{
-            width: `${pct}%`,
-            background: completed ? accent : accentBgStrong,
-            opacity: completed ? 0.35 : 0.25,
-          }}
-        />
+        {/* Progress bar fill — only during real timer phases, not prep */}
+        {phase !== "prep" && (
+          <div
+            className="absolute inset-y-0 left-0 transition-all"
+            style={{
+              width: `${pct}%`,
+              background: completed ? accent : accentBgStrong,
+              opacity: completed ? 0.35 : 0.25,
+            }}
+          />
+        )}
         <div className="relative flex items-center justify-center gap-2">
-          {running ? (
-            <Pause className="h-3.5 w-3.5" style={{ color: accent }} />
-          ) : completed ? (
-            <Check className="h-3.5 w-3.5" style={{ color: accent }} />
-          ) : remaining < targetSec ? (
-            <Play className="h-3.5 w-3.5" style={{ color: accent }} />
-          ) : (
-            <Timer className="h-3.5 w-3.5 text-muted-foreground" />
-          )}
+          {timerIcon}
           <span
             className="font-mono text-foreground tabular-nums"
-            style={{ fontSize: 14, fontWeight: 600 }}
+            style={{
+              fontSize: phase === "prep" ? 18 : 14,
+              fontWeight: phase === "prep" ? 700 : 600,
+              color: phase === "prep" ? accent : undefined,
+              letterSpacing: phase === "prep" ? "0.05em" : undefined,
+            }}
           >
-            {mmss(remaining)}
+            {phase === "prep" && <span className="text-muted-foreground" style={{ fontSize: 9, marginRight: 6, letterSpacing: "1.5px" }}>LISTO</span>}
+            {timerLabel}
           </span>
         </div>
       </button>
+
+      {/* Reset — only visible while a timer is running/prep/paused.
+          Lets the athlete bail and restart for any reason (bad grip, distraction, etc.). */}
+      {isActive && (
+        <button
+          onClick={handleReset}
+          aria-label="Reiniciar timer"
+          className="flex h-7 w-7 items-center justify-center rounded-full border transition-all shrink-0"
+          style={{
+            borderColor: "hsl(var(--border))",
+            background: "transparent",
+          }}
+        >
+          <RotateCcw className="h-3 w-3" style={{ color: muted }} />
+        </button>
+      )}
 
       <button
         onClick={onComplete}
