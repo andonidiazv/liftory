@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { syncQueue } from "@/lib/syncQueue";
 import { cacheWorkout, getCachedWorkout } from "@/lib/workoutCache";
+import { computeIsPrA2 as computeIsPrA2Lib } from "@/lib/prDetection";
 import type { Database } from "@/integrations/supabase/types";
 
 export interface WorkoutExercise {
@@ -410,40 +411,16 @@ export function useWorkoutData(workoutId: string | undefined) {
     fetchWorkout();
   }, [fetchWorkout]);
 
-  // ── PR detection (client-side, A2: per-rep-range, strict >) ──
-  // A legacy DB trigger sets is_pr based on a >= comparison that doesn't
-  // exclude same-session sets, so 3 sets at the same weight all get marked PR.
-  // We override it: after the trigger runs (during the main UPDATE), we issue
-  // a second UPDATE that only touches is_pr — the trigger doesn't fire when
-  // weight/reps don't change, so our value sticks.
-  // Definition of PR (A2): actual_weight strictly greater than the prior best
-  // weight at the SAME actual_reps for this user+exercise. First-ever set at
-  // a given rep range counts as a PR (establishes the baseline).
-  // Bodyweight sentinel (-1) and zero/negative weights are never PRs.
+  // ── PR detection ──
+  // Single source of truth lives in src/lib/prDetection.ts so the sync queue
+  // can use the same algorithm when replaying offline completions.
+  // Current algorithm (v2 / A2 + e1RM sanity): a set is a PR only if it both
+  // strictly beats the prior best at the SAME rep count AND its e1RM (Epley)
+  // matches or exceeds the best prior e1RM across all rep ranges. See the
+  // doc comment in prDetection.ts for the full rationale.
   const computeIsPrA2 = useCallback(
-    async (
-      setId: string,
-      userId: string,
-      exerciseId: string,
-      actualWeight: number,
-      actualReps: number
-    ): Promise<boolean> => {
-      if (actualWeight <= 0 || actualReps <= 0) return false;
-      const { data: prior } = await supabase
-        .from("workout_sets")
-        .select("actual_weight")
-        .eq("user_id", userId)
-        .eq("exercise_id", exerciseId)
-        .eq("actual_reps", actualReps)
-        .eq("is_completed", true)
-        .neq("id", setId)
-        .gt("actual_weight", 0)
-        .order("actual_weight", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (!prior) return true; // first effort at this rep range — establishes baseline
-      return actualWeight > prior.actual_weight;
-    },
+    (setId: string, userId: string, exerciseId: string, actualWeight: number, actualReps: number) =>
+      computeIsPrA2Lib({ setId, userId, exerciseId, actualWeight, actualReps }),
     []
   );
 

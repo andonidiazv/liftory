@@ -1,5 +1,5 @@
 /**
- * PR detection (A2 algorithm).
+ * PR detection (A2 + e1RM sanity check).
  *
  * Pulled out of useWorkoutData so the sync queue can recompute is_pr after
  * replaying a queued completion. Without this, sets logged offline would
@@ -7,14 +7,29 @@
  * — because the legacy code path that did the recompute lived only in the
  * React hook, which isn't running during background sync.
  *
- * A2 definition: a completed set is a PR if its actual_weight is strictly
- * greater than the prior best weight at the SAME actual_reps for the same
- * (user, exercise), excluding the current set. First-ever set at a given
- * rep range counts as a PR (establishes the baseline). Bodyweight (-1) and
- * zero/negative weights are never PRs.
+ * Algorithm history:
+ *   v1 ("A2", 2026-05-06): "PR if actual_weight strictly > prior best at the
+ *     SAME actual_reps". This had a blind spot: marking the first-ever set
+ *     at a new rep range as PR even when the athlete had already lifted
+ *     more weight at a higher rep range (e.g. 55lb × 6r in April → then
+ *     40lb × 5r in May incorrectly flagged PR despite being weaker).
+ *   v2 (current, 2026-05-08): A2 + e1RM sanity check. A set is a PR only
+ *     if it BOTH (a) strictly beats the prior best at the same actual_reps,
+ *     AND (b) its estimated 1-rep max (Epley: weight × (1 + reps/30)) is
+ *     greater than or equal to the best prior e1RM across ALL rep ranges.
+ *     This blocks "rep-range first" PRs that are objectively weaker than
+ *     existing performance, while still letting genuine cross-range PRs
+ *     count (e.g. 55 × 7 ≥ 55 × 6 prior best).
+ *
+ * Bodyweight sentinel (-1) and zero/negative weights are never PRs.
  */
 
 import { supabase } from "@/integrations/supabase/client";
+
+/** Epley estimated 1-rep max. */
+function e1rm(weight: number, reps: number): number {
+  return weight * (1 + reps / 30);
+}
 
 export async function computeIsPrA2(params: {
   setId: string;
@@ -25,7 +40,9 @@ export async function computeIsPrA2(params: {
 }): Promise<boolean> {
   const { setId, userId, exerciseId, actualWeight, actualReps } = params;
   if (actualWeight <= 0 || actualReps <= 0) return false;
-  const { data: prior } = await supabase
+
+  // (a) Strictly beats prior best at the SAME rep count.
+  const { data: priorAtSameReps } = await supabase
     .from("workout_sets")
     .select("actual_weight")
     .eq("user_id", userId)
@@ -37,8 +54,29 @@ export async function computeIsPrA2(params: {
     .order("actual_weight", { ascending: false })
     .limit(1)
     .maybeSingle();
-  if (!prior) return true;
-  return actualWeight > prior.actual_weight;
+  const beatsAtSameReps = !priorAtSameReps || actualWeight > priorAtSameReps.actual_weight;
+  if (!beatsAtSameReps) return false;
+
+  // (b) Sanity check: e1RM must match or exceed the best prior e1RM across
+  // ALL rep ranges. Without this, a "first set at a new rep range" gets PR
+  // even when the athlete has already done strictly better elsewhere.
+  const { data: priorAll } = await supabase
+    .from("workout_sets")
+    .select("actual_weight, actual_reps")
+    .eq("user_id", userId)
+    .eq("exercise_id", exerciseId)
+    .eq("is_completed", true)
+    .neq("id", setId)
+    .gt("actual_weight", 0)
+    .gt("actual_reps", 0);
+  if (!priorAll || priorAll.length === 0) return true; // truly first effort
+
+  let bestPriorE1rm = 0;
+  for (const p of priorAll) {
+    const e = e1rm(p.actual_weight, p.actual_reps);
+    if (e > bestPriorE1rm) bestPriorE1rm = e;
+  }
+  return e1rm(actualWeight, actualReps) >= bestPriorE1rm;
 }
 
 /**
