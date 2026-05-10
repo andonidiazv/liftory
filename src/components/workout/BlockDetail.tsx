@@ -459,11 +459,16 @@ export default function BlockDetail({
                 <>{block.totalSets} sets{restDisplay ? ` · ${restDisplay}` : ""}{block.formatBadge ? ` · ${block.formatBadge}` : ""}</>
               )}
               {blockMode === 'mobility' && (() => {
-                // Infer rounds from first set's coaching cue — fallback to "2-3 rondas"
-                const firstCue = block.groups[0]?.sets[0]?.coaching_cue_override ?? '';
-                const roundsMatch = firstCue.match(/(\d+(?:-\d+)?\s*rondas?)/i);
-                const rounds = roundsMatch?.[1] ?? '2-3 rondas';
-                return <>{block.groups.length} ejercicios · {rounds}</>;
+                // Infer rounds from any set's cue — first set might be a solo cardio activator
+                // (e.g. Row Erg 3 min) without "rondas" in its cue. Look across ALL sets in the
+                // block to find the first one that mentions rondas before falling back.
+                let rounds: string | null = null;
+                for (const g of block.groups) {
+                  const cue = g.sets[0]?.coaching_cue_override ?? '';
+                  const m = cue.match(/(\d+(?:-\d+)?\s*rondas?)/i);
+                  if (m) { rounds = m[1]; break; }
+                }
+                return <>{block.groups.length} ejercicios · {rounds ?? '2 rondas'}</>;
               })()}
               {blockMode === 'cooldown' && <>{block.groups.length} estiramientos</>}
               {blockMode === 'cardio' && <>Cardio</>}
