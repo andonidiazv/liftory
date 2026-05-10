@@ -32,11 +32,17 @@ cleanupOutdatedCaches();
 // Navigations (HTML) → NetworkFirst, fallback to cache. Always try the latest
 // deploy first so users see updates without manual refresh; if the network is
 // dead, serve the cached app shell so they can still open the app.
+//
+// 6 seconds (was 3) gives a flaky gym connection (3G/spotty 4G) enough time
+// to deliver fresh HTML before we surrender to cache. Falling back too eagerly
+// risks serving an old index.html whose chunk hashes mismatch the bundles
+// we'd actually try to load — which manifests as a blank screen or login
+// flakiness as scripts fail to resolve.
 registerRoute(
   ({ request, url }) => request.mode === "navigate" && url.origin === self.location.origin,
   new NetworkFirst({
     cacheName: "liftory-html",
-    networkTimeoutSeconds: 3,
+    networkTimeoutSeconds: 6,
     plugins: [
       new ExpirationPlugin({ maxEntries: 4, maxAgeSeconds: 60 * 60 * 24 * 30 }),
     ],

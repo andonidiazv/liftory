@@ -50,41 +50,6 @@ export default function Login() {
     e.target.style.borderColor = t.border;
   };
 
-  const redirectByProfile = async (userId: string) => {
-    try {
-      const profilePromise = supabase
-        .from("user_profiles")
-        .select("onboarding_completed, subscription_status, role")
-        .eq("user_id", userId)
-        .maybeSingle();
-
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Profile fetch timeout")), 8000)
-      );
-
-      const { data, error } = await Promise.race([profilePromise, timeoutPromise]) as { data: { onboarding_completed: boolean; subscription_status: string; role: string } | null; error: unknown };
-
-      fetchProfile(userId).catch(() => {});
-
-      if (error) {
-        navigate("/home", { replace: true });
-        return;
-      }
-
-      if (!data || !data.onboarding_completed) {
-        navigate("/onboarding", { replace: true });
-      } else if (data.subscription_status === "expired") {
-        navigate("/paywall", { replace: true });
-      } else if (data.role === "admin") {
-        navigate("/admin", { replace: true });
-      } else {
-        navigate("/home", { replace: true });
-      }
-    } catch {
-      navigate("/home", { replace: true });
-    }
-  };
-
   const handleLogin = async () => {
     setErrors({});
     setGeneralError("");
@@ -109,8 +74,22 @@ export default function Login() {
         return;
       }
 
+      // Navigate as soon as Supabase confirms the credentials. ProtectedRoute
+      // owns the routing based on profile/subscription/onboarding — it shows
+      // a LIFTORY splash while the profile loads, then redirects appropriately
+      // (/onboarding, /paywall, /admin, etc).
+      //
+      // Previously this awaited a profile fetch with an 8s timeout in this
+      // file. On flaky gym networks the await blocked the UI past the point
+      // the athlete believed login had failed, so they'd close the app —
+      // but Supabase had already persisted the session, so on reopen they
+      // appeared "magically" logged in. Removing the second fetch fixes
+      // that whole class of confusion.
       if (data.user) {
-        await redirectByProfile(data.user.id);
+        // Kick the profile fetch in the background so AuthContext has it
+        // ready when ProtectedRoute mounts. Non-blocking.
+        fetchProfile(data.user.id).catch(() => {});
+        navigate("/home", { replace: true });
       }
     } catch {
       setGeneralError("Error al iniciar sesión. Intenta de nuevo.");

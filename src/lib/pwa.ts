@@ -43,12 +43,19 @@ export async function registerPwaServiceWorker(): Promise<void> {
     registerSW({
       immediate: true,
       onRegisteredSW(_swUrl, registration) {
-        // Periodically check for updates. Silent — no popups.
-        if (registration) {
-          setInterval(() => {
+        if (!registration) return;
+        // Check for updates only when the user actually returns to the app
+        // (visibility change → likely woke up the device or switched back from
+        // another app). The previous hourly setInterval was redundant and just
+        // burned cycles in the background. This pattern has the same outcome
+        // for the "user just opened the app from the home screen" case
+        // without polling.
+        const checkForUpdates = () => {
+          if (document.visibilityState === "visible") {
             registration.update().catch(() => {});
-          }, 60 * 60 * 1000); // every hour
-        }
+          }
+        };
+        document.addEventListener("visibilitychange", checkForUpdates);
       },
       onOfflineReady() {
         // First-load offline-ready signal — could surface a tiny toast,
