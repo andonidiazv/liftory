@@ -468,11 +468,24 @@ export default function Workout() {
     }
   }, [id]);
 
-  const handleCompleteTimerBlock = useCallback(async (block: WorkoutBlock, rounds: number) => {
+  /** Mark a metcon/timer block as complete.
+   *  Each set in the block records:
+   *    - actual_reps = rounds completed (the metcon score)
+   *    - actual_weight = weight the athlete used for that exercise (0 if unknown / bodyweight)
+   *  weightsByExerciseIdKg is in kg (storage unit). The caller is responsible
+   *  for unit conversion before passing it in.
+   */
+  const handleCompleteTimerBlock = useCallback(async (
+    block: WorkoutBlock,
+    rounds: number,
+    weightsByExerciseIdKg: Record<string, number> = {},
+  ) => {
     for (const group of block.groups) {
+      const exId = group.exercise.id;
+      const w = weightsByExerciseIdKg[exId] ?? 0;
       for (const set of group.sets) {
         if (!set.is_completed) {
-          await completeSet(set.id, { actual_weight: 0, actual_reps: rounds, actual_rpe: null, actual_rir: null });
+          await completeSet(set.id, { actual_weight: w, actual_reps: rounds, actual_rpe: null, actual_rir: null });
         }
       }
     }
@@ -541,8 +554,11 @@ export default function Workout() {
         <ForTimeTimerBlock
           block={forTimeBlock}
           onBack={() => { setForTimeBlock(null); refetch(); }}
-          onCompleteBlock={(elapsedSec) => handleCompleteTimerBlock(forTimeBlock, elapsedSec)}
+          onCompleteBlock={(rounds, _elapsedSec, weightsByExerciseIdKg) =>
+            handleCompleteTimerBlock(forTimeBlock, rounds, weightsByExerciseIdKg)
+          }
           onOpenVideo={(v) => setVideoOverlay(v)}
+          weightUnit={weightUnit as "kg" | "lb"}
         />
         <ExerciseVideoOverlay
           videoUrl={videoOverlay?.videoUrl ?? null}
