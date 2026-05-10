@@ -99,12 +99,24 @@ export default function ForTimeTimerBlock({
   const rawCue = (block.groups[0]?.sets[0]?.coaching_cue_override ?? "") as string;
   const cleanCue = rawCue.replace(/^FOR\s+TIME[:.]?\s*/i, "").trim();
 
+  // If every set in the block is already marked completed in the DB, start
+  // the component in "completed" state so re-entering the block shows the
+  // post-completion view (with "Siguiente: [next block]") instead of a fresh
+  // 00:00 timer. Mirrors EmomTimerBlock's allDone pattern.
+  const allDone = block.groups.length > 0 &&
+    block.groups.every(g => g.sets.length > 0 && g.sets.every(s => s.is_completed));
+  // Recover the rounds the athlete logged from the first completed set (we
+  // store rounds as actual_reps when saving — see Workout.tsx).
+  const initialRounds = allDone
+    ? (block.groups[0]?.sets[0]?.actual_reps ?? plannedRounds)
+    : 0;
+
   const [elapsed, setElapsed] = useState(0);
   const [running, setRunning] = useState(false);
-  const [hasStarted, setHasStarted] = useState(false);
-  const [completed, setCompleted] = useState(false);
+  const [hasStarted, setHasStarted] = useState(allDone);
+  const [completed, setCompleted] = useState(allDone);
   const [countdown, setCountdown] = useState<number | null>(null);
-  const [rounds, setRounds] = useState(0);
+  const [rounds, setRounds] = useState(initialRounds);
   // weights: per-exercise display string. "BW" sentinel for bodyweight, "" for unset, else number string in display unit.
   const [weights, setWeights] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};

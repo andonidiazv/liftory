@@ -585,6 +585,8 @@ export default function Workout() {
 
   // ─── LEVEL 2: Death By block (metcon EMOM progresivo) ───
   if (deathByBlock) {
+    const deathByIdx = blocks.findIndex(b => b.id === deathByBlock.id);
+    const deathByNextBlock = deathByIdx >= 0 && deathByIdx < blocks.length - 1 ? blocks[deathByIdx + 1] : null;
     return (
       <>
         <DeathByTimerBlock
@@ -592,6 +594,14 @@ export default function Workout() {
           onBack={() => { setDeathByBlock(null); refetch(); }}
           onCompleteBlock={(minutes) => handleCompleteTimerBlock(deathByBlock, minutes)}
           onOpenVideo={(v) => setVideoOverlay(v)}
+          nextBlockName={deathByNextBlock?.name ?? null}
+          onNextBlock={deathByNextBlock ? () => {
+            setLastVisitedBlockId(deathByNextBlock.id);
+            refetch().then(() => {
+              setDeathByBlock(null);
+              handleBlockSelect(deathByNextBlock);
+            });
+          } : undefined}
         />
         <ExerciseVideoOverlay
           videoUrl={videoOverlay?.videoUrl ?? null}

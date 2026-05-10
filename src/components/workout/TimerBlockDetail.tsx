@@ -63,12 +63,22 @@ export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpe
   const metaMatch = cleanCue.match(/Meta:\s*(\d+(?:-\d+)?\s*rondas?)/i);
   const metaRounds = metaMatch?.[1] ?? null;
 
-  const [timeRemaining, setTimeRemaining] = useState(totalDurationSec);
+  // If every set is already marked completed in the DB, start in "completed"
+  // state so re-entering the block shows the post-completion view (with
+  // "Siguiente: [next block]") instead of a fresh timer. Mirrors EmomTimerBlock's
+  // allDone pattern.
+  const allDone = block.groups.length > 0 &&
+    block.groups.every(g => g.sets.length > 0 && g.sets.every(s => s.is_completed));
+  const initialRounds = allDone
+    ? (block.groups[0]?.sets[0]?.actual_reps ?? 0)
+    : 0;
+
+  const [timeRemaining, setTimeRemaining] = useState(allDone ? 0 : totalDurationSec);
   const [running, setRunning] = useState(false);
-  const [completed, setCompleted] = useState(false);
-  const [rounds, setRounds] = useState(0);
+  const [completed, setCompleted] = useState(allDone);
+  const [rounds, setRounds] = useState(initialRounds);
   const [countdown, setCountdown] = useState<number | null>(null); // null = no countdown, N = N seconds left
-  const [hasStarted, setHasStarted] = useState(false); // true once the first countdown finishes
+  const [hasStarted, setHasStarted] = useState(allDone); // true once the first countdown finishes
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 

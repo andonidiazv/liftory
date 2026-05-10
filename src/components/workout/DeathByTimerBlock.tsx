@@ -1,12 +1,16 @@
 import { useState, useEffect, useRef } from "react";
-import { ChevronLeft, Play, Dumbbell } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play, Dumbbell } from "lucide-react";
 import type { WorkoutBlock } from "./WorkoutOverview";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { dia, noche } from "@/lib/colors";
 
 interface Props {
   block: WorkoutBlock;
   onBack: () => void;
   onCompleteBlock: (minutesCompleted: number) => Promise<void>;
   onOpenVideo: (exercise: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
+  nextBlockName?: string | null;
+  onNextBlock?: () => void;
 }
 
 /** Parse cap from cue like "cap 15 min" — Death By usually has a safety cap */
@@ -51,20 +55,32 @@ function formatSecs(s: number): string {
   return s.toString().padStart(2, "0");
 }
 
-export default function DeathByTimerBlock({ block, onBack, onCompleteBlock, onOpenVideo }: Props) {
+export default function DeathByTimerBlock({ block, onBack, onCompleteBlock, onOpenVideo, nextBlockName, onNextBlock }: Props) {
+  const { isDark } = useDarkMode();
+  const tc = isDark ? noche : dia;
   const capMin = parseCapMinutes(block);
 
   // Strip format prefix from cue for display
   const rawCue = (block.groups[0]?.sets[0]?.coaching_cue_override ?? "") as string;
   const cleanCue = rawCue.replace(/^DEATH\s+BY[:.]?\s*/i, "").trim();
 
-  const [currentMinute, setCurrentMinute] = useState(1);
+  // If every set is already marked completed in the DB, start in "stopped"
+  // state so re-entering the block shows the post-completion view (with
+  // "Siguiente: [next block]") instead of a fresh timer.
+  const allDone = block.groups.length > 0 &&
+    block.groups.every(g => g.sets.length > 0 && g.sets.every(s => s.is_completed));
+  const initialMinute = allDone
+    ? (block.groups[0]?.sets[0]?.actual_reps ?? 1)
+    : 1;
+  const [saving, setSaving] = useState(false);
+
+  const [currentMinute, setCurrentMinute] = useState(initialMinute);
   const [secondsInMinute, setSecondsInMinute] = useState(SECONDS_PER_MINUTE);
   const [running, setRunning] = useState(false);
-  const [stopped, setStopped] = useState(false);
+  const [stopped, setStopped] = useState(allDone);
   const [countdown, setCountdown] = useState<number | null>(null);
-  const [hasStarted, setHasStarted] = useState(false);
-  const [scoreInput, setScoreInput] = useState<number>(1);
+  const [hasStarted, setHasStarted] = useState(allDone);
+  const [scoreInput, setScoreInput] = useState<number>(initialMinute);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -147,8 +163,13 @@ export default function DeathByTimerBlock({ block, onBack, onCompleteBlock, onOp
   };
 
   const handleSubmit = async () => {
-    await onCompleteBlock(scoreInput);
-    onBack();
+    if (saving) return;
+    setSaving(true);
+    try {
+      await onCompleteBlock(scoreInput);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const totalRepsAtScore = (scoreInput * (scoreInput + 1)) / 2;
@@ -218,12 +239,26 @@ export default function DeathByTimerBlock({ block, onBack, onCompleteBlock, onOp
                 (min 1 = 1 rep, min 2 = 2 reps, ...)
               </span>
             </p>
-            <button
-              onClick={handleSubmit}
-              className="press-scale mt-4 rounded-xl bg-primary px-10 py-3 font-display text-sm font-semibold text-primary-foreground w-full"
-            >
-              Guardar y continuar
-            </button>
+            {/* Block-level next-step pill — same pattern as TimerBlockDetail (AMRAP)
+                and ForTimeTimerBlock. Saves the result before navigating. */}
+            {onNextBlock && nextBlockName ? (
+              <button
+                onClick={async () => { await handleSubmit(); onNextBlock(); }}
+                disabled={saving}
+                className="press-scale mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-display text-[14px] font-semibold transition-colors disabled:opacity-60"
+                style={{ background: tc.accentBgStrong, color: tc.accent, border: `1px solid ${tc.accentBgStrong}` }}
+              >
+                Siguiente: {nextBlockName} <ChevronRight className="h-4 w-4" />
+              </button>
+            ) : (
+              <button
+                onClick={async () => { await handleSubmit(); onBack(); }}
+                disabled={saving}
+                className="press-scale mt-4 rounded-xl bg-primary px-10 py-3 font-display text-sm font-semibold text-primary-foreground w-full disabled:opacity-60"
+              >
+                Guardar y volver
+              </button>
+            )}
           </div>
         ) : countdown !== null ? (
           /* 10s prep countdown */
