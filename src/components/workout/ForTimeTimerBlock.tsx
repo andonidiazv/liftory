@@ -4,6 +4,7 @@ import type { WorkoutBlock } from "./WorkoutOverview";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
 import { toDisplayWeight, toStorageWeight } from "@/utils/weightConversion";
+import WeightPickerSheet, { BODYWEIGHT_SENTINEL } from "./WeightPickerSheet";
 
 interface Props {
   block: WorkoutBlock;
@@ -12,6 +13,7 @@ interface Props {
    *  rounds: rounds the athlete completed.
    *  elapsedSec: timer time. capped at the block's cap if cap was hit.
    *  weightsByExerciseIdKg: optional dictionary of weight in KG per exercise_id.
+   *  Use BODYWEIGHT_SENTINEL value for bodyweight ("BW").
    */
   onCompleteBlock: (rounds: number, elapsedSec: number, weightsByExerciseIdKg: Record<string, number>) => Promise<void>;
   onOpenVideo: (exercise: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
@@ -19,6 +21,14 @@ interface Props {
   onNextBlock?: () => void;
   /** Display unit for weight inputs. Default kg. */
   weightUnit?: "kg" | "lb";
+  /** Suggested weight from previous sessions, used to pre-populate the chip. */
+  getSuggestedWeight?: (exerciseId: string, plannedReps: number | null) => { weightKg: number | null; hint: string | null };
+}
+
+/** Heuristic: a movement that's never loaded (no weight chip needed). */
+function isPureBodyweight(name: string): boolean {
+  const n = name.toLowerCase();
+  return /^bodyweight\b|^pull-?up\b|^chin-?up\b|^air\s+squat\b|^sit-?up\b|^crunch\b|^burpee\b|^push-?up\b|^box\s+jump\b|hollow\s+body|plank/i.test(n);
 }
 
 /** Parse cap from cue like "cap 10 min" or "10 min cap" */
@@ -78,7 +88,7 @@ function formatTime(s: number): string {
 }
 
 export default function ForTimeTimerBlock({
-  block, onBack, onCompleteBlock, onOpenVideo, nextBlockName, onNextBlock, weightUnit = "kg",
+  block, onBack, onCompleteBlock, onOpenVideo, nextBlockName, onNextBlock, weightUnit = "kg", getSuggestedWeight,
 }: Props) {
   const { isDark } = useDarkMode();
   const tc = isDark ? noche : dia;
@@ -95,7 +105,39 @@ export default function ForTimeTimerBlock({
   const [completed, setCompleted] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [rounds, setRounds] = useState(0);
-  const [weights, setWeights] = useState<Record<string, string>>({});
+  // weights: per-exercise display string. "BW" sentinel for bodyweight, "" for unset, else number string in display unit.
+  const [weights, setWeights] = useState<Record<string, string>>(() => {
+    const init: Record<string, string> = {};
+    for (const g of block.groups) {
+      const exId = g.exercise.id;
+      const set = g.sets[0];
+      // 1) Already logged in DB → use that.
+      if (set?.actual_weight === BODYWEIGHT_SENTINEL) {
+        init[exId] = "BW";
+        continue;
+      }
+      if (set?.actual_weight != null && set.actual_weight > 0) {
+        init[exId] = String(toDisplayWeight(set.actual_weight, weightUnit));
+        continue;
+      }
+      // 2) Suggested from history.
+      if (getSuggestedWeight) {
+        const sug = getSuggestedWeight(exId, set?.planned_reps ?? null);
+        if (sug.weightKg === BODYWEIGHT_SENTINEL) {
+          init[exId] = "BW";
+        } else if (sug.weightKg != null && sug.weightKg > 0) {
+          init[exId] = String(toDisplayWeight(sug.weightKg, weightUnit));
+        } else {
+          init[exId] = "";
+        }
+      } else {
+        init[exId] = "";
+      }
+    }
+    return init;
+  });
+  const [pickerExerciseId, setPickerExerciseId] = useState<string | null>(null);
+  const [pickerInitial, setPickerInitial] = useState(0);
   const [saving, setSaving] = useState(false);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -188,6 +230,10 @@ export default function ForTimeTimerBlock({
     try {
       const weightsKg: Record<string, number> = {};
       for (const [exId, raw] of Object.entries(weights)) {
+        if (raw === "BW") {
+          weightsKg[exId] = BODYWEIGHT_SENTINEL;
+          continue;
+        }
         const n = parseFloat(raw);
         if (!isNaN(n) && n > 0) weightsKg[exId] = toStorageWeight(n, weightUnit);
       }
@@ -345,59 +391,9 @@ export default function ForTimeTimerBlock({
         )}
       </div>
 
-      {/* Weight inputs after finish — only for loaded exercises */}
-      {completed && (
-        <div className="px-5 mb-3 animate-fade-in">
-          {(() => {
-            const loaded = block.groups.filter((g) => {
-              const lower = g.exercise.name.toLowerCase();
-              return !/^pull-?up\b|bodyweight|air squat|sit-?up|crunch/.test(lower);
-            });
-            if (loaded.length === 0) return null;
-            return (
-              <div className="rounded-xl p-4" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-                <p className="font-mono uppercase text-muted-foreground" style={{ fontSize: 9, letterSpacing: "2px" }}>
-                  Pesos usados (opcional)
-                </p>
-                <div className="mt-3 flex flex-col gap-2.5">
-                  {loaded.map((group) => {
-                    const ex = group.exercise;
-                    const exId = ex.id;
-                    return (
-                      <div key={exId} className="flex items-center gap-3">
-                        <p className="flex-1 font-body text-foreground truncate" style={{ fontSize: 13 }}>{ex.name}</p>
-                        <div className="flex items-center gap-1">
-                          <input
-                            type="number"
-                            inputMode="decimal"
-                            value={weights[exId] ?? ""}
-                            onChange={(e) => setWeights((w) => ({ ...w, [exId]: e.target.value }))}
-                            placeholder={
-                              group.sets[0]?.planned_weight != null && group.sets[0].planned_weight > 0
-                                ? String(toDisplayWeight(group.sets[0].planned_weight, weightUnit))
-                                : "—"
-                            }
-                            className="w-20 rounded-lg px-2 py-1.5 text-right font-mono"
-                            style={{
-                              fontSize: 14,
-                              background: "hsl(var(--secondary))",
-                              border: "1px solid hsl(var(--border))",
-                              color: "hsl(var(--foreground))",
-                            }}
-                          />
-                          <span className="font-mono text-muted-foreground" style={{ fontSize: 11 }}>{weightUnit}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })()}
-        </div>
-      )}
-
-      {/* Exercise list */}
+      {/* Exercise list — each loaded exercise carries its own weight chip
+          (same pattern as the rest of the app: weight lives with the exercise,
+          not in a separate "pesos usados" form). */}
       <div className="flex-1 px-5 pb-4">
         <p className="font-mono uppercase text-muted-foreground mb-3" style={{ fontSize: 9, letterSpacing: "2px" }}>
           EJERCICIOS
@@ -405,7 +401,11 @@ export default function ForTimeTimerBlock({
         <div className="flex flex-col gap-2">
           {block.groups.map((group) => {
             const ex = group.exercise;
+            const exId = ex.id;
             const cue = group.sets[0]?.coaching_cue_override || ex.coaching_cue;
+            const isBW = isPureBodyweight(ex.name);
+            const currentWeight = weights[exId] ?? "";
+            const hasWeight = currentWeight === "BW" || (currentWeight !== "" && parseFloat(currentWeight) > 0);
             return (
               <div
                 key={ex.id}
@@ -433,11 +433,64 @@ export default function ForTimeTimerBlock({
                     </p>
                   )}
                 </div>
+                {/* Weight chip — same look as EmomTimerBlock's "Peso de la barra".
+                    Tap to open the shared WeightPickerSheet. Hidden for pure bodyweight movements. */}
+                {!isBW && (
+                  <button
+                    onClick={() => {
+                      setPickerExerciseId(exId);
+                      const init = currentWeight === "BW"
+                        ? BODYWEIGHT_SENTINEL
+                        : (parseFloat(currentWeight) || 0);
+                      setPickerInitial(init);
+                    }}
+                    className="press-scale flex items-center gap-1.5 rounded-lg px-3 py-1.5 shrink-0"
+                    style={{
+                      background: hasWeight ? tc.accentBgStrong : "hsl(var(--secondary))",
+                      border: hasWeight ? `1px solid ${tc.accent}4D` : "1px solid hsl(var(--border))",
+                      minWidth: 72,
+                    }}
+                  >
+                    {hasWeight ? (
+                      currentWeight === "BW" ? (
+                        <span className="font-mono text-sm font-semibold" style={{ color: tc.accent }}>BW</span>
+                      ) : (
+                        <>
+                          <span className="font-mono text-sm font-semibold" style={{ color: tc.accent }}>
+                            {currentWeight}
+                          </span>
+                          <span className="font-mono text-[10px]" style={{ color: tc.accent, opacity: 0.7 }}>
+                            {weightUnit}
+                          </span>
+                        </>
+                      )
+                    ) : (
+                      <>
+                        <Dumbbell className="w-3.5 h-3.5 text-muted-foreground" />
+                        <span className="font-mono text-xs text-muted-foreground">{weightUnit}</span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             );
           })}
         </div>
       </div>
+
+      {/* Shared weight picker — same one used by EmomTimerBlock + BlockDetail. */}
+      <WeightPickerSheet
+        visible={pickerExerciseId !== null}
+        unit={weightUnit}
+        initialValue={pickerInitial}
+        onConfirm={(value) => {
+          if (!pickerExerciseId) return;
+          const isBW = value === BODYWEIGHT_SENTINEL;
+          const displayVal = isBW ? "BW" : String(value);
+          setWeights((prev) => ({ ...prev, [pickerExerciseId]: displayVal }));
+        }}
+        onClose={() => setPickerExerciseId(null)}
+      />
 
       {/* Next block button — same pattern as TimerBlockDetail (AMRAP).
           Saves the result before navigating so the block lands as completed. */}

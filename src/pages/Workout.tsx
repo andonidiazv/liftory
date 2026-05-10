@@ -561,6 +561,7 @@ export default function Workout() {
           }
           onOpenVideo={(v) => setVideoOverlay(v)}
           weightUnit={weightUnit as "kg" | "lb"}
+          getSuggestedWeight={getSuggestedWeight}
           nextBlockName={forTimeNextBlock?.name ?? null}
           onNextBlock={forTimeNextBlock ? () => {
             setLastVisitedBlockId(forTimeNextBlock.id);
