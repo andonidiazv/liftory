@@ -549,6 +549,8 @@ export default function Workout() {
 
   // ─── LEVEL 2: For Time block (metcons For Time) ───
   if (forTimeBlock) {
+    const forTimeIdx = blocks.findIndex(b => b.id === forTimeBlock.id);
+    const forTimeNextBlock = forTimeIdx >= 0 && forTimeIdx < blocks.length - 1 ? blocks[forTimeIdx + 1] : null;
     return (
       <>
         <ForTimeTimerBlock
@@ -559,6 +561,14 @@ export default function Workout() {
           }
           onOpenVideo={(v) => setVideoOverlay(v)}
           weightUnit={weightUnit as "kg" | "lb"}
+          nextBlockName={forTimeNextBlock?.name ?? null}
+          onNextBlock={forTimeNextBlock ? () => {
+            setLastVisitedBlockId(forTimeNextBlock.id);
+            refetch().then(() => {
+              setForTimeBlock(null);
+              handleBlockSelect(forTimeNextBlock);
+            });
+          } : undefined}
         />
         <ExerciseVideoOverlay
           videoUrl={videoOverlay?.videoUrl ?? null}
