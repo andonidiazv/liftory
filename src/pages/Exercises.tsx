@@ -15,6 +15,7 @@ interface ExerciseRow {
   description: string | null;
   category: string;
   movement_pattern: string;
+  secondary_movement_pattern: string | null;
   difficulty: string;
   equipment_required: string[] | null;
   primary_muscles: string[] | null;
@@ -283,7 +284,10 @@ export default function Exercises() {
                 {difficultyLabels[selectedExercise.difficulty] ?? selectedExercise.difficulty}
               </span>
               <span className="pill">{selectedExercise.category}</span>
-              <span className="pill">{selectedExercise.movement_pattern}</span>
+              <span className="pill">
+                {selectedExercise.movement_pattern}
+                {selectedExercise.secondary_movement_pattern ? ` + ${selectedExercise.secondary_movement_pattern}` : ""}
+              </span>
             </div>
 
             {/* Muscles */}

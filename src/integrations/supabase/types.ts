@@ -229,6 +229,7 @@ export type Database = {
           name: string
           name_es: string
           primary_muscles: string[]
+          secondary_movement_pattern: string | null
           thumbnail_url: string | null
           updated_at: string | null
           video_duration_seconds: number | null
@@ -251,6 +252,7 @@ export type Database = {
           name: string
           name_es: string
           primary_muscles: string[]
+          secondary_movement_pattern?: string | null
           thumbnail_url?: string | null
           updated_at?: string | null
           video_duration_seconds?: number | null
@@ -273,6 +275,7 @@ export type Database = {
           name?: string
           name_es?: string
           primary_muscles?: string[]
+          secondary_movement_pattern?: string | null
           thumbnail_url?: string | null
           updated_at?: string | null
           video_duration_seconds?: number | null

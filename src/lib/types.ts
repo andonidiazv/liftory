@@ -49,7 +49,9 @@ export interface Exercise {
   name_es: string;
   description: string | null;
   category: 'strength' | 'olympic' | 'conditioning' | 'mobility' | 'accessory';
-  movement_pattern: 'squat' | 'hinge' | 'push' | 'pull' | 'carry' | 'rotation' | 'core';
+  movement_pattern: 'squat' | 'hinge' | 'push' | 'pull' | 'carry' | 'rotation' | 'core' | 'locomotion';
+  /** Optional secondary movement pattern for compound lifts (e.g. Devil Press = hinge + push). */
+  secondary_movement_pattern?: 'squat' | 'hinge' | 'push' | 'pull' | 'carry' | 'rotation' | 'core' | 'locomotion' | null;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   equipment_required: string[];
   primary_muscles: string[];

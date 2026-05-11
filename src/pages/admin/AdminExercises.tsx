@@ -12,7 +12,8 @@ import { toast } from "@/hooks/use-toast";
 
 /* ─── Constants ─── */
 const CATEGORIES = ["strength", "olympic", "conditioning", "mobility", "accessory"];
-const PATTERNS = ["squat", "hinge", "push", "pull", "carry", "rotation", "core"];
+const PATTERNS = ["squat", "hinge", "push", "pull", "carry", "rotation", "core", "locomotion"];
+const SECONDARY_PATTERNS = ["", ...PATTERNS]; // empty = no secondary
 const DIFFICULTIES = ["beginner", "intermediate", "advanced", "all_levels"];
 const EQUIPMENT_OPTIONS = [
   "barbell", "dumbbell", "kettlebell", "cable", "machine", "band",
@@ -43,6 +44,7 @@ interface ExerciseRow {
   description: string | null;
   category: string;
   movement_pattern: string;
+  secondary_movement_pattern: string | null;
   difficulty: string;
   equipment_required: string[] | null;
   primary_muscles: string[] | null;
@@ -61,7 +63,7 @@ type FormData = Omit<ExerciseRow, "id"> & { id?: string };
 
 const emptyForm: FormData = {
   name: "", name_es: "", description: "", category: "strength",
-  movement_pattern: "push", difficulty: "intermediate",
+  movement_pattern: "push", secondary_movement_pattern: null, difficulty: "intermediate",
   equipment_required: [], primary_muscles: [], contraindications: [],
   emotional_barrier_tag: "", default_tempo: "", coaching_cue: "",
   founder_notes: "", video_url: null, thumbnail_url: null, is_active: true,
@@ -421,7 +423,10 @@ export default function AdminExercises() {
 
       const payload = {
         name: form.name, name_es: form.name_es, description: form.description || null,
-        category: form.category, movement_pattern: form.movement_pattern, difficulty: form.difficulty,
+        category: form.category,
+        movement_pattern: form.movement_pattern,
+        secondary_movement_pattern: form.secondary_movement_pattern || null,
+        difficulty: form.difficulty,
         equipment_required: form.equipment_required || [],
         primary_muscles: form.primary_muscles || [],
         contraindications: form.contraindications || [],
@@ -925,7 +930,10 @@ export default function AdminExercises() {
                       <td className="px-4 py-3 text-[12px] max-w-[140px] truncate" style={{ color: "#8A8A8E" }}>
                         {ex.primary_muscles?.join(", ") || "—"}
                       </td>
-                      <td className="px-4 py-3 text-[13px] capitalize" style={{ color: "#8A8A8E" }}>{ex.movement_pattern}</td>
+                      <td className="px-4 py-3 text-[13px] capitalize" style={{ color: "#8A8A8E" }}>
+                        {ex.movement_pattern}
+                        {ex.secondary_movement_pattern ? ` + ${ex.secondary_movement_pattern}` : ""}
+                      </td>
                       {/* SUBS column */}
                       <td className="px-4 py-3">
                         <span className="inline-flex items-center gap-1">
@@ -1069,6 +1077,14 @@ export default function AdminExercises() {
                     <SelectField label="Categoría" value={form.category} options={CATEGORIES} onChange={(v) => setForm((p) => ({ ...p, category: v }))} />
                     <SelectField label="Patrón" value={form.movement_pattern} options={PATTERNS} onChange={(v) => setForm((p) => ({ ...p, movement_pattern: v }))} />
                     <SelectField label="Dificultad" value={form.difficulty} options={DIFFICULTIES} onChange={(v) => setForm((p) => ({ ...p, difficulty: v }))} />
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <SelectField
+                      label="Patrón secundario (opcional)"
+                      value={form.secondary_movement_pattern || ""}
+                      options={SECONDARY_PATTERNS}
+                      onChange={(v) => setForm((p) => ({ ...p, secondary_movement_pattern: v || null }))}
+                    />
                   </div>
                 </>
               )}
