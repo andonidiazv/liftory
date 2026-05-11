@@ -449,3 +449,23 @@
 .animate-pulse-glow {
   animation: pulse-glow 2.5s ease-in-out infinite;
 }
+
+/* ═══ VIDEO TAP FEEDBACK ═══
+   Brief flash of the play/pause icon after the user taps the video, so the
+   tap is visibly acknowledged even though the video keeps playing. */
+@keyframes video-tap-flash {
+  0%   { opacity: 0; transform: scale(0.8); }
+  20%  { opacity: 1; transform: scale(1.05); }
+  60%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.95); }
+}
+
+/* ═══ VIDEO FIRST-OPEN HINT ═══
+   "Toca para pausar" text shown briefly at the bottom of a freshly-opened
+   video, then fades. Dismissed instantly if the user taps. */
+@keyframes video-hint-fade {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  15%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+  75%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-4px); }
+}
