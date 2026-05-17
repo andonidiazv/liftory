@@ -113,7 +113,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
-    return supabase.auth.signInWithPassword({ email, password });
+    const result = await supabase.auth.signInWithPassword({ email, password });
+    // Mirror the session into AuthContext state synchronously instead of
+    // relying on onAuthStateChange (which fires in a later macrotask). This
+    // eliminates the race where Login.tsx navigates to /home before the
+    // listener has updated user/session, and ProtectedRoute sees user=null
+    // and bounces back to /login. Symptom on PWA: "first login does nothing,
+    // close + reopen and you're in."
+    if (result.data?.session && result.data?.user) {
+      setSession(result.data.session);
+      setUser(result.data.user);
+      setLoading(false);
+      fetchProfile(result.data.user.id);
+    }
+    return result;
   };
 
   const signOut = async () => {

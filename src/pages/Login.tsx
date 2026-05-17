@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+// Note: signIn now syncs user/session into AuthContext synchronously,
+// so navigate("/home") right after is safe — ProtectedRoute sees the user.
 import { z } from "zod";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
@@ -13,7 +15,7 @@ const loginSchema = z.object({
 
 export default function Login() {
   const navigate = useNavigate();
-  const { signIn, signInWithGoogle, fetchProfile } = useAuth();
+  const { signIn, signInWithGoogle } = useAuth();
   const { isDark } = useDarkMode();
   const t = isDark ? noche : dia;
   const [loading, setLoading] = useState(false);
@@ -74,21 +76,10 @@ export default function Login() {
         return;
       }
 
-      // Navigate as soon as Supabase confirms the credentials. ProtectedRoute
-      // owns the routing based on profile/subscription/onboarding — it shows
-      // a LIFTORY splash while the profile loads, then redirects appropriately
-      // (/onboarding, /paywall, /admin, etc).
-      //
-      // Previously this awaited a profile fetch with an 8s timeout in this
-      // file. On flaky gym networks the await blocked the UI past the point
-      // the athlete believed login had failed, so they'd close the app —
-      // but Supabase had already persisted the session, so on reopen they
-      // appeared "magically" logged in. Removing the second fetch fixes
-      // that whole class of confusion.
+      // signIn() now mirrors user/session into AuthContext synchronously and
+      // kicks off the profile fetch, so the navigate is race-free —
+      // ProtectedRoute will see the user when it mounts.
       if (data.user) {
-        // Kick the profile fetch in the background so AuthContext has it
-        // ready when ProtectedRoute mounts. Non-blocking.
-        fetchProfile(data.user.id).catch(() => {});
         navigate("/home", { replace: true });
       }
     } catch {
