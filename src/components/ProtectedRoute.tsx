@@ -24,10 +24,14 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     }
   }, [loading, user, profile, fetchProfile]);
 
-  // Timeout: if profile is still null after 6s, give user a way out
+  // Timeout: if profile is still null after 12s, give user a way out.
+  // (Was 6s but PWA cold-start on cell networks sometimes legitimately
+  // takes ~8s; raising to 12s avoids showing the error to users whose
+  // fetch is still in flight. The 3-retry fetchProfile usually lands
+  // within this window.)
   useEffect(() => {
     if (!loading && user && !profile) {
-      const timer = setTimeout(() => setProfileTimedOut(true), 6000);
+      const timer = setTimeout(() => setProfileTimedOut(true), 12000);
       return () => clearTimeout(timer);
     }
   }, [loading, user, profile]);

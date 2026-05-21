@@ -4,6 +4,7 @@ import type { User, Session, AuthError, AuthResponse, AuthTokenResponsePassword 
 import type { UserProfile } from "@/lib/types";
 import { clearWorkoutCache } from "@/lib/workoutCache";
 import { offlineStorage } from "@/lib/offlineStorage";
+import { readCachedProfile, writeCachedProfile, clearCachedProfile } from "@/lib/profileCache";
 
 type AuthContextType = {
   user: User | null;
@@ -30,26 +31,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = useCallback(async (userId: string) => {
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .select("*")
-      .eq("user_id", userId)
-      .single();
-    if (data) {
-      setProfile(data as UserProfile);
-      return;
-    }
-    // First attempt failed — retry once after a short delay
-    if (error) {
-      console.warn("[AuthContext] fetchProfile failed, retrying…", error.message);
-      await new Promise((r) => setTimeout(r, 1500));
-      const { data: retryData } = await supabase
+    // Try up to 3 times with exponential backoff (0ms, 800ms, 2400ms).
+    // PWA cold-start on cell networks sometimes takes 2-4 seconds before
+    // Supabase queries land — one retry isn't enough.
+    const delays = [0, 800, 2400];
+    for (let i = 0; i < delays.length; i++) {
+      if (delays[i] > 0) await new Promise((r) => setTimeout(r, delays[i]));
+      const { data, error } = await supabase
         .from("user_profiles")
         .select("*")
         .eq("user_id", userId)
-        .single();
-      setProfile((retryData as UserProfile) ?? null);
+        .maybeSingle();
+      if (data) {
+        const prof = data as UserProfile;
+        setProfile(prof);
+        // Cache locally so the next cold-start can paint immediately
+        writeCachedProfile(userId, prof);
+        return;
+      }
+      if (error && i < delays.length - 1) {
+        console.warn(`[AuthContext] fetchProfile attempt ${i + 1} failed:`, error.message);
+        continue;
+      }
+      if (!data && !error) {
+        // No row found — explicit null so UI shows the right state
+        setProfile(null);
+        return;
+      }
     }
+    // All attempts failed — leave profile as-is (cache, if any, stays)
+    console.warn("[AuthContext] fetchProfile gave up after 3 attempts");
   }, []);
 
   const refreshProfile = useCallback(async () => {
@@ -64,6 +75,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(newSession?.user ?? null);
 
         if (newSession?.user) {
+          // Paint from cache immediately (if available) so the home screen
+          // shows instantly — then refresh in background.
+          const cached = readCachedProfile(newSession.user.id);
+          if (cached) setProfile(cached);
           setTimeout(() => fetchProfile(newSession.user.id), 0);
         } else {
           setProfile(null);
@@ -77,6 +92,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
+        // Paint from cache immediately. Background refresh updates if changed.
+        const cached = readCachedProfile(s.user.id);
+        if (cached) setProfile(cached);
         fetchProfile(s.user.id);
       }
       setLoading(false);
@@ -123,6 +141,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (result.data?.session && result.data?.user) {
       setSession(result.data.session);
       setUser(result.data.user);
+      // Paint from cache immediately if available (returning users), so
+      // ProtectedRoute lets the athlete through without waiting for the
+      // network. Background fetchProfile refreshes the data.
+      const cached = readCachedProfile(result.data.user.id);
+      if (cached) setProfile(cached);
       setLoading(false);
       fetchProfile(result.data.user.id);
     }
@@ -134,12 +157,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSession(null);
     setProfile(null);
-    // Wipe offline cache + pending writes — never leak one athlete's data
-    // into another's session on a shared device. Best-effort: don't fail
-    // signOut over storage errors.
+    // Wipe offline cache + pending writes + profile cache — never leak
+    // one athlete's data into another's session on a shared device.
+    // Best-effort: don't fail signOut over storage errors.
     try {
       await clearWorkoutCache();
       await offlineStorage.clearPendingWrites();
+      clearCachedProfile();
     } catch { /* noop */ }
   };
 
