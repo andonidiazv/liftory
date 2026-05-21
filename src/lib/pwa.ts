@@ -19,9 +19,17 @@
 
 const KILL_SWITCH_KEY = "LIFTORY_DISABLE_SW";
 
+// Module-level guard: if registerPwaServiceWorker() is called more than once
+// (HMR in dev, an accidental second mount, etc.) we don't want to keep
+// attaching new visibilitychange listeners or trigger another registration —
+// it would silently leak listeners and double-check for updates.
+let __registered = false;
+
 export async function registerPwaServiceWorker(): Promise<void> {
   if (typeof window === "undefined") return;
   if (!("serviceWorker" in navigator)) return;
+  if (__registered) return;
+  __registered = true;
 
   // Kill switch: if a prior deploy has burned someone, they can opt out.
   if (localStorage.getItem(KILL_SWITCH_KEY) === "1") {

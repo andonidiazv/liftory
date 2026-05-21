@@ -97,6 +97,28 @@ export function playSetClick(): void {
   } catch {}
 }
 
+/** Generic beep at arbitrary freq and duration (ms), reusing the shared AudioContext.
+ *  Replaces the legacy per-component `new AudioContext()` per beep, which on iOS
+ *  PWA hits the platform's context-per-origin limit during long sessions
+ *  (For Time 15min, AMRAP, Death By) and the audio dies mid-workout. */
+export function playBeep(freq: number = 800, durationMs: number = 100): void {
+  try {
+    const ctx = getCtx();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = "sine";
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(SAFE_VOLUME, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + durationMs / 1000);
+    osc.start(now);
+    osc.stop(now + durationMs / 1000 + 0.02);
+  } catch { /* noop */ }
+}
+
 /** Double finish beep — same 1046.5Hz as EMOM */
 export function playFinishBeep(): void {
   try {

@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Play, Dumbbell } from "lucide-react";
 import type { WorkoutBlock } from "./WorkoutOverview";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
+import { playBeep } from "@/lib/audio";
 
 interface Props {
   block: WorkoutBlock;
@@ -25,28 +26,12 @@ function parseCapMinutes(block: WorkoutBlock): number {
   return 20; // default safety cap 20 min
 }
 
-const SAFE_VOLUME = 0.25;
 const COUNTDOWN_SECONDS = 10;
 const SECONDS_PER_MINUTE = 60;
 
-const playBeep = (freq = 800, duration = 100) => {
-  try {
-    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = "sine";
-    osc.frequency.value = freq;
-    const now = ctx.currentTime;
-    gain.gain.setValueAtTime(SAFE_VOLUME, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + duration / 1000);
-    osc.start(now);
-    osc.stop(now + duration / 1000 + 0.02);
-    setTimeout(() => { ctx.close(); }, duration + 200);
-  } catch { /* noop */ }
-};
-
+// playBeep is imported from @/lib/audio — uses the shared AudioContext
+// singleton so Death By's long potential durations (up to capMin minutes)
+// don't hit iOS context limits.
 const vibrate = (ms: number) => {
   try { navigator.vibrate?.(ms); } catch { /* noop */ }
 };
@@ -122,8 +107,10 @@ export default function DeathByTimerBlock({ block, onBack, onCompleteBlock, onOp
           // Minute complete — advance
           const nextMin = currentMinuteRef.current + 1;
           if (nextMin > capMin) {
-            // Hit cap — auto-stop
-            clearInterval(intervalRef.current!);
+            // Hit cap — auto-stop. Null-check the ref defensively: in the
+            // edge case where unmount happens on the same frame, the cleanup
+            // function may have already nulled it.
+            if (intervalRef.current) clearInterval(intervalRef.current);
             setRunning(false);
             setStopped(true);
             setScoreInput(capMin); // default to last minute

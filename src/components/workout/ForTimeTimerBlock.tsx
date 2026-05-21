@@ -4,6 +4,7 @@ import type { WorkoutBlock } from "./WorkoutOverview";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
 import { toDisplayWeight, toStorageWeight } from "@/utils/weightConversion";
+import { playBeep } from "@/lib/audio";
 import WeightPickerSheet, { BODYWEIGHT_SENTINEL } from "./WeightPickerSheet";
 
 interface Props {
@@ -56,27 +57,10 @@ function parsePlannedRounds(block: WorkoutBlock): number {
   return 5;
 }
 
-const SAFE_VOLUME = 0.25;
 const COUNTDOWN_SECONDS = 10;
 
-const playBeep = (freq = 800, duration = 100) => {
-  try {
-    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = "sine";
-    osc.frequency.value = freq;
-    const now = ctx.currentTime;
-    gain.gain.setValueAtTime(SAFE_VOLUME, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + duration / 1000);
-    osc.start(now);
-    osc.stop(now + duration / 1000 + 0.02);
-    setTimeout(() => { ctx.close(); }, duration + 200);
-  } catch { /* noop */ }
-};
-
+// playBeep is now imported from @/lib/audio — uses the shared AudioContext
+// singleton, eliminating the iOS context-per-origin limit issue.
 const vibrate = (ms: number) => {
   try { navigator.vibrate?.(ms); } catch { /* noop */ }
 };

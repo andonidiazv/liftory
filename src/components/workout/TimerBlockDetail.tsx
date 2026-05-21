@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Play, Pause, Minus, Plus, Dumbbell, RotateCc
 import type { WorkoutBlock } from "./WorkoutOverview";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
+import { playBeep } from "@/lib/audio";
 
 interface Props {
   block: WorkoutBlock;
@@ -25,27 +26,10 @@ function parseDurationFromCue(block: WorkoutBlock): number {
   return 12 * 60; // default 12 min
 }
 
-const SAFE_VOLUME = 0.25; // hard cap — never exceed this
 const COUNTDOWN_SECONDS = 10;
 
-const playBeep = (freq = 800, duration = 100) => {
-  try {
-    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = "sine";
-    osc.frequency.value = freq;
-    const now = ctx.currentTime;
-    gain.gain.setValueAtTime(SAFE_VOLUME, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + duration / 1000);
-    osc.start(now);
-    osc.stop(now + duration / 1000 + 0.02);
-    setTimeout(() => { ctx.close(); }, duration + 200);
-  } catch {}
-};
-
+// playBeep is imported from @/lib/audio — uses the shared AudioContext
+// singleton so long sessions (AMRAP 15min+) don't hit iOS context limits.
 const vibrate = (ms: number) => {
   try { navigator.vibrate?.(ms); } catch {}
 };
@@ -80,7 +64,10 @@ export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpe
   const [countdown, setCountdown] = useState<number | null>(null); // null = no countdown, N = N seconds left
   const [hasStarted, setHasStarted] = useState(allDone); // true once the first countdown finishes
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // countdownRef stores a setTimeout handle, NOT setInterval — was mistyped.
+  // The function works in browser (clearInterval/clearTimeout share handles
+  // on web) but the type was a foot-gun for any future refactor.
+  const countdownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Countdown tick
   useEffect(() => {
@@ -110,7 +97,8 @@ export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpe
     intervalRef.current = setInterval(() => {
       setTimeRemaining(prev => {
         if (prev <= 1) {
-          clearInterval(intervalRef.current!);
+          // Defensive null-check: unmount-on-same-frame can null the ref.
+          if (intervalRef.current) clearInterval(intervalRef.current);
           return 0;
         }
         return prev - 1;
