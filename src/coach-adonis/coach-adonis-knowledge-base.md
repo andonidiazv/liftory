@@ -416,20 +416,27 @@ See [matrix in §4](#core-block-progression-matrix).
 
 **Spell compound movements in full.** `Single-Arm Devil Press` — not `DB SA PC&P`. Athletes must read the name and know the movement.
 
-**Equipment prefix.**
-- `DB` for dumbbell (e.g. `DB Walking Lunge`, `DB Bulgarian Split Squat`)
-- `KB` for kettlebell (e.g. `KB Windmill`, `Kettlebell Swing Two Handed` — note: KB and Kettlebell coexist in the catalog, see Section 14)
+**Equipment prefix — STANDARDIZED (2026-05-10).**
+- `DB` for dumbbell (e.g. `DB Walking Lunge`, `DB Bulgarian Split Squat`, `DB Thruster`)
+- `KB` for kettlebell (e.g. `KB Windmill`, `KB Swing`, `Double KB Swing`)
 - `Barbell` (spelled out) for barbell movements when ambiguous (e.g. `Barbell Bent Over Row`)
 - Bodyweight movements get no prefix (`Push-up`, `Air Squat`, `Bodyweight Pull-up`)
 
 **Hot list — canonical M2 exercises (Coach Adonis must not rename):**
 - `Barbell Bench Press`, `Barbell Back Squat`, `Weighted Pull-up`, `Trap Bar Deadlift`, `Power Clean`, `Barbell Push Press`, `Barbell Bent Over Row`, `Pendlay Row`
-- `DB Bulgarian Split Squat`, `Half Kneeling Single Arm DB Press`, `DB Single-Arm Power Clean and Press`, `DB Walking Lunge`, `Dumbbell Thruster`
-- `High Hang Power Clean`, `Low-Hang Power Clean`, `Front Rack Lunge`
-- `Kettlebell Swing Two Handed`, `KB Windmill`, `Turkish Get-Up`
+- `DB Bulgarian Split Squat`, `Half Kneeling Single Arm DB Press`, `DB Single-Arm Power Clean and Press`, `DB Walking Lunge`, `DB Thruster`
+- `High-Hang Power Clean` (hyphenated, canonical), `Low-Hang Power Clean`, `Front Rack Lunge`
+- `KB Swing` (two-handed, default), `Double KB Swing` (one KB per hand), `KB Windmill`, `Turkish Get-Up`
 - `Renegade Row`, `Hollow Body Hold`, `Pallof Press`, `Dead Bug`, `Farmer Hold`, `Farmer Walk`, `Sled Push`
-- `Devil Press`, `Box Jump Over`, `Broad Jump`, `Pause Box Squat`, `Row Erg`, `Zone 2 Cardio`
+- `Devil Press`, `Single-Arm Devil Press`, `Box Jump Over`, `Broad Jump`, `Pause Box Squat`, `Row Erg`, `Zone 2 Cardio`
 - `Incline Sit-Up`, `Decline Leg Raise`, `Hanging Knee Raise`, `Hanging Oblique Knee Raise`
+
+**Catalog migrations (2026-05-10):**
+- `Kettlebell Swing Two Handed` renamed → `KB Swing` (in-place, video preserved, 209 sets unaffected)
+- `Dumbbell Thruster` renamed → `DB Thruster` (in-place)
+- `High Hang Power Clean` (no hyphen) duplicate merged into `High-Hang Power Clean` (canonical with hyphen). 217 sets migrated. Deprecated row marked `is_active=false` as backup.
+- `Single-Arm Devil Press` created — primary `hinge` + secondary `push`. Used in M2 ATHLETIC INTEGRATION W2 (drill with pauses).
+- `Double KB Swing` created — new exercise, not yet programmed. Ready for M3+.
 
 Any new movement Coach Adonis introduces in M3 MUST be added to the exercise catalog (Supabase `exercises` table) **before** being referenced in a workout, with explicit founder approval.
 
@@ -590,9 +597,9 @@ Compiled by auditing 78 master workouts (M1 42 + M2 36).
 
 ### Findings
 
-**1. [HIGH] Power Clean signature lift missing from W4 HYBRID METCON.** The arc W1 (5×3 @70%) → W2 (5×3 @75%) → W3 (5×2 @78%) is clean. W4 has no HEAVY BLOCK — A Power Clean entry visible — it appears to be absorbed into the "TEST WEEK" metcon (21-15-9 DB Thruster + Pull-up benchmark). This breaks the standard pattern where the signature lift is preserved across all six weeks. **Recommendation:** either restore Power Clean as an explicit HEAVY A on W4 with reduced volume (3×3 @78% as primer) before the test metcon, OR document explicitly that W4 substitutes the signature with the benchmark and update Section 7 accordingly.
+**1. [RESOLVED 2026-05-10] Power Clean complex in W4 HYBRID METCON HEAVY BLOCK — A was modeled as single exercise.** The coach_note correctly described a complex: "2 Low-Hang Power Clean + 1 Power Clean del piso, sin soltar la barra". But the DB stored only 4 sets of `Low-Hang Power Clean × 3 reps` — the Power Clean del piso was invisible to the athlete (only in the cue text). Same root cause as the POWER BLOCK ATHLETIC DAY complex fix earlier in M2. **Resolved:** restructured to interleaved superset across 7 W4 workouts. 4 rounds × (Low-Hang Power Clean × 2 reps + Power Clean × 1 rep), `set_type='superset'`, with `planned_rest_seconds=0` between the two movements (sin soltar) and 180s between rounds. Coach note updated to reflect new structure. Block order preserved, RECOVERY still last.
 
-**2. [HIGH] Exercise naming inconsistency — `Kettlebell Swing Two Handed` vs `KB Windmill`.** The catalog uses "Kettlebell" (spelled out) for one movement and "KB" (abbreviated) for another within the same M2 mesocycle. Same for `DB Bulgarian Split Squat` (DB abbreviated) vs `Dumbbell Thruster` (Dumbbell spelled out). **Recommendation:** standardize on `KB` and `DB` abbreviations across the entire catalog. Rename `Kettlebell Swing Two Handed` → `KB Swing — Two Hand`; `Dumbbell Thruster` → `DB Thruster`. Founder approval required.
+**2. [RESOLVED 2026-05-10] Exercise naming inconsistency — `Kettlebell Swing Two Handed` vs `KB Windmill`.** The catalog used "Kettlebell" (spelled out) for one movement and "KB" (abbreviated) for another within the same M2 mesocycle. Same for `DB Bulgarian Split Squat` (DB abbreviated) vs `Dumbbell Thruster` (Dumbbell spelled out). **Resolved:** standardized on `KB` and `DB` abbreviations across the catalog. Renamed `Kettlebell Swing Two Handed` → `KB Swing` (209 sets preserved, video intact); `Dumbbell Thruster` → `DB Thruster`. New exercise `Double KB Swing` created for 2-kettlebells-simultaneous variant.
 
 **3. [HIGH] M1 has no Active Recovery dedicated day in the same sense as M2.** M1's `LIFTORY FLOW` (Thursday) is structurally similar but lacks the ATHLETIC INTEGRATION skill component (Turkish Get-Up). M2 elevated this day with TGU and KB Windmill; M1 does not. This is a *deliberate evolution* but means the M1 vs M2 split comparison in Section 3 hides that M1 athletes never got TGU exposure. **Recommendation:** when authoring M3, decide whether to retroactively backfill M1 or just acknowledge it as a documented split-evolution.
 
@@ -608,7 +615,7 @@ Compiled by auditing 78 master workouts (M1 42 + M2 36).
 
 **9. [MED] Half Kneeling Single Arm DB Press W6 dropped to 2 sets, but Bulgarian Split Squat W6 also dropped to 2 sets while Bench/Squat kept 3 sets in W6.** Mostly consistent (W6 = 2–3 sets), but the line is fuzzy. **Recommendation:** codify W6 set count: signature compound = 3 sets, secondary heavy = 2 sets, BUILD = 1 round, CORE = ~60% of W5 reps. (Already documented in Section 12 — enforce on audit.)
 
-**10. [MED] `High Hang Power Clean` vs `High-Hang Power Clean` — em-dash vs space inconsistency.** Both forms appear in the dump (`High Hang Power Clean` in M2 Athletic Day W1; `High-Hang Power Clean` in M1 UPPER PULL W1). **Recommendation:** pick one canonical form. Recommend `High-Hang Power Clean` (hyphen) for consistency with `Low-Hang Power Clean` which is universally hyphenated.
+**10. [RESOLVED 2026-05-10] `High Hang Power Clean` vs `High-Hang Power Clean` — duplicate rows merged.** Investigation revealed both names existed as separate exercise rows (217 sets on the no-hyphen variant, 323 on the hyphenated one). **Resolved:** consolidated to `High-Hang Power Clean` (hyphenated, canonical) following industry standard. 217 sets migrated; `name_es` updated to "High Hang Power Clean con Barra"; deprecated row marked `is_active=false` as backup (NOT deleted). Total: 540 sets now under the canonical id.
 
 **11. [LOW] M1 `LOWER POWER`, `UPPER PUSH`, `HINGE DAY` etc. use ALL CAPS while M2 day labels also use ALL CAPS but signature lift names in coach notes vary in case.** Consistent within meso. Low priority.
 
