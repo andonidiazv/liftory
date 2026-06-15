@@ -510,9 +510,9 @@ export const M1_CLOSING_CONTENT: MesocycleClosingContent = {
     },
   ],
   nextMesoId: "M2",
-  nextMesoName: "M2 · INTENSITY",
+  nextMesoName: "M2",
   nextMesoDescription:
-    "Sube la apuesta. Misma estructura semanal, más demanda. Aprenderás a expresar tu fuerza bajo presión real — clusters, wave loading, metcons.",
+    "Construiste la base. Ahora ponla a trabajar. Nuevos formatos. Misma intención.",
   nextMesoFormats: ["⚡ Clusters", "🌊 Waves", "💀 Death By", "🔥 For Time"],
 };
 

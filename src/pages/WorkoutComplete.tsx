@@ -227,8 +227,9 @@ export default function WorkoutComplete() {
     // like Pause Box Squat (included). Differentiate via set_type='working'.
     const mobilityBlocks = ['PRIME BLOCK', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'RECOVERY BLOCK'];
     const strengthSets = completedSets.filter(s => {
-      if (mobilityBlocks.includes(s.block_label || '')) return false;
-      if (s.block_label === 'ATHLETIC INTEGRATION') return s.set_type === 'working';
+      const baseLabel = (s.block_label || '').split(' — ')[0];
+      if (mobilityBlocks.includes(baseLabel)) return false;
+      if (baseLabel === 'ATHLETIC INTEGRATION') return s.set_type === 'working';
       return true;
     });
     // Count sets with weight logged: actual_weight > 0 OR bodyweight sentinel (-1)

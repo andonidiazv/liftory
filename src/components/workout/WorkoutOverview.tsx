@@ -33,7 +33,12 @@ function getBlockColor(block: WorkoutBlock): string {
   return BLOCK_LABEL_COLORS[block.name] || BLOCK_TYPE_COLORS[block.type] || "#C4A24E";
 }
 
-const INSTRUCTION_BLOCK_LABELS = ['ENGINE BLOCK', 'RECOVERY BLOCK', 'PRIME BLOCK', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION'];
+const INSTRUCTION_BLOCK_LABELS = [
+  'ENGINE BLOCK', 'RECOVERY BLOCK',
+  'PRIME BLOCK', 'PRIME BLOCK — A', 'PRIME BLOCK — B', 'PRIME BLOCK — C',
+  'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION',
+  'OPCIONAL · Z2',
+];
 
 function isInstructionBlock(block: WorkoutBlock): boolean {
   // ATHLETIC INTEGRATION is dual-purpose: instruction-style for warmup flows (M1),

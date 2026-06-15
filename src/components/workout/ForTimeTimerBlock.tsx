@@ -325,13 +325,7 @@ export default function ForTimeTimerBlock({
               <div className="h-full rounded-full bg-primary transition-all duration-1000" style={{ width: `${progress * 100}%` }} />
             </div>
 
-            <div className="mt-6 flex items-center gap-6">
-              <button
-                onClick={handleFinish}
-                className="font-body text-sm text-muted-foreground"
-              >
-                TERMINÉ
-              </button>
+            <div className="mt-6 flex items-center gap-5">
               <button
                 onClick={() => {
                   if (!hasStarted && !running) {
@@ -340,7 +334,7 @@ export default function ForTimeTimerBlock({
                     setRunning((r) => !r);
                   }
                 }}
-                className="flex h-[60px] w-[60px] items-center justify-center rounded-full bg-primary"
+                className="press-scale flex h-[60px] w-[60px] items-center justify-center rounded-full bg-primary"
               >
                 {running ? (
                   <Pause className="h-6 w-6 text-primary-foreground" />
@@ -348,7 +342,23 @@ export default function ForTimeTimerBlock({
                   <Play className="h-6 w-6 text-primary-foreground ml-0.5" />
                 )}
               </button>
-              <div style={{ width: 56 }} />{/* symmetry placeholder */}
+              {/* "Terminé" pill — was a muted text-link before, easy to miss next
+                  to the giant Play circle. Promoted to a visible bordered pill so
+                  athletes notice they can close out the For Time before the cap
+                  hits (the cap auto-completes too, but most For Times finish
+                  early). */}
+              <button
+                onClick={handleFinish}
+                className="press-scale rounded-full px-5 py-2.5 font-display text-xs font-semibold uppercase"
+                style={{
+                  background: tc.accentBg,
+                  color: tc.accent,
+                  border: `1px solid ${tc.accent}66`,
+                  letterSpacing: "0.05em",
+                }}
+              >
+                Terminé
+              </button>
             </div>
 
             {/* Restart pill — same pattern as TimerBlockDetail */}

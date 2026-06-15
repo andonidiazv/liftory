@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, Check, Dumbbell, Loader2, Quote, Trophy, Shuffle, X, Play, Pause, Timer, RotateCcw } from "lucide-react";
+import ReactDOM from "react-dom";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
 import ExerciseThumbnail from "./ExerciseThumbnail";
@@ -18,35 +19,55 @@ import { useAuth } from "@/context/AuthContext";
 import IntervalTimerBlock from "./IntervalTimerBlock";
 import EmomTimerBlock from "./EmomTimerBlock";
 import { TimerErrorBoundary } from "./TimerErrorBoundary";
-import { playSetClick } from "@/lib/audio";
+import { playSetClick, playBeep } from "@/lib/audio";
 
 /** Block types by render mode */
 const CARDIO_BLOCKS = ['ENGINE BLOCK'];
 const MOBILITY_BLOCKS = ['PRIME BLOCK', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION'];
-const COOLDOWN_BLOCKS = ['RECOVERY BLOCK'];
+// "OPCIONAL · Z2" is a steady-state Z2 cardio block (Incline Walk 15 min) used as
+// an optional post-workout add-on in M3 Upper Hypertrophy days. We render it as
+// a cooldown card — the athlete sees the exercise + duration + a complete tap,
+// same flow as recovery stretches. Strength-mode (weight/reps inputs) would be
+// wrong for a single timed cardio set.
+const COOLDOWN_BLOCKS = ['RECOVERY BLOCK', 'OPCIONAL · Z2'];
 
 type BlockMode = 'strength' | 'mobility' | 'cooldown' | 'cardio' | 'emom';
 
+/**
+ * Strip the sub-block suffix ("PRIME BLOCK — A" → "PRIME BLOCK") so block-mode
+ * detection works whether or not a block is split into sub-blocks.
+ *
+ * M3 started using sub-block naming (`BLOCK NAME — A`/`— B`/`— C`) for PRIME
+ * the same way M1/M2 used it for HEAVY/BUILD. Without this normalization, sub-
+ * blocks of PRIME would fall through to 'strength' mode and render weight/reps
+ * inputs instead of the cue-only mobility view.
+ */
+function baseBlockName(name: string): string {
+  const dashIdx = name.indexOf(' — ');
+  return dashIdx === -1 ? name : name.slice(0, dashIdx);
+}
+
 function getBlockMode(block: WorkoutBlock): BlockMode {
+  const base = baseBlockName(block.name);
   // Check if EMOM — render as instruction block
   if (block.groups.some(g => g.sets.some(s => s.set_type === 'emom'))) return 'emom';
-  if (CARDIO_BLOCKS.includes(block.name)) return 'cardio';
+  if (CARDIO_BLOCKS.includes(base)) return 'cardio';
   // Tabata-style intervals (set_type='interval' with work + rest durations)
   // render as cardio → IntervalTimerBlock per group, regardless of block name.
   // This enables Tabata in METCON BLOCK or FINISHER BLOCK without affecting M1.
   if (block.groups.some(g => g.sets.some(s => s.set_type === 'interval'))) return 'cardio';
-  if (COOLDOWN_BLOCKS.includes(block.name)) return 'cooldown';
+  if (COOLDOWN_BLOCKS.includes(base)) return 'cooldown';
 
   // ATHLETIC INTEGRATION: dual-purpose block.
   //  - M1 used it for warmup flows (set_type='warmup') → render as mobility (cue-only)
   //  - M2+ uses it for sub-maximal strength work like Pause Box Squat (set_type='working')
   //    → render as strength so inputs (weight/reps/RPE/rest) appear.
-  if (block.name === 'ATHLETIC INTEGRATION') {
+  if (base === 'ATHLETIC INTEGRATION') {
     const hasWorking = block.groups.some(g => g.sets.some(s => s.set_type === 'working'));
     return hasWorking ? 'strength' : 'mobility';
   }
 
-  if (MOBILITY_BLOCKS.includes(block.name)) return 'mobility';
+  if (MOBILITY_BLOCKS.includes(base)) return 'mobility';
   return 'strength';
 }
 
@@ -124,7 +145,23 @@ function formatPrescription(sets: WorkoutSetData[], hideRest = false): string {
   return parts.join(" · ");
 }
 
-/** Parse sub-group header from coaching cue (e.g. "2-3 rondas | cue text") */
+/** Parse sub-group header from coaching cue.
+ *
+ * Supported formats:
+ *   - "N rondas | cue text"           → header "N RONDAS"        (M1/M2 legacy)
+ *   - "N rondas"                       → header "N RONDAS"        (M1/M2 legacy)
+ *   - "Mobility hombro | cue text"    → header "MOBILITY HOMBRO" (M3+)
+ *
+ * The labeled form lets a mobility block hold multiple sub-sections (e.g. PRIME
+ * BLOCK with Mobility / Activación / Specific prep) under a single card while
+ * still showing visual separators inside.
+ *
+ * The label is letters-and-spaces only (no digits) so cues that legitimately
+ * contain "|" with numbers — like the EMOM cue "EMOM 60s | 6R x 2V" — never
+ * false-positive into a header. (MobilityContent is the only caller and is
+ * never rendered for EMOM blocks anyway, but the constraint keeps the parser
+ * robust against future reuse.)
+ */
 function parseSubGroupHeader(cue: string | null | undefined): { header: string | null; cleanCue: string | null } {
   if (!cue) return { header: null, cleanCue: null };
   // "N rondas | actual cue"
@@ -140,6 +177,14 @@ function parseSubGroupHeader(cue: string | null | undefined): { header: string |
   const onlyHeader = cue.match(/^(\d+(?:-\d+)?\s*rondas?)\s*$/i);
   if (onlyHeader) {
     return { header: onlyHeader[1].toUpperCase(), cleanCue: null };
+  }
+  // Labeled sub-group: starts with uppercase letter, letters+spaces+accents
+  // and the connectors `·`, `-`, `+`, `/` (no digits — keeps EMOM-style cues
+  // like "EMOM 60s | 6R x 2V" from matching).
+  const labeled = cue.match(/^([A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÑáéíóúñ\s·\-+/]+?)\s*\|\s*(.*)/);
+  if (labeled) {
+    const rest = (labeled[2] || '').trim();
+    return { header: labeled[1].trim().toUpperCase(), cleanCue: rest || null };
   }
   return { header: null, cleanCue: cue };
 }
@@ -1058,6 +1103,7 @@ function ExerciseCard({
                 isDark={isDark}
                 onComplete={() => onToggle(set)}
                 saving={saving}
+                exerciseName={group.exercise.name}
               />
             );
           }
@@ -1413,7 +1459,7 @@ const PREP_SECONDS = 10;
 type TimerPhase = "idle" | "prep" | "running" | "paused" | "done";
 
 function TimedSetRow({
-  set, index, completed, isJustDone, rpeHigh, accent, accentBg, accentBgStrong, muted, isDark, onComplete, saving,
+  set, index, completed, isJustDone, rpeHigh, accent, accentBg, accentBgStrong, muted, isDark, onComplete, saving, exerciseName,
 }: {
   set: WorkoutSetData;
   index: number;
@@ -1427,6 +1473,7 @@ function TimedSetRow({
   isDark: boolean;
   onComplete: () => void;
   saving: boolean;
+  exerciseName: string;
 }) {
   const targetSec = set.planned_duration_seconds ?? 60;
   const [phase, setPhase] = useState<TimerPhase>(completed ? "done" : "idle");
@@ -1438,6 +1485,9 @@ function TimedSetRow({
   useEffect(() => { completedRef.current = completed; }, [completed]);
 
   // Tick: drives both the prep 3-2-1 and the actual timer based on phase.
+  // Audio + haptic cues are intentionally generous because the athlete has the
+  // phone on the floor and can't see the screen during a hold — they need to
+  // hear when prep is about to end and when the hold itself finishes.
   useEffect(() => {
     if (phase !== "prep" && phase !== "running") return;
     const intervalId = window.setInterval(() => {
@@ -1445,17 +1495,33 @@ function TimedSetRow({
         setPrepRemaining((p) => {
           if (p <= 1) {
             // Prep finished — start the real timer next tick.
+            playBeep(1000, 300);
+            try { navigator.vibrate?.(200); } catch { /* noop */ }
             setPhase("running");
             return PREP_SECONDS; // reset for any future restart
+          }
+          if (p <= 4) {
+            // Last 3 seconds of prep: short tick beeps so athlete knows to grip.
+            playBeep(700, 80);
+            try { navigator.vibrate?.(40); } catch { /* noop */ }
           }
           return p - 1;
         });
       } else {
         setRemaining((r) => {
           if (r <= 1) {
+            // Timer finished — long beep + buzz so athlete can drop the load.
+            playBeep(500, 400);
+            window.setTimeout(() => playBeep(500, 400), 450);
+            try { navigator.vibrate?.([400, 100, 400]); } catch { /* noop */ }
             setPhase("done");
             if (!completedRef.current) onCompleteRef.current();
             return 0;
+          }
+          if (r <= 4) {
+            // Last 3 seconds of the hold: tick beeps for "almost there".
+            playBeep(900, 100);
+            try { navigator.vibrate?.(50); } catch { /* noop */ }
           }
           return r - 1;
         });
@@ -1513,6 +1579,131 @@ function TimedSetRow({
 
   const isActive = phase === "prep" || phase === "running" || phase === "paused";
   const pct = completed ? 100 : ((targetSec - remaining) / targetSec) * 100;
+
+  // Fullscreen overlay shown while the timer is active. Required because the
+  // inline row's font-size (14px) is invisible from 1-2 m away — and that's
+  // exactly where the phone sits when the athlete is mid-hold (floor next to
+  // a kettlebell, propped on a bench, etc.). The overlay uses 240px digits
+  // (mm:ss) that read across a gym, plus a giant tap target to pause/resume,
+  // a "Hecho" exit, and a reset. It pulses red in the final 3 s so the
+  // athlete sees the end coming even if the audio cue gets missed.
+  const overlay = isActive ? ReactDOM.createPortal(
+    (
+      <div
+        className="fixed inset-0 z-[90] flex flex-col items-stretch justify-between bg-background"
+        style={{ animation: "fadeIn 0.2s ease-out" }}
+      >
+        {/* Top: exercise name + close (× reset to idle) */}
+        <div className="flex items-center justify-between px-5 pt-14 pb-3">
+          <div className="flex-1 min-w-0">
+            <p className="font-mono uppercase text-muted-foreground" style={{ fontSize: 10, letterSpacing: "2px" }}>
+              {phase === "prep" ? "Prepárate" : phase === "paused" ? "Pausado" : "Hold"}
+            </p>
+            <h2 className="font-display text-2xl font-bold text-foreground truncate" style={{ letterSpacing: "-0.02em" }}>
+              {exerciseName}
+            </h2>
+            <p className="font-mono text-muted-foreground mt-1" style={{ fontSize: 12 }}>
+              Set {index + 1} · objetivo {mmss(targetSec)}
+            </p>
+          </div>
+          <button
+            onClick={handleReset}
+            aria-label="Cancelar timer"
+            className="flex h-11 w-11 items-center justify-center rounded-full shrink-0"
+            style={{ background: "hsl(var(--secondary))" }}
+          >
+            <X className="h-5 w-5 text-foreground" />
+          </button>
+        </div>
+
+        {/* Center: GIANT timer */}
+        <div className="flex-1 flex flex-col items-center justify-center px-5">
+          {phase === "prep" ? (
+            <>
+              <p className="font-mono uppercase text-muted-foreground" style={{ fontSize: 12, letterSpacing: "3px", marginBottom: 16 }}>
+                Empieza el hold en
+              </p>
+              <p
+                className="font-mono font-bold text-primary tabular-nums"
+                style={{
+                  fontSize: 240,
+                  lineHeight: 0.9,
+                  letterSpacing: "-0.06em",
+                  animation: prepRemaining <= 3 ? "pulse 0.8s infinite" : undefined,
+                }}
+              >
+                {prepRemaining}
+              </p>
+            </>
+          ) : (
+            <>
+              <p
+                className="font-mono font-bold tabular-nums"
+                style={{
+                  fontSize: 240,
+                  lineHeight: 0.9,
+                  letterSpacing: "-0.06em",
+                  color: remaining <= 3 ? "#D45555" : "hsl(var(--foreground))",
+                  animation: remaining <= 3 ? "pulse 0.6s infinite" : undefined,
+                }}
+              >
+                {mmss(remaining)}
+              </p>
+              {/* Progress bar — wide and thick so it reads from far. */}
+              <div className="mt-8 h-3 w-full max-w-md overflow-hidden rounded-full" style={{ backgroundColor: "hsl(var(--border))" }}>
+                <div
+                  className="h-full rounded-full transition-all duration-1000"
+                  style={{
+                    width: `${pct}%`,
+                    background: remaining <= 3 ? "#D45555" : accent,
+                  }}
+                />
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Bottom: huge action buttons. Each ~84px tall — finger-sized for a sweaty hand. */}
+        <div className="px-5 pb-10 flex flex-col gap-3">
+          {phase !== "prep" && (
+            <button
+              onClick={() => setPhase(phase === "running" ? "paused" : "running")}
+              className="press-scale w-full rounded-2xl flex items-center justify-center gap-3"
+              style={{
+                height: 84,
+                background: phase === "running" ? "hsl(var(--secondary))" : accent,
+                color: phase === "running" ? "hsl(var(--foreground))" : "hsl(var(--background))",
+              }}
+            >
+              {phase === "running" ? <Pause className="h-7 w-7" /> : <Play className="h-7 w-7" />}
+              <span className="font-display text-lg font-bold uppercase" style={{ letterSpacing: "0.08em" }}>
+                {phase === "running" ? "Pausa" : "Reanudar"}
+              </span>
+            </button>
+          )}
+          <button
+            onClick={() => {
+              setPhase("done");
+              if (!completedRef.current) onCompleteRef.current();
+            }}
+            className="press-scale w-full rounded-2xl flex items-center justify-center gap-3"
+            style={{
+              height: 84,
+              background: phase === "running" ? accent : "hsl(var(--secondary))",
+              color: phase === "running" ? "hsl(var(--background))" : "hsl(var(--foreground))",
+              border: phase === "running" ? "none" : `2px solid ${accent}`,
+            }}
+          >
+            <Check className="h-7 w-7" />
+            <span className="font-display text-lg font-bold uppercase" style={{ letterSpacing: "0.08em" }}>
+              Hecho
+            </span>
+          </button>
+        </div>
+      </div>
+    ),
+    document.body,
+  ) : null;
 
   // What to show in the timer button:
   //   prep    → big number "3" / "2" / "1"
@@ -1629,6 +1820,8 @@ function TimedSetRow({
       >
         {completed ? <Check className="h-3.5 w-3.5 text-primary-foreground" /> : null}
       </button>
+
+      {overlay}
     </div>
   );
 }

@@ -52,7 +52,9 @@ function clearStoredRestTimer(): void {
 }
 
 function getBlockType(label: string): WorkoutBlock["type"] {
-  if (['PRIME BLOCK', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION'].includes(label)) return 'mobility';
+  // Sub-block suffixes ("PRIME BLOCK — A") share the parent's type.
+  if (label.startsWith('PRIME BLOCK')) return 'mobility';
+  if (['RESET & BREATHE', 'SPINE & HIPS', 'DYNAMIC FLOW', 'ATHLETIC INTEGRATION'].includes(label)) return 'mobility';
   if (label === 'RECOVERY BLOCK') return 'cooldown';
   if (label.startsWith('BUILD BLOCK')) return 'sculpt';
   if (['ENGINE BLOCK'].includes(label)) return 'conditioning';
@@ -338,6 +340,13 @@ export default function Workout() {
       if (blockSets[0]?.set_type === 'emom') formatBadge = 'EMOM';
       if (blockSets[0]?.set_type === 'amrap') formatBadge = 'AMRAP';
 
+      // Detect FOR TIME / DEATH BY badges by the same heuristic that
+      // handleBlockSelect uses to route to the timer view — keep them aligned
+      // so the overview tag matches what the user actually gets at tap time.
+      const firstCueU = (blockSets[0]?.coaching_cue_override ?? "").toUpperCase();
+      if (firstCueU.startsWith("FOR TIME") || firstCueU.includes("FOR TIME:")) formatBadge = 'FOR TIME';
+      else if (firstCueU.startsWith("DEATH BY") || firstCueU.includes("DEATH BY:")) formatBadge = 'DEATH BY';
+
       const type = getBlockType(label);
       const totalSets = blockSets.length;
       const completedSets = blockSets.filter((s) => s.is_completed).length;
@@ -361,6 +370,25 @@ export default function Workout() {
             if (legacyFmt) {
               return Math.ceil((parseInt(legacyFmt[1]) * parseInt(legacyFmt[2])) / 60);
             }
+          }
+          // FOR TIME blocks: parse "cap N min" so a 1-set "40 reps cap 12 min"
+          // shows ~12 min in the overview instead of the default 2.5 min/set.
+          if (formatBadge === 'FOR TIME') {
+            const capMatch = (blockSets[0]?.coaching_cue_override || '').match(/cap\s*(\d+)\s*min/i);
+            if (capMatch) return parseInt(capMatch[1], 10);
+          }
+          // Duration-based blocks: when every set has planned_duration_seconds
+          // (e.g. a Z2 Incline Walk of 1 × 900s, or a Recovery block of
+          // 3 × 60s stretches), sum the durations + rests instead of using the
+          // default 2.5 min/set heuristic. The default would have shown a 15-min
+          // walk as "~3 min" — confusingly wrong for any timed cardio or hold.
+          const allTimed = blockSets.length > 0 && blockSets.every(s => (s.planned_duration_seconds ?? 0) > 0);
+          if (allTimed) {
+            const totalSec = blockSets.reduce(
+              (acc, s) => acc + (s.planned_duration_seconds ?? 0) + (s.planned_rest_seconds ?? 0),
+              0,
+            );
+            return Math.max(1, Math.round(totalSec / 60));
           }
           return Math.max(1, Math.round(totalSets * 2.5));
         })(),
