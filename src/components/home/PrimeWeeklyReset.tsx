@@ -337,7 +337,7 @@ export default function PrimeWeeklyReset({ selectedDate }: PrimeWeeklyResetProps
             <p className="font-mono text-[8px] uppercase tracking-wider text-muted-foreground">
               Mejor PR
             </p>
-            <p className="mt-0.5 font-display text-[14px] font-bold truncate text-foreground">
+            <p className="mt-0.5 font-display text-[14px] font-bold text-foreground leading-tight" style={{ wordBreak: "break-word" }}>
               {metrics.bestPR.exerciseName}
             </p>
           </div>

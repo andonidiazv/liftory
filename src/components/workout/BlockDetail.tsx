@@ -936,12 +936,12 @@ function ExerciseCard({
           <ExerciseThumbnail thumbnailUrl={ex.thumbnail_url} videoUrl={ex.video_url} name={ex.name} width={64} height={48} />
         </button>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <p className="font-body text-[15px] font-semibold text-foreground truncate">{ex.name}</p>
+          <div className="flex items-start gap-1.5">
+            <p className="font-body text-[15px] font-semibold text-foreground leading-snug" style={{ wordBreak: "break-word" }}>{ex.name}</p>
             {hasSubs && (
               <button
                 onClick={() => setShowSwapSheet(true)}
-                className="shrink-0 flex items-center justify-center rounded-full"
+                className="shrink-0 flex items-center justify-center rounded-full mt-0.5"
                 style={{ width: 26, height: 26, background: "hsl(var(--secondary))" }}
                 title="Sustituir ejercicio"
               >
@@ -1599,7 +1599,7 @@ function TimedSetRow({
             <p className="font-mono uppercase text-muted-foreground" style={{ fontSize: 10, letterSpacing: "2px" }}>
               {phase === "prep" ? "Prepárate" : phase === "paused" ? "Pausado" : "Hold"}
             </p>
-            <h2 className="font-display text-2xl font-bold text-foreground truncate" style={{ letterSpacing: "-0.02em" }}>
+            <h2 className="font-display text-2xl font-bold text-foreground leading-tight" style={{ letterSpacing: "-0.02em", wordBreak: "break-word" }}>
               {exerciseName}
             </h2>
             <p className="font-mono text-muted-foreground mt-1" style={{ fontSize: 12 }}>
@@ -1626,7 +1626,8 @@ function TimedSetRow({
               <p
                 className="font-mono font-bold text-primary tabular-nums"
                 style={{
-                  fontSize: 240,
+                  // prep es 1-2 dígitos, puede ser más grande sin desbordar
+                  fontSize: "clamp(160px, 50vw, 320px)",
                   lineHeight: 0.9,
                   letterSpacing: "-0.06em",
                   animation: prepRemaining <= 3 ? "pulse 0.8s infinite" : undefined,
@@ -1640,7 +1641,10 @@ function TimedSetRow({
               <p
                 className="font-mono font-bold tabular-nums"
                 style={{
-                  fontSize: 240,
+                  // mm:ss son 5 chars en mono ≈ 3× font-size de ancho.
+                  // 28vw mantiene el reloj dentro del viewport en iPhone (~110px)
+                  // y crece hasta 240px cap en tablets/desktop.
+                  fontSize: "clamp(96px, 28vw, 240px)",
                   lineHeight: 0.9,
                   letterSpacing: "-0.06em",
                   color: remaining <= 3 ? "#D45555" : "hsl(var(--foreground))",

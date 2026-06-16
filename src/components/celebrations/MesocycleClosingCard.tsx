@@ -280,7 +280,7 @@ function PRRow({ pr, rank }: { pr: MesocycleTopPR; rank: 1 | 2 | 3 }) {
       />
       <span className="text-[26px] leading-none shrink-0 drop-shadow-md">{medal}</span>
       <div className="flex-1 min-w-0">
-        <p className="font-body text-[14px] font-semibold text-foreground leading-tight truncate">
+        <p className="font-body text-[14px] font-semibold text-foreground leading-tight" style={{ wordBreak: "break-word" }}>
           {pr.exerciseName}
         </p>
         <p className="font-mono text-[11px] text-muted-foreground mt-1">

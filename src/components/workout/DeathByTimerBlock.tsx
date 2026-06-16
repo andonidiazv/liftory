@@ -354,7 +354,7 @@ export default function DeathByTimerBlock({ block, onBack, onCompleteBlock, onOp
                   )}
                 </button>
                 <div className="flex-1 min-w-0">
-                  <p className="font-body text-sm font-semibold text-foreground truncate">{ex.name}</p>
+                  <p className="font-body text-sm font-semibold text-foreground leading-snug" style={{ wordBreak: "break-word" }}>{ex.name}</p>
                 </div>
               </div>
             );

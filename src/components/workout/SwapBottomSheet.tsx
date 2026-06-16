@@ -268,11 +268,11 @@ export default function SwapBottomSheet({
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-body text-[15px] font-semibold text-foreground truncate">
+                  <p className="font-body text-[15px] font-semibold text-foreground leading-snug" style={{ wordBreak: "break-word" }}>
                     {selected.name}
                   </p>
                   {selected.name_es && selected.name_es !== selected.name && (
-                    <p className="font-body text-xs text-muted-foreground/60 truncate">
+                    <p className="font-body text-xs text-muted-foreground/60 leading-snug mt-0.5" style={{ wordBreak: "break-word" }}>
                       {selected.name_es}
                     </p>
                   )}
@@ -370,11 +370,11 @@ export default function SwapBottomSheet({
                           </span>
 
                           {/* Name */}
-                          <p className="font-body text-[14px] font-semibold text-foreground truncate">
+                          <p className="font-body text-[14px] font-semibold text-foreground leading-snug" style={{ wordBreak: "break-word" }}>
                             {opt.name}
                           </p>
                           {opt.name_es && opt.name_es !== opt.name && (
-                            <p className="font-body text-xs text-muted-foreground/60 truncate">
+                            <p className="font-body text-xs text-muted-foreground/60 leading-snug mt-0.5" style={{ wordBreak: "break-word" }}>
                               {opt.name_es}
                             </p>
                           )}

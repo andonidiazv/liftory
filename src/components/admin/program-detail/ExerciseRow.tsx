@@ -192,8 +192,8 @@ export function ExerciseRow({
 
       {/* Exercise name */}
       <span
-        className="font-body text-xs min-w-0"
-        style={{ color: "#FAF8F5", maxWidth: "140px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+        className="font-body text-xs flex-1 min-w-0 leading-snug"
+        style={{ color: "#FAF8F5", wordBreak: "break-word" }}
         title={exerciseGroup.exerciseName}
       >
         {exerciseGroup.exerciseName}

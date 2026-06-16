@@ -337,7 +337,7 @@ export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpe
                   )}
                 </button>
                 <div className="flex-1 min-w-0">
-                  <p className="font-body text-sm font-semibold text-foreground truncate">{ex.name}</p>
+                  <p className="font-body text-sm font-semibold text-foreground leading-snug" style={{ wordBreak: "break-word" }}>{ex.name}</p>
                   {group.sets[0]?.planned_reps && (
                     <p className="font-mono text-muted-foreground" style={{ fontSize: 11 }}>
                       {group.sets[0].planned_reps} reps
