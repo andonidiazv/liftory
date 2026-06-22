@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
+import { getMesoForDate, MESOCYCLE_DATE_RANGES } from "@/lib/mesocycle-content";
 
 export interface DayWorkout {
   id: string;
@@ -43,6 +44,9 @@ export interface QuickStats {
   totalCompleted: number;
   monthPRs: number;
   streak: number;
+  /** Current mesocycle label (e.g. "M3") for stat scoping. Null when the athlete
+   *  is between cycles — UI should hide the meso suffix in that case. */
+  currentMeso: string | null;
 }
 
 export interface AllWorkoutDay {
@@ -98,7 +102,34 @@ interface HomeServerData {
 // ── Query function: fetches all home data from Supabase ──
 async function fetchHomeData(userId: string): Promise<HomeServerData> {
   const today = new Date();
-  const firstOfMonth = formatDate(new Date(today.getFullYear(), today.getMonth(), 1));
+  const todayStr = formatDate(today);
+
+  // Mesocycle-scoped stats: the home banner shows "X workouts" and "Y PRs" — but
+  // those should reset every mesocycle, not bleed across the athlete's lifetime.
+  // We detect the current meso from today's date and bound all stat queries to
+  // its window. If today doesn't fall inside any defined meso (e.g. an athlete
+  // between cycles), we fall back to lifetime counts so the home doesn't go
+  // mysteriously blank.
+  const currentMeso = getMesoForDate(todayStr);
+  const mesoRange = currentMeso ? MESOCYCLE_DATE_RANGES[currentMeso] : null;
+  const statsStart = mesoRange?.start ?? null;
+  const statsEnd = mesoRange?.end ?? null;
+
+  const completedQuery = supabase
+    .from("workouts")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("is_completed", true);
+  if (statsStart) completedQuery.gte("scheduled_date", statsStart);
+  if (statsEnd) completedQuery.lte("scheduled_date", statsEnd);
+
+  const prsQuery = supabase
+    .from("workout_sets")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("is_pr", true);
+  if (statsStart) prsQuery.gte("logged_at", statsStart);
+  if (statsEnd) prsQuery.lte("logged_at", statsEnd + "T23:59:59");
 
   const [programRes, allWorkoutsRes, statsRes, prsRes] = await Promise.all([
     supabase
@@ -114,18 +145,8 @@ async function fetchHomeData(userId: string): Promise<HomeServerData> {
       .eq("user_id", userId)
       .order("scheduled_date", { ascending: true }),
 
-    supabase
-      .from("workouts")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .eq("is_completed", true),
-
-    supabase
-      .from("workout_sets")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .eq("is_pr", true)
-      .gte("logged_at", firstOfMonth),
+    completedQuery,
+    prsQuery,
   ]);
 
   const programInfo = programRes.data ? (programRes.data as ProgramInfo) : null;
@@ -215,6 +236,7 @@ async function fetchHomeData(userId: string): Promise<HomeServerData> {
     totalCompleted: statsRes.count ?? 0,
     monthPRs: prsRes.count ?? 0,
     streak,
+    currentMeso,
   };
 
   // --- Detect if a new cycle is available ---
@@ -330,7 +352,7 @@ export function useNavigableHome() {
   // Derived state from cached server data
   const programInfo = homeData?.programInfo ?? null;
   const allWorkouts = homeData?.allWorkouts ?? [];
-  const quickStats = homeData?.quickStats ?? { totalCompleted: 0, monthPRs: 0, streak: 0 };
+  const quickStats = homeData?.quickStats ?? { totalCompleted: 0, monthPRs: 0, streak: 0, currentMeso: null };
   const currentWeekNumber = homeData?.currentWeekNumber ?? 1;
   const nextCycleInfo = homeData?.nextCycleInfo ?? null;
 

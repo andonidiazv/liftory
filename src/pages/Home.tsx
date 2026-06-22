@@ -720,8 +720,8 @@ export default function Home() {
         <div className="flex gap-2">
           {[
             { icon: <Flame className={`h-3.5 w-3.5 ${quickStats.streak >= 3 ? "animate-flicker" : ""}`} />, label: quickStats.streak >= 7 ? `${quickStats.streak} días · Imparable` : quickStats.streak >= 3 ? `${quickStats.streak} días · En racha` : `${quickStats.streak} días streak` },
-            { icon: <Dumbbell className="h-3.5 w-3.5" />, label: `${quickStats.totalCompleted} workouts` },
-            { icon: <Trophy className="h-3.5 w-3.5" />, label: `${quickStats.monthPRs} PRs este mes` },
+            { icon: <Dumbbell className="h-3.5 w-3.5" />, label: quickStats.currentMeso ? `${quickStats.totalCompleted} workouts en ${quickStats.currentMeso}` : `${quickStats.totalCompleted} workouts` },
+            { icon: <Trophy className="h-3.5 w-3.5" />, label: quickStats.currentMeso ? `${quickStats.monthPRs} PRs en ${quickStats.currentMeso}` : `${quickStats.monthPRs} PRs` },
           ].map((s) => (
             <div
               key={s.label}
