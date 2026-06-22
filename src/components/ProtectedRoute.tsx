@@ -11,6 +11,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   const location = useLocation();
   const retried = useRef(false);
   const [profileTimedOut, setProfileTimedOut] = useState(false);
+  const [showLoadingText, setShowLoadingText] = useState(false);
 
   // Safety net: if user exists but profile is null, retry once
   useEffect(() => {
@@ -21,18 +22,24 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     if (profile) {
       retried.current = false;
       setProfileTimedOut(false);
+      setShowLoadingText(false);
     }
   }, [loading, user, profile, fetchProfile]);
 
-  // Timeout: if profile is still null after 12s, give user a way out.
-  // (Was 6s but PWA cold-start on cell networks sometimes legitimately
-  // takes ~8s; raising to 12s avoids showing the error to users whose
-  // fetch is still in flight. The 3-retry fetchProfile usually lands
-  // within this window.)
+  // Two-stage UX so the user is never staring at a silent wordmark:
+  //   1. After 1.5s without profile, show "Cargando tu perfil..." text so the
+  //      athlete knows the app is alive and working.
+  //   2. After 5s (was 12s), surface the Reintentar button. fetchProfile has
+  //      a 6s per-attempt hard timeout now, so by 5s we know at least one
+  //      attempt has resolved (success → no splash; failure → next attempt).
+  //      Waiting longer just makes the bug feel like a crash. With the timeout
+  //      in fetchProfile we can be more aggressive about offering the manual
+  //      reload without false-positives on slow-but-recovering networks.
   useEffect(() => {
     if (!loading && user && !profile) {
-      const timer = setTimeout(() => setProfileTimedOut(true), 12000);
-      return () => clearTimeout(timer);
+      const textTimer = setTimeout(() => setShowLoadingText(true), 1500);
+      const errorTimer = setTimeout(() => setProfileTimedOut(true), 5000);
+      return () => { clearTimeout(textTimer); clearTimeout(errorTimer); };
     }
   }, [loading, user, profile]);
 
@@ -56,6 +63,11 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
         <span className="font-display text-sm" style={{ color: t.accent, opacity: 0.25, fontWeight: 800, letterSpacing: "-0.04em" }}>
           LIFTORY
         </span>
+        {showLoadingText && !profileTimedOut && (
+          <p className="font-body text-[13px]" style={{ color: t.muted, opacity: 0.7 }}>
+            Cargando tu perfil...
+          </p>
+        )}
         {profileTimedOut && (
           <>
             <p className="font-body text-[13px]" style={{ color: t.muted }}>
@@ -66,6 +78,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
                 onClick={() => {
                   retried.current = false;
                   setProfileTimedOut(false);
+                  setShowLoadingText(false);
                   fetchProfile(user.id);
                 }}
                 className="font-display text-[13px] font-semibold px-5 py-2 rounded-full"

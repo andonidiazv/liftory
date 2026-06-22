@@ -34,14 +34,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Try up to 3 times with exponential backoff (0ms, 800ms, 2400ms).
     // PWA cold-start on cell networks sometimes takes 2-4 seconds before
     // Supabase queries land — one retry isn't enough.
+    //
+    // Each attempt has a HARD 6-second timeout: in iOS PWA standalone we've
+    // seen the underlying fetch silently hang (likely processLock + iOS
+    // suspending the request mid-roundtrip after a token rotation). Without
+    // this race, fetchProfile never resolves and ProtectedRoute is stuck on
+    // the wordmark splash until the user kills the app — which is the bug
+    // Andoni reported as "se queda lodeando y tengo que cerrar y abrir".
     const delays = [0, 800, 2400];
+    const ATTEMPT_TIMEOUT_MS = 6000;
     for (let i = 0; i < delays.length; i++) {
       if (delays[i] > 0) await new Promise((r) => setTimeout(r, delays[i]));
-      const { data, error } = await supabase
+      const query = supabase
         .from("user_profiles")
         .select("*")
         .eq("user_id", userId)
         .maybeSingle();
+      const timeout = new Promise<{ data: null; error: Error }>((resolve) =>
+        setTimeout(() => resolve({ data: null, error: new Error("fetchProfile timeout") }), ATTEMPT_TIMEOUT_MS)
+      );
+      const { data, error } = await Promise.race([query, timeout]);
       if (data) {
         const prof = data as UserProfile;
         setProfile(prof);
@@ -87,18 +99,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // THEN get current session
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.user) {
-        // Paint from cache immediately. Background refresh updates if changed.
-        const cached = readCachedProfile(s.user.id);
-        if (cached) setProfile(cached);
-        fetchProfile(s.user.id);
-      }
+    // THEN get current session. CRITICAL: .catch() must release loading=false
+    // even on error. Without it, an unexpected supabase auth failure (e.g.
+    // corrupted localStorage token, processLock orphaned, network refused)
+    // leaves loading=true forever and the user sees the wordmark splash with
+    // no way out — exact reproduction of "se queda lodeando" bug. Also
+    // bounded by a 8s hard timeout in case the promise never settles at all
+    // (iOS PWA + processLock has been observed to do this on cold-start
+    // immediately after a fresh signIn).
+    const bootstrapTimeout = setTimeout(() => {
+      console.warn("[AuthContext] getSession bootstrap timed out — releasing loading");
       setLoading(false);
-    });
+    }, 8000);
+    supabase.auth.getSession()
+      .then(({ data: { session: s } }) => {
+        clearTimeout(bootstrapTimeout);
+        setSession(s);
+        setUser(s?.user ?? null);
+        if (s?.user) {
+          // Paint from cache immediately. Background refresh updates if changed.
+          const cached = readCachedProfile(s.user.id);
+          if (cached) setProfile(cached);
+          fetchProfile(s.user.id);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        clearTimeout(bootstrapTimeout);
+        console.error("[AuthContext] getSession bootstrap error:", err);
+        setLoading(false);
+      });
 
     return () => subscription.unsubscribe();
   }, [fetchProfile]);
