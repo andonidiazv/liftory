@@ -238,15 +238,51 @@ export default function Home() {
       <PushPermissionPrompt />
     <Layout>
       <div className="px-5 pt-14 pb-20 space-y-8">
-        {/* 1. Header */}
-        <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">
-            Hola, {displayName.split(" ")[0]}
-          </h1>
-          {programInfo && (
-            <p className="mt-1 font-mono text-[11px] uppercase tracking-[2.5px] text-primary">
-              {programInfo.name}
-            </p>
+        {/* 1. Header — name on the left, brand+meso watermark on the right.
+            Watermark is intentionally small so it anchors without competing
+            with the greeting. LIFTORY uses the canonical Syne 800 gold mark;
+            the meso label sits next to it as a mono pill so the two reads
+            register as one composite badge. */}
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="font-display text-2xl font-bold text-foreground">
+              Hola, {displayName.split(" ")[0]}
+            </h1>
+            {programInfo && (
+              <p className="mt-1 font-mono text-[11px] uppercase tracking-[2.5px] text-primary">
+                {programInfo.name}
+              </p>
+            )}
+          </div>
+          {quickStats.currentMeso && (
+            <div className="flex items-center gap-2 mt-1.5 shrink-0">
+              <span
+                className="font-display font-bold uppercase"
+                style={{
+                  fontSize: 11,
+                  letterSpacing: "-0.03em",
+                  color: "#C4A24E",
+                  lineHeight: 1,
+                }}
+              >
+                LIFTORY
+              </span>
+              <span
+                className="font-mono uppercase"
+                style={{
+                  fontSize: 9,
+                  letterSpacing: "1.5px",
+                  color: "hsl(var(--muted-foreground))",
+                  padding: "3px 7px",
+                  borderRadius: 999,
+                  background: "hsl(var(--primary) / 0.08)",
+                  border: "1px solid hsl(var(--primary) / 0.2)",
+                  lineHeight: 1,
+                }}
+              >
+                {quickStats.currentMeso}
+              </span>
+            </div>
           )}
         </div>
 
