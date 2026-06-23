@@ -34,12 +34,6 @@ import { isVipJoiner } from "@/lib/vip-emails";
  *  - NoWorkoutHero    — today has no scheduled workout (between phases)
  */
 
-const PHASE_BY_WEEK = ["BASE", "BASE +", "ACUMULACIÓN", "INTENSIFICACIÓN", "PEAK", "DELOAD"] as const;
-function phaseForWeek(week: number | null | undefined): string {
-  if (!week || week < 1 || week > 6) return "DELOAD";
-  return PHASE_BY_WEEK[week - 1];
-}
-
 const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
 function romanize(n: number): string {
   return ROMAN[n - 1] ?? String(n);
@@ -87,7 +81,6 @@ export default function Home() {
     selectedDate,
     selectedWorkout,
     weekDays,
-    viewingWeekNumber,
     quickStats,
     loading,
     todayStr,
@@ -182,16 +175,6 @@ export default function Home() {
   const selectedDayOfWeek = new Date(selectedDate + "T12:00:00").getDay();
   const isSunday = selectedDayOfWeek === 0;
 
-  const selectedDateObj = new Date(selectedDate + "T12:00:00");
-  // Full date for the top mark, capitalized and comma-free.
-  // Example: "Martes 23 de junio"
-  const fullDateDisplay = (() => {
-    const d = isSelectedToday ? new Date() : selectedDateObj;
-    const raw = d.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" });
-    const clean = raw.replace(",", "");
-    return clean.charAt(0).toUpperCase() + clean.slice(1);
-  })();
-
   // Tomorrow's label for soft preview on rest/mobility days
   const tomorrowDateStr = (() => {
     const d = new Date(selectedDate + "T12:00:00");
@@ -243,10 +226,10 @@ export default function Home() {
           className="flex flex-col px-8 pt-14 pb-6"
           style={{ minHeight: "calc(100dvh - 76px)" }}
         >
-          {/* Top mark — premium watch-face composition:
-              big LIFTORY wordmark, gold hairline rule, italic date with name.
-              Wordmark uses a soft gold glow so it reads "object" rather than
-              "text label". Date in serif italic for editorial cadence. */}
+          {/* Top mark — premium watch-face composition.
+              Date and name removed (status bar covers the date; name is
+              implicit). Just wordmark + gold hairline so the brand reads
+              as a quiet anchor. */}
           <div className="flex flex-col items-center gap-3">
             <span
               className="font-display font-bold uppercase"
@@ -268,18 +251,6 @@ export default function Home() {
                 opacity: 0.45,
               }}
             />
-            <p
-              className="font-body italic"
-              style={{
-                fontWeight: 300,
-                fontSize: 12,
-                letterSpacing: "0.01em",
-                color: "hsl(var(--muted-foreground))",
-                lineHeight: 1,
-              }}
-            >
-              {fullDateDisplay} · {displayName.split(" ")[0]}
-            </p>
           </div>
 
           {/* Hero — centered, single decision per day */}
@@ -309,9 +280,6 @@ export default function Home() {
             ) : (
               <SessionHero
                 label={workout.day_label}
-                phase={phaseForWeek(viewingWeekNumber)}
-                week={viewingWeekNumber ?? 1}
-                totalWeeks={programInfo.total_weeks}
                 duration={workout.estimated_duration}
                 setCount={workout.setCount}
                 isToday={isSelectedToday}
@@ -339,9 +307,9 @@ export default function Home() {
    ───────────────────────────────────────────────────────────────────── */
 
 function SessionHero({
-  label, phase, week, totalWeeks, duration, setCount, isToday, completed, onOpen,
+  label, duration, setCount, isToday, completed, onOpen,
 }: {
-  label: string; phase: string; week: number; totalWeeks: number;
+  label: string;
   duration: number | null; setCount: number; isToday: boolean; completed: boolean;
   onOpen: () => void;
 }) {
@@ -349,19 +317,6 @@ function SessionHero({
   const ctaLabel = completed ? "Ver resumen" : isToday ? "Abrir sesión" : "Ver sesión";
   return (
     <>
-      <span
-        className="font-mono uppercase"
-        style={{ fontSize: 10, letterSpacing: "3px", color: "#C4A24E" }}
-      >
-        {phase}
-      </span>
-      <span
-        className="font-mono uppercase"
-        style={{ fontSize: 9, letterSpacing: "2px", color: "hsl(var(--muted-foreground))" }}
-      >
-        Semana {week} / {totalWeeks}
-      </span>
-
       {/* Modality is the hero (Syne 300 at 60px); region tucks underneath
           smaller and bold so it reads as the body badge. */}
       <h1
