@@ -362,12 +362,28 @@ function SessionHero({
         Semana {week} / {totalWeeks}
       </span>
 
+      {/* Editorial split: light italic on the modality, heavy upright on
+          the region. The italic introduces the day like a "named edition"
+          (Tempo) and the bold closes it with the body region (Lower).
+          Line-height tucked to 0.82 so the two words read as one mark. */}
       <h1
-        className="font-display"
-        style={{ fontWeight: 300, fontSize: 60, letterSpacing: "-0.05em", lineHeight: 0.88, color: "hsl(var(--foreground))" }}
+        className="font-display text-foreground"
+        style={{ letterSpacing: "-0.055em", lineHeight: 0.82 }}
       >
-        {top}
-        {bottom && <strong className="block" style={{ fontWeight: 700 }}>{bottom}</strong>}
+        <span
+          className="block"
+          style={{ fontWeight: 300, fontStyle: "italic", fontSize: 50 }}
+        >
+          {top}
+        </span>
+        {bottom && (
+          <strong
+            className="block"
+            style={{ fontWeight: 800, fontSize: 72, marginTop: 2 }}
+          >
+            {bottom}
+          </strong>
+        )}
       </h1>
 
       <div className="h-px" style={{ width: 36, background: "#C4A24E" }} />
@@ -400,7 +416,7 @@ function SessionHero({
           {ctaLabel}
         </span>
         <span
-          className="flex items-center justify-center"
+          className={`flex items-center justify-center ${completed ? "" : "liftory-breathe"}`}
           style={{
             width: 36, height: 36, borderRadius: "50%",
             border: "1px solid #C4A24E",

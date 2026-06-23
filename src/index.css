@@ -383,6 +383,27 @@
   50% { opacity: 0.6; }
 }
 
+/* ═══ LIFTORY BREATHE ═══
+   Soft inhale/exhale for the home CTA. 2.6s full cycle so it reads as
+   calm presence, not "urgent action". Scale + glow + border-opacity all
+   move together so the circle feels alive but the body region letter
+   directly above doesn't shift. */
+@keyframes liftory-breathe {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 18px rgba(196,162,78,0.25);
+    border-color: rgba(196,162,78,0.7);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 0 30px rgba(196,162,78,0.55);
+    border-color: rgba(196,162,78,1);
+  }
+}
+.liftory-breathe {
+  animation: liftory-breathe 2.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
 /* ═══ STICKER SLAM ═══ */
 @keyframes sticker-slam {
   0% {
