@@ -40,16 +40,10 @@ function phaseForWeek(week: number | null | undefined): string {
   return PHASE_BY_WEEK[week - 1];
 }
 
-/** Planned cycle count per program. The DB only has cycles that have been
- *  registered; the strip needs to reflect the full designed arc (e.g.
- *  BUILD HIM ELITE = 6 cycles) so the athlete sees "what's ahead" even
- *  before M4-M6 are published. Add new programs here as they ship. */
-const PLANNED_CYCLES: Record<string, number> = {
-  "BUILD HIM ELITE": 6,
-  "BUILD HIM FOUNDATION": 4,
-  "SCULPT HER ELITE": 6,
-  "SCULPT HER FOUNDATION": 4,
-};
+const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
+function romanize(n: number): string {
+  return ROMAN[n - 1] ?? String(n);
+}
 
 /** Split "DENSITY DAY" → { top: "Density", bottom: "Day" }.
  *  Single-word labels render as one line (bottom=null). */
@@ -65,7 +59,7 @@ function splitDayLabel(label: string): { top: string; bottom: string | null } {
 
 function HomeSkeleton() {
   return (
-    <div className="px-8 pt-14 pb-6 flex flex-col" style={{ minHeight: "calc(100dvh - 78px)" }}>
+    <div className="px-8 pt-14 pb-6 flex flex-col" style={{ minHeight: "calc(100dvh - 76px)" }}>
       <div className="flex flex-col items-center gap-1.5">
         <Skeleton className="h-3.5 w-20 bg-muted" />
         <Skeleton className="h-2.5 w-32 bg-muted" />
@@ -247,7 +241,7 @@ export default function Home() {
       <Layout>
         <div
           className="flex flex-col px-8 pt-14 pb-6"
-          style={{ minHeight: "calc(100dvh - 78px)" }}
+          style={{ minHeight: "calc(100dvh - 76px)" }}
         >
           {/* Top mark — premium watch-face composition:
               big LIFTORY wordmark, gold hairline rule, italic date with name.
@@ -327,11 +321,10 @@ export default function Home() {
             )}
           </div>
 
-          {/* Meso dots — tap to open archive */}
+          {/* Current mesocycle marker — tap to open archive */}
           {currentMesoNum && programInfo && (
             <MesoStrip
               current={currentMesoNum}
-              total={PLANNED_CYCLES[programInfo.name] ?? Math.max(currentMesoNum, 6)}
               onTap={() => navigate("/program")}
             />
           )}
@@ -604,7 +597,7 @@ function NextCycleHero({
         className="font-mono uppercase"
         style={{ fontSize: 10, letterSpacing: "3px", color: "#C4A24E" }}
       >
-        Ciclo {previousCycle} · cerrado
+        Ciclo {romanize(previousCycle)} · cerrado
       </span>
       <h1
         className="font-display max-w-[300px]"
@@ -617,7 +610,7 @@ function NextCycleHero({
         className="font-body italic max-w-[260px] leading-snug"
         style={{ fontWeight: 300, fontSize: 13, color: "hsl(var(--muted-foreground))" }}
       >
-        Ciclo {cycleNumber} está listo. Tus datos del anterior quedan guardados.
+        Ciclo {romanize(cycleNumber)} está listo. Tus datos del anterior quedan guardados.
       </p>
       <button
         onClick={onStart}
@@ -629,7 +622,7 @@ function NextCycleHero({
           className="font-display font-semibold uppercase"
           style={{ fontSize: 13, letterSpacing: "0.05em", color: "hsl(var(--foreground))" }}
         >
-          {transitioning ? "Preparando…" : `Empezar ciclo ${cycleNumber}`}
+          {transitioning ? "Preparando…" : `Empezar ciclo ${romanize(cycleNumber)}`}
         </span>
         <span
           className="flex items-center justify-center"
@@ -656,44 +649,32 @@ function NextCycleHero({
   );
 }
 
-function MesoStrip({
-  current, total, onTap,
-}: { current: number; total: number; onTap: () => void }) {
+function MesoStrip({ current, onTap }: { current: number; onTap: () => void }) {
+  // Single text mark — no fabricated total, no dot count we don't have data
+  // for. Just "MESOCICLO III" centered, gold roman numeral as anchor.
   return (
     <button
       onClick={onTap}
-      className="press-scale flex flex-col items-center gap-3 py-2 mx-auto"
+      className="press-scale flex items-center justify-center gap-2.5 py-2 mx-auto"
       aria-label="Abrir archivo de mesociclos"
     >
-      <div className="flex gap-1.5 items-center">
-        {Array.from({ length: total }).map((_, i) => {
-          const n = i + 1;
-          const isDone = n < current;
-          const isActive = n === current;
-          return (
-            <span
-              key={i}
-              style={{
-                width: isActive ? 24 : 6,
-                height: 6,
-                borderRadius: isActive ? 3 : 999,
-                background: isActive
-                  ? "#C4A24E"
-                  : isDone
-                    ? "hsl(var(--muted-foreground))"
-                    : "hsl(var(--border))",
-                boxShadow: isActive ? "0 0 10px rgba(196,162,78,0.6)" : "none",
-                transition: "all 0.3s ease",
-              }}
-            />
-          );
-        })}
-      </div>
       <span
         className="font-mono uppercase"
-        style={{ fontSize: 9, letterSpacing: "3px", color: "hsl(var(--muted-foreground))" }}
+        style={{ fontSize: 10, letterSpacing: "3.5px", color: "hsl(var(--muted-foreground))" }}
       >
-        Mesociclo <span style={{ color: "hsl(var(--foreground))" }}>{current}</span> de {total}
+        Mesociclo
+      </span>
+      <span
+        className="font-display font-bold"
+        style={{
+          fontSize: 16,
+          letterSpacing: "-0.02em",
+          color: "#C4A24E",
+          textShadow: "0 0 14px rgba(196,162,78,0.35)",
+          lineHeight: 1,
+        }}
+      >
+        {romanize(current)}
       </span>
     </button>
   );

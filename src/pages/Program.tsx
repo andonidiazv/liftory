@@ -32,7 +32,6 @@ interface MesocycleRow {
 
 interface CycleCardData {
   cycleNumber: number;
-  name: string;
   startDate: string;
   endDate: string;
   sessionsCompleted: number;
@@ -40,27 +39,6 @@ interface CycleCardData {
   state: "done" | "active" | "upcoming" | "locked";
   hasManual: boolean;
 }
-
-/** Editorial names per cycle per program. Falls back to a generic name when
- *  not registered (so M4+ keep working before we name them). */
-const CYCLE_NAMES: Record<string, Record<number, string>> = {
-  "BUILD HIM ELITE": {
-    1: "KB Foundation",
-    2: "Hybrid Push",
-    3: "Hybrid Discovery",
-    4: "Peak Strength",
-    5: "Power Phase",
-    6: "Mastery",
-  },
-  "SCULPT HER ELITE": {
-    1: "Foundation",
-    2: "Sculpt",
-    3: "Tone",
-    4: "Peak",
-    5: "Form",
-    6: "Mastery",
-  },
-};
 
 const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
 function romanize(n: number) { return ROMAN[n - 1] ?? String(n); }
@@ -134,7 +112,6 @@ export default function Program() {
   // later but they require a separate workout_sets query — out of scope for
   // Phase 1.
   const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD local
-  const namesForProgram = CYCLE_NAMES[program.name] ?? {};
 
   const archive: CycleCardData[] = (mesos ?? []).map((m) => {
     const inRange = workouts.filter(
@@ -160,7 +137,6 @@ export default function Program() {
 
     return {
       cycleNumber: m.cycle_number,
-      name: namesForProgram[m.cycle_number] ?? `Mesociclo ${m.cycle_number}`,
       startDate: m.cycle_start_date,
       endDate: m.cycle_end_date,
       sessionsCompleted,
@@ -177,7 +153,7 @@ export default function Program() {
 
   return (
     <Layout>
-      <div className="flex flex-col px-7 pt-14 pb-24" style={{ minHeight: "calc(100dvh - 78px)" }}>
+      <div className="flex flex-col px-7 pt-14 pb-24" style={{ minHeight: "calc(100dvh - 76px)" }}>
         {/* Top bar: back + LIFTORY mark */}
         <div className="flex items-center justify-between mb-8">
           <button
@@ -287,22 +263,13 @@ function CycleCard({
         </span>
       </div>
 
-      {/* Row 2: editorial name */}
-      <p
-        className="font-body font-medium mb-1"
-        style={{
-          fontSize: 14,
-          letterSpacing: "-0.005em",
-          color: "hsl(var(--foreground))",
-        }}
-      >
-        {meso.name}
-      </p>
-
-      {/* Row 3: dates + session count */}
+      {/* Row 2: dates + session count.
+          The roman numeral above is already the chapter identifier, so no
+          redundant "Mesociclo I" name line. When Andoni names each cycle
+          this is where the editorial name will live. */}
       <p
         className="font-mono uppercase"
-        style={{ fontSize: 9, letterSpacing: "1px", color: "hsl(var(--muted-foreground))" }}
+        style={{ fontSize: 10, letterSpacing: "1.5px", color: "hsl(var(--muted-foreground))", marginTop: 2 }}
       >
         {formatRange(meso.startDate, meso.endDate)}
         {meso.sessionsTotal > 0 && (
@@ -330,20 +297,6 @@ function CycleCard({
         </button>
       )}
 
-      {/* Active marker — small horizontal rule at right edge */}
-      {isActive && (
-        <div
-          style={{
-            position: "absolute",
-            right: 0,
-            top: "50%",
-            transform: "translateY(-50%)",
-            width: 18,
-            height: 1,
-            background: "#C4A24E",
-          }}
-        />
-      )}
     </div>
   );
 }
