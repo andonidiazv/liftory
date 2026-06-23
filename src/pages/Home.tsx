@@ -226,32 +226,26 @@ export default function Home() {
           className="flex flex-col px-8 pt-14 pb-6"
           style={{ minHeight: "calc(100dvh - 76px)" }}
         >
-          {/* Top mark — canonical LIFTORY treatment, mirrors Splash.tsx
-              (Syne 800, -0.04em, gold #C4A24E with soft glow). Scaled
-              down to 18px so it reads as a quiet anchor, not a logo. */}
-          <div className="flex flex-col items-center gap-2.5">
+          {/* Top mark — single watermark of the brand. No hairline, no
+              supporting copy. 14px is the premium-wellness sweet spot
+              (Equinox+, Calm, Aescape sit in this range): confident
+              enough to read as the brand, quiet enough that the day
+              becomes the hero. */}
+          <div className="flex flex-col items-center">
             <span
               className="font-display uppercase"
               style={{
                 fontFamily: "'Syne', sans-serif",
                 fontWeight: 800,
-                fontSize: 18,
+                fontSize: 14,
                 letterSpacing: "-0.04em",
                 color: "#C4A24E",
                 lineHeight: 1,
-                textShadow: "0 0 18px rgba(196,162,78,0.32)",
+                textShadow: "0 0 14px rgba(196,162,78,0.28)",
               }}
             >
               LIFTORY
             </span>
-            <div
-              style={{
-                width: 28,
-                height: 1,
-                background: "#C4A24E",
-                opacity: 0.55,
-              }}
-            />
           </div>
 
           {/* Hero — centered, single decision per day */}
