@@ -362,24 +362,17 @@ function SessionHero({
         Semana {week} / {totalWeeks}
       </span>
 
-      {/* Editorial split: light italic on the modality, heavy upright on
-          the region. The italic introduces the day like a "named edition"
-          (Tempo) and the bold closes it with the body region (Lower).
-          Line-height tucked to 0.82 so the two words read as one mark. */}
+      {/* Modality is the hero (Syne 300 at 60px); region tucks underneath
+          smaller and bold so it reads as the body badge. */}
       <h1
-        className="font-display text-foreground"
-        style={{ letterSpacing: "-0.055em", lineHeight: 0.82 }}
+        className="font-display"
+        style={{ fontWeight: 300, fontSize: 60, letterSpacing: "-0.05em", lineHeight: 0.88, color: "hsl(var(--foreground))" }}
       >
-        <span
-          className="block"
-          style={{ fontWeight: 300, fontStyle: "italic", fontSize: 50 }}
-        >
-          {top}
-        </span>
+        {top}
         {bottom && (
           <strong
             className="block"
-            style={{ fontWeight: 800, fontSize: 72, marginTop: 2 }}
+            style={{ fontWeight: 700, fontSize: 36, marginTop: 4 }}
           >
             {bottom}
           </strong>
