@@ -226,29 +226,30 @@ export default function Home() {
           className="flex flex-col px-8 pt-14 pb-6"
           style={{ minHeight: "calc(100dvh - 76px)" }}
         >
-          {/* Top mark — premium watch-face composition.
-              Date and name removed (status bar covers the date; name is
-              implicit). Just wordmark + gold hairline so the brand reads
-              as a quiet anchor. */}
-          <div className="flex flex-col items-center gap-3">
+          {/* Top mark — canonical LIFTORY treatment, mirrors Splash.tsx
+              (Syne 800, -0.04em, gold #C4A24E with soft glow). Scaled
+              down to 18px so it reads as a quiet anchor, not a logo. */}
+          <div className="flex flex-col items-center gap-2.5">
             <span
-              className="font-display font-bold uppercase"
+              className="font-display uppercase"
               style={{
-                fontSize: 22,
-                letterSpacing: "-0.03em",
+                fontFamily: "'Syne', sans-serif",
+                fontWeight: 800,
+                fontSize: 18,
+                letterSpacing: "-0.04em",
                 color: "#C4A24E",
                 lineHeight: 1,
-                textShadow: "0 0 28px rgba(196,162,78,0.3)",
+                textShadow: "0 0 18px rgba(196,162,78,0.32)",
               }}
             >
               LIFTORY
             </span>
             <div
               style={{
-                width: 32,
+                width: 28,
                 height: 1,
                 background: "#C4A24E",
-                opacity: 0.45,
+                opacity: 0.55,
               }}
             />
           </div>
