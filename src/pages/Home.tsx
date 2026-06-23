@@ -40,10 +40,16 @@ function phaseForWeek(week: number | null | undefined): string {
   return PHASE_BY_WEEK[week - 1];
 }
 
-const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
-function romanize(n: number): string {
-  return ROMAN[n - 1] ?? String(n);
-}
+/** Planned cycle count per program. The DB only has cycles that have been
+ *  registered; the strip needs to reflect the full designed arc (e.g.
+ *  BUILD HIM ELITE = 6 cycles) so the athlete sees "what's ahead" even
+ *  before M4-M6 are published. Add new programs here as they ship. */
+const PLANNED_CYCLES: Record<string, number> = {
+  "BUILD HIM ELITE": 6,
+  "BUILD HIM FOUNDATION": 4,
+  "SCULPT HER ELITE": 6,
+  "SCULPT HER FOUNDATION": 4,
+};
 
 /** Split "DENSITY DAY" → { top: "Density", bottom: "Day" }.
  *  Single-word labels render as one line (bottom=null). */
@@ -183,9 +189,14 @@ export default function Home() {
   const isSunday = selectedDayOfWeek === 0;
 
   const selectedDateObj = new Date(selectedDate + "T12:00:00");
-  const dateDisplay = isSelectedToday
-    ? new Date().toLocaleDateString("es-MX", { weekday: "long" })
-    : selectedDateObj.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "short" });
+  // Full date for the top mark, capitalized and comma-free.
+  // Example: "Martes 23 de junio"
+  const fullDateDisplay = (() => {
+    const d = isSelectedToday ? new Date() : selectedDateObj;
+    const raw = d.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" });
+    const clean = raw.replace(",", "");
+    return clean.charAt(0).toUpperCase() + clean.slice(1);
+  })();
 
   // Tomorrow's label for soft preview on rest/mobility days
   const tomorrowDateStr = (() => {
@@ -238,20 +249,43 @@ export default function Home() {
           className="flex flex-col px-8 pt-14 pb-6"
           style={{ minHeight: "calc(100dvh - 78px)" }}
         >
-          {/* Top mark — small LIFTORY + date + first name */}
-          <div className="flex flex-col items-center gap-1.5">
+          {/* Top mark — premium watch-face composition:
+              big LIFTORY wordmark, gold hairline rule, italic date with name.
+              Wordmark uses a soft gold glow so it reads "object" rather than
+              "text label". Date in serif italic for editorial cadence. */}
+          <div className="flex flex-col items-center gap-3">
             <span
               className="font-display font-bold uppercase"
-              style={{ fontSize: 13, letterSpacing: "0.02em", color: "#C4A24E" }}
+              style={{
+                fontSize: 22,
+                letterSpacing: "-0.03em",
+                color: "#C4A24E",
+                lineHeight: 1,
+                textShadow: "0 0 28px rgba(196,162,78,0.3)",
+              }}
             >
               LIFTORY
             </span>
-            <span
-              className="font-mono uppercase"
-              style={{ fontSize: 9, letterSpacing: "2px", color: "hsl(var(--muted-foreground))" }}
+            <div
+              style={{
+                width: 32,
+                height: 1,
+                background: "#C4A24E",
+                opacity: 0.45,
+              }}
+            />
+            <p
+              className="font-body italic"
+              style={{
+                fontWeight: 300,
+                fontSize: 12,
+                letterSpacing: "0.01em",
+                color: "hsl(var(--muted-foreground))",
+                lineHeight: 1,
+              }}
             >
-              {dateDisplay} · {displayName.split(" ")[0]}
-            </span>
+              {fullDateDisplay} · {displayName.split(" ")[0]}
+            </p>
           </div>
 
           {/* Hero — centered, single decision per day */}
@@ -297,7 +331,7 @@ export default function Home() {
           {currentMesoNum && programInfo && (
             <MesoStrip
               current={currentMesoNum}
-              total={6}
+              total={PLANNED_CYCLES[programInfo.name] ?? Math.max(currentMesoNum, 6)}
               onTap={() => navigate("/program")}
             />
           )}
@@ -570,7 +604,7 @@ function NextCycleHero({
         className="font-mono uppercase"
         style={{ fontSize: 10, letterSpacing: "3px", color: "#C4A24E" }}
       >
-        Ciclo {romanize(previousCycle)} · cerrado
+        Ciclo {previousCycle} · cerrado
       </span>
       <h1
         className="font-display max-w-[300px]"
@@ -583,7 +617,7 @@ function NextCycleHero({
         className="font-body italic max-w-[260px] leading-snug"
         style={{ fontWeight: 300, fontSize: 13, color: "hsl(var(--muted-foreground))" }}
       >
-        Ciclo {romanize(cycleNumber)} está listo. Tus datos del anterior quedan guardados.
+        Ciclo {cycleNumber} está listo. Tus datos del anterior quedan guardados.
       </p>
       <button
         onClick={onStart}
@@ -595,7 +629,7 @@ function NextCycleHero({
           className="font-display font-semibold uppercase"
           style={{ fontSize: 13, letterSpacing: "0.05em", color: "hsl(var(--foreground))" }}
         >
-          {transitioning ? "Preparando…" : `Empezar ciclo ${romanize(cycleNumber)}`}
+          {transitioning ? "Preparando…" : `Empezar ciclo ${cycleNumber}`}
         </span>
         <span
           className="flex items-center justify-center"
@@ -659,7 +693,7 @@ function MesoStrip({
         className="font-mono uppercase"
         style={{ fontSize: 9, letterSpacing: "3px", color: "hsl(var(--muted-foreground))" }}
       >
-        Mesociclo <span style={{ color: "hsl(var(--foreground))" }}>{romanize(current)}</span> de {romanize(total)}
+        Mesociclo <span style={{ color: "hsl(var(--foreground))" }}>{current}</span> de {total}
       </span>
     </button>
   );
