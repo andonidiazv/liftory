@@ -2,50 +2,85 @@ import Layout from "@/components/Layout";
 import { useAuth } from "@/context/AuthContext";
 import { useProgressData } from "@/hooks/useProgressData";
 import { toDisplayWeight } from "@/utils/weightConversion";
-import { TrendingUp, Trophy, Flame, Dumbbell, AlertTriangle, Check } from "lucide-react";
-import {
-  XAxis,
-  YAxis,
-  ResponsiveContainer,
-  Tooltip,
-  BarChart,
-  Bar,
-} from "recharts";
-
 import { Skeleton } from "@/components/ui/skeleton";
-import { useDarkMode } from "@/hooks/useDarkMode";
-import { dia, noche } from "@/lib/colors";
+import { getMesoForDate, MESOCYCLE_DATE_RANGES } from "@/lib/mesocycle-content";
+
+/**
+ * ATELIER PROGRESS · Phase 1.
+ *
+ * Minimalist replacement for the old dashboard (hero + bar chart +
+ * PR cards + quick-stats grid + muscle balance bars). The pre-redesign
+ * page had five sections; Andoni's feedback: "demasiada información,
+ * ni yo la uso".
+ *
+ * This screen has three pieces, each one earning its place:
+ *   1. Hero — the single emotional metric: PRs this mesocycle.
+ *   2. Records — flat list of recent PRs (no cards, no padding noise).
+ *   3. Quiet footer — sessions / streak / consistency in mono caps.
+ *
+ * Dropped: weekly volume chart (couldn't read at a glance), muscle
+ * balance (target ranges weren't validated with Andoni), lifetime
+ * volume (vanity metric for elite-level athletes). They live in the
+ * hook output so we can resurface them later when there's clear use.
+ *
+ * Mesocycle scoping uses getMesoForDate / MESOCYCLE_DATE_RANGES — the
+ * same source of truth the home and program archive use, so dates
+ * never disagree across screens.
+ */
+
+const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
+function romanize(n: number): string {
+  return ROMAN[n - 1] ?? String(n);
+}
 
 function timeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const days = Math.floor(diff / 86400000);
-  if (days === 0) return "hoy";
-  if (days === 1) return "ayer";
-  if (days < 7) return `hace ${days} días`;
-  if (days < 30) return `hace ${Math.floor(days / 7)} sem`;
-  return `hace ${Math.floor(days / 30)} mes`;
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (days === 0) return "Hoy";
+  if (days === 1) return "Ayer";
+  if (days < 7) return `Hace ${days} días`;
+  if (days < 14) return "Hace 1 sem";
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return `Hace ${weeks} sem`;
+  const months = Math.floor(days / 30);
+  return `Hace ${months} mes`;
+}
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function fullDateToday(): string {
+  const raw = new Date().toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" });
+  return capitalize(raw.replace(",", ""));
+}
+
+function phaseForWeekFromMeso(meso: string | null, today: string): string | null {
+  // Estimate the current week within the meso (1-6) from the date,
+  // then map to phase name. Mirrors the helper in Home.tsx.
+  if (!meso) return null;
+  const range = MESOCYCLE_DATE_RANGES[meso];
+  if (!range) return null;
+  const start = new Date(range.start + "T12:00:00").getTime();
+  const now = new Date(today + "T12:00:00").getTime();
+  const week = Math.min(6, Math.max(1, Math.floor((now - start) / (1000 * 60 * 60 * 24 * 7)) + 1));
+  return ["BASE", "BASE +", "ACUMULACIÓN", "INTENSIFICACIÓN", "PEAK", "DELOAD"][week - 1] ?? null;
 }
 
 function ProgressSkeleton() {
   return (
-    <div className="px-5 pt-14 space-y-6">
-      <div className="flex items-center gap-4">
-        <Skeleton className="h-16 w-16 rounded-full bg-muted" />
-        <div className="space-y-2">
-          <Skeleton className="h-6 w-32 bg-muted" />
-          <Skeleton className="h-4 w-48 bg-muted" />
-        </div>
+    <div className="flex flex-col px-8 pt-14 pb-6" style={{ minHeight: "calc(100dvh - 76px)" }}>
+      <div className="flex flex-col items-center gap-3">
+        <Skeleton className="h-5 w-24 bg-muted" />
+        <Skeleton className="h-px w-8 bg-muted" />
+        <Skeleton className="h-3 w-44 bg-muted" />
       </div>
-      <Skeleton className="h-48 w-full rounded-xl bg-muted" />
-      <div className="space-y-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-20 w-full rounded-xl bg-muted" />
-        ))}
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-24 rounded-xl bg-muted" />
-        ))}
+      <div className="flex-1 flex flex-col items-center justify-center gap-4">
+        <Skeleton className="h-3 w-32 bg-muted" />
+        <Skeleton className="h-20 w-32 bg-muted rounded-md" />
+        <Skeleton className="h-3 w-40 bg-muted" />
       </div>
     </div>
   );
@@ -53,213 +88,196 @@ function ProgressSkeleton() {
 
 export default function Progress() {
   const { profile } = useAuth();
-  const { prs, weeklyVolume, muscleData, stats, loading } = useProgressData();
-  const { isDark } = useDarkMode();
-  const t = isDark ? noche : dia;
+  const { prs, stats, loading } = useProgressData();
   const weightUnit = profile?.weight_unit || "kg";
 
   if (loading) {
-    return (
-      <Layout>
-        <ProgressSkeleton />
-      </Layout>
-    );
+    return <Layout><ProgressSkeleton /></Layout>;
   }
 
-  const displayName = profile?.full_name || "Atleta";
-  const level = profile?.experience_level || "intermediate";
-  const levelLabel = level === "beginner" ? "Principiante" : level === "advanced" ? "Avanzado" : "Intermedio";
+  const firstName = (profile?.full_name || "Atleta").split(" ")[0];
+  const today = new Date().toLocaleDateString("en-CA");
+  const currentMeso = getMesoForDate(today);
+  const phase = phaseForWeekFromMeso(currentMeso, today);
+
+  // PRs scoped to current mesocycle for the hero count.
+  // The displayed list still uses the full recent set so the screen
+  // isn't blank for athletes between cycles.
+  const mesoRange = currentMeso ? MESOCYCLE_DATE_RANGES[currentMeso] : null;
+  const mesoPRs = mesoRange
+    ? prs.filter(pr => pr.logged_at >= mesoRange.start && pr.logged_at <= mesoRange.end + "T23:59:59")
+    : prs;
+
+  const recentPRs = prs.slice(0, 7); // hook already orders by logged_at DESC + limit 10
 
   return (
     <Layout>
-      <div className="px-5 pt-14 stagger-fade-in">
-        {/* Hero */}
-        <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-secondary font-display text-2xl font-bold text-primary">
-            {displayName[0]?.toUpperCase() ?? "A"}
-          </div>
-          <div>
-            <h1 className="font-display text-[22px] font-bold text-foreground" style={{ letterSpacing: "-0.03em" }}>
-              {displayName}
-            </h1>
-            <p className="text-sm text-muted-foreground font-body font-light">
-              Nivel: {levelLabel} · Consistencia: {stats.consistency}%
+      <div className="flex flex-col px-8 pt-14 pb-6" style={{ minHeight: "calc(100dvh - 76px)" }}>
+        {/* Top mark — same composition as Home for consistency */}
+        <div className="flex flex-col items-center gap-3 mb-10">
+          <span
+            className="font-display font-bold uppercase"
+            style={{
+              fontSize: 22,
+              letterSpacing: "-0.03em",
+              color: "#C4A24E",
+              lineHeight: 1,
+              textShadow: "0 0 28px rgba(196,162,78,0.3)",
+            }}
+          >
+            LIFTORY
+          </span>
+          <div style={{ width: 32, height: 1, background: "#C4A24E", opacity: 0.45 }} />
+          <p
+            className="font-body italic"
+            style={{
+              fontWeight: 300,
+              fontSize: 12,
+              letterSpacing: "0.01em",
+              color: "hsl(var(--muted-foreground))",
+              lineHeight: 1,
+            }}
+          >
+            {fullDateToday()} · {firstName}
+          </p>
+        </div>
+
+        {/* Hero — meso context + the single emotional metric: PRs */}
+        <div className="flex flex-col items-center gap-3 mb-12">
+          {currentMeso && (
+            <p
+              className="font-mono uppercase"
+              style={{ fontSize: 10, letterSpacing: "3px", color: "#C4A24E" }}
+            >
+              M {romanize(parseInt(currentMeso.replace(/\D/g, ""), 10))}{phase ? ` · ${phase}` : ""}
             </p>
-            <div className="mt-2 h-1.5 w-40 overflow-hidden rounded-full bg-secondary">
-              <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${stats.consistency}%` }} />
-            </div>
-          </div>
+          )}
+          <p
+            className="font-display font-bold tabular-nums"
+            style={{
+              fontSize: 88,
+              letterSpacing: "-0.05em",
+              lineHeight: 0.9,
+              color: "hsl(var(--foreground))",
+            }}
+          >
+            {mesoPRs.length}
+          </p>
+          <p
+            className="font-mono uppercase"
+            style={{ fontSize: 10, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+          >
+            {mesoPRs.length === 1 ? "Record personal" : "Records personales"}
+          </p>
         </div>
 
-        {/* Weekly Volume Chart */}
-        <div className="mt-8">
-          <span className="eyebrow-label">VOLUMEN SEMANAL</span>
-          <div>
-            <div className="mt-4 card-fbb">
-              {weeklyVolume.some((d) => d.volume > 0) ? (
-                <ResponsiveContainer width="100%" height={180}>
-                  <BarChart data={weeklyVolume}>
-                    <XAxis dataKey="day" tick={{ fontSize: 11, fill: t.muted }} axisLine={false} tickLine={false} />
-                    <YAxis hide />
-                    <Tooltip
-                      contentStyle={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: 12, fontSize: 12, color: t.text }}
-                      formatter={(value: number) => [`${toDisplayWeight(value, weightUnit).toLocaleString()} ${weightUnit}`, "Volumen"]}
-                    />
-                    <Bar dataKey="volume" fill={t.accent} radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex items-center justify-center py-12">
-                  <p className="text-sm text-muted-foreground font-body">Aún no hay datos de volumen esta semana.</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Personal Records */}
-        <div className="mt-8">
-          <span className="eyebrow-label">RECORDS PERSONALES</span>
-          <div className="mt-4 space-y-3">
-            {prs.length > 0 ? (
-              prs.map((pr, i) => (
-                <div key={i} className="card-fbb card-accent-gold flex items-center gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold/10">
-                    <Trophy className="h-5 w-5 text-gold animate-pr-pulse" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-display font-semibold text-foreground" style={{ letterSpacing: "-0.02em" }}>
-                      {pr.exercise_name}
-                    </p>
-                    <p className="text-xs text-muted-foreground font-body font-normal">
-                      {pr.logged_at ? timeAgo(pr.logged_at) : "—"}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-mono text-[28px] font-medium text-foreground" style={{ letterSpacing: "0.05em", lineHeight: 1 }}>
-                      {toDisplayWeight(pr.actual_weight, weightUnit)}
-                    </p>
-                    <p className="font-mono text-muted-foreground" style={{ fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase" }}>
-                      {weightUnit.toUpperCase()}{pr.actual_reps ? ` ×${pr.actual_reps}` : ""}
-                    </p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="card-fbb flex items-center justify-center py-8">
-                <p className="text-sm text-muted-foreground font-body">Aún no hay PRs registrados. ¡Sigue entrenando!</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="mt-8 grid grid-cols-2 gap-3">
-          {[
-            { icon: Dumbbell, label: "TOTAL WORKOUTS", value: String(stats.totalWorkouts), unit: "" },
-            { icon: Flame, label: "RACHA ACTUAL", value: String(stats.streak), unit: "DÍAS" },
-            { icon: TrendingUp, label: "CONSISTENCIA", value: `${stats.consistency}`, unit: "%" },
-            { icon: Trophy, label: "VOLUMEN LIFETIME", value: (() => { const v = toDisplayWeight(stats.lifetimeVolume, weightUnit); return v > 1000 ? `${(v / 1000).toFixed(1)}k` : String(v); })(), unit: weightUnit.toUpperCase() },
-          ].map((stat) => (
-            <div key={stat.label} className="card-fbb">
-              <stat.icon className="h-5 w-5 text-primary" />
-              <p className="mt-2 font-mono text-[28px] font-medium text-foreground" style={{ letterSpacing: "0.05em", lineHeight: 1 }}>
-                {stat.value}
-              </p>
-              {stat.unit && (
-                <p className="mt-1 font-mono text-muted-foreground" style={{ fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase" }}>
-                  {stat.unit}
-                </p>
-              )}
-              <p className="mt-1 font-mono text-muted-foreground" style={{ fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase" }}>
-                {stat.label}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {/* Muscle Balance — effective sets per week */}
-        {muscleData.length > 0 && (
-          <div className="mt-8 mb-4">
-            <span className="eyebrow-label">BALANCE MUSCULAR</span>
-            <p className="text-xs font-body" style={{ color: t.muted, marginTop: 2 }}>
-              Sets efectivos últimos 7 días · meta 10-20 por grupo
+        {/* Recent records — flat list, no card chrome */}
+        <div className="mb-12">
+          <p
+            className="font-mono uppercase mb-4"
+            style={{ fontSize: 10, letterSpacing: "3px", color: "hsl(var(--muted-foreground))" }}
+          >
+            Recientes
+          </p>
+          {recentPRs.length === 0 ? (
+            <p
+              className="font-body italic text-center py-6"
+              style={{ fontWeight: 300, fontSize: 13, color: "hsl(var(--muted-foreground))" }}
+            >
+              Tu primer PR está esperando.
             </p>
-            <div className="mt-4 card-fbb space-y-3">
-              {muscleData.map((m) => {
-                // Status → accent color
-                const statusColor =
-                  m.status === "in_range" ? "#7A8B5C" :   // sage (on target)
-                  m.status === "high" ? t.accent :         // gold (junk volume risk)
-                  m.status === "low" ? "#D4896B" :         // amber (under target)
-                  t.subtle;                                 // gray (none)
-
-                // Bar width: fill up to target max; clamp 0-100%
-                const pct = Math.min(100, Math.round((m.sets / m.targetMax) * 100));
-                const badgeText =
-                  m.status === "none" ? "Sin trabajar" :
-                  m.status === "low" ? "Bajo" :
-                  m.status === "in_range" ? "En rango" :
-                  "Alto volumen";
-
+          ) : (
+            <div className="flex flex-col">
+              {recentPRs.map((pr, i) => {
+                const w = toDisplayWeight(pr.actual_weight, weightUnit);
                 return (
-                  <div key={m.group} className="flex flex-col gap-1.5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="font-display text-[14px] font-semibold text-foreground">
-                          {m.group}
-                        </span>
-                        {m.status === "low" && m.sets > 0 && (
-                          <AlertTriangle className="h-3 w-3" style={{ color: "#D4896B" }} />
-                        )}
-                        {m.status === "in_range" && (
-                          <Check className="h-3 w-3" style={{ color: "#7A8B5C" }} />
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="font-mono tabular-nums"
-                          style={{ fontSize: 12, color: statusColor, fontWeight: 600 }}
-                        >
-                          {m.sets} {m.sets === 1 ? "set" : "sets"}
-                        </span>
-                        <span
-                          className="font-mono uppercase"
-                          style={{ fontSize: 9, letterSpacing: "0.08em", color: t.muted }}
-                        >
-                          {badgeText}
-                        </span>
-                      </div>
-                    </div>
-                    <div
-                      className="h-1.5 w-full rounded-full overflow-hidden relative"
-                      style={{ background: t.border }}
-                    >
-                      {/* Target range markers (min–max) */}
-                      <div
-                        className="absolute top-0 h-full"
+                  <div
+                    key={i}
+                    className="flex items-center justify-between py-3"
+                    style={{ borderTop: i === 0 ? "1px solid hsl(var(--border))" : "1px solid hsl(var(--border))" }}
+                  >
+                    <div className="flex-1 min-w-0 pr-3">
+                      <p
+                        className="font-body font-medium"
                         style={{
-                          left: `${(m.targetMin / m.targetMax) * 100}%`,
-                          width: `${100 - (m.targetMin / m.targetMax) * 100}%`,
-                          background: "rgba(122,139,92,0.10)",
+                          fontSize: 14,
+                          letterSpacing: "-0.005em",
+                          color: "hsl(var(--foreground))",
+                          wordBreak: "break-word",
+                          lineHeight: 1.2,
                         }}
-                      />
-                      {/* Current fill */}
-                      <div
-                        className="h-full rounded-full transition-all"
-                        style={{ width: `${pct}%`, background: statusColor }}
-                      />
+                      >
+                        {pr.exercise_name}
+                      </p>
+                      <p
+                        className="font-mono uppercase mt-1"
+                        style={{ fontSize: 9, letterSpacing: "1.5px", color: "hsl(var(--muted-foreground))" }}
+                      >
+                        {pr.logged_at ? timeAgo(pr.logged_at) : "—"}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span
+                        className="font-display font-bold tabular-nums"
+                        style={{
+                          fontSize: 22,
+                          letterSpacing: "-0.02em",
+                          color: "hsl(var(--foreground))",
+                          lineHeight: 1,
+                        }}
+                      >
+                        {w}
+                      </span>
+                      <span
+                        className="font-mono uppercase ml-1.5"
+                        style={{ fontSize: 9, letterSpacing: "1.5px", color: "hsl(var(--muted-foreground))" }}
+                      >
+                        {weightUnit}
+                        {pr.actual_reps ? ` · ${pr.actual_reps}r` : ""}
+                      </span>
                     </div>
                   </div>
                 );
               })}
             </div>
-            <p className="mt-2 text-[10px] font-body" style={{ color: t.muted, lineHeight: 1.4 }}>
-              Sets efectivos = sets working/backoff completados con carga. La meta de 10-20 sets por semana se basa en evidencia de hipertrofia (Schoenfeld et al.).
-            </p>
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* Quiet footer — three numbers in mono caps */}
+        <div
+          className="mt-auto flex items-center justify-center gap-5 pt-6"
+          style={{ borderTop: "1px solid hsl(var(--border))" }}
+        >
+          <FooterStat value={String(stats.totalWorkouts)} label="sesiones" />
+          <FooterDot />
+          <FooterStat value={String(stats.streak)} label="racha" />
+          <FooterDot />
+          <FooterStat value={`${stats.consistency}%`} label="consist." />
+        </div>
       </div>
     </Layout>
   );
+}
+
+function FooterStat({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <span
+        className="font-display font-bold tabular-nums"
+        style={{ fontSize: 16, letterSpacing: "-0.02em", color: "hsl(var(--foreground))", lineHeight: 1 }}
+      >
+        {value}
+      </span>
+      <span
+        className="font-mono uppercase"
+        style={{ fontSize: 8, letterSpacing: "2px", color: "hsl(var(--muted-foreground))" }}
+      >
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function FooterDot() {
+  return <span style={{ width: 3, height: 3, borderRadius: 999, background: "hsl(var(--border))" }} />;
 }
