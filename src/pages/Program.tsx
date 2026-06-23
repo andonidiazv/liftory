@@ -238,18 +238,35 @@ function CycleCard({
         opacity: isLocked ? 0.5 : 1,
       }}
     >
-      {/* Row 1: roman numeral + status */}
+      {/* Row 1: M-prefixed roman numeral + status. The "M" is a small mono
+          caps prefix so the reader knows this is a mesocycle (not just a
+          chapter number from somewhere else); the big roman stays the
+          editorial anchor. */}
       <div className="flex justify-between items-baseline mb-1.5">
         <span
-          className="font-display font-bold"
+          className="font-display font-bold flex items-baseline"
           style={{
-            fontSize: 26,
-            letterSpacing: "-0.03em",
             color: isActive ? "#C4A24E" : "hsl(var(--foreground))",
             lineHeight: 1,
           }}
         >
-          {romanize(meso.cycleNumber)}.
+          <span
+            className="font-mono"
+            style={{
+              fontSize: 12,
+              fontWeight: 500,
+              letterSpacing: "2px",
+              marginRight: 7,
+              color: isActive
+                ? "#C4A24E"
+                : "hsl(var(--muted-foreground))",
+            }}
+          >
+            M
+          </span>
+          <span style={{ fontSize: 26, letterSpacing: "-0.03em" }}>
+            {romanize(meso.cycleNumber)}.
+          </span>
         </span>
         <span
           className="font-mono uppercase"
