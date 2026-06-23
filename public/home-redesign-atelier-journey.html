@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFTORY · Atelier · End-to-End Journey</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@300;400;500;600;700&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black:#0D0D0F;
+    --carbon:#15151A;
+    --steel:#1F1F26;
+    --line:#2A2A33;
+    --bone:#FAF8F5;
+    --muted:#9C9CA8;
+    --dim:#5F5F6B;
+    --gold:#C4A24E;
+    --gold-soft:rgba(196,162,78,0.08);
+    --gold-mid:rgba(196,162,78,0.18);
+    --gold-glow:rgba(196,162,78,0.35);
+    --jade:#7A8B5C;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+  html,body{background:var(--black);color:var(--bone);font-family:'DM Sans',system-ui,sans-serif;}
+  body{
+    background:
+      radial-gradient(900px 700px at 15% 0%, rgba(196,162,78,0.06), transparent 60%),
+      radial-gradient(900px 700px at 85% 100%, rgba(196,162,78,0.04), transparent 60%),
+      var(--black);
+    min-height:100vh;padding:72px 32px 96px;
+  }
+
+  /* ───── Intro ───── */
+  .intro{max-width:1100px;margin:0 auto 80px;}
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;
+    letter-spacing:3.5px;text-transform:uppercase;color:var(--gold);margin-bottom:18px;
+  }
+  .intro h1{
+    font-family:'Syne',sans-serif;font-weight:700;font-size:48px;
+    letter-spacing:-0.04em;line-height:1.04;color:var(--bone);margin-bottom:20px;max-width:780px;
+  }
+  .intro h1 em{font-style:italic;font-weight:300;color:var(--gold);}
+  .intro p{font-size:16px;line-height:1.6;color:var(--muted);max-width:680px;}
+  .intro p strong{color:var(--bone);font-weight:500;}
+
+  /* ───── Journey grid ───── */
+  .journey{
+    display:grid;grid-template-columns:repeat(3,1fr);
+    gap:64px 48px;max-width:1500px;margin:0 auto;
+  }
+  @media (max-width:1280px){.journey{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:900px){.journey{grid-template-columns:1fr;}}
+
+  .screen-wrap{display:flex;flex-direction:column;align-items:center;gap:22px;}
+  .step-row{
+    width:100%;display:flex;align-items:baseline;gap:14px;
+    padding-bottom:14px;border-bottom:1px solid var(--line);
+  }
+  .step-num{
+    font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-0.04em;
+    color:var(--gold);line-height:1;
+  }
+  .step-name{
+    font-family:'DM Sans',sans-serif;font-weight:600;font-size:16px;
+    color:var(--bone);letter-spacing:-0.01em;
+  }
+  .step-tag{
+    margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;
+    letter-spacing:2px;text-transform:uppercase;color:var(--muted);
+  }
+  .desc{
+    width:100%;font-size:13px;line-height:1.65;color:var(--muted);padding:0 4px;
+  }
+  .desc strong{color:var(--bone);font-weight:500;}
+
+  /* ───── Phone frame (shared) ───── */
+  .phone{
+    width:375px;height:760px;border-radius:42px;background:var(--black);
+    border:8px solid #2C2C32;overflow:hidden;position:relative;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.04),
+      0 30px 80px -20px rgba(0,0,0,0.7),
+      0 0 60px -12px rgba(196,162,78,0.06);
+  }
+  .phone::before{
+    content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+    width:118px;height:28px;background:#0a0a0c;border-radius:0 0 18px 18px;z-index:50;
+  }
+  .screen{height:100%;overflow:hidden;position:relative;background:var(--black);}
+  .status{
+    position:absolute;top:0;left:0;right:0;height:44px;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 26px 0 24px;font-family:'DM Sans',sans-serif;
+    font-weight:600;font-size:13px;color:var(--bone);z-index:40;
+  }
+  .status-icons{display:flex;gap:5px;align-items:center;}
+  .nav{
+    position:absolute;bottom:0;left:0;right:0;height:72px;
+    background:rgba(13,13,15,0.92);backdrop-filter:blur(20px);
+    border-top:1px solid var(--line);
+    display:flex;align-items:flex-start;justify-content:space-around;padding-top:10px;z-index:30;
+  }
+  .nav-item{
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;color:var(--dim);
+  }
+  .nav-item.active{color:var(--gold);}
+  .nav-item svg{width:20px;height:20px;}
+
+  /* ════════════════════════════════════════════════════════════
+     SHARED ATELIER TOKENS
+     ════════════════════════════════════════════════════════════ */
+  .at-mark{
+    font-family:'Syne',sans-serif;font-weight:800;font-size:13px;
+    letter-spacing:0.02em;color:var(--gold);
+  }
+  .at-meta{
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;
+    color:var(--muted);text-transform:uppercase;
+  }
+  .at-phase{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;
+    color:var(--gold);text-transform:uppercase;
+  }
+  .at-rule{width:36px;height:1px;background:var(--gold);}
+
+  /* ════════════════════════════════════════════════════════════
+     SCREEN 01 — SPLASH / BRAND ENTRY
+     ════════════════════════════════════════════════════════════ */
+  .s01{
+    height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:
+      radial-gradient(600px 500px at 50% 50%, rgba(196,162,78,0.06), transparent 65%),
+      var(--black);
+    position:relative;
+  }
+  .s01-mark{
+    font-family:'Syne',sans-serif;font-weight:800;font-size:40px;
+    letter-spacing:-0.04em;color:var(--gold);text-transform:uppercase;
+    text-shadow:0 0 40px rgba(196,162,78,0.4);
+  }
+  .s01-rule{
+    width:48px;height:1px;background:var(--gold);margin:24px 0;opacity:0.6;
+  }
+  .s01-sub{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:4px;
+    color:var(--muted);text-transform:uppercase;
+  }
+  .s01-greet{
+    position:absolute;bottom:80px;left:0;right:0;text-align:center;
+    font-family:'Syne',sans-serif;font-weight:300;font-size:18px;
+    letter-spacing:-0.02em;color:var(--muted);font-style:italic;
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     SCREEN 02 — HOME (the Atelier home)
+     ════════════════════════════════════════════════════════════ */
+  .s02{
+    height:100%;display:flex;flex-direction:column;padding:60px 32px 78px;
+    background:
+      radial-gradient(700px 500px at 50% 100%, rgba(196,162,78,0.05), transparent 70%),
+      var(--black);
+  }
+  .s02-top{
+    display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:auto;
+  }
+  .s02-center{
+    display:flex;flex-direction:column;align-items:center;gap:24px;text-align:center;
+    margin-bottom:auto;
+  }
+  .s02-week{
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;
+    color:var(--muted);text-transform:uppercase;
+  }
+  .s02-title{
+    font-family:'Syne',sans-serif;font-weight:300;font-size:60px;
+    letter-spacing:-0.05em;line-height:0.88;color:var(--bone);
+  }
+  .s02-title strong{font-weight:700;display:block;}
+  .s02-sub{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2.5px;
+    color:var(--muted);text-transform:uppercase;
+  }
+  .s02-cta{
+    display:flex;align-items:center;gap:14px;padding-top:10px;
+    font-family:'Syne',sans-serif;font-weight:600;font-size:13px;
+    letter-spacing:0.05em;text-transform:uppercase;color:var(--bone);
+  }
+  .s02-arrow{
+    width:36px;height:36px;border-radius:50%;border:1px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 24px var(--gold-glow);
+  }
+  .s02-arrow svg{width:14px;height:14px;color:var(--gold);}
+
+  .s02-strip{display:flex;flex-direction:column;align-items:center;gap:12px;}
+  .s02-dots{display:flex;gap:6px;}
+  .s02-dots span{width:6px;height:6px;border-radius:50%;background:var(--line);}
+  .s02-dots span.done{background:var(--muted);}
+  .s02-dots span.active{
+    background:var(--gold);box-shadow:0 0 10px var(--gold);
+    width:24px;border-radius:3px;
+  }
+  .s02-label{
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;
+    color:var(--dim);text-transform:uppercase;
+  }
+  .s02-label span{color:var(--bone);}
+
+  /* ════════════════════════════════════════════════════════════
+     SCREEN 03 — MESO ARCHIVE (chapter selection)
+     ════════════════════════════════════════════════════════════ */
+  .s03{height:100%;display:flex;flex-direction:column;padding:60px 0 78px;}
+  .s03-head{padding:0 28px;display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;}
+  .s03-back{
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;
+    color:var(--muted);text-transform:uppercase;display:flex;align-items:center;gap:8px;
+  }
+  .s03-back::before{content:'←';font-size:14px;color:var(--gold);}
+  .s03-title-row{padding:0 28px;margin-bottom:36px;}
+  .s03-eyebrow{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;
+    color:var(--gold);text-transform:uppercase;margin-bottom:8px;
+  }
+  .s03-title{
+    font-family:'Syne',sans-serif;font-weight:300;font-size:38px;
+    letter-spacing:-0.04em;line-height:1;color:var(--bone);
+  }
+  .s03-title strong{font-weight:700;}
+
+  .s03-list{padding:0 28px;display:flex;flex-direction:column;gap:18px;flex:1;}
+  .s03-card{
+    padding:20px 0;border-top:1px solid var(--line);position:relative;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .s03-card.active{border-top:1px solid var(--gold);}
+  .s03-card.locked{opacity:0.5;}
+  .s03-card-top{display:flex;justify-content:space-between;align-items:baseline;}
+  .s03-roman{
+    font-family:'Syne',sans-serif;font-weight:700;font-size:26px;letter-spacing:-0.03em;
+    color:var(--bone);
+  }
+  .s03-card.active .s03-roman{color:var(--gold);}
+  .s03-status{
+    font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;
+    color:var(--muted);text-transform:uppercase;
+  }
+  .s03-card.active .s03-status{color:var(--gold);}
+  .s03-card.locked .s03-status{color:var(--dim);}
+  .s03-name{
+    font-family:'DM Sans',sans-serif;font-weight:500;font-size:14px;
+    color:var(--bone);letter-spacing:-0.01em;
+  }
+  .s03-detail{
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;
+    color:var(--muted);
+  }
+  .s03-detail span{color:var(--bone);}
+  .s03-card.active::after{
+    content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);
+    width:18px;height:1px;background:var(--gold);
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     SCREEN 04 — SESSION BRIEF (today's blocks)
+     ════════════════════════════════════════════════════════════ */
+  .s04{height:100%;display:flex;flex-direction:column;padding:60px 0 78px;}
+  .s04-head{padding:0 28px;display:flex;justify-content:space-between;align-items:center;margin-bottom:30px;}
+  .s04-context{
+    padding:0 28px;text-align:center;margin-bottom:36px;
+  }
+  .s04-phase{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;
+    color:var(--gold);text-transform:uppercase;margin-bottom:6px;
+  }
+  .s04-week{
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;
+    color:var(--muted);text-transform:uppercase;margin-bottom:18px;
+  }
+  .s04-title{
+    font-family:'Syne',sans-serif;font-weight:300;font-size:52px;
+    letter-spacing:-0.05em;line-height:0.9;color:var(--bone);margin-bottom:10px;
+  }
+  .s04-title strong{font-weight:700;display:block;}
+  .s04-meta{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;
+    color:var(--muted);text-transform:uppercase;
+  }
+
+  .s04-blocks{padding:0 28px;display:flex;flex-direction:column;gap:0;flex:1;}
+  .s04-block{
+    display:grid;grid-template-columns:32px 1fr auto;align-items:center;gap:14px;
+    padding:14px 0;border-bottom:1px solid var(--line);
+  }
+  .s04-block:last-child{border-bottom:none;}
+  .s04-block-num{
+    font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.5px;
+    color:var(--dim);
+  }
+  .s04-block-name{
+    font-family:'DM Sans',sans-serif;font-weight:500;font-size:13px;
+    color:var(--bone);letter-spacing:-0.005em;
+  }
+  .s04-block-time{
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;
+    color:var(--muted);
+  }
+  .s04-block.recovery .s04-block-name{color:var(--muted);}
+
+  .s04-cta{
+    margin:24px 28px 0;padding:18px;background:var(--gold);color:var(--black);
+    border-radius:14px;text-align:center;
+    font-family:'Syne',sans-serif;font-weight:700;font-size:13px;
+    letter-spacing:0.12em;text-transform:uppercase;
+    box-shadow:0 16px 36px -12px var(--gold-glow);
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     SCREEN 05 — ACTIVE SET / WORKING (inside a block)
+     ════════════════════════════════════════════════════════════ */
+  .s05{height:100%;display:flex;flex-direction:column;padding:60px 0 78px;}
+  .s05-head{
+    padding:0 24px;display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;
+  }
+  .s05-back-arrow{
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;
+    color:var(--muted);text-transform:uppercase;display:flex;align-items:center;gap:6px;
+  }
+  .s05-block-tag{
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;
+    color:var(--gold);text-transform:uppercase;
+  }
+  .s05-block-tag span{color:var(--muted);}
+
+  .s05-center{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:0 24px;gap:30px;text-align:center;
+  }
+  .s05-exercise-eyebrow{
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2.5px;
+    color:var(--muted);text-transform:uppercase;
+  }
+  .s05-exercise{
+    font-family:'Syne',sans-serif;font-weight:700;font-size:36px;
+    letter-spacing:-0.04em;line-height:0.95;color:var(--bone);
+  }
+  .s05-target{
+    font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.5px;
+    color:var(--gold);text-transform:uppercase;
+  }
+  .s05-target em{color:var(--muted);font-style:normal;}
+
+  .s05-dial{
+    position:relative;width:200px;height:200px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .s05-dial svg{position:absolute;width:100%;height:100%;}
+  .s05-dial-center{
+    display:flex;flex-direction:column;align-items:center;gap:2px;
+  }
+  .s05-set-num{
+    font-family:'Syne',sans-serif;font-weight:700;font-size:64px;letter-spacing:-0.05em;
+    color:var(--bone);line-height:1;
+  }
+  .s05-set-total{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;
+    color:var(--muted);text-transform:uppercase;margin-top:4px;
+  }
+
+  .s05-meta{
+    display:flex;gap:24px;
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;
+    color:var(--muted);text-transform:uppercase;
+  }
+  .s05-meta span{color:var(--bone);}
+
+  .s05-cta-wrap{padding:0 24px;}
+  .s05-cta{
+    width:100%;padding:18px;background:var(--gold);color:var(--black);
+    border-radius:14px;text-align:center;
+    font-family:'Syne',sans-serif;font-weight:700;font-size:13px;
+    letter-spacing:0.12em;text-transform:uppercase;
+    box-shadow:0 16px 36px -12px var(--gold-glow);
+    display:flex;align-items:center;justify-content:center;gap:12px;
+  }
+  .s05-cta::before{
+    content:'';width:18px;height:18px;border-radius:50%;border:2px solid var(--black);
+    display:flex;align-items:center;justify-content:center;
+  }
+
+  /* ════════════════════════════════════════════════════════════
+     SCREEN 06 — SESSION CLOSED
+     ════════════════════════════════════════════════════════════ */
+  .s06{
+    height:100%;display:flex;flex-direction:column;align-items:center;
+    padding:64px 32px 78px;text-align:center;
+    background:
+      radial-gradient(700px 500px at 50% 30%, rgba(196,162,78,0.06), transparent 65%),
+      var(--black);
+  }
+  .s06-mark{margin-bottom:auto;}
+  .s06-center{display:flex;flex-direction:column;align-items:center;gap:26px;margin-bottom:auto;}
+  .s06-eyebrow{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;
+    color:var(--gold);text-transform:uppercase;
+  }
+  .s06-title{
+    font-family:'Syne',sans-serif;font-weight:300;font-size:54px;
+    letter-spacing:-0.05em;line-height:0.9;color:var(--bone);
+  }
+  .s06-title strong{font-weight:700;display:block;}
+  .s06-quote{
+    font-family:'DM Sans',sans-serif;font-style:italic;font-weight:300;font-size:14px;
+    color:var(--muted);line-height:1.5;max-width:240px;
+  }
+  .s06-stats{
+    display:flex;align-items:center;gap:24px;padding:18px 0;
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  }
+  .s06-stat{display:flex;flex-direction:column;gap:3px;align-items:center;}
+  .s06-stat-num{
+    font-family:'Syne',sans-serif;font-weight:700;font-size:24px;
+    letter-spacing:-0.03em;color:var(--bone);
+  }
+  .s06-stat-num em{font-style:normal;color:var(--gold);}
+  .s06-stat-label{
+    font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;
+    color:var(--muted);text-transform:uppercase;
+  }
+  .s06-divider{width:1px;height:24px;background:var(--line);}
+  .s06-tomorrow{
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;
+    color:var(--muted);text-transform:uppercase;
+  }
+  .s06-tomorrow span{color:var(--gold);}
+  .s06-cta{
+    margin-top:auto;display:flex;align-items:center;gap:12px;
+    font-family:'Syne',sans-serif;font-weight:600;font-size:12px;
+    letter-spacing:0.05em;text-transform:uppercase;color:var(--bone);
+  }
+  .s06-cta-arrow{
+    width:32px;height:32px;border-radius:50%;border:1px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .s06-cta-arrow svg{width:12px;height:12px;color:var(--gold);}
+
+  /* ────── Outro ────── */
+  .outro{
+    max-width:1500px;margin:96px auto 0;padding:48px;
+    border:1px solid var(--line);border-radius:18px;background:rgba(31,31,38,0.3);
+  }
+  .outro h2{
+    font-family:'Syne',sans-serif;font-weight:700;font-size:24px;letter-spacing:-0.02em;
+    margin-bottom:30px;color:var(--bone);
+  }
+  .outro-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:36px;}
+  @media (max-width:900px){.outro-grid{grid-template-columns:1fr;}}
+  .outro-col h3{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2.5px;
+    color:var(--gold);text-transform:uppercase;margin-bottom:14px;
+  }
+  .outro-col p{font-size:13px;line-height:1.7;color:var(--muted);}
+  .outro-col p strong{color:var(--bone);font-weight:500;}
+  .outro-col p + p{margin-top:10px;}
+
+  /* status bar icons */
+  .si{display:flex;gap:5px;align-items:center;}
+  .si svg{display:block;}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════ INTRO ════════════════════════════════ -->
+<div class="intro">
+  <div class="eyebrow">LIFTORY · Atelier · End-to-End Journey · Jun 2026</div>
+  <h1>
+    Seis pantallas. Una sola voz.<br>
+    El atleta atraviesa el día como quien <em>abre una puerta a la vez</em>.
+  </h1>
+  <p>
+    Desde el splash hasta el cierre de la sesión, el lenguaje no se quiebra.
+    <strong>Una sola tipografía heroe</strong>, gold solo donde manda, negative space
+    como respiración. Si esto escala todo el flujo, vamos a producción.
+  </p>
+</div>
+
+<!-- ════════════════════════════════ JOURNEY ════════════════════════════════ -->
+<div class="journey">
+
+<!-- ════════════════════════════════ 01 · SPLASH ════════════════════════════════ -->
+<div class="screen-wrap">
+  <div class="step-row">
+    <div class="step-num">01</div>
+    <div class="step-name">Brand entry</div>
+    <div class="step-tag">Open · 800ms</div>
+  </div>
+  <div class="phone">
+    <div class="status">
+      <span>9:41</span>
+      <div class="si">
+        <svg width="18" height="10" viewBox="0 0 18 10" fill="currentColor"><rect x="0" y="6" width="3" height="4"/><rect x="5" y="4" width="3" height="6"/><rect x="10" y="2" width="3" height="8"/><rect x="15" y="0" width="3" height="10"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 5.5C3 3 6 1.5 8 1.5C10 1.5 13 3 15 5.5"/><path d="M3 7.5C4.5 6 6.5 5 8 5C9.5 5 11.5 6 13 7.5"/><circle cx="8" cy="9.5" r="1" fill="currentColor"/></svg>
+        <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="2.5" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="19" height="8" rx="1" fill="currentColor"/><rect x="23" y="3.5" width="2" height="5" rx="0.5" fill="currentColor" opacity="0.5"/></svg>
+      </div>
+    </div>
+    <div class="screen">
+      <div class="s01">
+        <div class="s01-mark">LIFTORY</div>
+        <div class="s01-rule"></div>
+        <div class="s01-sub">Build him elite</div>
+        <div class="s01-greet">Buenos días, Andoni.</div>
+      </div>
+    </div>
+  </div>
+  <div class="desc">
+    <strong>Apertura ceremonial.</strong> Solo el wordmark, una regla gold sutil,
+    y el saludo personal abajo. Ni stats, ni notificaciones — el atleta arranca
+    el día con la marca, no con la inbox.
+  </div>
+</div>
+
+<!-- ════════════════════════════════ 02 · HOME ════════════════════════════════ -->
+<div class="screen-wrap">
+  <div class="step-row">
+    <div class="step-num">02</div>
+    <div class="step-name">Home</div>
+    <div class="step-tag">Daily ritual</div>
+  </div>
+  <div class="phone">
+    <div class="status">
+      <span>9:41</span>
+      <div class="si">
+        <svg width="18" height="10" viewBox="0 0 18 10" fill="currentColor"><rect x="0" y="6" width="3" height="4"/><rect x="5" y="4" width="3" height="6"/><rect x="10" y="2" width="3" height="8"/><rect x="15" y="0" width="3" height="10"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 5.5C3 3 6 1.5 8 1.5C10 1.5 13 3 15 5.5"/><path d="M3 7.5C4.5 6 6.5 5 8 5C9.5 5 11.5 6 13 7.5"/><circle cx="8" cy="9.5" r="1" fill="currentColor"/></svg>
+        <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="2.5" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="19" height="8" rx="1" fill="currentColor"/><rect x="23" y="3.5" width="2" height="5" rx="0.5" fill="currentColor" opacity="0.5"/></svg>
+      </div>
+    </div>
+    <div class="screen">
+      <div class="s02">
+        <div class="s02-top">
+          <div class="at-mark">LIFTORY</div>
+          <div class="at-meta">Lunes · 22 jun</div>
+        </div>
+        <div class="s02-center">
+          <div class="at-phase">Acumulación</div>
+          <div class="s02-week">Semana 3 / 6</div>
+          <div class="s02-title">Density<strong>Day</strong></div>
+          <div class="at-rule"></div>
+          <div class="s02-sub">78 min · 53 sets</div>
+          <div class="s02-cta">
+            <span>Abrir sesión</span>
+            <div class="s02-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="s02-strip">
+          <div class="s02-dots">
+            <span class="done"></span><span class="done"></span><span class="active"></span><span></span><span></span><span></span>
+          </div>
+          <div class="s02-label">Mesociclo <span>III</span> de VI</div>
+        </div>
+      </div>
+      <div class="nav">
+        <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-8 9 8M5 9v12h14V9"/></svg>Home</div>
+        <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>Programa</div>
+        <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l5-5 4 4 7-9"/><path d="M14 7h6v6"/></svg>Progreso</div>
+        <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 22c0-4 4-7 8-7s8 3 8 7"/></svg>Perfil</div>
+      </div>
+    </div>
+  </div>
+  <div class="desc">
+    <strong>Una sola decisión.</strong> Phase · día · CTA. Los dots de meso en el
+    pie son <em>tappable</em>: gesture lleva al archivo (pantalla 03). Stats viven
+    en pull-down — disponibles, no impuestos.
+  </div>
+</div>
+
+<!-- ════════════════════════════════ 03 · MESO ARCHIVE ════════════════════════════════ -->
+<div class="screen-wrap">
+  <div class="step-row">
+    <div class="step-num">03</div>
+    <div class="step-name">Mesociclo archive</div>
+    <div class="step-tag">Chapter selection</div>
+  </div>
+  <div class="phone">
+    <div class="status">
+      <span>9:41</span>
+      <div class="si">
+        <svg width="18" height="10" viewBox="0 0 18 10" fill="currentColor"><rect x="0" y="6" width="3" height="4"/><rect x="5" y="4" width="3" height="6"/><rect x="10" y="2" width="3" height="8"/><rect x="15" y="0" width="3" height="10"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 5.5C3 3 6 1.5 8 1.5C10 1.5 13 3 15 5.5"/><path d="M3 7.5C4.5 6 6.5 5 8 5C9.5 5 11.5 6 13 7.5"/><circle cx="8" cy="9.5" r="1" fill="currentColor"/></svg>
+        <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="2.5" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="19" height="8" rx="1" fill="currentColor"/><rect x="23" y="3.5" width="2" height="5" rx="0.5" fill="currentColor" opacity="0.5"/></svg>
+      </div>
+    </div>
+    <div class="screen">
+      <div class="s03">
+        <div class="s03-head">
+          <div class="s03-back">Volver</div>
+          <div class="at-mark">LIFTORY</div>
+        </div>
+        <div class="s03-title-row">
+          <div class="s03-eyebrow">Tu camino</div>
+          <div class="s03-title">Build Him<br><strong>Elite</strong></div>
+        </div>
+        <div class="s03-list">
+          <div class="s03-card">
+            <div class="s03-card-top">
+              <div class="s03-roman">I.</div>
+              <div class="s03-status">Completado</div>
+            </div>
+            <div class="s03-name">KB Foundation</div>
+            <div class="s03-detail">Mar 16 — Apr 26 · <span>30/30</span> · <span>22 PRs</span></div>
+          </div>
+          <div class="s03-card">
+            <div class="s03-card-top">
+              <div class="s03-roman">II.</div>
+              <div class="s03-status">Completado</div>
+            </div>
+            <div class="s03-name">Hybrid Push</div>
+            <div class="s03-detail">Apr 27 — Jun 07 · <span>30/30</span> · <span>41 PRs</span></div>
+          </div>
+          <div class="s03-card active">
+            <div class="s03-card-top">
+              <div class="s03-roman">III.</div>
+              <div class="s03-status">● Activo</div>
+            </div>
+            <div class="s03-name">Hybrid Discovery</div>
+            <div class="s03-detail">Jun 08 — Jul 19 · <span>11/30</span> · <span>34 PRs</span></div>
+          </div>
+          <div class="s03-card locked">
+            <div class="s03-card-top">
+              <div class="s03-roman">IV.</div>
+              <div class="s03-status">Jul 20</div>
+            </div>
+            <div class="s03-name">Peak Strength</div>
+            <div class="s03-detail">Próximo capítulo · 6 semanas</div>
+          </div>
+        </div>
+      </div>
+      <div class="nav">
+        <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-8 9 8M5 9v12h14V9"/></svg>Home</div>
+        <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>Programa</div>
+        <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l5-5 4 4 7-9"/><path d="M14 7h6v6"/></svg>Progreso</div>
+        <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 22c0-4 4-7 8-7s8 3 8 7"/></svg>Perfil</div>
+      </div>
+    </div>
+  </div>
+  <div class="desc">
+    <strong>Tu carrera como libro.</strong> Cada meso es un capítulo con nombre,
+    rango de fechas y score final. Numeración romana = peso editorial. Activo se
+    marca con border-top gold, no con un botón. M4 visible pero "locked" hasta
+    fecha de release.
+  </div>
+</div>
+
+<!-- ════════════════════════════════ 04 · SESSION BRIEF ════════════════════════════════ -->
+<div class="screen-wrap">
+  <div class="step-row">
+    <div class="step-num">04</div>
+    <div class="step-name">Session brief</div>
+    <div class="step-tag">Pre-flight roadmap</div>
+  </div>
+  <div class="phone">
+    <div class="status">
+      <span>9:41</span>
+      <div class="si">
+        <svg width="18" height="10" viewBox="0 0 18 10" fill="currentColor"><rect x="0" y="6" width="3" height="4"/><rect x="5" y="4" width="3" height="6"/><rect x="10" y="2" width="3" height="8"/><rect x="15" y="0" width="3" height="10"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 5.5C3 3 6 1.5 8 1.5C10 1.5 13 3 15 5.5"/><path d="M3 7.5C4.5 6 6.5 5 8 5C9.5 5 11.5 6 13 7.5"/><circle cx="8" cy="9.5" r="1" fill="currentColor"/></svg>
+        <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="2.5" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="19" height="8" rx="1" fill="currentColor"/><rect x="23" y="3.5" width="2" height="5" rx="0.5" fill="currentColor" opacity="0.5"/></svg>
+      </div>
+    </div>
+    <div class="screen">
+      <div class="s04">
+        <div class="s04-head">
+          <div class="s03-back">Home</div>
+          <div class="at-mark">LIFTORY</div>
+        </div>
+        <div class="s04-context">
+          <div class="s04-phase">Acumulación · W3</div>
+          <div class="s04-week">Día 11 de 30</div>
+          <div class="s04-title">Density<strong>Day</strong></div>
+          <div class="s04-meta">78 min · 7 bloques · 53 sets</div>
+        </div>
+        <div class="s04-blocks">
+          <div class="s04-block"><div class="s04-block-num">01</div><div class="s04-block-name">Prime Block</div><div class="s04-block-time">8 min</div></div>
+          <div class="s04-block"><div class="s04-block-num">02</div><div class="s04-block-name">Density Block A</div><div class="s04-block-time">14 min</div></div>
+          <div class="s04-block"><div class="s04-block-num">03</div><div class="s04-block-name">Hypertrophy Block</div><div class="s04-block-time">12 min</div></div>
+          <div class="s04-block"><div class="s04-block-num">04</div><div class="s04-block-name">Skill Push</div><div class="s04-block-time">14 min</div></div>
+          <div class="s04-block"><div class="s04-block-num">05</div><div class="s04-block-name">Arm Block</div><div class="s04-block-time">12 min</div></div>
+          <div class="s04-block"><div class="s04-block-num">06</div><div class="s04-block-name">Core Block</div><div class="s04-block-time">10 min</div></div>
+          <div class="s04-block recovery"><div class="s04-block-num">07</div><div class="s04-block-name">Recovery</div><div class="s04-block-time">8 min</div></div>
+        </div>
+        <div class="s04-cta">Empezar bloque 1</div>
+      </div>
+    </div>
+  </div>
+  <div class="desc">
+    <strong>Roadmap del día sin ruido.</strong> Cada bloque numerado, duración a la
+    derecha, recovery deliberadamente <em>muted</em> al final. Sin badges de
+    "completado" ni elementos decorativos — pura claridad. El CTA habla del
+    próximo paso, no de "todo el workout".
+  </div>
+</div>
+
+<!-- ════════════════════════════════ 05 · ACTIVE SET ════════════════════════════════ -->
+<div class="screen-wrap">
+  <div class="step-row">
+    <div class="step-num">05</div>
+    <div class="step-name">Active set</div>
+    <div class="step-tag">In-flight focus</div>
+  </div>
+  <div class="phone">
+    <div class="status">
+      <span>9:41</span>
+      <div class="si">
+        <svg width="18" height="10" viewBox="0 0 18 10" fill="currentColor"><rect x="0" y="6" width="3" height="4"/><rect x="5" y="4" width="3" height="6"/><rect x="10" y="2" width="3" height="8"/><rect x="15" y="0" width="3" height="10"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 5.5C3 3 6 1.5 8 1.5C10 1.5 13 3 15 5.5"/><path d="M3 7.5C4.5 6 6.5 5 8 5C9.5 5 11.5 6 13 7.5"/><circle cx="8" cy="9.5" r="1" fill="currentColor"/></svg>
+        <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="2.5" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="19" height="8" rx="1" fill="currentColor"/><rect x="23" y="3.5" width="2" height="5" rx="0.5" fill="currentColor" opacity="0.5"/></svg>
+      </div>
+    </div>
+    <div class="screen">
+      <div class="s05">
+        <div class="s05-head">
+          <div class="s05-back-arrow">← Bloque</div>
+          <div class="s05-block-tag">Density Block <span>· A</span></div>
+        </div>
+        <div class="s05-center">
+          <div class="s05-exercise-eyebrow">EMOM 60s · ronda 3 / 6</div>
+          <div class="s05-exercise">KB Z Press</div>
+          <div class="s05-target">6 reps · <em>cada lado</em></div>
+
+          <div class="s05-dial">
+            <svg viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="46" fill="none" stroke="#2A2A33" stroke-width="2"/>
+              <circle cx="50" cy="50" r="46" fill="none" stroke="#C4A24E" stroke-width="2"
+                stroke-dasharray="289" stroke-dashoffset="144" stroke-linecap="round"
+                transform="rotate(-90 50 50)"/>
+            </svg>
+            <div class="s05-dial-center">
+              <div class="s05-set-num">3</div>
+              <div class="s05-set-total">de 6 rondas</div>
+            </div>
+          </div>
+
+          <div class="s05-meta">
+            <span>16 KG <em style="color:var(--muted);font-style:normal;">peso</em></span>
+            <span>RPE 8</span>
+          </div>
+        </div>
+        <div class="s05-cta-wrap">
+          <div class="s05-cta">Completar set</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="desc">
+    <strong>Una pantalla, una acción.</strong> El dial circular es el progreso del
+    bloque — el atleta no necesita scroll para saber cuánto le falta. Peso y RPE
+    en mono, sin badges decorativos. CTA gold con anillo: completar = tocar el
+    círculo. Lenguaje físico, no de form.
+  </div>
+</div>
+
+<!-- ════════════════════════════════ 06 · SESSION CLOSED ════════════════════════════════ -->
+<div class="screen-wrap">
+  <div class="step-row">
+    <div class="step-num">06</div>
+    <div class="step-name">Session closed</div>
+    <div class="step-tag">Ceremonial close</div>
+  </div>
+  <div class="phone">
+    <div class="status">
+      <span>9:41</span>
+      <div class="si">
+        <svg width="18" height="10" viewBox="0 0 18 10" fill="currentColor"><rect x="0" y="6" width="3" height="4"/><rect x="5" y="4" width="3" height="6"/><rect x="10" y="2" width="3" height="8"/><rect x="15" y="0" width="3" height="10"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 5.5C3 3 6 1.5 8 1.5C10 1.5 13 3 15 5.5"/><path d="M3 7.5C4.5 6 6.5 5 8 5C9.5 5 11.5 6 13 7.5"/><circle cx="8" cy="9.5" r="1" fill="currentColor"/></svg>
+        <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="2.5" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="19" height="8" rx="1" fill="currentColor"/><rect x="23" y="3.5" width="2" height="5" rx="0.5" fill="currentColor" opacity="0.5"/></svg>
+      </div>
+    </div>
+    <div class="screen">
+      <div class="s06">
+        <div class="s06-mark"><div class="at-mark">LIFTORY</div></div>
+        <div class="s06-center">
+          <div class="s06-eyebrow">Sesión cerrada</div>
+          <div class="s06-title">Density<strong>Day</strong></div>
+          <div class="s06-quote">El cuerpo agradece el volumen. Mañana toca señal de potencia.</div>
+          <div class="s06-stats">
+            <div class="s06-stat">
+              <div class="s06-stat-num">78<em>m</em></div>
+              <div class="s06-stat-label">Tiempo</div>
+            </div>
+            <div class="s06-divider"></div>
+            <div class="s06-stat">
+              <div class="s06-stat-num">53</div>
+              <div class="s06-stat-label">Sets</div>
+            </div>
+            <div class="s06-divider"></div>
+            <div class="s06-stat">
+              <div class="s06-stat-num">3<em>★</em></div>
+              <div class="s06-stat-label">PRs</div>
+            </div>
+          </div>
+          <div class="s06-tomorrow">Mañana · <span>Tempo Day</span></div>
+        </div>
+        <div class="s06-cta">
+          <span>Volver al inicio</span>
+          <div class="s06-cta-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="desc">
+    <strong>Cierre con ritual.</strong> Mismo título que la pantalla de inicio —
+    el atleta cerró el círculo. Quote del coach pone el día en contexto físico.
+    PRs marcados con un <em>★</em> dorado sutil, sin confetti. La línea "Mañana ·
+    Tempo Day" planta la semilla para el próximo día.
+  </div>
+</div>
+
+</div>
+<!-- ════════════════════════════════ /JOURNEY ════════════════════════════════ -->
+
+<!-- ════════════════════════════════ OUTRO ════════════════════════════════ -->
+<div class="outro">
+  <h2>Qué pulir antes de pushear</h2>
+  <div class="outro-grid">
+    <div class="outro-col">
+      <h3>Lo que ya funciona</h3>
+      <p>
+        <strong>Una sola gramática visual</strong> de splash a cierre. Syne pesos
+        300 + 700 hacen contraste editorial sin cambiar tipografía. Gold como
+        anclaje en máximo 2 puntos por pantalla. Negative space funciona como
+        respiración entre decisiones.
+      </p>
+      <p>
+        La <strong>selección del meso</strong> tiene peso de "abrir un libro" sin
+        ser pesada — tap en los dots del home te lleva al archivo, tap en III te
+        regresa al home con ese contexto.
+      </p>
+    </div>
+    <div class="outro-col">
+      <h3>Donde puede romperse</h3>
+      <p>
+        <strong>Active set (05).</strong> Cuando hay supersets, EMOM con 2 ejercicios,
+        For Time, Hold con timer fullscreen — el dial circular puede no ser
+        suficiente. Hay que prototypear esos 3-4 modos antes de comprometernos.
+      </p>
+      <p>
+        <strong>Edge cases del meso archive (03).</strong> ¿Qué pasa cuando un atleta
+        está entre cycles? ¿Cuando uno está incompleto? La copia "Próximo capítulo"
+        funciona para el caso ideal, pero hay 3-4 estados más por diseñar.
+      </p>
+    </div>
+    <div class="outro-col">
+      <h3>Siguiente paso si te late</h3>
+      <p>
+        Si te convence: <strong>te armo los 3-4 estados faltantes</strong> (active set
+        en EMOM / superset / For Time / Hold) en el mismo lenguaje, prototipo los
+        gestos clave (dots tap → archive, dial tap → completar), y lo dejo listo
+        para implementar en React Native.
+      </p>
+      <p>
+        Si no te late del todo: dime <strong>qué pantalla "más quiere ser otra"</strong>
+        y la rehago con un giro distinto (más editorial, más operator, más
+        cinematográfica) sin romper las demás.
+      </p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

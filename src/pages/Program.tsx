@@ -1,40 +1,87 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { useProgramData } from "@/hooks/useProgramData";
+import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Check, BatteryCharging, BookOpen } from "lucide-react";
-import { useDarkMode } from "@/hooks/useDarkMode";
-import { dia, noche } from "@/lib/colors";
+import { BookOpen } from "lucide-react";
 import MesocycleManual from "@/components/program/MesocycleManual";
-import { M2_MANUAL_CONTENT, getMesoForDate } from "@/lib/mesocycle-content";
+import { M2_MANUAL_CONTENT } from "@/lib/mesocycle-content";
 
-const BLOCK_LABELS: Record<string, string> = {
-  accumulation: "BASE",
-  intensification: "ACUMULACIÓN",
-  peaking: "PEAK",
-  deload: "DELOAD",
-  base: "BASE",
-};
+/**
+ * MESOCICLO ARCHIVE · Atelier journey screen 03.
+ *
+ * "Tu camino" — the full BUILD HIM ELITE arc as chapters (I, II, III, IV…).
+ * Each card shows roman numeral · name · dates · session count progress ·
+ * status. Active card highlighted with a gold border-top; completed cards
+ * fade. Future cards lock until their start date.
+ *
+ * Design source: public/home-redesign-atelier-journey.html (screen 03).
+ */
 
-function getPhaseForWeek(week: number): string {
-  if (week === 1) return "BASE";
-  if (week === 2) return "BASE +";
-  if (week === 3) return "ACUMULACIÓN";
-  if (week === 4) return "INTENSIFICACIÓN";
-  if (week === 5) return "PEAK";
-  return "DELOAD";
+interface MesocycleRow {
+  id: string;
+  program_name: string;
+  cycle_number: number;
+  cycle_start_date: string;
+  cycle_end_date: string;
+  status: string;
+  total_weeks: number;
 }
 
-const DAY_LETTERS = ["L", "M", "M", "J", "V", "S", "D"];
+interface CycleCardData {
+  cycleNumber: number;
+  name: string;
+  startDate: string;
+  endDate: string;
+  sessionsCompleted: number;
+  sessionsTotal: number;
+  state: "done" | "active" | "upcoming" | "locked";
+  hasManual: boolean;
+}
+
+/** Editorial names per cycle per program. Falls back to a generic name when
+ *  not registered (so M4+ keep working before we name them). */
+const CYCLE_NAMES: Record<string, Record<number, string>> = {
+  "BUILD HIM ELITE": {
+    1: "KB Foundation",
+    2: "Hybrid Push",
+    3: "Hybrid Discovery",
+    4: "Peak Strength",
+    5: "Power Phase",
+    6: "Mastery",
+  },
+  "SCULPT HER ELITE": {
+    1: "Foundation",
+    2: "Sculpt",
+    3: "Tone",
+    4: "Peak",
+    5: "Form",
+    6: "Mastery",
+  },
+};
+
+const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
+function romanize(n: number) { return ROMAN[n - 1] ?? String(n); }
+
+function formatRange(start: string, end: string) {
+  const fmt = (s: string) =>
+    new Date(s + "T12:00:00").toLocaleDateString("es-MX", { day: "numeric", month: "short" }).replace(".", "");
+  return `${fmt(start)} — ${fmt(end)}`;
+}
 
 function ProgramSkeleton() {
   return (
-    <div className="px-5 pt-14 space-y-6">
-      <Skeleton className="h-7 w-56 bg-muted" />
-      <Skeleton className="h-4 w-40 bg-muted" />
-      {Array.from({ length: 3 }).map((_, i) => (
-        <Skeleton key={i} className="h-24 w-full rounded-xl bg-muted" />
+    <div className="px-7 pt-14 pb-8 space-y-6">
+      <Skeleton className="h-3 w-24 bg-muted" />
+      <Skeleton className="h-10 w-48 bg-muted" />
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="border-t border-border pt-4 space-y-2">
+          <Skeleton className="h-6 w-12 bg-muted" />
+          <Skeleton className="h-4 w-44 bg-muted" />
+          <Skeleton className="h-3 w-36 bg-muted" />
+        </div>
       ))}
     </div>
   );
@@ -42,48 +89,27 @@ function ProgramSkeleton() {
 
 export default function Program() {
   const navigate = useNavigate();
-  const { program, workouts, loading, getBlockLabel, getWeekWorkouts, getWeekNumbers, todayStr } = useProgramData();
-  const { isDark } = useDarkMode();
-  const t = isDark ? noche : dia;
-  const [showManual, setShowManual] = useState(false);
+  const { program, workouts, loading } = useProgramData();
+  const [manualMeso, setManualMeso] = useState<string | null>(null);
 
-  // Detect which meso the user is "actively in" using the workout the athlete is about to do.
-  // Strategy: prefer the next non-rest workout scheduled on/after today. If none (e.g. program
-  // already finished), fall back to the most recent past workout. This is the cleanest signal —
-  // it's "what comes next" from the athlete's perspective, regardless of stale skipped workouts.
-  const currentMeso = (() => {
-    const todayStr = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD in local TZ
-    const realWorkouts = workouts.filter((w) => !w.is_rest_day);
-    if (realWorkouts.length === 0) return null;
+  // Fetch ALL mesocycles for this program (M1, M2, M3, …) so we can show the
+  // full chapter list. We don't gate on user_id because mesocycles are global
+  // templates shared across athletes.
+  const { data: mesos, isLoading: mesosLoading } = useQuery({
+    queryKey: ["program-mesos", program?.name],
+    queryFn: async (): Promise<MesocycleRow[]> => {
+      if (!program?.name) return [];
+      const { data } = await supabase
+        .from("mesocycles")
+        .select("id, program_name, cycle_number, cycle_start_date, cycle_end_date, status, total_weeks")
+        .eq("program_name", program.name)
+        .order("cycle_number", { ascending: true });
+      return (data as MesocycleRow[]) ?? [];
+    },
+    enabled: !!program?.name,
+  });
 
-    // Next upcoming workout (on/after today)
-    const upcoming = realWorkouts
-      .filter((w) => w.scheduled_date >= todayStr)
-      .sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))[0];
-
-    // Fallback: most recent past workout (program ended)
-    const recent = realWorkouts
-      .filter((w) => w.scheduled_date < todayStr)
-      .sort((a, b) => b.scheduled_date.localeCompare(a.scheduled_date))[0];
-
-    const reference = upcoming ?? recent;
-    return reference ? getMesoForDate(reference.scheduled_date) : null;
-  })();
-  const hasManualForCurrentMeso = currentMeso === "M2"; // Only M2 has manual content for now
-
-  // Scope ALL workout-derived UI (counter, grid, weeks list) to the current meso.
-  // Without this, M1 + M2 collide: the counter shows M1+M2 sums (e.g. 17/60), and the
-  // grid mixes weeks because M1 W1 and M2 W1 share week_number=1.
-  const mesoWorkouts = currentMeso
-    ? workouts.filter((w) => getMesoForDate(w.scheduled_date) === currentMeso)
-    : workouts;
-  const mesoWeekNumbers = Array.from(
-    new Set(mesoWorkouts.map((w) => w.week_number))
-  ).sort((a, b) => a - b);
-  const getMesoWeekWorkouts = (week: number) =>
-    mesoWorkouts.filter((w) => w.week_number === week);
-
-  if (loading) return <Layout><ProgramSkeleton /></Layout>;
+  if (loading || mesosLoading) return <Layout><ProgramSkeleton /></Layout>;
 
   if (!program) {
     return (
@@ -103,172 +129,221 @@ export default function Program() {
     );
   }
 
-  const weeks = mesoWeekNumbers.length > 0
-    ? mesoWeekNumbers
-    : Array.from({ length: program.total_weeks }, (_, i) => i + 1);
+  // Build the archive: for each mesocycle, compute state + session counts
+  // from the user's actual workouts (date-bounded). PR counts could be added
+  // later but they require a separate workout_sets query — out of scope for
+  // Phase 1.
+  const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD local
+  const namesForProgram = CYCLE_NAMES[program.name] ?? {};
+
+  const archive: CycleCardData[] = (mesos ?? []).map((m) => {
+    const inRange = workouts.filter(
+      (w) =>
+        w.scheduled_date >= m.cycle_start_date &&
+        w.scheduled_date <= m.cycle_end_date
+    );
+    const sessionsTotal = inRange.filter(
+      (w) => !w.is_rest_day && w.workout_type === "strength"
+    ).length;
+    const sessionsCompleted = inRange.filter(
+      (w) => !w.is_rest_day && w.workout_type === "strength" && w.is_completed
+    ).length;
+
+    let state: CycleCardData["state"];
+    if (today > m.cycle_end_date) state = "done";
+    else if (today >= m.cycle_start_date && today <= m.cycle_end_date) state = "active";
+    else if (m.status === "live") state = "upcoming";
+    else state = "locked";
+
+    const meso = `M${m.cycle_number}`;
+    const hasManual = meso === "M2"; // only M2 has manual content for now
+
+    return {
+      cycleNumber: m.cycle_number,
+      name: namesForProgram[m.cycle_number] ?? `Mesociclo ${m.cycle_number}`,
+      startDate: m.cycle_start_date,
+      endDate: m.cycle_end_date,
+      sessionsCompleted,
+      sessionsTotal,
+      state,
+      hasManual,
+    };
+  });
+
+  // Title split for editorial layout: program name on two lines when possible.
+  const titleParts = program.name.trim().split(/\s+/);
+  const titleTop = titleParts.length > 1 ? titleParts.slice(0, -1).join(" ") : titleParts[0];
+  const titleBottom = titleParts.length > 1 ? titleParts[titleParts.length - 1] : null;
 
   return (
     <Layout>
-      <div className="px-5 pt-14 pb-8 space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="font-display text-[22px] font-bold text-foreground">{program.name}</h1>
-          <p className="mt-1 text-[13px] text-muted-foreground font-body">
-            {currentMeso ? `Mesociclo ${currentMeso.replace(/\D/g, "")}` : "Mesociclo"} · Semana {program.current_week} de {program.total_weeks}
-          </p>
-          <span
-            className="mt-2 inline-block rounded-full px-3 py-1 font-mono text-[9px] uppercase tracking-wider"
-            style={{ background: t.accentBgStrong, color: t.accent }}
+      <div className="flex flex-col px-7 pt-14 pb-24" style={{ minHeight: "calc(100dvh - 78px)" }}>
+        {/* Top bar: back + LIFTORY mark */}
+        <div className="flex items-center justify-between mb-8">
+          <button
+            onClick={() => navigate("/home")}
+            className="font-mono uppercase flex items-center gap-2"
+            style={{ fontSize: 9, letterSpacing: "2px", color: "hsl(var(--muted-foreground))" }}
           >
-            {getPhaseForWeek(program.current_week)}
+            <span style={{ color: "#C4A24E", fontSize: 14, lineHeight: 1 }}>←</span> Volver
+          </button>
+          <span
+            className="font-display font-bold uppercase"
+            style={{ fontSize: 13, letterSpacing: "0.02em", color: "#C4A24E" }}
+          >
+            LIFTORY
           </span>
-
-          {/* Progress bar — scoped to currentMeso so M1 completions don't pollute M2 progress */}
-          {(() => {
-            const totalWorkouts = mesoWorkouts.filter(w => !w.is_rest_day && w.workout_type === "strength").length;
-            const completedWorkouts = mesoWorkouts.filter(w => !w.is_rest_day && w.workout_type === "strength" && w.is_completed).length;
-            const pct = totalWorkouts > 0 ? Math.round((completedWorkouts / totalWorkouts) * 100) : 0;
-            return (
-              <div className="mt-4">
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="font-mono text-[10px] text-muted-foreground">{completedWorkouts}/{totalWorkouts} sesiones</span>
-                  <span className="font-mono text-[10px] text-muted-foreground">{pct}%</span>
-                </div>
-                <div className="h-2 w-full rounded-full overflow-hidden" style={{ backgroundColor: "hsl(var(--border))" }}>
-                  <div
-                    className="h-full rounded-full transition-all duration-700"
-                    style={{ width: `${pct}%`, backgroundColor: "hsl(var(--primary))" }}
-                  />
-                </div>
-              </div>
-            );
-          })()}
-
-          {/* Manual button — only visible during the current meso's active date range */}
-          {hasManualForCurrentMeso && (
-            <button
-              onClick={() => setShowManual(true)}
-              className="press-scale w-full mt-5 flex items-center gap-3 rounded-xl px-4 py-3.5 text-left"
-              style={{
-                backgroundColor: t.accentBg,
-                border: `1px solid ${t.accentBgStrong}`,
-              }}
-            >
-              <BookOpen className="h-4 w-4 shrink-0" style={{ color: t.accent }} />
-              <div className="flex-1 min-w-0">
-                <p
-                  className="font-display text-[13px] font-semibold leading-tight"
-                  style={{ color: t.text }}
-                >
-                  Manual de {currentMeso}
-                </p>
-                <p
-                  className="font-body text-[11px] leading-tight mt-0.5"
-                  style={{ color: t.muted }}
-                >
-                  Ejemplos paso a paso de cada formato
-                </p>
-              </div>
-              <span
-                className="font-mono text-[16px] shrink-0"
-                style={{ color: t.accent }}
-              >
-                →
-              </span>
-            </button>
-          )}
         </div>
 
-        {/* Weeks */}
-        <div className="space-y-6">
-          {weeks.map((week) => {
-            const weekWorkouts = getMesoWeekWorkouts(week);
-            const isCurrent = week === program.current_week;
+        {/* Title */}
+        <div className="mb-9">
+          <p
+            className="font-mono uppercase mb-2"
+            style={{ fontSize: 10, letterSpacing: "3px", color: "#C4A24E" }}
+          >
+            Tu camino
+          </p>
+          <h1
+            className="font-display"
+            style={{ fontWeight: 300, fontSize: 38, letterSpacing: "-0.04em", lineHeight: 1, color: "hsl(var(--foreground))" }}
+          >
+            {titleTop}
+            {titleBottom && <><br /><strong style={{ fontWeight: 700 }}>{titleBottom}</strong></>}
+          </h1>
+        </div>
 
-            // Build a map: day index (0=Mon..6=Sun) -> workout
-            const dayMap: Record<number, typeof weekWorkouts[0] | null> = {};
-            weekWorkouts.forEach((w) => {
-              const d = new Date(w.scheduled_date + "T12:00:00");
-              const jsDay = d.getDay(); // 0=Sun
-              const idx = jsDay === 0 ? 6 : jsDay - 1; // 0=Mon
-              dayMap[idx] = w;
-            });
-
-            return (
-              <div
-                key={week}
-                className="rounded-2xl p-4"
-                style={{
-                  background: isCurrent ? t.accentBg : "transparent",
-                  border: isCurrent ? `1px solid ${t.accentBgStrong}` : `1px solid ${t.border}`,
-                }}
-              >
-                {/* Week label */}
-                <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-3">
-                  SEMANA {week} — {getPhaseForWeek(week)}
-                </p>
-
-                {/* 7 day squares */}
-                <div className="flex items-start justify-between gap-1">
-                  {DAY_LETTERS.map((letter, dayIdx) => {
-                    const w = dayMap[dayIdx] ?? null;
-                    const isToday = w?.scheduled_date === todayStr;
-                    const isCompleted = w?.is_completed ?? false;
-                    const isRest = w?.is_rest_day ?? false;
-                    const shortLabel = w?.day_label
-                      ? w.day_label.length > 5
-                        ? w.day_label.slice(0, 5)
-                        : w.day_label
-                      : null;
-
-                    return (
-                      <button
-                        key={dayIdx}
-                        className="flex flex-col items-center gap-1"
-                        onClick={() => w && !isRest && navigate(`/workout/${w.id}`)}
-                        disabled={!w || isRest}
-                      >
-                        <span className="font-mono text-[9px] text-muted-foreground">{letter}</span>
-                        <div
-                          className="flex h-11 w-11 items-center justify-center rounded-xl transition-all"
-                          style={{
-                            background: isCompleted
-                              ? t.accent
-                              : isRest
-                              ? "rgba(122,139,92,0.2)"
-                              : t.card,
-                            border: isCompleted || isRest ? "none" : `1px solid ${t.border}`,
-                            boxShadow: isToday ? `0 0 0 2px ${t.accent}, 0 0 0 4px ${t.accentBgStrong}` : "none",
-                          }}
-                        >
-                          {isCompleted ? (
-                            <Check className="h-4 w-4" style={{ color: t.btnText }} />
-                          ) : isRest ? (
-                            <BatteryCharging className="h-3.5 w-3.5" style={{ color: "#7A8B5C" }} />
-                          ) : null}
-                        </div>
-                        {shortLabel && (
-                          <span className="font-mono text-[8px] text-muted-foreground truncate w-11 text-center">
-                            {shortLabel}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
+        {/* Archive list */}
+        <div className="flex flex-col">
+          {archive.length === 0 ? (
+            <p
+              className="text-center font-body italic mt-10"
+              style={{ fontSize: 13, color: "hsl(var(--muted-foreground))" }}
+            >
+              Tu programa aún no tiene mesociclos publicados.
+            </p>
+          ) : (
+            archive.map((m) => (
+              <CycleCard
+                key={m.cycleNumber}
+                meso={m}
+                onOpenManual={m.hasManual ? () => setManualMeso(`M${m.cycleNumber}`) : undefined}
+              />
+            ))
+          )}
         </div>
       </div>
 
-      {/* Manual de M2 modal */}
-      {showManual && (
+      {manualMeso === "M2" && (
         <MesocycleManual
           content={M2_MANUAL_CONTENT}
-          onClose={() => setShowManual(false)}
+          onClose={() => setManualMeso(null)}
         />
       )}
     </Layout>
+  );
+}
+
+function CycleCard({
+  meso, onOpenManual,
+}: { meso: CycleCardData; onOpenManual?: () => void }) {
+  const isActive = meso.state === "active";
+  const isLocked = meso.state === "locked";
+  const statusText =
+    meso.state === "done" ? "Completado"
+    : meso.state === "active" ? "● Activo"
+    : meso.state === "upcoming" ? `Inicia ${meso.startDate.slice(5)}`
+    : "Próximamente";
+
+  return (
+    <div
+      className="relative py-5"
+      style={{
+        borderTop: `1px solid ${isActive ? "#C4A24E" : "hsl(var(--border))"}`,
+        opacity: isLocked ? 0.5 : 1,
+      }}
+    >
+      {/* Row 1: roman numeral + status */}
+      <div className="flex justify-between items-baseline mb-1.5">
+        <span
+          className="font-display font-bold"
+          style={{
+            fontSize: 26,
+            letterSpacing: "-0.03em",
+            color: isActive ? "#C4A24E" : "hsl(var(--foreground))",
+            lineHeight: 1,
+          }}
+        >
+          {romanize(meso.cycleNumber)}.
+        </span>
+        <span
+          className="font-mono uppercase"
+          style={{
+            fontSize: 8,
+            letterSpacing: "2px",
+            color: isActive ? "#C4A24E" : isLocked ? "hsl(var(--muted-foreground)/0.6)" : "hsl(var(--muted-foreground))",
+          }}
+        >
+          {statusText}
+        </span>
+      </div>
+
+      {/* Row 2: editorial name */}
+      <p
+        className="font-body font-medium mb-1"
+        style={{
+          fontSize: 14,
+          letterSpacing: "-0.005em",
+          color: "hsl(var(--foreground))",
+        }}
+      >
+        {meso.name}
+      </p>
+
+      {/* Row 3: dates + session count */}
+      <p
+        className="font-mono uppercase"
+        style={{ fontSize: 9, letterSpacing: "1px", color: "hsl(var(--muted-foreground))" }}
+      >
+        {formatRange(meso.startDate, meso.endDate)}
+        {meso.sessionsTotal > 0 && (
+          <> · <span style={{ color: "hsl(var(--foreground))" }}>{meso.sessionsCompleted}/{meso.sessionsTotal}</span></>
+        )}
+      </p>
+
+      {/* Manual entry — small ghost button only on active meso when available */}
+      {isActive && onOpenManual && (
+        <button
+          onClick={onOpenManual}
+          className="press-scale mt-3 flex items-center gap-2 rounded-full px-3 py-1.5"
+          style={{
+            background: "rgba(196,162,78,0.08)",
+            border: "1px solid rgba(196,162,78,0.2)",
+          }}
+        >
+          <BookOpen className="h-3 w-3" style={{ color: "#C4A24E" }} />
+          <span
+            className="font-mono uppercase"
+            style={{ fontSize: 9, letterSpacing: "2px", color: "#C4A24E" }}
+          >
+            Manual
+          </span>
+        </button>
+      )}
+
+      {/* Active marker — small horizontal rule at right edge */}
+      {isActive && (
+        <div
+          style={{
+            position: "absolute",
+            right: 0,
+            top: "50%",
+            transform: "translateY(-50%)",
+            width: 18,
+            height: 1,
+            background: "#C4A24E",
+          }}
+        />
+      )}
+    </div>
   );
 }

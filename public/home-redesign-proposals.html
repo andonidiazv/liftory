@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFTORY · Home Redesign Proposals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@300;400;500;600;700&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black:#0D0D0F;
+    --carbon:#15151A;
+    --steel:#1F1F26;
+    --line:#2A2A33;
+    --bone:#FAF8F5;
+    --muted:#9C9CA8;
+    --dim:#5F5F6B;
+    --gold:#C4A24E;
+    --gold-soft:rgba(196,162,78,0.08);
+    --gold-mid:rgba(196,162,78,0.18);
+    --jade:#7A8B5C;
+    --crimson:#D45555;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+  html,body{background:var(--black);color:var(--bone);font-family:'DM Sans',system-ui,sans-serif;}
+  body{
+    background:
+      radial-gradient(800px 600px at 20% 5%, rgba(196,162,78,0.05), transparent 60%),
+      radial-gradient(900px 700px at 80% 110%, rgba(196,162,78,0.04), transparent 60%),
+      var(--black);
+    min-height:100vh;
+    padding:64px 32px 96px;
+  }
+  /* ────────── Intro ────────── */
+  .intro{max-width:1200px;margin:0 auto 72px;}
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;
+    letter-spacing:3.5px;text-transform:uppercase;color:var(--gold);
+    margin-bottom:18px;
+  }
+  .intro h1{
+    font-family:'Syne',sans-serif;font-weight:700;font-size:48px;
+    letter-spacing:-0.04em;line-height:1.02;color:var(--bone);
+    margin-bottom:18px;max-width:780px;
+  }
+  .intro h1 em{font-style:normal;color:var(--gold);}
+  .intro p{
+    font-size:16px;line-height:1.55;color:var(--muted);max-width:640px;
+  }
+  .intro p strong{color:var(--bone);font-weight:500;}
+
+  /* ────────── Phones grid ────────── */
+  .grid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:48px;
+    max-width:1400px;margin:0 auto;
+  }
+  @media (max-width:1100px){.grid{grid-template-columns:1fr;gap:80px;}}
+
+  .proposal{display:flex;flex-direction:column;align-items:center;gap:28px;}
+  .label-row{
+    width:100%;display:flex;align-items:baseline;gap:14px;
+    padding-bottom:14px;border-bottom:1px solid var(--line);
+  }
+  .number{
+    font-family:'Syne',sans-serif;font-weight:800;font-size:28px;
+    letter-spacing:-0.04em;color:var(--gold);line-height:1;
+  }
+  .concept{
+    font-family:'DM Sans',sans-serif;font-weight:600;font-size:18px;
+    color:var(--bone);letter-spacing:-0.01em;
+  }
+  .tagline{
+    font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:500;
+    letter-spacing:2px;text-transform:uppercase;color:var(--muted);
+    margin-left:auto;
+  }
+  .notes{
+    width:100%;font-size:13px;line-height:1.6;color:var(--muted);
+    padding:0 6px;
+  }
+  .notes strong{color:var(--bone);font-weight:500;}
+  .notes ul{list-style:none;padding:0;margin:14px 0 0;}
+  .notes li{position:relative;padding-left:18px;margin-bottom:8px;}
+  .notes li::before{
+    content:'';position:absolute;left:0;top:9px;width:8px;height:1px;background:var(--gold);
+  }
+
+  /* ────────── Phone frame ────────── */
+  .phone{
+    width:375px;height:812px;border-radius:42px;
+    background:var(--black);
+    border:8px solid #2C2C32;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.04),
+      0 30px 80px -20px rgba(0,0,0,0.7),
+      0 0 60px -10px rgba(196,162,78,0.06);
+    overflow:hidden;position:relative;
+  }
+  .phone::before{
+    content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+    width:120px;height:28px;background:#0a0a0c;border-radius:0 0 18px 18px;
+    z-index:50;
+  }
+  .screen{
+    height:100%;overflow:hidden;position:relative;
+  }
+  /* Status bar */
+  .status{
+    position:absolute;top:0;left:0;right:0;height:44px;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 28px 0 24px;font-family:'DM Sans',sans-serif;
+    font-weight:600;font-size:14px;color:var(--bone);z-index:40;
+    padding-top:12px;
+  }
+  .status-icons{display:flex;gap:5px;align-items:center;}
+  .status-icons svg{display:block;}
+
+  /* Bottom nav */
+  .nav{
+    position:absolute;bottom:0;left:0;right:0;height:78px;
+    background:rgba(13,13,15,0.92);backdrop-filter:blur(20px);
+    border-top:1px solid var(--line);
+    display:flex;align-items:flex-start;justify-content:space-around;
+    padding-top:10px;z-index:30;
+  }
+  .nav-item{
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;
+    color:var(--dim);
+  }
+  .nav-item.active{color:var(--gold);}
+  .nav-item svg{width:20px;height:20px;}
+
+  /* ════════════════════════════════════════════════════════════════
+     PROPOSAL A — EDITORIAL ATHLETE
+     ════════════════════════════════════════════════════════════════ */
+  .ed{
+    padding:68px 26px 88px;color:var(--bone);
+    background:
+      radial-gradient(500px 400px at 90% -5%, rgba(196,162,78,0.07), transparent 55%),
+      var(--black);
+    height:100%;overflow-y:auto;
+  }
+  .ed-top{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:42px;
+  }
+  .ed-mark{
+    font-family:'Syne',sans-serif;font-weight:800;font-size:11px;
+    letter-spacing:-0.03em;color:var(--gold);text-transform:uppercase;
+  }
+  .ed-day{
+    font-family:'JetBrains Mono',monospace;font-size:9px;
+    letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;
+  }
+  .ed-chapter-label{
+    font-family:'JetBrains Mono',monospace;font-size:10px;
+    letter-spacing:2.5px;color:var(--gold);text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  .ed-chapter-num{
+    font-family:'Syne',sans-serif;font-weight:700;font-size:96px;
+    letter-spacing:-0.06em;line-height:0.85;color:var(--bone);
+    margin-bottom:12px;
+  }
+  .ed-chapter-num em{font-style:italic;color:var(--gold);font-weight:500;}
+  .ed-phase{
+    font-family:'Syne',sans-serif;font-weight:600;font-size:22px;
+    letter-spacing:-0.02em;color:var(--bone);margin-bottom:24px;
+  }
+  .ed-quote{
+    font-family:'DM Sans',sans-serif;font-style:italic;font-weight:300;
+    font-size:14px;line-height:1.6;color:var(--muted);
+    padding:14px 0 26px;border-bottom:1px solid var(--line);
+    margin-bottom:30px;
+  }
+  .ed-quote::before{content:'"';color:var(--gold);margin-right:4px;}
+  .ed-quote::after{content:'"';color:var(--gold);margin-left:2px;}
+  .ed-session{
+    margin-bottom:32px;
+  }
+  .ed-session-eyebrow{
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;
+    color:var(--gold);text-transform:uppercase;margin-bottom:10px;
+  }
+  .ed-session-title{
+    font-family:'Syne',sans-serif;font-weight:700;font-size:36px;
+    letter-spacing:-0.04em;line-height:0.95;margin-bottom:8px;
+    color:var(--bone);
+  }
+  .ed-session-meta{
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+    letter-spacing:0.5px;color:var(--muted);margin-bottom:24px;
+  }
+  .ed-session-meta span{color:var(--bone);}
+  .ed-cta{
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--gold);color:var(--black);
+    padding:18px 22px;border-radius:14px;
+    font-family:'Syne',sans-serif;font-weight:700;font-size:13px;
+    letter-spacing:0.1em;text-transform:uppercase;
+    box-shadow:0 14px 30px -10px rgba(196,162,78,0.45);
+  }
+  .ed-cta svg{width:18px;height:18px;}
+
+  /* Meso chapter strip */
+  .ed-strip-label{
+    margin-top:36px;font-family:'JetBrains Mono',monospace;font-size:9px;
+    letter-spacing:2px;color:var(--dim);text-transform:uppercase;
+    margin-bottom:14px;
+  }
+  .ed-strip{
+    display:flex;gap:8px;
+  }
+  .ed-chapter{
+    flex:1;padding:12px 8px;border-radius:10px;
+    border:1px solid var(--line);background:var(--carbon);
+    display:flex;flex-direction:column;align-items:flex-start;gap:4px;
+  }
+  .ed-chapter.done{opacity:0.55;}
+  .ed-chapter.active{
+    border:1px solid var(--gold);background:var(--gold-soft);
+  }
+  .ed-chapter.next{opacity:0.4;}
+  .ed-chap-mark{
+    font-family:'Syne',sans-serif;font-weight:700;font-size:14px;
+    letter-spacing:-0.02em;color:var(--bone);
+  }
+  .ed-chapter.active .ed-chap-mark{color:var(--gold);}
+  .ed-chap-status{
+    font-family:'JetBrains Mono',monospace;font-size:8px;
+    letter-spacing:1.5px;color:var(--dim);text-transform:uppercase;
+  }
+  .ed-chapter.active .ed-chap-status{color:var(--gold);}
+
+  .ed-stats{
+    margin-top:28px;display:flex;justify-content:space-between;
+    padding:14px 0;border-top:1px solid var(--line);
+  }
+  .ed-stat{display:flex;flex-direction:column;gap:4px;}
+  .ed-stat-num{
+    font-family:'Syne',sans-serif;font-weight:700;font-size:18px;
+    letter-spacing:-0.02em;color:var(--bone);
+  }
+  .ed-stat-label{
+    font-family:'JetBrains Mono',monospace;font-size:8px;
+    letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     PROPOSAL B — MISSION BRIEFING
+     ════════════════════════════════════════════════════════════════ */
+  .mb{
+    padding:60px 0 88px;color:var(--bone);height:100%;overflow-y:auto;
+    background:
+      linear-gradient(180deg, var(--black) 0%, #08080a 100%);
+  }
+  .mb-bar{
+    padding:0 22px;display:flex;justify-content:space-between;
+    align-items:center;margin-bottom:24px;
+  }
+  .mb-mark{
+    display:flex;gap:6px;align-items:center;
+    font-family:'Syne',sans-serif;font-weight:800;font-size:11px;
+    letter-spacing:-0.03em;color:var(--gold);text-transform:uppercase;
+  }
+  .mb-mark::after{
+    content:'';width:5px;height:5px;border-radius:50%;
+    background:var(--jade);box-shadow:0 0 8px var(--jade);
+    margin-left:4px;
+  }
+  .mb-coords{
+    font-family:'JetBrains Mono',monospace;font-size:9px;
+    color:var(--muted);letter-spacing:1px;
+  }
+  .mb-coords span{color:var(--gold);}
+
+  .mb-divider{
+    margin:0 22px 22px;border-top:1px dashed var(--line);
+  }
+  .mb-mission-row{
+    padding:0 22px;display:flex;justify-content:space-between;align-items:baseline;
+    margin-bottom:6px;
+  }
+  .mb-mission-label{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2.5px;
+    color:var(--gold);text-transform:uppercase;
+  }
+  .mb-mission-num{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;
+    color:var(--muted);
+  }
+  .mb-mission-num span{color:var(--bone);}
+  .mb-day{
+    padding:0 22px;
+    font-family:'Syne',sans-serif;font-weight:700;font-size:42px;
+    letter-spacing:-0.04em;line-height:0.95;margin-bottom:6px;
+  }
+  .mb-day em{color:var(--gold);font-style:normal;}
+  .mb-tagline{
+    padding:0 22px;
+    font-family:'DM Sans',sans-serif;font-size:13px;
+    color:var(--muted);margin-bottom:24px;font-style:italic;
+  }
+
+  /* Tactical readout */
+  .mb-readout{
+    margin:0 22px 28px;border:1px solid var(--line);
+    background:rgba(31,31,38,0.4);border-radius:12px;
+    padding:18px;
+  }
+  .mb-readout-title{
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;
+    color:var(--gold);text-transform:uppercase;margin-bottom:14px;
+    padding-bottom:10px;border-bottom:1px solid var(--line);
+    display:flex;justify-content:space-between;
+  }
+  .mb-readout-title em{color:var(--muted);font-style:normal;}
+  .mb-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:7px 0;font-family:'JetBrains Mono',monospace;font-size:11px;
+  }
+  .mb-row-key{color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;font-size:9px;}
+  .mb-row-val{color:var(--bone);font-weight:500;}
+  .mb-bar-fill{
+    display:inline-flex;gap:2px;align-items:center;
+  }
+  .mb-bar-fill span{
+    display:block;width:8px;height:3px;background:var(--line);
+  }
+  .mb-bar-fill span.filled{background:var(--gold);}
+
+  .mb-cta-wrap{padding:0 22px;margin-bottom:30px;}
+  .mb-cta{
+    width:100%;padding:18px;border-radius:12px;
+    background:var(--gold);color:var(--black);
+    font-family:'Syne',sans-serif;font-weight:700;font-size:13px;
+    letter-spacing:0.12em;text-transform:uppercase;
+    box-shadow:0 14px 30px -10px rgba(196,162,78,0.45);
+    border:none;display:flex;align-items:center;justify-content:center;gap:10px;
+  }
+  .mb-cta::after{
+    content:'';width:14px;height:1px;background:var(--black);
+  }
+  .mb-cta-sub{
+    margin-top:8px;text-align:center;
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;
+    color:var(--dim);text-transform:uppercase;
+  }
+
+  /* Campaign map */
+  .mb-campaign-title{
+    padding:0 22px;font-family:'JetBrains Mono',monospace;font-size:9px;
+    letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin-bottom:14px;
+  }
+  .mb-campaign{
+    padding:0 22px;display:flex;flex-direction:column;gap:10px;
+  }
+  .mb-camp-row{
+    display:flex;align-items:center;gap:10px;
+    font-family:'JetBrains Mono',monospace;font-size:10px;
+  }
+  .mb-camp-key{
+    color:var(--muted);width:28px;letter-spacing:1px;
+  }
+  .mb-camp-row.active .mb-camp-key{color:var(--gold);}
+  .mb-bars{display:flex;gap:2px;flex:1;}
+  .mb-bars span{
+    flex:1;height:6px;background:var(--line);border-radius:1px;
+  }
+  .mb-bars span.done{background:var(--gold);}
+  .mb-bars span.active{background:var(--gold);box-shadow:0 0 6px var(--gold);}
+  .mb-camp-status{
+    width:50px;text-align:right;color:var(--dim);font-size:8px;letter-spacing:1px;
+  }
+  .mb-camp-row.active .mb-camp-status{color:var(--jade);}
+  .mb-camp-row.done .mb-camp-status{color:var(--muted);}
+
+  /* Intel footer */
+  .mb-intel{
+    margin:28px 22px 0;padding-top:18px;border-top:1px dashed var(--line);
+    display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;
+    font-size:9px;letter-spacing:1.5px;color:var(--dim);text-transform:uppercase;
+  }
+  .mb-intel-val{color:var(--bone);}
+
+  /* ════════════════════════════════════════════════════════════════
+     PROPOSAL C — ATELIER (Quiet Luxury)
+     ════════════════════════════════════════════════════════════════ */
+  .at{
+    height:100%;display:flex;flex-direction:column;
+    padding:68px 32px 88px;
+    background:
+      radial-gradient(700px 500px at 50% 100%, rgba(196,162,78,0.05), transparent 70%),
+      var(--black);
+    color:var(--bone);position:relative;
+  }
+  .at-top{
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    margin-bottom:auto;
+  }
+  .at-mark{
+    font-family:'Syne',sans-serif;font-weight:800;font-size:13px;
+    letter-spacing:0.02em;color:var(--gold);
+  }
+  .at-meta{
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;
+    color:var(--muted);text-transform:uppercase;
+  }
+
+  .at-center{
+    display:flex;flex-direction:column;align-items:center;gap:28px;
+    text-align:center;padding:0 8px;margin-bottom:auto;
+  }
+  .at-phase{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;
+    color:var(--gold);text-transform:uppercase;
+  }
+  .at-week{
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;
+    color:var(--muted);text-transform:uppercase;
+  }
+  .at-title{
+    font-family:'Syne',sans-serif;font-weight:300;font-size:64px;
+    letter-spacing:-0.05em;line-height:0.88;color:var(--bone);
+  }
+  .at-title strong{font-weight:700;display:block;}
+  .at-rule{
+    width:36px;height:1px;background:var(--gold);
+  }
+  .at-sub{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2.5px;
+    color:var(--muted);text-transform:uppercase;
+  }
+  .at-cta{
+    display:flex;align-items:center;gap:14px;padding-top:14px;
+    font-family:'Syne',sans-serif;font-weight:600;font-size:14px;
+    letter-spacing:0.04em;text-transform:uppercase;color:var(--bone);
+    cursor:pointer;
+  }
+  .at-cta-arrow{
+    width:36px;height:36px;border-radius:50%;
+    border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;
+    transition:transform 0.3s;
+  }
+  .at-cta-arrow svg{width:14px;height:14px;color:var(--gold);}
+
+  .at-meso-strip{
+    display:flex;flex-direction:column;align-items:center;gap:14px;
+  }
+  .at-dots{
+    display:flex;gap:6px;
+  }
+  .at-dots span{
+    width:6px;height:6px;border-radius:50%;background:var(--line);
+  }
+  .at-dots span.done{background:var(--muted);}
+  .at-dots span.active{
+    background:var(--gold);box-shadow:0 0 10px var(--gold);
+    width:24px;border-radius:3px;
+  }
+  .at-meso-label{
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;
+    color:var(--dim);text-transform:uppercase;
+  }
+  .at-meso-label span{color:var(--bone);}
+
+  /* ════════════════════════════════════════════════════════════════
+     OUTRO / NOTES PANEL
+     ════════════════════════════════════════════════════════════════ */
+  .outro{
+    max-width:1400px;margin:80px auto 0;padding:48px 32px;
+    border:1px solid var(--line);border-radius:18px;background:rgba(31,31,38,0.3);
+  }
+  .outro h2{
+    font-family:'Syne',sans-serif;font-weight:700;font-size:24px;
+    letter-spacing:-0.02em;margin-bottom:24px;color:var(--bone);
+  }
+  .outro-grid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:36px;
+  }
+  @media (max-width:900px){.outro-grid{grid-template-columns:1fr;}}
+  .outro-col h3{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2.5px;
+    color:var(--gold);text-transform:uppercase;margin-bottom:14px;
+  }
+  .outro-col p{
+    font-size:13px;line-height:1.65;color:var(--muted);
+  }
+  .outro-col p strong{color:var(--bone);font-weight:500;}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════ INTRO ════════════════════════════════ -->
+<div class="intro">
+  <div class="eyebrow">LIFTORY · Home Redesign · Jun 2026</div>
+  <h1>
+    De dashboard funcional<br>
+    a <em>journey diario</em> que prepara<br>
+    al atleta para atacar la sesión.
+  </h1>
+  <p>
+    Tres direcciones, tres tonos. Cada una resuelve la <strong>selección del mesociclo</strong>
+    como interacción de primera clase y crea una <strong>antesala emocional</strong>
+    antes de abrir la sesión del día. Elegí la que mejor refleje el alma de LIFTORY.
+  </p>
+</div>
+
+<!-- ════════════════════════════════ GRID ════════════════════════════════ -->
+<div class="grid">
+
+<!-- ════════════════════════════════════════════════════════════════
+     PROPUESTA A · EDITORIAL ATHLETE
+     ════════════════════════════════════════════════════════════════ -->
+<div class="proposal">
+  <div class="label-row">
+    <div class="number">A.</div>
+    <div class="concept">Editorial Athlete</div>
+    <div class="tagline">Magazine · Typography-led</div>
+  </div>
+
+  <div class="phone">
+    <div class="status">
+      <span>9:41</span>
+      <div class="status-icons">
+        <svg width="18" height="10" viewBox="0 0 18 10" fill="currentColor"><rect x="0" y="6" width="3" height="4"/><rect x="5" y="4" width="3" height="6"/><rect x="10" y="2" width="3" height="8"/><rect x="15" y="0" width="3" height="10"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 5.5C3 3 6 1.5 8 1.5C10 1.5 13 3 15 5.5"/><path d="M3 7.5C4.5 6 6.5 5 8 5C9.5 5 11.5 6 13 7.5"/><circle cx="8" cy="9.5" r="1" fill="currentColor"/></svg>
+        <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="2.5" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="19" height="8" rx="1" fill="currentColor"/><rect x="23" y="3.5" width="2" height="5" rx="0.5" fill="currentColor" opacity="0.5"/></svg>
+      </div>
+    </div>
+    <div class="screen">
+      <div class="ed">
+        <div class="ed-top">
+          <div class="ed-mark">LIFTORY</div>
+          <div class="ed-day">Lunes · 22 jun</div>
+        </div>
+
+        <div class="ed-chapter-label">Capítulo III</div>
+        <div class="ed-chapter-num">11<em>/30</em></div>
+        <div class="ed-phase">Acumulación</div>
+        <div class="ed-quote">
+          Tu cuerpo se adapta a cargas que ayer no podías mover. Hoy le sumamos volumen.
+        </div>
+
+        <div class="ed-session">
+          <div class="ed-session-eyebrow">Sesión de hoy</div>
+          <div class="ed-session-title">Density<br>Day</div>
+          <div class="ed-session-meta">
+            <span>78 MIN</span> · <span>12 BLOQUES</span> · <span>53 SETS</span>
+          </div>
+          <div class="ed-cta">
+            <span>Empezar sesión</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+
+        <div class="ed-strip-label">Tu camino · Build Him Elite</div>
+        <div class="ed-strip">
+          <div class="ed-chapter done">
+            <div class="ed-chap-mark">M1</div>
+            <div class="ed-chap-status">✓ DONE</div>
+          </div>
+          <div class="ed-chapter done">
+            <div class="ed-chap-mark">M2</div>
+            <div class="ed-chap-status">✓ DONE</div>
+          </div>
+          <div class="ed-chapter active">
+            <div class="ed-chap-mark">M3</div>
+            <div class="ed-chap-status">● ACTIVO</div>
+          </div>
+          <div class="ed-chapter next">
+            <div class="ed-chap-mark">M4</div>
+            <div class="ed-chap-status">PRÓXIMO</div>
+          </div>
+        </div>
+
+        <div class="ed-stats">
+          <div class="ed-stat">
+            <div class="ed-stat-num">7</div>
+            <div class="ed-stat-label">Sesiones · M3</div>
+          </div>
+          <div class="ed-stat">
+            <div class="ed-stat-num">34</div>
+            <div class="ed-stat-label">PRs · M3</div>
+          </div>
+          <div class="ed-stat">
+            <div class="ed-stat-num">0d</div>
+            <div class="ed-stat-label">Streak</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav">
+        <div class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-8 9 8M5 9v12h14V9"/></svg>
+          Home
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>
+          Programa
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l5-5 4 4 7-9"/><path d="M14 7h6v6"/></svg>
+          Progreso
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 22c0-4 4-7 8-7s8 3 8 7"/></svg>
+          Perfil
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <strong>Tono.</strong> Revista de alto perfil. Cada visita se siente como abrir
+    la portada de un número nuevo. La sesión es una <em>pieza</em>, no una tarea.
+    <ul>
+      <li>Número de día como portada editorial — anclaje emocional fuerte</li>
+      <li>Quote del coach: vincula la fase a un significado, no a un set count</li>
+      <li>Strip de capítulos (M1→M4) = selección de meso con peso de "publicación"</li>
+      <li>Stats en línea fina al pie — están, no gritan</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     PROPUESTA B · MISSION BRIEFING
+     ════════════════════════════════════════════════════════════════ -->
+<div class="proposal">
+  <div class="label-row">
+    <div class="number">B.</div>
+    <div class="concept">Mission Briefing</div>
+    <div class="tagline">Operator · Tactical</div>
+  </div>
+
+  <div class="phone">
+    <div class="status">
+      <span>9:41</span>
+      <div class="status-icons">
+        <svg width="18" height="10" viewBox="0 0 18 10" fill="currentColor"><rect x="0" y="6" width="3" height="4"/><rect x="5" y="4" width="3" height="6"/><rect x="10" y="2" width="3" height="8"/><rect x="15" y="0" width="3" height="10"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 5.5C3 3 6 1.5 8 1.5C10 1.5 13 3 15 5.5"/><path d="M3 7.5C4.5 6 6.5 5 8 5C9.5 5 11.5 6 13 7.5"/><circle cx="8" cy="9.5" r="1" fill="currentColor"/></svg>
+        <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="2.5" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="19" height="8" rx="1" fill="currentColor"/><rect x="23" y="3.5" width="2" height="5" rx="0.5" fill="currentColor" opacity="0.5"/></svg>
+      </div>
+    </div>
+    <div class="screen">
+      <div class="mb">
+        <div class="mb-bar">
+          <div class="mb-mark">LIFTORY · M3</div>
+          <div class="mb-coords">DAY <span>11/30</span> · MISSION READY</div>
+        </div>
+        <div class="mb-divider"></div>
+
+        <div class="mb-mission-row">
+          <div class="mb-mission-label">Mission Briefing</div>
+          <div class="mb-mission-num">11 / <span>30</span></div>
+        </div>
+        <div class="mb-day">Density <em>Day</em></div>
+        <div class="mb-tagline">KB Z Press × Commando · density block</div>
+
+        <div class="mb-readout">
+          <div class="mb-readout-title">
+            <span>OBJETIVO TÁCTICO</span>
+            <em>·· LIVE</em>
+          </div>
+          <div class="mb-row">
+            <div class="mb-row-key">Duración</div>
+            <div class="mb-row-val">78 MIN</div>
+          </div>
+          <div class="mb-row">
+            <div class="mb-row-key">Sets</div>
+            <div class="mb-row-val">53</div>
+          </div>
+          <div class="mb-row">
+            <div class="mb-row-key">Intensidad</div>
+            <div class="mb-row-val">
+              <span class="mb-bar-fill">
+                <span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span><span></span><span></span><span></span>
+              </span>
+            </div>
+          </div>
+          <div class="mb-row">
+            <div class="mb-row-key">Target RPE</div>
+            <div class="mb-row-val">8 — 9</div>
+          </div>
+          <div class="mb-row">
+            <div class="mb-row-key">Foco</div>
+            <div class="mb-row-val">Hombros · Pull</div>
+          </div>
+        </div>
+
+        <div class="mb-cta-wrap">
+          <button class="mb-cta">INITIATE SESSION</button>
+          <div class="mb-cta-sub">Empieza cuando estés listo</div>
+        </div>
+
+        <div class="mb-campaign-title">Campaña · Build Him Elite</div>
+        <div class="mb-campaign">
+          <div class="mb-camp-row done">
+            <div class="mb-camp-key">M1</div>
+            <div class="mb-bars">
+              <span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span>
+            </div>
+            <div class="mb-camp-status">CLEAR</div>
+          </div>
+          <div class="mb-camp-row done">
+            <div class="mb-camp-key">M2</div>
+            <div class="mb-bars">
+              <span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span>
+            </div>
+            <div class="mb-camp-status">CLEAR</div>
+          </div>
+          <div class="mb-camp-row active">
+            <div class="mb-camp-key">M3</div>
+            <div class="mb-bars">
+              <span class="done"></span><span class="done"></span><span class="active"></span><span></span><span></span><span></span>
+            </div>
+            <div class="mb-camp-status">ACTIVE</div>
+          </div>
+          <div class="mb-camp-row">
+            <div class="mb-camp-key">M4</div>
+            <div class="mb-bars">
+              <span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <div class="mb-camp-status">QUEUED</div>
+          </div>
+        </div>
+
+        <div class="mb-intel">
+          <span>STREAK · <span class="mb-intel-val">0d</span></span>
+          <span>PRs · <span class="mb-intel-val">34</span></span>
+          <span>LAST · <span class="mb-intel-val">SAT</span></span>
+        </div>
+      </div>
+
+      <div class="nav">
+        <div class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-8 9 8M5 9v12h14V9"/></svg>
+          Home
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>
+          Programa
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l5-5 4 4 7-9"/><path d="M14 7h6v6"/></svg>
+          Progreso
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 22c0-4 4-7 8-7s8 3 8 7"/></svg>
+          Perfil
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <strong>Tono.</strong> Briefing pre-misión. La sesión es un objetivo táctico que se
+    activa. El meso es una campaña en curso. Disciplina sin agresividad.
+    <ul>
+      <li>Readout estilo cockpit — intensidad y RPE como gauges, no como texto suelto</li>
+      <li>Campaña horizontal con barras = visualización de progreso por meso</li>
+      <li>"INITIATE SESSION" + sub-copy quita la fricción mental del "abrir"</li>
+      <li>Intel footer (streak/PRs/last) — métricas como inteligencia de campo</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     PROPUESTA C · ATELIER (Quiet Luxury)
+     ════════════════════════════════════════════════════════════════ -->
+<div class="proposal">
+  <div class="label-row">
+    <div class="number">C.</div>
+    <div class="concept">Atelier</div>
+    <div class="tagline">Quiet Luxury · Ceremonial</div>
+  </div>
+
+  <div class="phone">
+    <div class="status">
+      <span>9:41</span>
+      <div class="status-icons">
+        <svg width="18" height="10" viewBox="0 0 18 10" fill="currentColor"><rect x="0" y="6" width="3" height="4"/><rect x="5" y="4" width="3" height="6"/><rect x="10" y="2" width="3" height="8"/><rect x="15" y="0" width="3" height="10"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 5.5C3 3 6 1.5 8 1.5C10 1.5 13 3 15 5.5"/><path d="M3 7.5C4.5 6 6.5 5 8 5C9.5 5 11.5 6 13 7.5"/><circle cx="8" cy="9.5" r="1" fill="currentColor"/></svg>
+        <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="2.5" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="19" height="8" rx="1" fill="currentColor"/><rect x="23" y="3.5" width="2" height="5" rx="0.5" fill="currentColor" opacity="0.5"/></svg>
+      </div>
+    </div>
+    <div class="screen">
+      <div class="at">
+        <div class="at-top">
+          <div class="at-mark">LIFTORY</div>
+          <div class="at-meta">Lunes · 22 jun</div>
+        </div>
+
+        <div class="at-center">
+          <div class="at-phase">Acumulación</div>
+          <div class="at-week">Semana 3 / 6</div>
+          <div class="at-title">
+            Density
+            <strong>Day</strong>
+          </div>
+          <div class="at-rule"></div>
+          <div class="at-sub">78 min · 53 sets</div>
+          <div class="at-cta">
+            <span>Abrir sesión</span>
+            <div class="at-cta-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="at-meso-strip">
+          <div class="at-dots">
+            <span class="done"></span><span class="done"></span><span class="active"></span><span></span><span></span><span></span>
+          </div>
+          <div class="at-meso-label">Mesociclo <span>III</span> de VI</div>
+        </div>
+      </div>
+
+      <div class="nav">
+        <div class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-8 9 8M5 9v12h14V9"/></svg>
+          Home
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>
+          Programa
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l5-5 4 4 7-9"/><path d="M14 7h6v6"/></svg>
+          Progreso
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 22c0-4 4-7 8-7s8 3 8 7"/></svg>
+          Perfil
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <strong>Tono.</strong> Quiet luxury. Una cosa por pantalla. La app confía en que
+    el atleta ya sabe qué hacer — solo necesita el detonante. Restraint = poder.
+    <ul>
+      <li>Hero único centrado · todo lo demás es accesorio</li>
+      <li>Meso como dots horizontales (M1—M6) — selección por gesto, no menú</li>
+      <li>Stats ocultos en pull-down · disponibles, no impuestos</li>
+      <li>Gold solo en 2 acentos · resto bone/muted · paleta de hotel cinco-estrellas</li>
+    </ul>
+  </div>
+</div>
+
+</div>
+<!-- ════════════════════════════════ /GRID ════════════════════════════════ -->
+
+<!-- ════════════════════════════════ OUTRO ════════════════════════════════ -->
+<div class="outro">
+  <h2>Cómo decidir</h2>
+  <div class="outro-grid">
+    <div class="outro-col">
+      <h3>Elegí A · Editorial</h3>
+      <p>
+        Si querés que la app se sienta como un <strong>contenido curado</strong> que el atleta
+        consume diario. Funciona si en el futuro vas a editorializar la voz: notas del coach,
+        historias detrás de cada meso, ediciones especiales.
+      </p>
+    </div>
+    <div class="outro-col">
+      <h3>Elegí B · Mission</h3>
+      <p>
+        Si tus atletas son <strong>operadores</strong> que quieren saber exactamente qué van a
+        hacer y por qué. Ideal si planeas integrar HRV, fueling, sleep — los gauges absorben datos
+        sin cambiar el patrón visual.
+      </p>
+    </div>
+    <div class="outro-col">
+      <h3>Elegí C · Atelier</h3>
+      <p>
+        Si querés diferenciarte de TODA la categoría de fitness apps con <strong>restraint</strong>.
+        Más cara de fabricar (cada pantalla pide poco y por eso pesa cada decisión) pero más
+        memorable. Esto es lo que haría un equipo de diseño en Patek o Loro Piana.
+      </p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

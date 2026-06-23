@@ -37,6 +37,17 @@ import AdminPayments from "./pages/admin/AdminPayments";
 import Badges from "./pages/Badges";
 import BadgeClaim from "./pages/BadgeClaim";
 import SyncStatusBadge from "./components/SyncStatusBadge";
+import Splash from "./components/Splash";
+import { useAuth } from "./context/AuthContext";
+
+/** Reads the profile to greet the athlete by name on cold-start splash.
+ *  Lives inside AuthProvider so useAuth resolves. Splash self-times-out
+ *  even when the profile hasn't loaded yet — name is purely decorative. */
+function SplashGate() {
+  const { profile } = useAuth();
+  const firstName = profile?.full_name?.split(" ")[0];
+  return <Splash name={firstName} />;
+}
 
 // Apply dark mode preference on load (before render)
 if (localStorage.getItem("liftory-dark-mode") === "true") {
@@ -63,6 +74,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <AppProvider>
+            <SplashGate />
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<Index />} />
