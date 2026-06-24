@@ -258,11 +258,12 @@ export default function WorkoutOverview({
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
-      {/* Header — single compact bar.
-          Back arrow · centered day name + meta · LIFTORY watermark on right.
-          The athlete already saw the big "Tempo / Lower" on the home, so we
-          don't repeat the hero here. The compact line earns its place by
-          confirming WHERE they are without taking vertical space. */}
+      {/* Header — single functional bar with back arrow + day name.
+          No wordmark here: the workout view is an action context (athlete
+          is about to train), so the brand mark from the home entry has
+          already done its job. Following the convention of Headspace,
+          Calm, Apple Fitness+, and Whoop — wordmark sets the frame,
+          then disappears so the experience can breathe. */}
       <div
         className="sticky top-0 z-40 px-5 pt-14 pb-5"
         style={{ background: "rgba(13,13,15,0.92)", backdropFilter: "blur(20px)" }}
@@ -295,20 +296,9 @@ export default function WorkoutOverview({
               ~{workout.estimated_duration ?? 60} min · {blocks.length} bloques
             </p>
           </div>
-          <span
-            className="font-display uppercase shrink-0"
-            style={{
-              fontFamily: "'Syne', sans-serif",
-              fontWeight: 800,
-              fontSize: 12,
-              letterSpacing: "-0.04em",
-              color: "#C4A24E",
-              lineHeight: 1,
-              textShadow: "0 0 12px rgba(196,162,78,0.28)",
-            }}
-          >
-            LIFTORY
-          </span>
+          {/* invisible spacer to keep the title visually centered, since the
+              left side has a 36px back button */}
+          <div className="shrink-0" style={{ width: 36 }} />
         </div>
       </div>
 
