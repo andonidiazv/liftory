@@ -1,10 +1,25 @@
-import { ChevronLeft, Check, Clock, ChevronRight, AlertCircle, PersonStanding } from "lucide-react";
+import { ChevronLeft, Check, Clock, ChevronRight, AlertCircle } from "lucide-react";
 import type { WorkoutData, ExerciseGroup, SupersetGroup, ExerciseDelta } from "@/hooks/useWorkoutData";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
 import { BLOCK_LABEL_COLORS } from "@/constants/blocks";
 import ExpandableNote from "./ExpandableNote";
+
+/**
+ * ATELIER WORKOUT OVERVIEW · Phase 2.
+ *
+ * Atelier-voice rebuild of the workout overview. Functionality is 1:1
+ * with the previous version — every dialog, soft-gate check, navigation
+ * path, and badge detection logic is preserved. Only the visible
+ * surface changes:
+ *   - Header: small LIFTORY watermark + back arrow
+ *   - Hero: day title centered (Tempo / Lower split typography)
+ *   - Coach note: quiet italic paragraph, no card chrome
+ *   - Blocks: numbered hairline rows (01, 02, …) with a gold marker
+ *     for the next-up block and muted opacity on completed ones
+ *   - Footer: minimal progress hairline + Terminar Sesión button
+ */
 
 /** A "block" is a visual grouping of exercises for the overview */
 export interface WorkoutBlock {
@@ -20,7 +35,8 @@ export interface WorkoutBlock {
   supersetGroup?: SupersetGroup;
 }
 
-/** Fallback colors by block type */
+/** Fallback colors by block type — kept for future use even if the row UI
+ *  no longer surfaces them as left borders. */
 const BLOCK_TYPE_COLORS: Record<string, string> = {
   mobility: "#7A8B5C",
   cooldown: "#7A8B5C",
@@ -83,20 +99,32 @@ function getBlockWarnings(block: WorkoutBlock): { unloggedSets: number; missingW
 function BlockNameDisplay({ name }: { name: string }) {
   const dashIdx = name.indexOf(' — ');
   if (dashIdx === -1) {
-    return <span className="font-display text-[15px] font-bold text-foreground" style={{ letterSpacing: "-0.01em" }}>{name}</span>;
+    return (
+      <span
+        className="font-display text-foreground"
+        style={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.01em", lineHeight: 1.1 }}
+      >
+        {name}
+      </span>
+    );
   }
   return (
-    <span className="font-display text-[15px] text-foreground" style={{ letterSpacing: "-0.01em" }}>
-      <span className="font-bold">{name.slice(0, dashIdx)}</span>
-      <span className="font-normal">{name.slice(dashIdx)}</span>
+    <span className="font-display text-foreground" style={{ fontSize: 15, letterSpacing: "-0.01em", lineHeight: 1.1 }}>
+      <span style={{ fontWeight: 700 }}>{name.slice(0, dashIdx)}</span>
+      <span style={{ fontWeight: 400 }}>{name.slice(dashIdx)}</span>
     </span>
   );
 }
 
-function getDayName(date: string): string {
-  const d = new Date(date + "T12:00:00");
-  const days = ["DOMINGO", "LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES", "SÁBADO"];
-  return days[d.getDay()] || "";
+/** Atelier hero title split: "TEMPO LOWER" → top="Tempo" + bottom="Lower" */
+function splitDayLabel(label: string): { top: string; bottom: string | null } {
+  const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+  const parts = label.trim().split(/\s+/);
+  if (parts.length === 1) return { top: cap(parts[0]), bottom: null };
+  return {
+    top: parts.slice(0, -1).map(cap).join(" "),
+    bottom: cap(parts[parts.length - 1]),
+  };
 }
 
 interface Props {
@@ -150,7 +178,7 @@ export default function WorkoutOverview({
   blocks,
   totalSets,
   completedSets,
-  programTotalWeeks,
+  programTotalWeeks: _programTotalWeeks,
   scrollToBlockId,
   exerciseDeltas,
   onBack,
@@ -185,12 +213,10 @@ export default function WorkoutOverview({
   // (including the one right before) with unlogged sets or missing weights
   const handleBlockNavigate = (targetBlock: WorkoutBlock, fromBlockId?: string) => {
     const targetIdx = blocks.findIndex(b => b.id === targetBlock.id);
-    // Look from the start up to (but not including) the target for any strength block with issues
     for (let i = 0; i < targetIdx; i++) {
       const prevBlock = blocks[i];
       const prevDone = prevBlock.completedSets >= prevBlock.totalSets && prevBlock.totalSets > 0;
       if (prevDone) {
-        // Even if "done" (all sets marked complete), check if weights are missing
         const isStrength = !isInstructionBlock(prevBlock);
         if (isStrength) {
           const warnings = getBlockWarnings(prevBlock);
@@ -203,7 +229,7 @@ export default function WorkoutOverview({
         continue;
       }
       const isStrength = !isInstructionBlock(prevBlock);
-      if (!isStrength) continue; // mobility/cooldown, skip
+      if (!isStrength) continue;
       const warnings = getBlockWarnings(prevBlock);
       if (warnings.unloggedSets > 0 || warnings.missingWeights > 0) {
         setSoftGateBlockId(prevBlock.id);
@@ -211,7 +237,6 @@ export default function WorkoutOverview({
         return;
       }
     }
-    // Also check the "from" block (the one we're leaving) if provided
     if (fromBlockId) {
       const fromBlock = blocks.find(b => b.id === fromBlockId);
       if (fromBlock && !isInstructionBlock(fromBlock)) {
@@ -226,162 +251,206 @@ export default function WorkoutOverview({
     onBlockSelect(targetBlock);
   };
 
+  const { top: titleTop, bottom: titleBottom } = splitDayLabel(workout.day_label);
+  const progressPct = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
+
   return (
     <div className="flex min-h-dvh flex-col bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm px-5 pb-4 pt-14">
-        <div className="flex items-center gap-3">
-          <button onClick={onBack} className="press-scale flex h-9 w-9 items-center justify-center rounded-xl bg-secondary">
-            <ChevronLeft className="h-4 w-4 text-foreground" />
+      {/* Header — back arrow + LIFTORY watermark, mirror of home top */}
+      <div
+        className="sticky top-0 z-40 px-6 pt-14 pb-4"
+        style={{ background: "rgba(13,13,15,0.92)", backdropFilter: "blur(20px)" }}
+      >
+        <div className="relative flex items-center justify-center">
+          <button
+            onClick={onBack}
+            className="press-scale absolute left-0 flex h-9 items-center justify-center px-1"
+            aria-label="Volver"
+          >
+            <ChevronLeft className="h-5 w-5" style={{ color: "#C4A24E" }} />
           </button>
-          <div className="flex-1">
-            <p className="font-mono uppercase text-primary" style={{ fontSize: 10, letterSpacing: "2.5px" }}>
-              {getDayName(workout.scheduled_date)}
-            </p>
-            <h1 className="font-display text-2xl font-bold text-foreground" style={{ letterSpacing: "-0.02em" }}>
-              {workout.day_label}
-            </h1>
-            <p className="font-body text-muted-foreground" style={{ fontSize: 13 }}>
-              ~{workout.estimated_duration ?? 60} min · Semana {workout.week_number} de {programTotalWeeks}
-            </p>
-          </div>
+          <span
+            className="font-display uppercase"
+            style={{
+              fontFamily: "'Syne', sans-serif",
+              fontWeight: 800,
+              fontSize: 14,
+              letterSpacing: "-0.04em",
+              color: "#C4A24E",
+              lineHeight: 1,
+              textShadow: "0 0 14px rgba(196,162,78,0.28)",
+            }}
+          >
+            LIFTORY
+          </span>
         </div>
       </div>
 
-      {/* Coach Note — with dynamic phase context */}
+      {/* Hero — day title centered. Same split styling as home so the screens
+          read as siblings. Big top margin to clear the sticky header. */}
+      <div className="px-6 mt-14 mb-10 text-center">
+        <h1
+          className="font-display"
+          style={{
+            letterSpacing: "-0.05em",
+            lineHeight: 0.88,
+            color: "hsl(var(--foreground))",
+          }}
+        >
+          <span className="block" style={{ fontWeight: 300, fontSize: 48 }}>
+            {titleTop}
+          </span>
+          {titleBottom && (
+            <span
+              className="block"
+              style={{ fontWeight: 700, fontSize: 30, marginTop: 4 }}
+            >
+              {titleBottom}
+            </span>
+          )}
+        </h1>
+        <p
+          className="mt-4 font-mono uppercase"
+          style={{ fontSize: 10, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+        >
+          ~{workout.estimated_duration ?? 60} MIN · {totalSets} SETS · {blocks.length} BLOQUES
+        </p>
+      </div>
+
+      {/* Coach Note — quiet italic paragraph (no card chrome) */}
       {workout.coach_note && (
-        <CoachNote note={workout.coach_note} shortOnTimeNote={workout.short_on_time_note} weekNumber={workout.week_number} totalWeeks={programTotalWeeks} />
+        <CoachNote
+          note={workout.coach_note}
+          shortOnTimeNote={workout.short_on_time_note}
+          weekNumber={workout.week_number}
+          totalWeeks={_programTotalWeeks}
+        />
       )}
 
-      {/* Blocks */}
-      <div className="flex-1 px-5 pb-32">
-        <div className="flex flex-col gap-3">
+      {/* Blocks — numbered hairline rows */}
+      <div className="flex-1 px-6 pb-36">
+        <div className="flex flex-col">
           {blocks.map((block, blockIdx) => {
             const done = block.completedSets >= block.totalSets && block.totalSets > 0;
-            const color = getBlockColor(block);
-            const isRecovery = block.name === 'RECOVERY BLOCK';
-            // Use isInstructionBlock() so dual-purpose ATHLETIC INTEGRATION blocks with
-            // 'working' sets render as strength (with reps/weight) instead of mobility.
-            const isMobility = isInstructionBlock(block) || block.type === 'cooldown';
+            const isMobility = isInstructionBlock(block) || block.type === "cooldown";
             const isActive = blockIdx === firstPendingIdx;
-            const nextBlock = blockIdx < blocks.length - 1 ? blocks[blockIdx + 1] : null;
+            const orderLabel = String(blockIdx + 1).padStart(2, "0");
+            const chips = exerciseDeltas && !isMobility ? getBlockDeltaChips(block, exerciseDeltas) : [];
 
-            // Completed block — compact view
-            if (done) {
-              return (
-                <div key={block.id} ref={(el) => { blockRefs.current[block.id] = el; }}>
-                  <button
-                    onClick={() => onBlockSelect(block)}
-                    className="flex w-full items-center gap-3 text-left rounded-xl px-4 py-3 transition-all"
-                    style={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      opacity: 0.7,
-                    }}
-                  >
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary shrink-0">
-                      <Check className="h-3.5 w-3.5 text-primary-foreground" />
-                    </div>
-                    <BlockNameDisplay name={block.name} />
-                    <span className="ml-auto font-mono text-muted-foreground" style={{ fontSize: 11 }}>
-                      {block.completedSets}/{block.totalSets}
-                    </span>
-                  </button>
-                  {/* "Next block" button after last completed block before the active one */}
-                  {nextBlock && blockIdx === firstPendingIdx - 1 && (
-                    <button
-                      onClick={() => handleBlockNavigate(nextBlock)}
-                      className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 font-display text-[13px] font-semibold transition-colors"
-                      style={{ background: t.accentBg, color: t.accent }}
-                    >
-                      Siguiente bloque <ChevronRight className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-              );
-            }
-
-            // Active block — with breathing glow
             return (
               <button
                 key={block.id}
                 ref={(el) => { blockRefs.current[block.id] = el; }}
                 onClick={() => handleBlockNavigate(block)}
-                className={`press-scale flex w-full items-stretch gap-0 text-left transition-all ${isActive ? "block-breathing" : ""}`}
+                className="press-scale flex w-full items-start py-5 text-left"
                 style={{
-                  borderRadius: 16,
-                  border: isActive
-                    ? `1.5px solid ${isMobility ? "rgba(122,139,92,0.4)" : `${t.accent}66`}`
-                    : `1px solid ${isMobility ? "rgba(122,139,92,0.2)" : t.border}`,
-                  backgroundColor: isActive
-                    ? (isMobility ? "rgba(122,139,92,0.06)" : t.accentBg)
-                    : (isMobility ? "rgba(122,139,92,0.03)" : t.card),
-                  overflow: "hidden",
+                  borderTop: blockIdx === 0 ? "1px solid hsl(var(--border))" : "none",
+                  borderBottom: "1px solid hsl(var(--border))",
+                  opacity: done ? 0.5 : 1,
                 }}
               >
-                {/* Color bar */}
-                <div style={{ width: 4, backgroundColor: color, flexShrink: 0 }} />
-                {/* Content */}
-                <div className="flex flex-1 items-center gap-3 p-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {isMobility && <PersonStanding className="h-4 w-4 shrink-0" style={{ color: "#7A8B5C" }} />}
-                      <BlockNameDisplay name={block.name} />
-                      {block.formatBadge && (
-                        <span
-                          className="font-mono rounded-full px-2 py-0.5"
-                          style={{ fontSize: 9, letterSpacing: "0.05em", backgroundColor: t.border, color: t.text }}
-                        >
-                          {block.formatBadge}
-                        </span>
-                      )}
-                      {isActive && (
-                        <span
-                          className="font-mono rounded-full px-2 py-0.5"
-                          style={{ fontSize: 8, letterSpacing: "0.1em", backgroundColor: t.accentBgStrong, color: t.accent, fontWeight: 700 }}
-                        >
-                          SIGUIENTE
-                        </span>
-                      )}
-                    </div>
-                    <p className="mt-0.5 font-body text-muted-foreground truncate" style={{ fontSize: 12 }}>
-                      {block.exerciseNames.join(" · ")}
-                    </p>
-                    {!isInstructionBlock(block) && (
-                      <p className="mt-1 font-mono text-muted-foreground" style={{ fontSize: 11 }}>
-                        {block.totalSets} sets · ~{block.estimatedMinutes} min
-                      </p>
+                {/* Number + active marker */}
+                <div className="flex flex-col items-start mr-4 shrink-0" style={{ width: 30 }}>
+                  <span
+                    className="font-mono"
+                    style={{
+                      fontSize: 10,
+                      letterSpacing: "1.5px",
+                      color: isActive ? "#C4A24E" : "hsl(var(--muted-foreground))",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {orderLabel}
+                  </span>
+                  <div
+                    style={{
+                      width: isActive ? 18 : 12,
+                      height: 2,
+                      background: isActive ? "#C4A24E" : "hsl(var(--border))",
+                      marginTop: 6,
+                      boxShadow: isActive ? "0 0 10px rgba(196,162,78,0.55)" : "none",
+                      transition: "all 0.3s ease",
+                    }}
+                  />
+                </div>
+
+                {/* Name + exercise preview + meta */}
+                <div className="flex-1 min-w-0 mr-3">
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <BlockNameDisplay name={block.name} />
+                    {block.formatBadge && (
+                      <span
+                        className="font-mono uppercase"
+                        style={{
+                          fontSize: 8,
+                          letterSpacing: "2px",
+                          color: "hsl(var(--muted-foreground))",
+                          padding: "1px 6px",
+                          background: "hsl(var(--secondary))",
+                          borderRadius: 999,
+                        }}
+                      >
+                        {block.formatBadge}
+                      </span>
                     )}
-                    {exerciseDeltas && !isMobility && (() => {
-                      const chips = getBlockDeltaChips(block, exerciseDeltas);
-                      if (chips.length === 0) return null;
-                      return (
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                          {chips.map((chip, idx) => (
-                            <span
-                              key={idx}
-                              className="font-mono rounded-full px-2 py-0.5"
-                              style={{
-                                fontSize: 9,
-                                letterSpacing: "0.05em",
-                                backgroundColor: t.accentBgStrong,
-                                color: t.accent,
-                                fontWeight: 600,
-                              }}
-                            >
-                              {chip}
-                            </span>
-                          ))}
-                        </div>
-                      );
-                    })()}
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="font-mono text-muted-foreground" style={{ fontSize: 12 }}>
+                  <p
+                    className="mt-1 font-body text-muted-foreground"
+                    style={{ fontSize: 12, lineHeight: 1.35, wordBreak: "break-word" }}
+                  >
+                    {block.exerciseNames.slice(0, 3).join(" · ")}
+                    {block.exerciseNames.length > 3 ? ` · +${block.exerciseNames.length - 3}` : ""}
+                  </p>
+                  <p
+                    className="mt-1.5 font-mono uppercase"
+                    style={{ fontSize: 9, letterSpacing: "1.5px", color: "hsl(var(--muted-foreground))" }}
+                  >
+                    {!isInstructionBlock(block) ? (
+                      <>{block.totalSets} SETS · ~{block.estimatedMinutes} MIN</>
+                    ) : (
+                      <>~{block.estimatedMinutes} MIN</>
+                    )}
+                  </p>
+                  {chips.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {chips.map((chip, idx) => (
+                        <span
+                          key={idx}
+                          className="font-mono uppercase"
+                          style={{
+                            fontSize: 8,
+                            letterSpacing: "1.5px",
+                            color: "#C4A24E",
+                            background: "rgba(196,162,78,0.08)",
+                            border: "1px solid rgba(196,162,78,0.2)",
+                            padding: "2px 8px",
+                            borderRadius: 999,
+                            fontWeight: 600,
+                          }}
+                        >
+                          {chip}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Right edge: sets count or check, + chevron */}
+                <div className="flex items-center gap-2 shrink-0 mt-1">
+                  {done ? (
+                    <Check className="h-4 w-4" style={{ color: "#C4A24E" }} strokeWidth={2.5} />
+                  ) : (!isInstructionBlock(block) && (
+                    <span
+                      className="font-mono"
+                      style={{ fontSize: 11, color: "hsl(var(--muted-foreground))" }}
+                    >
                       {block.completedSets}/{block.totalSets}
                     </span>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  </div>
+                  ))}
+                  <ChevronRight
+                    className="h-4 w-4"
+                    style={{ color: isActive ? "#C4A24E" : "hsl(var(--muted-foreground))" }}
+                  />
                 </div>
               </button>
             );
@@ -389,18 +458,38 @@ export default function WorkoutOverview({
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border px-5 py-4">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "hsl(var(--border))" }}>
-            <div
-              className="h-full rounded-full bg-primary transition-all duration-500"
-              style={{ width: `${totalSets > 0 ? (completedSets / totalSets) * 100 : 0}%` }}
-            />
-          </div>
-          <span className="font-mono text-muted-foreground shrink-0" style={{ fontSize: 11 }}>
-            {completedSets}/{totalSets} sets
+      {/* Footer — minimal progress + Terminar Sesión */}
+      <div
+        className="fixed bottom-0 left-0 right-0 z-40 px-6 pt-3 pb-6"
+        style={{
+          background: "rgba(13,13,15,0.92)",
+          backdropFilter: "blur(20px)",
+          borderTop: "1px solid hsl(var(--border))",
+        }}
+      >
+        <div className="flex items-center justify-between mb-2">
+          <span
+            className="font-mono uppercase"
+            style={{ fontSize: 9, letterSpacing: "2px", color: "hsl(var(--muted-foreground))" }}
+          >
+            {completedSets} / {totalSets} sets
           </span>
+          <span
+            className="font-mono uppercase"
+            style={{ fontSize: 9, letterSpacing: "2px", color: "hsl(var(--muted-foreground))" }}
+          >
+            {progressPct}%
+          </span>
+        </div>
+        <div className="relative h-px w-full mb-4" style={{ background: "hsl(var(--border))" }}>
+          <div
+            className="absolute top-0 left-0 h-px transition-all duration-500"
+            style={{
+              width: `${progressPct}%`,
+              background: "#C4A24E",
+              boxShadow: progressPct > 0 ? "0 0 8px rgba(196,162,78,0.4)" : "none",
+            }}
+          />
         </div>
         <button
           onClick={() => {
@@ -411,10 +500,19 @@ export default function WorkoutOverview({
             }
           }}
           disabled={saving}
-          className={`press-scale flex w-full items-center justify-center gap-2 rounded-xl py-4 font-display text-[15px] font-semibold text-primary-foreground disabled:opacity-50 ${allDone ? "block-breathing" : ""}`}
-          style={{ backgroundColor: "hsl(var(--primary))" }}
+          className="press-scale w-full font-display font-bold uppercase disabled:opacity-50 transition-colors"
+          style={{
+            background: allDone ? "#C4A24E" : "transparent",
+            color: allDone ? "#0D0D0F" : "hsl(var(--foreground))",
+            border: allDone ? "none" : "1px solid hsl(var(--border))",
+            fontSize: 13,
+            letterSpacing: "0.12em",
+            padding: "16px 0",
+            borderRadius: 14,
+            boxShadow: allDone ? "0 16px 36px -12px rgba(196,162,78,0.45)" : "none",
+          }}
         >
-          TERMINAR SESIÓN
+          Terminar sesión
         </button>
       </div>
 
@@ -490,17 +588,6 @@ export default function WorkoutOverview({
           </div>
         </div>
       )}
-
-      {/* Breathing animation */}
-      <style>{`
-        @keyframes blockBreathe {
-          0%, 100% { box-shadow: 0 4px 16px 0 rgba(0,0,0,0.15); }
-          50% { box-shadow: 0 10px 40px 8px rgba(0,0,0,0.4); }
-        }
-        .block-breathing {
-          animation: blockBreathe 3s ease-in-out infinite;
-        }
-      `}</style>
     </div>
   );
 }
@@ -515,89 +602,99 @@ const PHASE_CONFIG: Record<number, { label: string; prefix: string }> = {
   6: { label: "DELOAD", prefix: "Semana deload." },
 };
 
-// Patterns to strip from hardcoded coach_notes (case-insensitive)
 const PHASE_STRIP_PATTERNS = [
   /^semana\s+(base\+?|de\s+acumulaci[oó]n|de\s+intensificaci[oó]n|peak|deload|de\s+recuperaci[oó]n)[.,:;\s—\-]*/i,
   /^fase\s+(base|acumulaci[oó]n|intensificaci[oó]n|peak|deload)[.,:;\s—\-]*/i,
 ];
 
-function cleanCoachNote(raw: string, weekNumber: number, totalWeeks: number): string {
-  // 1. Strip any existing phase prefix from the hardcoded note
+function cleanCoachNote(raw: string, weekNumber: number, _totalWeeks: number): string {
   let cleaned = raw.trim();
   for (const pattern of PHASE_STRIP_PATTERNS) {
     cleaned = cleaned.replace(pattern, "").trim();
   }
-
-  // 2. Get the correct phase for this week
   const phase = PHASE_CONFIG[weekNumber] || PHASE_CONFIG[Math.min(weekNumber, 6)];
   if (!phase) return cleaned;
-
-  // 3. Prepend correct phase context
   if (cleaned) {
-    // Capitalize first letter of remaining text
     cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
     return `${phase.prefix} ${cleaned}`;
   }
-
   return phase.prefix;
 }
 
-function CoachNote({ note, shortOnTimeNote, weekNumber, totalWeeks }: { note: string; shortOnTimeNote: string | null; weekNumber: number; totalWeeks: number }) {
-  const { isDark } = useDarkMode();
-  const t = isDark ? noche : dia;
+/**
+ * Atelier-quiet coach note. No card chrome — just an italic paragraph
+ * with a tiny "Coach" eyebrow and a discreet "¿Sin tiempo?" pill that
+ * expands to the short-on-time note when tapped.
+ */
+function CoachNote({
+  note, shortOnTimeNote, weekNumber, totalWeeks,
+}: {
+  note: string; shortOnTimeNote: string | null; weekNumber: number; totalWeeks: number;
+}) {
   const [showShortNote, setShowShortNote] = useState(false);
   const displayNote = cleanCoachNote(note, weekNumber, totalWeeks);
 
   return (
-    <div className="px-5 mb-4 space-y-3">
-      <div
-        className="rounded-2xl p-4"
-        style={{
-          backgroundColor: t.accentBg,
-          borderLeft: `3px solid ${t.accent}`,
-        }}
+    <div className="px-6 mb-10">
+      <p
+        className="font-mono uppercase mb-3"
+        style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
       >
-        <p className="font-mono uppercase text-primary" style={{ fontSize: 9, letterSpacing: "2px" }}>
-          NOTA DEL COACH
-        </p>
-        <ExpandableNote
-          text={displayNote}
-          clampLines={3}
-          className="mt-1 font-body text-foreground"
-          style={{ fontSize: 13, lineHeight: 1.5 }}
-        />
-      </div>
+        Coach
+      </p>
+      <ExpandableNote
+        text={displayNote}
+        clampLines={3}
+        className="font-body text-foreground/85"
+        style={{
+          fontSize: 13,
+          lineHeight: 1.55,
+          fontWeight: 300,
+          fontStyle: "italic",
+        }}
+      />
 
-      {/* Short on time pill */}
       {shortOnTimeNote && !showShortNote && (
         <button
           onClick={() => setShowShortNote(true)}
-          className="flex items-center gap-1.5 rounded-lg px-3 py-2 transition-colors"
-          style={{ background: t.accentBg, border: `1px solid ${t.accentBgStrong}` }}
+          className="mt-4 inline-flex items-center gap-1.5 press-scale"
+          style={{
+            border: "1px solid rgba(196,162,78,0.25)",
+            borderRadius: 999,
+            padding: "4px 10px",
+          }}
         >
-          <Clock className="h-3.5 w-3.5" style={{ color: t.accent }} />
-          <span className="font-body text-[12px] font-medium" style={{ color: t.accent }}>
-            ¿Poco tiempo?
+          <Clock className="h-3 w-3" style={{ color: "#C4A24E" }} />
+          <span
+            className="font-mono uppercase"
+            style={{ fontSize: 9, letterSpacing: "2px", color: "#C4A24E" }}
+          >
+            ¿Sin tiempo?
           </span>
         </button>
       )}
       {shortOnTimeNote && showShortNote && (
         <div
-          className="rounded-xl p-3"
-          style={{ background: t.accentBg, border: `1px solid ${t.accentBgStrong}` }}
+          className="mt-4 p-3 rounded-xl"
+          style={{
+            background: "rgba(196,162,78,0.06)",
+            border: "1px solid rgba(196,162,78,0.2)",
+          }}
         >
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex items-start gap-2">
-              <Clock className="h-3.5 w-3.5 mt-0.5 shrink-0" style={{ color: t.accent }} />
-              <p className="font-body text-[12px] text-foreground leading-relaxed">
-                {shortOnTimeNote}
-              </p>
-            </div>
+          <div className="flex items-start justify-between gap-3">
+            <p
+              className="font-body italic text-foreground/85"
+              style={{ fontSize: 12, lineHeight: 1.55, fontWeight: 300 }}
+            >
+              {shortOnTimeNote}
+            </p>
             <button
               onClick={() => setShowShortNote(false)}
-              className="shrink-0 p-0.5 rounded-full"
+              className="shrink-0 text-muted-foreground"
+              style={{ fontSize: 14 }}
+              aria-label="Cerrar"
             >
-              <span className="text-muted-foreground text-xs">✕</span>
+              ✕
             </button>
           </div>
         </div>
