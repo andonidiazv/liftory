@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { isVipJoiner } from "@/lib/vip-emails";
 import { syncQueue } from "@/lib/syncQueue";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, Check, ChevronLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import WorkoutOverview, { type WorkoutBlock } from "@/components/workout/WorkoutOverview";
 import BlockDetail from "@/components/workout/BlockDetail";
@@ -784,37 +784,89 @@ export default function Workout() {
 
         {/* Finish modal inside block detail */}
         {showFinishModal && (
-          <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60" onClick={() => setShowFinishModal(false)}>
-            <div className="w-full max-w-lg rounded-t-2xl p-6" style={{ background: "#2A2A2E", borderTop: "2px solid hsl(43,50%,54%)" }} onClick={(e) => e.stopPropagation()}>
-              <h3 className="font-display text-lg font-semibold text-foreground">Finalizar sesión</h3>
+          <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70" onClick={() => setShowFinishModal(false)}>
+            <div
+              className="w-full max-w-lg p-7 pb-10"
+              style={{
+                background: "#15151A",
+                borderTop: "1px solid hsl(var(--border))",
+                borderTopLeftRadius: 24,
+                borderTopRightRadius: 24,
+                animation: "fadeInUp 0.25s ease-out",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="font-mono uppercase mb-3" style={{ fontSize: 9, letterSpacing: "2.5px", color: "#C4A24E" }}>
+                Cierre
+              </p>
+              <h3 className="font-display" style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em", color: "hsl(var(--foreground))" }}>
+                Finalizar sesión
+              </h3>
+              <p className="mt-2 font-body italic" style={{ fontSize: 13, fontWeight: 300, lineHeight: 1.55, color: "hsl(var(--muted-foreground))" }}>
+                Deja una nota si querés guardar el feeling de hoy.
+              </p>
               <textarea
                 value={finishNotes}
                 onChange={(e) => setFinishNotes(e.target.value)}
                 placeholder="Notas de la sesión (opcional)..."
-                className="mt-4 w-full rounded-xl bg-secondary p-4 text-sm text-foreground font-body placeholder:text-muted-foreground outline-none resize-none"
+                className="mt-5 w-full font-body outline-none resize-none"
+                style={{
+                  background: "transparent",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: 14,
+                  padding: "14px 16px",
+                  fontSize: 13,
+                  color: "hsl(var(--foreground))",
+                }}
                 rows={3}
               />
               <button
                 onClick={handleFinish}
                 disabled={saving}
-                className="press-scale mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-body text-[15px] font-medium text-primary-foreground disabled:opacity-50"
+                className="press-scale mt-7 flex items-center justify-center gap-3 mx-auto disabled:opacity-50"
+                aria-label="Finalizar sesión"
               >
-                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                Finalizar workout
+                <span className="font-mono uppercase" style={{ fontSize: 11, letterSpacing: "2.5px", color: "hsl(var(--foreground))", fontWeight: 500 }}>
+                  {saving ? "Guardando…" : "Finalizar sesión"}
+                </span>
+                <span
+                  className="liftory-breathe flex items-center justify-center shrink-0"
+                  style={{
+                    width: 36, height: 36, borderRadius: "50%",
+                    background: "#C4A24E",
+                    boxShadow: "0 0 18px rgba(196,162,78,0.45)",
+                  }}
+                >
+                  {saving
+                    ? <Loader2 className="h-3.5 w-3.5 animate-spin" style={{ color: "#0D0D0F" }} />
+                    : <Check className="h-3.5 w-3.5" style={{ color: "#0D0D0F" }} strokeWidth={3} />}
+                </span>
               </button>
             </div>
           </div>
         )}
 
-        {/* Soft gate dialog inside block detail */}
+        {/* Soft gate dialog inside block detail — Atelier sheet */}
         {detailSoftGate && (
-          <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60" onClick={() => setDetailSoftGate(null)}>
-            <div className="w-full max-w-lg rounded-t-2xl p-6" style={{ background: "#2A2A2E", borderTop: "2px solid hsl(43,50%,54%)" }} onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center gap-2 mb-2">
-                <AlertCircle className="h-5 w-5 text-primary" />
-                <h3 className="font-display text-lg font-semibold text-foreground">Bloque incompleto</h3>
-              </div>
-              <p className="font-body text-sm text-muted-foreground">
+          <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70" onClick={() => setDetailSoftGate(null)}>
+            <div
+              className="w-full max-w-lg p-7 pb-10"
+              style={{
+                background: "#15151A",
+                borderTop: "1px solid hsl(var(--border))",
+                borderTopLeftRadius: 24,
+                borderTopRightRadius: 24,
+                animation: "fadeInUp 0.25s ease-out",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="font-mono uppercase mb-3" style={{ fontSize: 9, letterSpacing: "2.5px", color: "#C4A24E" }}>
+                Bloque incompleto
+              </p>
+              <h3 className="font-display" style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em", color: "hsl(var(--foreground))", marginBottom: 8 }}>
+                ¿Continuar sin completar?
+              </h3>
+              <p className="font-body italic" style={{ fontSize: 13, fontWeight: 300, lineHeight: 1.6, color: "hsl(var(--muted-foreground))" }}>
                 {(() => {
                   const w = getBlockWarnings(detailSoftGate.currentBlock);
                   const parts: string[] = [];
@@ -823,12 +875,20 @@ export default function Workout() {
                   return `Tienes ${parts.join(" y ")}. Logear tus pesos ayuda a trackear tu progreso y sugerirte cargas futuras.`;
                 })()}
               </p>
-              <div className="mt-4 flex gap-3">
+              <div className="mt-7 flex flex-col gap-4 items-center">
                 <button
                   onClick={() => setDetailSoftGate(null)}
-                  className="flex-1 rounded-xl bg-primary py-3 font-body text-sm font-medium text-primary-foreground"
+                  className="press-scale flex items-center justify-center gap-3"
                 >
-                  Completar bloque
+                  <span className="font-mono uppercase" style={{ fontSize: 11, letterSpacing: "2.5px", color: "hsl(var(--foreground))", fontWeight: 500 }}>
+                    Completar bloque
+                  </span>
+                  <span
+                    className="liftory-breathe flex items-center justify-center shrink-0"
+                    style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid #C4A24E" }}
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" style={{ color: "#C4A24E" }} />
+                  </span>
                 </button>
                 <button
                   onClick={() => {
@@ -854,7 +914,8 @@ export default function Workout() {
                       });
                     });
                   }}
-                  className="flex-1 rounded-xl bg-secondary py-3 font-body text-sm font-medium text-foreground"
+                  className="press-scale font-body underline"
+                  style={{ fontSize: 12, color: "hsl(var(--muted-foreground))" }}
                 >
                   Continuar así
                 </button>

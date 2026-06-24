@@ -404,6 +404,14 @@
   animation: liftory-breathe 2.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+/* Atelier dialog/sheet entry: slide up + fade in.
+   Used for the soft-gate, confirm-finish, finish-modal, and coach-note
+   panels so they read as "rising from below" rather than popping. */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* ═══ STICKER SLAM ═══ */
 @keyframes sticker-slam {
   0% {

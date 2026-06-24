@@ -418,31 +418,68 @@ export default function WorkoutOverview({
             }
           }}
           disabled={saving}
-          className="press-scale w-full font-display font-bold uppercase disabled:opacity-50 transition-colors"
-          style={{
-            background: allDone ? "#C4A24E" : "transparent",
-            color: allDone ? "#0D0D0F" : "hsl(var(--foreground))",
-            border: allDone ? "none" : "1px solid hsl(var(--border))",
-            fontSize: 13,
-            letterSpacing: "0.12em",
-            padding: "16px 0",
-            borderRadius: 14,
-            boxShadow: allDone ? "0 16px 36px -12px rgba(196,162,78,0.45)" : "none",
-          }}
+          className="press-scale flex items-center justify-center gap-3 w-full py-2 disabled:opacity-50"
+          aria-label="Terminar sesión"
         >
-          Terminar sesión
+          <span
+            className="font-mono uppercase"
+            style={{
+              fontSize: 11,
+              letterSpacing: "2.5px",
+              color: "hsl(var(--foreground))",
+              fontWeight: 500,
+            }}
+          >
+            Terminar sesión
+          </span>
+          <span
+            className="liftory-breathe flex items-center justify-center shrink-0"
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: "50%",
+              background: allDone ? "#C4A24E" : "transparent",
+              border: allDone ? "none" : "1px solid #C4A24E",
+              boxShadow: allDone ? "0 0 18px rgba(196,162,78,0.45)" : "none",
+            }}
+          >
+            {allDone
+              ? <Check className="h-3.5 w-3.5" style={{ color: "#0D0D0F" }} strokeWidth={3} />
+              : <ChevronRight className="h-3.5 w-3.5" style={{ color: "#C4A24E" }} />}
+          </span>
         </button>
       </div>
 
-      {/* Soft gate dialog */}
+      {/* Soft gate dialog — Atelier sheet */}
       {softGateBlockId && softGateNextBlock && (
-        <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60" onClick={() => { setSoftGateBlockId(null); setSoftGateNextBlock(null); }}>
-          <div className="w-full max-w-lg rounded-t-2xl p-6" style={{ background: "#2A2A2E", borderTop: `2px solid ${t.accent}` }} onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-2 mb-2">
-              <AlertCircle className="h-5 w-5 text-primary" />
-              <h3 className="font-display text-lg font-semibold text-foreground">Bloque incompleto</h3>
-            </div>
-            <p className="font-body text-sm text-muted-foreground">
+        <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70" onClick={() => { setSoftGateBlockId(null); setSoftGateNextBlock(null); }}>
+          <div
+            className="w-full max-w-lg p-7 pb-10"
+            style={{
+              background: "#15151A",
+              borderTop: "1px solid hsl(var(--border))",
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              animation: "fadeInUp 0.25s ease-out",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p
+              className="font-mono uppercase mb-3"
+              style={{ fontSize: 9, letterSpacing: "2.5px", color: "#C4A24E" }}
+            >
+              Bloque incompleto
+            </p>
+            <h3
+              className="font-display"
+              style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em", color: "hsl(var(--foreground))", marginBottom: 8 }}
+            >
+              ¿Continuar sin completar?
+            </h3>
+            <p
+              className="font-body italic"
+              style={{ fontSize: 13, fontWeight: 300, lineHeight: 1.6, color: "hsl(var(--muted-foreground))" }}
+            >
               {(() => {
                 const b = blocks.find(b => b.id === softGateBlockId);
                 if (!b) return "";
@@ -453,7 +490,7 @@ export default function WorkoutOverview({
                 return `Tienes ${parts.join(" y ")}. Logear tus pesos ayuda a trackear tu progreso y sugerirte cargas futuras.`;
               })()}
             </p>
-            <div className="mt-4 flex gap-3">
+            <div className="mt-7 flex flex-col gap-4 items-center">
               <button
                 onClick={() => {
                   const b = blocks.find(b => b.id === softGateBlockId);
@@ -461,9 +498,17 @@ export default function WorkoutOverview({
                   setSoftGateNextBlock(null);
                   if (b) onBlockSelect(b);
                 }}
-                className="flex-1 rounded-xl bg-primary py-3 font-body text-sm font-medium text-primary-foreground"
+                className="press-scale flex items-center justify-center gap-3"
               >
-                Completar bloque
+                <span className="font-mono uppercase" style={{ fontSize: 11, letterSpacing: "2.5px", color: "hsl(var(--foreground))", fontWeight: 500 }}>
+                  Completar bloque
+                </span>
+                <span
+                  className="liftory-breathe flex items-center justify-center shrink-0"
+                  style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid #C4A24E" }}
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" style={{ color: "#C4A24E" }} />
+                </span>
               </button>
               <button
                 onClick={() => {
@@ -472,7 +517,8 @@ export default function WorkoutOverview({
                   setSoftGateNextBlock(null);
                   if (next) onBlockSelect(next);
                 }}
-                className="flex-1 rounded-xl bg-secondary py-3 font-body text-sm font-medium text-foreground"
+                className="press-scale font-body underline"
+                style={{ fontSize: 12, color: "hsl(var(--muted-foreground))" }}
               >
                 Continuar así
               </button>
@@ -481,26 +527,63 @@ export default function WorkoutOverview({
         </div>
       )}
 
-      {/* Confirm finish dialog */}
+      {/* Confirm finish dialog — Atelier sheet */}
       {showConfirm && (
-        <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60" onClick={() => setShowConfirm(false)}>
-          <div className="w-full max-w-lg rounded-t-2xl p-6" style={{ background: "#2A2A2E", borderTop: `2px solid ${t.accent}` }} onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-display text-lg font-semibold text-foreground">¿Seguro?</h3>
-            <p className="mt-2 font-body text-sm text-muted-foreground">
+        <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70" onClick={() => setShowConfirm(false)}>
+          <div
+            className="w-full max-w-lg p-7 pb-10"
+            style={{
+              background: "#15151A",
+              borderTop: "1px solid hsl(var(--border))",
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              animation: "fadeInUp 0.25s ease-out",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p
+              className="font-mono uppercase mb-3"
+              style={{ fontSize: 9, letterSpacing: "2.5px", color: "#C4A24E" }}
+            >
+              Cierre
+            </p>
+            <h3
+              className="font-display"
+              style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em", color: "hsl(var(--foreground))", marginBottom: 8 }}
+            >
+              ¿Seguro?
+            </h3>
+            <p
+              className="font-body italic"
+              style={{ fontSize: 13, fontWeight: 300, lineHeight: 1.6, color: "hsl(var(--muted-foreground))" }}
+            >
               Te faltan {pendingSets} sets por completar.
             </p>
-            <div className="mt-4 flex gap-3">
-              <button
-                onClick={() => setShowConfirm(false)}
-                className="flex-1 rounded-xl bg-secondary py-3 font-body text-sm font-medium text-foreground"
-              >
-                Volver
-              </button>
+            <div className="mt-7 flex flex-col gap-4 items-center">
               <button
                 onClick={() => { setShowConfirm(false); onFinish(); }}
-                className="flex-1 rounded-xl bg-primary py-3 font-body text-sm font-medium text-primary-foreground"
+                className="press-scale flex items-center justify-center gap-3"
               >
-                Terminar igual
+                <span className="font-mono uppercase" style={{ fontSize: 11, letterSpacing: "2.5px", color: "hsl(var(--foreground))", fontWeight: 500 }}>
+                  Terminar igual
+                </span>
+                <span
+                  className="liftory-breathe flex items-center justify-center shrink-0"
+                  style={{
+                    width: 36, height: 36, borderRadius: "50%",
+                    background: "#C4A24E",
+                    boxShadow: "0 0 18px rgba(196,162,78,0.45)",
+                  }}
+                >
+                  <Check className="h-3.5 w-3.5" style={{ color: "#0D0D0F" }} strokeWidth={3} />
+                </span>
+              </button>
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="press-scale font-body underline"
+                style={{ fontSize: 12, color: "hsl(var(--muted-foreground))" }}
+              >
+                Volver
               </button>
             </div>
           </div>
