@@ -1222,12 +1222,19 @@ function MobilityContent({
   }
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col">
       {items.map((item, i) => {
         if (item.type === 'header') {
           return (
-            <div key={`h-${i}`} className="pt-3 pb-1 first:pt-0">
-              <span className="font-mono uppercase text-muted-foreground" style={{ fontSize: 10, letterSpacing: "1.5px" }}>
+            <div
+              key={`h-${i}`}
+              className="pt-7 pb-3 first:pt-2"
+              style={{ borderBottom: "1px solid hsl(var(--border))" }}
+            >
+              <span
+                className="font-mono uppercase"
+                style={{ fontSize: 9, letterSpacing: "2.5px", color: "#C4A24E" }}
+              >
                 {item.text}
               </span>
             </div>
@@ -1236,62 +1243,93 @@ function MobilityContent({
         const { group, cleanCue } = item;
         const ex = group.exercise;
         const sets = group.sets;
-        return (
-          <div key={ex.id} className="rounded-2xl border border-border bg-card p-4">
-            <div className="flex items-start gap-3">
-              <button
-                onClick={() => onOpenVideo({ name: ex.name, videoUrl: ex.video_url, coachingCue: cleanCue })}
-                className="shrink-0 overflow-hidden rounded-lg"
-                style={{ width: 48, height: 36 }}
-              >
-                <ExerciseThumbnail thumbnailUrl={ex.thumbnail_url} videoUrl={ex.video_url} name={ex.name} width={48} height={36} />
-              </button>
-              <div className="flex-1 min-w-0">
-                <p className="font-body text-[14px] font-medium text-foreground">{ex.name}</p>
-                {(() => {
-                  const repsLabel = sets[0]?.planned_reps ? formatReps(sets[0].planned_reps, cleanCue) : null;
-                  // Timed sets (cooldowns with duration) show duration as the primary label
-                  const durSec = sets[0]?.planned_duration_seconds;
-                  const durLabel = durSec ? (durSec >= 60 ? `${Math.round(durSec / 60)} min` : `${durSec} seg`) : null;
-                  const primary = durLabel || repsLabel;
-                  // Cue is verbose? Show on its own line
-                  const cueIsVerbose = cleanCue && cleanCue.length > 20;
-                  return (
-                    <>
-                      {primary && (
-                        <p className="font-mono text-muted-foreground mt-0.5" style={{ fontSize: 11 }}>
-                          {primary}{!cueIsVerbose && cleanCue ? ` · ${cleanCue}` : ''}
-                        </p>
-                      )}
-                      {cueIsVerbose && (
-                        <p className="font-body text-muted-foreground mt-1" style={{ fontSize: 11, lineHeight: 1.4 }}>
-                          {cleanCue}
-                        </p>
-                      )}
-                    </>
-                  );
-                })()}
-              </div>
+        const allDone = sets.every(s => isCompleted(s));
 
-              <div className="flex gap-1 shrink-0">
-                {sets.map((set) => {
-                  const done = isCompleted(set);
-                  return (
-                    <button
-                      key={set.id}
-                      onClick={() => onToggle(set)}
-                      disabled={saving}
-                      className="flex h-7 w-7 items-center justify-center rounded-full border-2 transition-all"
-                      style={{
-                        borderColor: done ? "hsl(var(--primary))" : "hsl(var(--border))",
-                        backgroundColor: done ? "hsl(var(--primary))" : "transparent",
-                      }}
-                    >
-                      {done && <Check className="h-3.5 w-3.5 text-primary-foreground" />}
-                    </button>
-                  );
-                })}
-              </div>
+        const repsLabel = sets[0]?.planned_reps ? formatReps(sets[0].planned_reps, cleanCue) : null;
+        const durSec = sets[0]?.planned_duration_seconds;
+        const durLabel = durSec ? (durSec >= 60 ? `${Math.round(durSec / 60)} min` : `${durSec} seg`) : null;
+        const primary = durLabel || repsLabel;
+        const cueIsVerbose = cleanCue && cleanCue.length > 20;
+
+        return (
+          <div
+            key={ex.id}
+            className="flex items-start gap-4 py-4"
+            style={{
+              borderBottom: "1px solid hsl(var(--border))",
+              opacity: allDone ? 0.5 : 1,
+            }}
+          >
+            {/* Tiny thumbnail — taps open the video */}
+            <button
+              onClick={() => onOpenVideo({ name: ex.name, videoUrl: ex.video_url, coachingCue: cleanCue })}
+              className="shrink-0 overflow-hidden rounded-md"
+              style={{ width: 40, height: 30 }}
+              aria-label={`Ver video · ${ex.name}`}
+            >
+              <ExerciseThumbnail thumbnailUrl={ex.thumbnail_url} videoUrl={ex.video_url} name={ex.name} width={40} height={30} />
+            </button>
+
+            {/* Name + meta + optional verbose cue */}
+            <div className="flex-1 min-w-0">
+              <p
+                className="font-display"
+                style={{
+                  fontSize: 15,
+                  fontWeight: 600,
+                  letterSpacing: "-0.01em",
+                  color: "hsl(var(--foreground))",
+                  lineHeight: 1.2,
+                  wordBreak: "break-word",
+                }}
+              >
+                {ex.name}
+              </p>
+              {/* When the cue is short, show "5 reps · cue" inline.
+                  When the cue is verbose (>20 chars), it usually already
+                  contains rep info — show only the cue to avoid duplication. */}
+              {!cueIsVerbose && primary && (
+                <p
+                  className="mt-1 font-mono uppercase"
+                  style={{ fontSize: 9, letterSpacing: "1.5px", color: "hsl(var(--muted-foreground))" }}
+                >
+                  {primary}{cleanCue ? ` · ${cleanCue}` : ""}
+                </p>
+              )}
+              {cueIsVerbose && (
+                <p
+                  className="mt-1.5 font-body italic"
+                  style={{ fontSize: 12, fontWeight: 300, lineHeight: 1.45, color: "hsl(var(--muted-foreground))" }}
+                >
+                  {cleanCue}
+                </p>
+              )}
+            </div>
+
+            {/* Check buttons — one per set/round. Minimal circles. */}
+            <div className="flex gap-1.5 shrink-0 mt-0.5">
+              {sets.map((set) => {
+                const done = isCompleted(set);
+                return (
+                  <button
+                    key={set.id}
+                    onClick={() => onToggle(set)}
+                    disabled={saving}
+                    className="press-scale flex items-center justify-center transition-all"
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: "50%",
+                      border: `1.5px solid ${done ? "#C4A24E" : "hsl(var(--border))"}`,
+                      background: done ? "#C4A24E" : "transparent",
+                      boxShadow: done ? "0 0 10px rgba(196,162,78,0.35)" : "none",
+                    }}
+                    aria-label={done ? "Marcar incompleto" : "Marcar completo"}
+                  >
+                    {done && <Check className="h-3 w-3" style={{ color: "#0D0D0F" }} strokeWidth={3} />}
+                  </button>
+                );
+              })}
             </div>
           </div>
         );
