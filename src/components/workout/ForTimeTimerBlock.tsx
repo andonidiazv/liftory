@@ -512,28 +512,23 @@ export default function ForTimeTimerBlock({
         onClose={() => setPickerExerciseId(null)}
       />
 
-      {/* Next block CTA — Atelier text + breathing circle */}
+      {/* Next-block CTA — single line + breathing circle */}
       {completed && onNextBlock && nextBlockName && (
         <div className="px-5 pt-6 pb-10 flex items-center justify-center">
           <button
             onClick={async () => { await handleSubmit(); onNextBlock(); }}
             disabled={saving}
-            className="press-scale flex items-center gap-4 disabled:opacity-50"
+            className="press-scale flex items-center gap-3 disabled:opacity-50"
             aria-label={`Siguiente bloque: ${nextBlockName}`}
           >
-            <div className="text-right">
-              <p className="font-mono uppercase" style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}>
-                Siguiente bloque
-              </p>
-              <p className="mt-0.5 font-display" style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.01em", color: "hsl(var(--foreground))", lineHeight: 1.1 }}>
-                {nextBlockName}
-              </p>
-            </div>
+            <span className="font-mono uppercase" style={{ fontSize: 11, letterSpacing: "2.5px", color: "hsl(var(--foreground))", fontWeight: 500 }}>
+              Siguiente bloque
+            </span>
             <span
               className="liftory-breathe flex items-center justify-center shrink-0"
-              style={{ width: 40, height: 40, borderRadius: "50%", border: "1px solid #C4A24E" }}
+              style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid #C4A24E" }}
             >
-              <ChevronRight className="h-4 w-4" style={{ color: "#C4A24E" }} />
+              <ChevronRight className="h-3.5 w-3.5" style={{ color: "#C4A24E" }} />
             </span>
           </button>
         </div>
@@ -545,22 +540,17 @@ export default function ForTimeTimerBlock({
           <button
             onClick={async () => { await handleSubmit(); onBack(); }}
             disabled={saving}
-            className="press-scale flex items-center gap-4 disabled:opacity-50"
+            className="press-scale flex items-center gap-3 disabled:opacity-50"
             aria-label="Guardar y volver"
           >
-            <div className="text-right">
-              <p className="font-mono uppercase" style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}>
-                Cierre
-              </p>
-              <p className="mt-0.5 font-display" style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.01em", color: "hsl(var(--foreground))", lineHeight: 1.1 }}>
-                Guardar y volver
-              </p>
-            </div>
+            <span className="font-mono uppercase" style={{ fontSize: 11, letterSpacing: "2.5px", color: "hsl(var(--foreground))", fontWeight: 500 }}>
+              Guardar y volver
+            </span>
             <span
               className="liftory-breathe flex items-center justify-center shrink-0"
-              style={{ width: 40, height: 40, borderRadius: "50%", background: "#C4A24E", boxShadow: "0 0 18px rgba(196,162,78,0.45)" }}
+              style={{ width: 36, height: 36, borderRadius: "50%", background: "#C4A24E", boxShadow: "0 0 18px rgba(196,162,78,0.45)" }}
             >
-              <Check className="h-4 w-4" style={{ color: "#0D0D0F" }} strokeWidth={3} />
+              <Check className="h-3.5 w-3.5" style={{ color: "#0D0D0F" }} strokeWidth={3} />
             </span>
           </button>
         </div>

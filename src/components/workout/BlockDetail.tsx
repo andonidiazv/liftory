@@ -723,91 +723,75 @@ export default function BlockDetail({
         )}
       </div>
 
-      {/* Next block CTA — Atelier text + breathing circle, same language
-          as the home "Abrir sesión" gesture. */}
+      {/* Next-block CTA — single line + breathing circle.
+          Block name dropped: the gesture is the action, the eyebrow is the
+          context. Names of variable length (HEAVY A vs POSTERIOR CHAIN)
+          made the previous two-line layout uneven. */}
       {onNextBlock && nextBlockName && (
         <div className="px-5 pt-6 pb-10 flex items-center justify-center">
           <button
             onClick={onNextBlock}
-            className="press-scale flex items-center gap-4"
+            className="press-scale flex items-center gap-3"
             aria-label={`Siguiente bloque: ${nextBlockName}`}
           >
-            <div className="text-right">
-              <p
-                className="font-mono uppercase"
-                style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
-              >
-                Siguiente bloque
-              </p>
-              <p
-                className="mt-0.5 font-display"
-                style={{
-                  fontSize: 16,
-                  fontWeight: 700,
-                  letterSpacing: "-0.01em",
-                  color: "hsl(var(--foreground))",
-                  lineHeight: 1.1,
-                }}
-              >
-                {nextBlockName}
-              </p>
-            </div>
+            <span
+              className="font-mono uppercase"
+              style={{
+                fontSize: 11,
+                letterSpacing: "2.5px",
+                color: "hsl(var(--foreground))",
+                fontWeight: 500,
+              }}
+            >
+              Siguiente bloque
+            </span>
             <span
               className="liftory-breathe flex items-center justify-center shrink-0"
               style={{
-                width: 40,
-                height: 40,
+                width: 36,
+                height: 36,
                 borderRadius: "50%",
                 border: "1px solid #C4A24E",
               }}
             >
-              <ChevronRight className="h-4 w-4" style={{ color: "#C4A24E" }} />
+              <ChevronRight className="h-3.5 w-3.5" style={{ color: "#C4A24E" }} />
             </span>
           </button>
         </div>
       )}
 
-      {/* Finish workout CTA (last block) — same gesture, check icon instead
-          of chevron + a filled gold circle to signal "completion". */}
+      {/* Finish workout CTA — filled gold circle + check for the
+          ceremonial close on the last block. */}
       {!onNextBlock && onFinishWorkout && (
         <div className="px-5 pt-6 pb-10 flex items-center justify-center">
           <button
             onClick={onFinishWorkout}
             disabled={saving}
-            className="press-scale flex items-center gap-4 disabled:opacity-50"
+            className="press-scale flex items-center gap-3 disabled:opacity-50"
             aria-label="Terminar sesión"
           >
-            <div className="text-right">
-              <p
-                className="font-mono uppercase"
-                style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
-              >
-                Cierre
-              </p>
-              <p
-                className="mt-0.5 font-display"
-                style={{
-                  fontSize: 16,
-                  fontWeight: 700,
-                  letterSpacing: "-0.01em",
-                  color: "hsl(var(--foreground))",
-                  lineHeight: 1.1,
-                }}
-              >
-                Terminar sesión
-              </p>
-            </div>
+            <span
+              className="font-mono uppercase"
+              style={{
+                fontSize: 11,
+                letterSpacing: "2.5px",
+                color: "hsl(var(--foreground))",
+                fontWeight: 500,
+              }}
+            >
+              Terminar sesión
+            </span>
             <span
               className="liftory-breathe flex items-center justify-center shrink-0"
               style={{
-                width: 40,
-                height: 40,
+                width: 36,
+                height: 36,
                 borderRadius: "50%",
                 background: "#C4A24E",
                 boxShadow: "0 0 18px rgba(196,162,78,0.45)",
               }}
             >
-              <Check className="h-4 w-4" style={{ color: "#0D0D0F" }} strokeWidth={3} />
+              <Check className="h-3.5 w-3.5" style={{ color: "#0D0D0F" }} strokeWidth={3} />
             </span>
           </button>
         </div>
