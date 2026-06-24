@@ -993,12 +993,12 @@ function ExerciseCard({
               </button>
             )}
           </div>
-          <p
-            className="mt-1 font-mono uppercase"
-            style={{ fontSize: 9, letterSpacing: "1.5px", color: "hsl(var(--muted-foreground))" }}
-          >
-            {formatPrescription(sets, hideRest)}
-          </p>
+          {/* Prescription line removed — every part of it (N sets · tempo ·
+              rest · reps) lives elsewhere:
+                - sets count + rest are in the block header
+                - reps are in each set table row
+                - tempo is in the italic cue below
+              Showing it here was pure duplication. */}
           {delta && (() => {
             const parts = formatDelta(delta);
             if (parts.length === 0) return null;
