@@ -1285,25 +1285,45 @@ function MobilityContent({
               >
                 {ex.name}
               </p>
-              {/* When the cue is short, show "5 reps · cue" inline.
-                  When the cue is verbose (>20 chars), it usually already
-                  contains rep info — show only the cue to avoid duplication. */}
-              {!cueIsVerbose && primary && (
-                <p
-                  className="mt-1 font-mono uppercase"
-                  style={{ fontSize: 9, letterSpacing: "1.5px", color: "hsl(var(--muted-foreground))" }}
-                >
-                  {primary}{cleanCue ? ` · ${cleanCue}` : ""}
-                </p>
-              )}
-              {cueIsVerbose && (
-                <p
-                  className="mt-1.5 font-body italic"
-                  style={{ fontSize: 12, fontWeight: 300, lineHeight: 1.45, color: "hsl(var(--muted-foreground))" }}
-                >
-                  {cleanCue}
-                </p>
-              )}
+              {/* Rep/duration label.
+                  Short cue → "5 reps · cue" inline.
+                  Verbose cue → show reps as its own eyebrow line UNLESS
+                  the cue already contains the rep count (avoid "5/lado"
+                  appearing twice).
+                  Verbose cue gets its own italic line below in both cases. */}
+              {(() => {
+                const cueAlreadyHasReps = !!(primary && cleanCue && cleanCue.includes(primary));
+                const showRepsInline = !cueIsVerbose && primary;
+                const showRepsStandalone = cueIsVerbose && primary && !cueAlreadyHasReps;
+                return (
+                  <>
+                    {showRepsInline && (
+                      <p
+                        className="mt-1 font-mono uppercase"
+                        style={{ fontSize: 9, letterSpacing: "1.5px", color: "hsl(var(--muted-foreground))" }}
+                      >
+                        {primary}{cleanCue ? ` · ${cleanCue}` : ""}
+                      </p>
+                    )}
+                    {showRepsStandalone && (
+                      <p
+                        className="mt-1 font-mono uppercase"
+                        style={{ fontSize: 9, letterSpacing: "1.5px", color: "hsl(var(--muted-foreground))" }}
+                      >
+                        {primary}
+                      </p>
+                    )}
+                    {cueIsVerbose && cleanCue && (
+                      <p
+                        className="mt-1.5 font-body italic"
+                        style={{ fontSize: 12, fontWeight: 300, lineHeight: 1.45, color: "hsl(var(--muted-foreground))" }}
+                      >
+                        {cleanCue}
+                      </p>
+                    )}
+                  </>
+                );
+              })()}
             </div>
 
             {/* Check buttons — one per set/round. Minimal circles. */}
