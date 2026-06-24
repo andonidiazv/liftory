@@ -723,30 +723,92 @@ export default function BlockDetail({
         )}
       </div>
 
-      {/* Next block button */}
+      {/* Next block CTA — Atelier text + breathing circle, same language
+          as the home "Abrir sesión" gesture. */}
       {onNextBlock && nextBlockName && (
-        <div className="px-5 pb-8">
+        <div className="px-5 pt-6 pb-10 flex items-center justify-center">
           <button
             onClick={onNextBlock}
-            className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-display text-[14px] font-semibold transition-colors"
-            style={{ background: tc.accentBgStrong, color: tc.accent, border: `1px solid ${tc.accentBgStrong}` }}
+            className="press-scale flex items-center gap-4"
+            aria-label={`Siguiente bloque: ${nextBlockName}`}
           >
-            Siguiente: {nextBlockName} <ChevronRight className="h-4 w-4" />
+            <div className="text-right">
+              <p
+                className="font-mono uppercase"
+                style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+              >
+                Siguiente bloque
+              </p>
+              <p
+                className="mt-0.5 font-display"
+                style={{
+                  fontSize: 16,
+                  fontWeight: 700,
+                  letterSpacing: "-0.01em",
+                  color: "hsl(var(--foreground))",
+                  lineHeight: 1.1,
+                }}
+              >
+                {nextBlockName}
+              </p>
+            </div>
+            <span
+              className="liftory-breathe flex items-center justify-center shrink-0"
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: "50%",
+                border: "1px solid #C4A24E",
+              }}
+            >
+              <ChevronRight className="h-4 w-4" style={{ color: "#C4A24E" }} />
+            </span>
           </button>
         </div>
       )}
 
-      {/* Finish workout button (last block) */}
+      {/* Finish workout CTA (last block) — same gesture, check icon instead
+          of chevron + a filled gold circle to signal "completion". */}
       {!onNextBlock && onFinishWorkout && (
-        <div className="px-5 pb-8">
+        <div className="px-5 pt-6 pb-10 flex items-center justify-center">
           <button
             onClick={onFinishWorkout}
             disabled={saving}
-            className="flex w-full items-center justify-center gap-2 rounded-xl py-4 font-display text-[15px] font-semibold text-primary-foreground transition-all press-scale"
-            style={{ background: tc.accent, color: tc.btnText }}
+            className="press-scale flex items-center gap-4 disabled:opacity-50"
+            aria-label="Terminar sesión"
           >
-            <Check className="h-4 w-4" />
-            Terminar sesión
+            <div className="text-right">
+              <p
+                className="font-mono uppercase"
+                style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+              >
+                Cierre
+              </p>
+              <p
+                className="mt-0.5 font-display"
+                style={{
+                  fontSize: 16,
+                  fontWeight: 700,
+                  letterSpacing: "-0.01em",
+                  color: "hsl(var(--foreground))",
+                  lineHeight: 1.1,
+                }}
+              >
+                Terminar sesión
+              </p>
+            </div>
+            <span
+              className="liftory-breathe flex items-center justify-center shrink-0"
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: "50%",
+                background: "#C4A24E",
+                boxShadow: "0 0 18px rgba(196,162,78,0.45)",
+              }}
+            >
+              <Check className="h-4 w-4" style={{ color: "#0D0D0F" }} strokeWidth={3} />
+            </span>
           </button>
         </div>
       )}

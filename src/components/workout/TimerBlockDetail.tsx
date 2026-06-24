@@ -364,15 +364,28 @@ export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpe
         </div>
       </div>
 
-      {/* Next block button */}
+      {/* Next block CTA — Atelier text + breathing circle */}
       {onNextBlock && nextBlockName && (
-        <div className="px-5 pb-8">
+        <div className="px-5 pt-6 pb-10 flex items-center justify-center">
           <button
             onClick={onNextBlock}
-            className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-display text-[14px] font-semibold transition-colors"
-            style={{ background: tc.accentBgStrong, color: tc.accent, border: `1px solid ${tc.accentBgStrong}` }}
+            className="press-scale flex items-center gap-4"
+            aria-label={`Siguiente bloque: ${nextBlockName}`}
           >
-            Siguiente: {nextBlockName} <ChevronRight className="h-4 w-4" />
+            <div className="text-right">
+              <p className="font-mono uppercase" style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}>
+                Siguiente bloque
+              </p>
+              <p className="mt-0.5 font-display" style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.01em", color: "hsl(var(--foreground))", lineHeight: 1.1 }}>
+                {nextBlockName}
+              </p>
+            </div>
+            <span
+              className="liftory-breathe flex items-center justify-center shrink-0"
+              style={{ width: 40, height: 40, borderRadius: "50%", border: "1px solid #C4A24E" }}
+            >
+              <ChevronRight className="h-4 w-4" style={{ color: "#C4A24E" }} />
+            </span>
           </button>
         </div>
       )}

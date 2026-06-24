@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight, Play, Dumbbell } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play, Dumbbell, Check } from "lucide-react";
 import type { WorkoutBlock } from "./WorkoutOverview";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
@@ -240,24 +240,50 @@ export default function DeathByTimerBlock({ block, onBack, onCompleteBlock, onOp
                 (min 1 = 1 rep, min 2 = 2 reps, ...)
               </span>
             </p>
-            {/* Block-level next-step pill — same pattern as TimerBlockDetail (AMRAP)
-                and ForTimeTimerBlock. Saves the result before navigating. */}
+            {/* Block-level next-step CTA — Atelier text + breathing circle */}
             {onNextBlock && nextBlockName ? (
               <button
                 onClick={async () => { await handleSubmit(); onNextBlock(); }}
                 disabled={saving}
-                className="press-scale mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-display text-[14px] font-semibold transition-colors disabled:opacity-60"
-                style={{ background: tc.accentBgStrong, color: tc.accent, border: `1px solid ${tc.accentBgStrong}` }}
+                className="press-scale mt-6 flex items-center justify-center gap-4 mx-auto disabled:opacity-50"
+                aria-label={`Siguiente bloque: ${nextBlockName}`}
               >
-                Siguiente: {nextBlockName} <ChevronRight className="h-4 w-4" />
+                <div className="text-right">
+                  <p className="font-mono uppercase" style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}>
+                    Siguiente bloque
+                  </p>
+                  <p className="mt-0.5 font-display" style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.01em", color: "hsl(var(--foreground))", lineHeight: 1.1 }}>
+                    {nextBlockName}
+                  </p>
+                </div>
+                <span
+                  className="liftory-breathe flex items-center justify-center shrink-0"
+                  style={{ width: 40, height: 40, borderRadius: "50%", border: "1px solid #C4A24E" }}
+                >
+                  <ChevronRight className="h-4 w-4" style={{ color: "#C4A24E" }} />
+                </span>
               </button>
             ) : (
               <button
                 onClick={async () => { await handleSubmit(); onBack(); }}
                 disabled={saving}
-                className="press-scale mt-4 rounded-xl bg-primary px-10 py-3 font-display text-sm font-semibold text-primary-foreground w-full disabled:opacity-60"
+                className="press-scale mt-6 flex items-center justify-center gap-4 mx-auto disabled:opacity-50"
+                aria-label="Guardar y volver"
               >
-                Guardar y volver
+                <div className="text-right">
+                  <p className="font-mono uppercase" style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}>
+                    Cierre
+                  </p>
+                  <p className="mt-0.5 font-display" style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.01em", color: "hsl(var(--foreground))", lineHeight: 1.1 }}>
+                    Guardar y volver
+                  </p>
+                </div>
+                <span
+                  className="liftory-breathe flex items-center justify-center shrink-0"
+                  style={{ width: 40, height: 40, borderRadius: "50%", background: "#C4A24E", boxShadow: "0 0 18px rgba(196,162,78,0.45)" }}
+                >
+                  <Check className="h-4 w-4" style={{ color: "#0D0D0F" }} strokeWidth={3} />
+                </span>
               </button>
             )}
           </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight, Play, Pause, Minus, Plus, Dumbbell, RotateCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play, Pause, Minus, Plus, Dumbbell, RotateCcw, Check } from "lucide-react";
 import type { WorkoutBlock } from "./WorkoutOverview";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
@@ -512,34 +512,56 @@ export default function ForTimeTimerBlock({
         onClose={() => setPickerExerciseId(null)}
       />
 
-      {/* Next block button — same pattern as TimerBlockDetail (AMRAP).
-          Saves the result before navigating so the block lands as completed. */}
+      {/* Next block CTA — Atelier text + breathing circle */}
       {completed && onNextBlock && nextBlockName && (
-        <div className="px-5 pb-8">
+        <div className="px-5 pt-6 pb-10 flex items-center justify-center">
           <button
-            onClick={async () => {
-              await handleSubmit();
-              onNextBlock();
-            }}
+            onClick={async () => { await handleSubmit(); onNextBlock(); }}
             disabled={saving}
-            className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-display text-[14px] font-semibold transition-colors disabled:opacity-60"
-            style={{ background: tc.accentBgStrong, color: tc.accent, border: `1px solid ${tc.accentBgStrong}` }}
+            className="press-scale flex items-center gap-4 disabled:opacity-50"
+            aria-label={`Siguiente bloque: ${nextBlockName}`}
           >
-            Siguiente: {nextBlockName} <ChevronRight className="h-4 w-4" />
+            <div className="text-right">
+              <p className="font-mono uppercase" style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}>
+                Siguiente bloque
+              </p>
+              <p className="mt-0.5 font-display" style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.01em", color: "hsl(var(--foreground))", lineHeight: 1.1 }}>
+                {nextBlockName}
+              </p>
+            </div>
+            <span
+              className="liftory-breathe flex items-center justify-center shrink-0"
+              style={{ width: 40, height: 40, borderRadius: "50%", border: "1px solid #C4A24E" }}
+            >
+              <ChevronRight className="h-4 w-4" style={{ color: "#C4A24E" }} />
+            </span>
           </button>
         </div>
       )}
 
-      {/* If completed but no next block, show a save button so the result still persists. */}
+      {/* Save-and-return CTA when no next block exists. */}
       {completed && !onNextBlock && (
-        <div className="px-5 pb-8">
+        <div className="px-5 pt-6 pb-10 flex items-center justify-center">
           <button
             onClick={async () => { await handleSubmit(); onBack(); }}
             disabled={saving}
-            className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 font-display text-[14px] font-semibold transition-colors disabled:opacity-60"
-            style={{ background: tc.accentBgStrong, color: tc.accent, border: `1px solid ${tc.accentBgStrong}` }}
+            className="press-scale flex items-center gap-4 disabled:opacity-50"
+            aria-label="Guardar y volver"
           >
-            Guardar y volver
+            <div className="text-right">
+              <p className="font-mono uppercase" style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}>
+                Cierre
+              </p>
+              <p className="mt-0.5 font-display" style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.01em", color: "hsl(var(--foreground))", lineHeight: 1.1 }}>
+                Guardar y volver
+              </p>
+            </div>
+            <span
+              className="liftory-breathe flex items-center justify-center shrink-0"
+              style={{ width: 40, height: 40, borderRadius: "50%", background: "#C4A24E", boxShadow: "0 0 18px rgba(196,162,78,0.45)" }}
+            >
+              <Check className="h-4 w-4" style={{ color: "#0D0D0F" }} strokeWidth={3} />
+            </span>
           </button>
         </div>
       )}
