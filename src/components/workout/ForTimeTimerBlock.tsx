@@ -242,19 +242,33 @@ export default function ForTimeTimerBlock({
   return (
     <div className="flex min-h-dvh flex-col bg-background animate-slide-in-right">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm px-5 pb-3 pt-14">
+      <div
+        className="sticky top-0 z-40 px-5 pt-14 pb-5"
+        style={{ background: "rgba(13,13,15,0.92)", backdropFilter: "blur(20px)" }}
+      >
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="press-scale flex h-9 w-9 items-center justify-center rounded-xl bg-secondary">
-            <ChevronLeft className="h-4 w-4 text-foreground" />
+          <button
+            onClick={onBack}
+            className="press-scale flex h-9 w-9 items-center justify-center -ml-2 shrink-0"
+            aria-label="Volver"
+          >
+            <ChevronLeft className="h-5 w-5" style={{ color: "#C4A24E" }} />
           </button>
-          <div className="flex-1">
-            <h1 className="font-display text-xl font-bold text-foreground" style={{ letterSpacing: "-0.02em" }}>
+          <div className="flex-1 min-w-0 text-center">
+            <h1
+              className="font-display text-foreground"
+              style={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1.1 }}
+            >
               {block.name}
             </h1>
-            <p className="font-mono text-muted-foreground" style={{ fontSize: 11 }}>
-              FOR TIME · cap {formatTime(capSec)} · {plannedRounds} {plannedRounds === 1 ? "ronda" : "rondas"}
+            <p
+              className="mt-0.5 font-mono uppercase"
+              style={{ fontSize: 8, letterSpacing: "2px", color: "hsl(var(--muted-foreground))" }}
+            >
+              For time · cap {formatTime(capSec)} · {plannedRounds} {plannedRounds === 1 ? "ronda" : "rondas"}
             </p>
           </div>
+          <div className="shrink-0" style={{ width: 36 }} />
         </div>
       </div>
 
