@@ -785,12 +785,27 @@ function SupersetContent({
 }) {
   const label = block.supersetGroup?.label || "SUPERSET";
   return (
-    <div className="flex gap-3">
-      <div className="flex flex-col items-center pt-8">
-        <div className="w-[3px] flex-1 rounded-full bg-primary" />
+    <div className="flex gap-4">
+      <div className="flex flex-col items-center pt-8 pb-4">
+        <div
+          className="w-px flex-1"
+          style={{
+            background: "#C4A24E",
+            opacity: 0.55,
+            boxShadow: "0 0 8px rgba(196,162,78,0.3)",
+          }}
+        />
       </div>
-      <div className="flex-1 flex flex-col gap-1">
-        <span className="font-mono uppercase text-primary mb-2" style={{ fontSize: 9, letterSpacing: "2px", fontWeight: 700 }}>
+      <div className="flex-1 flex flex-col">
+        <span
+          className="font-mono uppercase mb-2"
+          style={{
+            fontSize: 9,
+            letterSpacing: "2.5px",
+            color: "#C4A24E",
+            fontWeight: 500,
+          }}
+        >
           {label}
         </span>
         {block.groups.map((group, gi) => (
@@ -939,30 +954,49 @@ function ExerciseCard({
   }, [ex.id, workoutId, userId, blockLabel]);
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 mb-3">
-      <div className="flex items-start gap-3">
+    <div
+      className="py-5 mb-1"
+      style={{ borderBottom: "1px solid hsl(var(--border))" }}
+    >
+      <div className="flex items-start gap-4">
         <button
           onClick={() => onOpenVideo({ name: ex.name, videoUrl: ex.video_url, coachingCue: cueOverride })}
-          className="shrink-0 overflow-hidden rounded-lg"
-          style={{ width: 64, height: 48 }}
+          className="shrink-0 overflow-hidden rounded-md"
+          style={{ width: 56, height: 42 }}
+          aria-label={`Ver video · ${ex.name}`}
         >
-          <ExerciseThumbnail thumbnailUrl={ex.thumbnail_url} videoUrl={ex.video_url} name={ex.name} width={64} height={48} />
+          <ExerciseThumbnail thumbnailUrl={ex.thumbnail_url} videoUrl={ex.video_url} name={ex.name} width={56} height={42} />
         </button>
         <div className="flex-1 min-w-0">
           <div className="flex items-start gap-1.5">
-            <p className="font-body text-[15px] font-semibold text-foreground leading-snug" style={{ wordBreak: "break-word" }}>{ex.name}</p>
+            <p
+              className="font-display leading-snug"
+              style={{
+                fontSize: 16,
+                fontWeight: 600,
+                letterSpacing: "-0.01em",
+                color: "hsl(var(--foreground))",
+                wordBreak: "break-word",
+              }}
+            >
+              {ex.name}
+            </p>
             {hasSubs && (
               <button
                 onClick={() => setShowSwapSheet(true)}
-                className="shrink-0 flex items-center justify-center rounded-full mt-0.5"
-                style={{ width: 26, height: 26, background: "hsl(var(--secondary))" }}
+                className="shrink-0 flex items-center justify-center rounded-full mt-1"
+                style={{ width: 22, height: 22, border: "1px solid hsl(var(--border))" }}
                 title="Sustituir ejercicio"
+                aria-label="Sustituir ejercicio"
               >
-                <Shuffle className="h-3.5 w-3.5 text-muted-foreground" />
+                <Shuffle className="h-3 w-3 text-muted-foreground" />
               </button>
             )}
           </div>
-          <p className="font-mono text-muted-foreground mt-0.5" style={{ fontSize: 11 }}>
+          <p
+            className="mt-1 font-mono uppercase"
+            style={{ fontSize: 9, letterSpacing: "1.5px", color: "hsl(var(--muted-foreground))" }}
+          >
             {formatPrescription(sets, hideRest)}
           </p>
           {delta && (() => {
@@ -970,15 +1004,18 @@ function ExerciseCard({
             if (parts.length === 0) return null;
             return (
               <p
-                className="font-mono mt-1"
-                style={{ fontSize: 10, color: tc.accent, letterSpacing: "0.03em", fontWeight: 600 }}
+                className="font-mono uppercase mt-1.5"
+                style={{ fontSize: 8, color: "#C4A24E", letterSpacing: "2px", fontWeight: 600 }}
               >
-                vs semana pasada: {parts.join(" · ")}
+                vs semana pasada · {parts.join(" · ")}
               </p>
             );
           })()}
         </div>
-        <span className="font-mono text-muted-foreground shrink-0" style={{ fontSize: 12 }}>
+        <span
+          className="font-mono shrink-0 mt-1"
+          style={{ fontSize: 11, color: "hsl(var(--muted-foreground))" }}
+        >
           {completedCount}/{sets.length}
         </span>
       </div>
@@ -999,14 +1036,18 @@ function ExerciseCard({
       )}
 
       {cueOverride && (
-        <div className="mt-2">
+        <div className="mt-3">
           <ExpandableNote
             text={cueOverride}
             clampLines={2}
             className="font-body italic"
-            style={{ fontSize: 12, color: "#7A8B5C", lineHeight: 1.4 }}
-            toggleColor="#7A8B5C"
-            leadingIcon={<Quote className="h-3 w-3 mt-0.5 shrink-0" style={{ color: "#7A8B5C" }} />}
+            style={{
+              fontSize: 12,
+              fontWeight: 300,
+              color: "hsl(var(--muted-foreground))",
+              lineHeight: 1.55,
+            }}
+            toggleColor="#C4A24E"
           />
         </div>
       )}
@@ -1381,48 +1422,77 @@ function CooldownCard({
 
   return (
     <div
-      className="flex items-start gap-3 rounded-xl border border-border bg-card px-4 py-3 transition-opacity"
-      style={{ opacity: allDone ? 0.6 : 1 }}
+      className="flex items-start gap-4 py-4"
+      style={{
+        borderBottom: "1px solid hsl(var(--border))",
+        opacity: allDone ? 0.5 : 1,
+      }}
     >
       <button
         onClick={() => onOpenVideo({ name: ex.name, videoUrl: ex.video_url, coachingCue: cueOverride })}
-        className="shrink-0 overflow-hidden rounded-lg mt-0.5"
-        style={{ width: 36, height: 28 }}
+        className="shrink-0 overflow-hidden rounded-md mt-0.5"
+        style={{ width: 40, height: 30 }}
+        aria-label={`Ver video · ${ex.name}`}
       >
-        <ExerciseThumbnail thumbnailUrl={ex.thumbnail_url} videoUrl={ex.video_url} name={ex.name} width={36} height={28} />
+        <ExerciseThumbnail thumbnailUrl={ex.thumbnail_url} videoUrl={ex.video_url} name={ex.name} width={40} height={30} />
       </button>
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline justify-between gap-2">
-          <p className="font-body text-[13px] font-medium text-foreground">{ex.name}</p>
+          <p
+            className="font-display"
+            style={{
+              fontSize: 15,
+              fontWeight: 600,
+              letterSpacing: "-0.01em",
+              color: "hsl(var(--foreground))",
+              lineHeight: 1.2,
+              wordBreak: "break-word",
+            }}
+          >
+            {ex.name}
+          </p>
           {(durLabel || cueIsShort) && (
-            <span className="font-mono text-muted-foreground shrink-0" style={{ fontSize: 11 }}>
+            <span
+              className="font-mono uppercase shrink-0"
+              style={{ fontSize: 9, letterSpacing: "1.5px", color: "hsl(var(--muted-foreground))" }}
+            >
               {cueIsShort ? cueText : durLabel}
             </span>
           )}
         </div>
         {cueText && !cueIsShort && (
-          <p className="font-body text-muted-foreground mt-1" style={{ fontSize: 11, lineHeight: 1.4 }}>
+          <p
+            className="mt-1.5 font-body italic"
+            style={{ fontSize: 12, fontWeight: 300, lineHeight: 1.45, color: "hsl(var(--muted-foreground))" }}
+          >
             {cueText}
           </p>
         )}
       </div>
-      {sets.map((set) => {
-        const done = isCompleted(set);
-        return (
-          <button
-            key={set.id}
-            onClick={() => onToggle(set)}
-            disabled={saving}
-            className="flex h-6 w-6 items-center justify-center rounded-full border-2 transition-all shrink-0 mt-0.5"
-            style={{
-              borderColor: done ? "hsl(var(--primary))" : "hsl(var(--border))",
-              backgroundColor: done ? "hsl(var(--primary))" : "transparent",
-            }}
-          >
-            {done && <Check className="h-3 w-3 text-primary-foreground" />}
-          </button>
-        );
-      })}
+      <div className="flex gap-1.5 shrink-0 mt-0.5">
+        {sets.map((set) => {
+          const done = isCompleted(set);
+          return (
+            <button
+              key={set.id}
+              onClick={() => onToggle(set)}
+              disabled={saving}
+              className="press-scale flex items-center justify-center transition-all"
+              style={{
+                width: 22,
+                height: 22,
+                borderRadius: "50%",
+                border: `1.5px solid ${done ? "#C4A24E" : "hsl(var(--border))"}`,
+                background: done ? "#C4A24E" : "transparent",
+                boxShadow: done ? "0 0 10px rgba(196,162,78,0.35)" : "none",
+              }}
+              aria-label={done ? "Marcar incompleto" : "Marcar completo"}
+            >
+              {done && <Check className="h-3 w-3" style={{ color: "#0D0D0F" }} strokeWidth={3} />}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -1451,31 +1521,56 @@ function CardioCard({
   };
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4">
-      <div className="flex items-start gap-3">
+    <div
+      className="py-5"
+      style={{ borderBottom: "1px solid hsl(var(--border))", opacity: allDone ? 0.55 : 1 }}
+    >
+      <div className="flex items-start gap-4">
         <button
           onClick={() => onOpenVideo({ name: ex.name, videoUrl: ex.video_url, coachingCue: cueOverride })}
-          className="shrink-0 overflow-hidden rounded-lg"
-          style={{ width: 64, height: 48 }}
+          className="shrink-0 overflow-hidden rounded-md"
+          style={{ width: 56, height: 42 }}
+          aria-label={`Ver video · ${ex.name}`}
         >
-          <ExerciseThumbnail thumbnailUrl={ex.thumbnail_url} videoUrl={ex.video_url} name={ex.name} width={64} height={48} />
+          <ExerciseThumbnail thumbnailUrl={ex.thumbnail_url} videoUrl={ex.video_url} name={ex.name} width={56} height={42} />
         </button>
         <div className="flex-1 min-w-0">
-          <p className="font-body text-[15px] font-semibold text-foreground">{ex.name}</p>
+          <p
+            className="font-display"
+            style={{
+              fontSize: 16,
+              fontWeight: 600,
+              letterSpacing: "-0.01em",
+              color: "hsl(var(--foreground))",
+              lineHeight: 1.2,
+              wordBreak: "break-word",
+            }}
+          >
+            {ex.name}
+          </p>
         </div>
         {allDone && (
           <button
             onClick={async () => { setCompleting(true); await onUncompleteAll(); setCompleting(false); }}
             disabled={saving || completing}
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-primary shrink-0"
+            className="press-scale flex items-center justify-center shrink-0"
+            style={{
+              width: 24, height: 24, borderRadius: "50%",
+              background: "#C4A24E",
+              boxShadow: "0 0 10px rgba(196,162,78,0.35)",
+            }}
+            aria-label="Marcar incompleto"
           >
-            <Check className="h-4 w-4 text-primary-foreground" />
+            <Check className="h-3.5 w-3.5" style={{ color: "#0D0D0F" }} strokeWidth={3} />
           </button>
         )}
       </div>
 
       {cueOverride && (
-        <p className="mt-3 font-body text-[14px] text-foreground leading-relaxed">
+        <p
+          className="mt-3 font-body italic"
+          style={{ fontSize: 13, fontWeight: 300, lineHeight: 1.55, color: "hsl(var(--muted-foreground))" }}
+        >
           {cueOverride}
         </p>
       )}
@@ -1486,15 +1581,35 @@ function CardioCard({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Velocidad, inclinación, observaciones..."
-            className="mt-3 w-full rounded-xl bg-secondary p-3 text-sm text-foreground font-body placeholder:text-muted-foreground outline-none resize-none"
+            className="mt-4 w-full font-body outline-none resize-none"
+            style={{
+              fontSize: 13,
+              padding: "12px 14px",
+              background: "transparent",
+              border: "1px solid hsl(var(--border))",
+              borderRadius: 12,
+              color: "hsl(var(--foreground))",
+            }}
             rows={2}
           />
           <button
             onClick={handleDone}
             disabled={saving || completing}
-            className="press-scale mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 font-body text-sm font-medium text-primary-foreground disabled:opacity-50"
+            className="press-scale mt-3 flex w-full items-center justify-center gap-2 disabled:opacity-50"
+            style={{
+              padding: "14px 0",
+              borderRadius: 14,
+              border: "1px solid #C4A24E",
+              background: "transparent",
+              color: "#C4A24E",
+              fontFamily: "'Syne', sans-serif",
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+            }}
           >
-            {completing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+            {completing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             Completado
           </button>
         </>
