@@ -95,21 +95,23 @@ function getBlockWarnings(block: WorkoutBlock): { unloggedSets: number; missingW
   return { unloggedSets, missingWeights };
 }
 
-/** Render block name with bold main part and normal suffix */
+/** Render block name with bold main part and normal suffix.
+ *  Color is inherited from the parent so the row can tint the whole label
+ *  gold when it's the active block. */
 function BlockNameDisplay({ name }: { name: string }) {
   const dashIdx = name.indexOf(' — ');
   if (dashIdx === -1) {
     return (
       <span
-        className="font-display text-foreground"
-        style={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.01em", lineHeight: 1.1 }}
+        className="font-display"
+        style={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.01em", lineHeight: 1.1, color: "inherit" }}
       >
         {name}
       </span>
     );
   }
   return (
-    <span className="font-display text-foreground" style={{ fontSize: 15, letterSpacing: "-0.01em", lineHeight: 1.1 }}>
+    <span className="font-display" style={{ fontSize: 15, letterSpacing: "-0.01em", lineHeight: 1.1, color: "inherit" }}>
       <span style={{ fontWeight: 700 }}>{name.slice(0, dashIdx)}</span>
       <span style={{ fontWeight: 400 }}>{name.slice(dashIdx)}</span>
     </span>
@@ -256,29 +258,53 @@ export default function WorkoutOverview({
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
-      {/* Header — back arrow + LIFTORY watermark, mirror of home top */}
+      {/* Header — single compact bar.
+          Back arrow · centered day name + meta · LIFTORY watermark on right.
+          The athlete already saw the big "Tempo / Lower" on the home, so we
+          don't repeat the hero here. The compact line earns its place by
+          confirming WHERE they are without taking vertical space. */}
       <div
-        className="sticky top-0 z-40 px-6 pt-14 pb-4"
+        className="sticky top-0 z-40 px-5 pt-14 pb-5"
         style={{ background: "rgba(13,13,15,0.92)", backdropFilter: "blur(20px)" }}
       >
-        <div className="relative flex items-center justify-center">
+        <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="press-scale absolute left-0 flex h-9 items-center justify-center px-1"
+            className="press-scale flex h-9 w-9 items-center justify-center -ml-2 shrink-0"
             aria-label="Volver"
           >
             <ChevronLeft className="h-5 w-5" style={{ color: "#C4A24E" }} />
           </button>
+          <div className="flex-1 min-w-0 text-center">
+            <p
+              className="font-display"
+              style={{
+                fontWeight: 700,
+                fontSize: 15,
+                letterSpacing: "-0.02em",
+                color: "hsl(var(--foreground))",
+                lineHeight: 1.1,
+              }}
+            >
+              {titleTop}{titleBottom ? ` ${titleBottom}` : ""}
+            </p>
+            <p
+              className="mt-0.5 font-mono uppercase"
+              style={{ fontSize: 8, letterSpacing: "2px", color: "hsl(var(--muted-foreground))" }}
+            >
+              ~{workout.estimated_duration ?? 60} min · {blocks.length} bloques
+            </p>
+          </div>
           <span
-            className="font-display uppercase"
+            className="font-display uppercase shrink-0"
             style={{
               fontFamily: "'Syne', sans-serif",
               fontWeight: 800,
-              fontSize: 14,
+              fontSize: 12,
               letterSpacing: "-0.04em",
               color: "#C4A24E",
               lineHeight: 1,
-              textShadow: "0 0 14px rgba(196,162,78,0.28)",
+              textShadow: "0 0 12px rgba(196,162,78,0.28)",
             }}
           >
             LIFTORY
@@ -286,36 +312,8 @@ export default function WorkoutOverview({
         </div>
       </div>
 
-      {/* Hero — day title centered. Same split styling as home so the screens
-          read as siblings. Big top margin to clear the sticky header. */}
-      <div className="px-6 mt-14 mb-10 text-center">
-        <h1
-          className="font-display"
-          style={{
-            letterSpacing: "-0.05em",
-            lineHeight: 0.88,
-            color: "hsl(var(--foreground))",
-          }}
-        >
-          <span className="block" style={{ fontWeight: 300, fontSize: 48 }}>
-            {titleTop}
-          </span>
-          {titleBottom && (
-            <span
-              className="block"
-              style={{ fontWeight: 700, fontSize: 30, marginTop: 4 }}
-            >
-              {titleBottom}
-            </span>
-          )}
-        </h1>
-        <p
-          className="mt-4 font-mono uppercase"
-          style={{ fontSize: 10, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
-        >
-          ~{workout.estimated_duration ?? 60} MIN · {totalSets} SETS · {blocks.length} BLOQUES
-        </p>
-      </div>
+      {/* Small breathing space before the coach pills */}
+      <div className="h-10" />
 
       {/* Coach Note — collapsed pill by default, expands inline on tap */}
       {workout.coach_note && (
@@ -349,52 +347,39 @@ export default function WorkoutOverview({
                 style={{
                   borderTop: blockIdx === 0 ? "1px solid hsl(var(--border))" : "none",
                   borderBottom: "1px solid hsl(var(--border))",
-                  opacity: done ? 0.45 : 1,
+                  opacity: done ? 0.4 : 1,
                 }}
               >
-                {/* Number + active marker */}
-                <div className="flex flex-col items-start mr-5 shrink-0" style={{ width: 28 }}>
-                  <span
-                    className="font-mono"
-                    style={{
-                      fontSize: 10,
-                      letterSpacing: "1.5px",
-                      color: isActive ? "#C4A24E" : "hsl(var(--muted-foreground))",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {orderLabel}
-                  </span>
-                  <div
-                    style={{
-                      width: isActive ? 18 : 12,
-                      height: 2,
-                      background: isActive ? "#C4A24E" : "hsl(var(--border))",
-                      marginTop: 6,
-                      boxShadow: isActive ? "0 0 10px rgba(196,162,78,0.55)" : "none",
-                      transition: "all 0.3s ease",
-                    }}
-                  />
-                </div>
+                {/* Just the order number. Active is gold + slight glow; no
+                    dash under it (was visual noise). The whole row is the
+                    tap target, so no chevron either. */}
+                <span
+                  className="font-mono mr-6 shrink-0"
+                  style={{
+                    fontSize: 11,
+                    letterSpacing: "1.5px",
+                    color: isActive ? "#C4A24E" : "hsl(var(--muted-foreground))",
+                    fontWeight: isActive ? 600 : 500,
+                    textShadow: isActive ? "0 0 10px rgba(196,162,78,0.45)" : "none",
+                    width: 22,
+                  }}
+                >
+                  {orderLabel}
+                </span>
 
-                {/* Just the block name. Details (exercises, sets, deltas, format)
-                    live inside the block detail view. */}
-                <div className="flex-1 min-w-0 mr-3">
+                {/* Block name */}
+                <div
+                  className="flex-1 min-w-0"
+                  style={{ color: isActive ? "#C4A24E" : "hsl(var(--foreground))" }}
+                >
                   <BlockNameDisplay name={block.name} />
                 </div>
 
-                {/* Done check or chevron. No fraction — the athlete sees that
-                    inside the block. */}
-                <div className="shrink-0">
-                  {done ? (
-                    <Check className="h-4 w-4" style={{ color: "#C4A24E" }} strokeWidth={2.5} />
-                  ) : (
-                    <ChevronRight
-                      className="h-4 w-4"
-                      style={{ color: isActive ? "#C4A24E" : "hsl(var(--muted-foreground))" }}
-                    />
-                  )}
-                </div>
+                {/* Tiny check on completion; otherwise nothing on the right.
+                    The athlete sees set state inside the block. */}
+                {done && (
+                  <Check className="h-4 w-4 shrink-0" style={{ color: "#C4A24E", opacity: 0.6 }} strokeWidth={2.5} />
+                )}
               </button>
             );
           })}
