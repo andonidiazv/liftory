@@ -488,25 +488,37 @@ export default function BlockDetail({
 
   return (
     <div className="flex min-h-dvh flex-col bg-background animate-slide-in-right">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm px-5 pb-3 pt-14">
+      {/* Header — Atelier compact bar matching WorkoutOverview.
+          Back arrow on the left, block name + meta centered, invisible
+          spacer on the right to keep the title optically balanced. No
+          brand mark — this is an action context. */}
+      <div
+        className="sticky top-0 z-40 px-5 pt-14 pb-5"
+        style={{ background: "rgba(13,13,15,0.92)", backdropFilter: "blur(20px)" }}
+      >
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="press-scale flex h-9 w-9 items-center justify-center rounded-xl bg-secondary">
-            <ChevronLeft className="h-4 w-4 text-foreground" />
+          <button
+            onClick={onBack}
+            className="press-scale flex h-9 w-9 items-center justify-center -ml-2 shrink-0"
+            aria-label="Volver"
+          >
+            <ChevronLeft className="h-5 w-5" style={{ color: "#C4A24E" }} />
           </button>
-          <div className="flex-1">
-            <BlockNameDisplay
-              name={block.name}
-              className="font-display text-xl font-bold text-foreground"
-            />
-            <p className="font-mono text-muted-foreground" style={{ fontSize: 11 }}>
+          <div className="flex-1 min-w-0 text-center">
+            <div
+              className="font-display text-foreground"
+              style={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1.1 }}
+            >
+              <BlockNameDisplay name={block.name} />
+            </div>
+            <p
+              className="mt-0.5 font-mono uppercase"
+              style={{ fontSize: 8, letterSpacing: "2px", color: "hsl(var(--muted-foreground))" }}
+            >
               {blockMode === 'strength' && (
                 <>{block.totalSets} sets{restDisplay ? ` · ${restDisplay}` : ""}{block.formatBadge ? ` · ${block.formatBadge}` : ""}</>
               )}
               {blockMode === 'mobility' && (() => {
-                // Infer rounds from any set's cue — first set might be a solo cardio activator
-                // (e.g. Row Erg 3 min) without "rondas" in its cue. Look across ALL sets in the
-                // block to find the first one that mentions rondas before falling back.
                 let rounds: string | null = null;
                 for (const g of block.groups) {
                   const cue = g.sets[0]?.coaching_cue_override ?? '';
@@ -520,6 +532,7 @@ export default function BlockDetail({
               {blockMode === 'emom' && <>EMOM</>}
             </p>
           </div>
+          <div className="shrink-0" style={{ width: 36 }} />
         </div>
       </div>
 
