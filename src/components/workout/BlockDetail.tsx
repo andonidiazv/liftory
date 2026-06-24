@@ -838,6 +838,63 @@ function SupersetContent({
   );
 }
 
+/* ═══════ EXERCISE CUE TOGGLE ═══════
+ *
+ * Collapsible "Cue" pill that opens the technical instruction inline.
+ * Hidden by default because most athletes know the technique by week 3
+ * of a meso — the cue is reference material, not active reading. Tapping
+ * the pill expands the italic note and rotates the chevron. Same pattern
+ * as Notas del coach in the workout overview.
+ */
+function ExerciseCueToggle({ cue }: { cue: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mt-3">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="press-scale inline-flex items-center gap-1.5"
+        style={{
+          border: "1px solid rgba(196,162,78,0.25)",
+          borderRadius: 999,
+          padding: "4px 10px",
+        }}
+        aria-expanded={open}
+      >
+        <span
+          className="font-mono uppercase"
+          style={{ fontSize: 9, letterSpacing: "2px", color: "#C4A24E" }}
+        >
+          Cue
+        </span>
+        <span
+          style={{
+            fontSize: 10,
+            color: "#C4A24E",
+            transform: open ? "rotate(90deg)" : "rotate(0deg)",
+            transition: "transform 0.2s",
+            display: "inline-block",
+          }}
+        >
+          ›
+        </span>
+      </button>
+      {open && (
+        <p
+          className="mt-2 font-body italic"
+          style={{
+            fontSize: 12,
+            fontWeight: 300,
+            color: "hsl(var(--muted-foreground))",
+            lineHeight: 1.55,
+          }}
+        >
+          {cue}
+        </p>
+      )}
+    </div>
+  );
+}
+
 /* ═══════ STRENGTH EXERCISE CARD ═══════ */
 function ExerciseCard({
   group, weightUnit, saving, getInputs, updateInput, onToggle,
@@ -1035,22 +1092,7 @@ function ExerciseCard({
         />
       )}
 
-      {cueOverride && (
-        <div className="mt-3">
-          <ExpandableNote
-            text={cueOverride}
-            clampLines={2}
-            className="font-body italic"
-            style={{
-              fontSize: 12,
-              fontWeight: 300,
-              color: "hsl(var(--muted-foreground))",
-              lineHeight: 1.55,
-            }}
-            toggleColor="#C4A24E"
-          />
-        </div>
-      )}
+      {cueOverride && <ExerciseCueToggle cue={cueOverride} />}
 
       {/* Weight Picker */}
       <WeightPickerSheet
