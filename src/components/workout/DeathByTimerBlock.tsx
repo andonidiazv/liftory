@@ -11,6 +11,8 @@ interface Props {
   onCompleteBlock: (minutesCompleted: number) => Promise<void>;
   onOpenVideo: (exercise: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
   nextBlockName?: string | null;
+  blockIndex?: number;
+  totalBlocks?: number;
   onNextBlock?: () => void;
 }
 
@@ -40,7 +42,7 @@ function formatSecs(s: number): string {
   return s.toString().padStart(2, "0");
 }
 
-export default function DeathByTimerBlock({ block, onBack, onCompleteBlock, onOpenVideo, nextBlockName, onNextBlock }: Props) {
+export default function DeathByTimerBlock({ block, onBack, onCompleteBlock, onOpenVideo, nextBlockName, onNextBlock, blockIndex, totalBlocks }: Props) {
   const { isDark } = useDarkMode();
   const tc = isDark ? noche : dia;
   const capMin = parseCapMinutes(block);
@@ -242,12 +244,21 @@ export default function DeathByTimerBlock({ block, onBack, onCompleteBlock, onOp
             </p>
             {/* Block-level next-step CTA — single line + breathing circle */}
             {onNextBlock && nextBlockName ? (
-              <button
-                onClick={async () => { await handleSubmit(); onNextBlock(); }}
-                disabled={saving}
-                className="press-scale mt-6 flex items-center justify-center gap-3 mx-auto disabled:opacity-50"
-                aria-label={`Siguiente bloque: ${nextBlockName}`}
-              >
+              <div className="mt-6 flex flex-col items-center gap-3">
+                {typeof blockIndex === "number" && typeof totalBlocks === "number" && (
+                  <p
+                    className="font-mono uppercase"
+                    style={{ fontSize: 8, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+                  >
+                    Bloque {blockIndex + 1} de {totalBlocks}
+                  </p>
+                )}
+                <button
+                  onClick={async () => { await handleSubmit(); onNextBlock(); }}
+                  disabled={saving}
+                  className="press-scale flex items-center justify-center gap-3 disabled:opacity-50"
+                  aria-label={`Siguiente bloque: ${nextBlockName}`}
+                >
                 <span className="font-mono uppercase" style={{ fontSize: 11, letterSpacing: "2.5px", color: "hsl(var(--foreground))", fontWeight: 500 }}>
                   Siguiente bloque
                 </span>
@@ -258,6 +269,7 @@ export default function DeathByTimerBlock({ block, onBack, onCompleteBlock, onOp
                   <ChevronRight className="h-3.5 w-3.5" style={{ color: "#C4A24E" }} />
                 </span>
               </button>
+              </div>
             ) : (
               <button
                 onClick={async () => { await handleSubmit(); onBack(); }}

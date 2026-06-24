@@ -583,6 +583,8 @@ export default function Workout() {
       <>
         <ForTimeTimerBlock
           block={forTimeBlock}
+          blockIndex={forTimeIdx}
+          totalBlocks={blocks.length}
           onBack={() => { setForTimeBlock(null); refetch(); }}
           onCompleteBlock={(rounds, _elapsedSec, weightsByExerciseIdKg) =>
             handleCompleteTimerBlock(forTimeBlock, rounds, weightsByExerciseIdKg)
@@ -619,6 +621,8 @@ export default function Workout() {
       <>
         <DeathByTimerBlock
           block={deathByBlock}
+          blockIndex={deathByIdx}
+          totalBlocks={blocks.length}
           onBack={() => { setDeathByBlock(null); refetch(); }}
           onCompleteBlock={(minutes) => handleCompleteTimerBlock(deathByBlock, minutes)}
           onOpenVideo={(v) => setVideoOverlay(v)}
@@ -651,6 +655,8 @@ export default function Workout() {
       <>
         <TimerBlockDetail
           block={timerBlock}
+          blockIndex={timerIdx}
+          totalBlocks={blocks.length}
           onBack={() => { setTimerBlock(null); refetch(); }}
           onCompleteBlock={(rounds) => handleCompleteTimerBlock(timerBlock, rounds)}
           onOpenVideo={(v) => setVideoOverlay(v)}
@@ -689,6 +695,8 @@ export default function Workout() {
           saving={saving}
           workoutId={id}
           nextBlockName={nextBlock?.name ?? null}
+          blockIndex={activeIdx}
+          totalBlocks={blocks.length}
           exerciseDeltas={exerciseDeltas}
           onBack={() => {
             setActiveBlock(null);

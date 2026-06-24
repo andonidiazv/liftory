@@ -19,6 +19,8 @@ interface Props {
   onCompleteBlock: (rounds: number, elapsedSec: number, weightsByExerciseIdKg: Record<string, number>) => Promise<void>;
   onOpenVideo: (exercise: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
   nextBlockName?: string | null;
+  blockIndex?: number;
+  totalBlocks?: number;
   onNextBlock?: () => void;
   /** Display unit for weight inputs. Default kg. */
   weightUnit?: "kg" | "lb";
@@ -72,7 +74,7 @@ function formatTime(s: number): string {
 }
 
 export default function ForTimeTimerBlock({
-  block, onBack, onCompleteBlock, onOpenVideo, nextBlockName, onNextBlock, weightUnit = "kg", getSuggestedWeight,
+  block, onBack, onCompleteBlock, onOpenVideo, nextBlockName, onNextBlock, weightUnit = "kg", getSuggestedWeight, blockIndex, totalBlocks,
 }: Props) {
   const { isDark } = useDarkMode();
   const tc = isDark ? noche : dia;
@@ -514,7 +516,15 @@ export default function ForTimeTimerBlock({
 
       {/* Next-block CTA — single line + breathing circle */}
       {completed && onNextBlock && nextBlockName && (
-        <div className="px-5 pt-6 pb-10 flex items-center justify-center">
+        <div className="px-5 pt-6 pb-10 flex flex-col items-center gap-3">
+          {typeof blockIndex === "number" && typeof totalBlocks === "number" && (
+            <p
+              className="font-mono uppercase"
+              style={{ fontSize: 8, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+            >
+              Bloque {blockIndex + 1} de {totalBlocks}
+            </p>
+          )}
           <button
             onClick={async () => { await handleSubmit(); onNextBlock(); }}
             disabled={saving}
@@ -536,7 +546,15 @@ export default function ForTimeTimerBlock({
 
       {/* Save-and-return CTA when no next block exists. */}
       {completed && !onNextBlock && (
-        <div className="px-5 pt-6 pb-10 flex items-center justify-center">
+        <div className="px-5 pt-6 pb-10 flex flex-col items-center gap-3">
+          {typeof blockIndex === "number" && typeof totalBlocks === "number" && (
+            <p
+              className="font-mono uppercase"
+              style={{ fontSize: 8, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+            >
+              Último bloque · {blockIndex + 1} de {totalBlocks}
+            </p>
+          )}
           <button
             onClick={async () => { await handleSubmit(); onBack(); }}
             disabled={saving}

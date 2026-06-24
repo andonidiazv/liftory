@@ -11,6 +11,8 @@ interface Props {
   onCompleteBlock: (roundsCompleted: number) => Promise<void>;
   onOpenVideo: (exercise: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
   nextBlockName?: string | null;
+  blockIndex?: number;
+  totalBlocks?: number;
   onNextBlock?: () => void;
 }
 
@@ -34,7 +36,7 @@ const vibrate = (ms: number) => {
   try { navigator.vibrate?.(ms); } catch {}
 };
 
-export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpenVideo, nextBlockName, onNextBlock }: Props) {
+export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpenVideo, nextBlockName, onNextBlock, blockIndex, totalBlocks }: Props) {
   const { isDark } = useDarkMode();
   const tc = isDark ? noche : dia;
   // Only AMRAPs use this timer now (EMOMs are handled as instruction blocks)
@@ -366,7 +368,15 @@ export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpe
 
       {/* Next-block CTA — single line + breathing circle */}
       {onNextBlock && nextBlockName && (
-        <div className="px-5 pt-6 pb-10 flex items-center justify-center">
+        <div className="px-5 pt-6 pb-10 flex flex-col items-center gap-3">
+          {typeof blockIndex === "number" && typeof totalBlocks === "number" && (
+            <p
+              className="font-mono uppercase"
+              style={{ fontSize: 8, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+            >
+              Bloque {blockIndex + 1} de {totalBlocks}
+            </p>
+          )}
           <button
             onClick={onNextBlock}
             className="press-scale flex items-center gap-3"

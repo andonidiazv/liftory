@@ -109,6 +109,8 @@ interface Props {
   saving: boolean;
   workoutId?: string;
   nextBlockName?: string | null;
+  blockIndex?: number;
+  totalBlocks?: number;
   onBack: () => void;
   onCompleteSet: (set: WorkoutSetData, data: { actual_weight: number; actual_reps: number }) => Promise<unknown>;
   onUncompleteSet: (setId: string) => Promise<boolean>;
@@ -195,6 +197,8 @@ export default function BlockDetail({
   saving,
   workoutId,
   nextBlockName,
+  blockIndex,
+  totalBlocks,
   onBack,
   onCompleteSet,
   onUncompleteSet,
@@ -724,11 +728,18 @@ export default function BlockDetail({
       </div>
 
       {/* Next-block CTA — single line + breathing circle.
-          Block name dropped: the gesture is the action, the eyebrow is the
-          context. Names of variable length (HEAVY A vs POSTERIOR CHAIN)
-          made the previous two-line layout uneven. */}
+          Eyebrow shows position when known ("BLOQUE 2 DE 7"), then the
+          action label, then the breathing circle. */}
       {onNextBlock && nextBlockName && (
-        <div className="px-5 pt-6 pb-10 flex items-center justify-center">
+        <div className="px-5 pt-6 pb-10 flex flex-col items-center gap-3">
+          {typeof blockIndex === "number" && typeof totalBlocks === "number" && (
+            <p
+              className="font-mono uppercase"
+              style={{ fontSize: 8, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+            >
+              Bloque {blockIndex + 1} de {totalBlocks}
+            </p>
+          )}
           <button
             onClick={onNextBlock}
             className="press-scale flex items-center gap-3"
@@ -763,7 +774,15 @@ export default function BlockDetail({
       {/* Finish workout CTA — filled gold circle + check for the
           ceremonial close on the last block. */}
       {!onNextBlock && onFinishWorkout && (
-        <div className="px-5 pt-6 pb-10 flex items-center justify-center">
+        <div className="px-5 pt-6 pb-10 flex flex-col items-center gap-3">
+          {typeof blockIndex === "number" && typeof totalBlocks === "number" && (
+            <p
+              className="font-mono uppercase"
+              style={{ fontSize: 8, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+            >
+              Último bloque · {blockIndex + 1} de {totalBlocks}
+            </p>
+          )}
           <button
             onClick={onFinishWorkout}
             disabled={saving}
