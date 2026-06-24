@@ -317,7 +317,7 @@ export default function WorkoutOverview({
         </p>
       </div>
 
-      {/* Coach Note — quiet italic paragraph (no card chrome) */}
+      {/* Coach Note — collapsed pill by default, expands inline on tap */}
       {workout.coach_note && (
         <CoachNote
           note={workout.coach_note}
@@ -326,6 +326,9 @@ export default function WorkoutOverview({
           totalWeeks={_programTotalWeeks}
         />
       )}
+
+      {/* small breathing space between coach pill and the blocks list */}
+      <div className="h-6" />
 
       {/* Blocks — numbered hairline rows */}
       <div className="flex-1 px-6 pb-36">
@@ -342,15 +345,15 @@ export default function WorkoutOverview({
                 key={block.id}
                 ref={(el) => { blockRefs.current[block.id] = el; }}
                 onClick={() => handleBlockNavigate(block)}
-                className="press-scale flex w-full items-start py-5 text-left"
+                className="press-scale flex w-full items-center py-5 text-left"
                 style={{
                   borderTop: blockIdx === 0 ? "1px solid hsl(var(--border))" : "none",
                   borderBottom: "1px solid hsl(var(--border))",
-                  opacity: done ? 0.5 : 1,
+                  opacity: done ? 0.45 : 1,
                 }}
               >
                 {/* Number + active marker */}
-                <div className="flex flex-col items-start mr-4 shrink-0" style={{ width: 30 }}>
+                <div className="flex flex-col items-start mr-5 shrink-0" style={{ width: 28 }}>
                   <span
                     className="font-mono"
                     style={{
@@ -374,83 +377,23 @@ export default function WorkoutOverview({
                   />
                 </div>
 
-                {/* Name + exercise preview + meta */}
+                {/* Just the block name. Details (exercises, sets, deltas, format)
+                    live inside the block detail view. */}
                 <div className="flex-1 min-w-0 mr-3">
-                  <div className="flex items-baseline gap-2 flex-wrap">
-                    <BlockNameDisplay name={block.name} />
-                    {block.formatBadge && (
-                      <span
-                        className="font-mono uppercase"
-                        style={{
-                          fontSize: 8,
-                          letterSpacing: "2px",
-                          color: "hsl(var(--muted-foreground))",
-                          padding: "1px 6px",
-                          background: "hsl(var(--secondary))",
-                          borderRadius: 999,
-                        }}
-                      >
-                        {block.formatBadge}
-                      </span>
-                    )}
-                  </div>
-                  <p
-                    className="mt-1 font-body text-muted-foreground"
-                    style={{ fontSize: 12, lineHeight: 1.35, wordBreak: "break-word" }}
-                  >
-                    {block.exerciseNames.slice(0, 3).join(" · ")}
-                    {block.exerciseNames.length > 3 ? ` · +${block.exerciseNames.length - 3}` : ""}
-                  </p>
-                  <p
-                    className="mt-1.5 font-mono uppercase"
-                    style={{ fontSize: 9, letterSpacing: "1.5px", color: "hsl(var(--muted-foreground))" }}
-                  >
-                    {!isInstructionBlock(block) ? (
-                      <>{block.totalSets} SETS · ~{block.estimatedMinutes} MIN</>
-                    ) : (
-                      <>~{block.estimatedMinutes} MIN</>
-                    )}
-                  </p>
-                  {chips.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {chips.map((chip, idx) => (
-                        <span
-                          key={idx}
-                          className="font-mono uppercase"
-                          style={{
-                            fontSize: 8,
-                            letterSpacing: "1.5px",
-                            color: "#C4A24E",
-                            background: "rgba(196,162,78,0.08)",
-                            border: "1px solid rgba(196,162,78,0.2)",
-                            padding: "2px 8px",
-                            borderRadius: 999,
-                            fontWeight: 600,
-                          }}
-                        >
-                          {chip}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  <BlockNameDisplay name={block.name} />
                 </div>
 
-                {/* Right edge: sets count or check, + chevron */}
-                <div className="flex items-center gap-2 shrink-0 mt-1">
+                {/* Done check or chevron. No fraction — the athlete sees that
+                    inside the block. */}
+                <div className="shrink-0">
                   {done ? (
                     <Check className="h-4 w-4" style={{ color: "#C4A24E" }} strokeWidth={2.5} />
-                  ) : (!isInstructionBlock(block) && (
-                    <span
-                      className="font-mono"
-                      style={{ fontSize: 11, color: "hsl(var(--muted-foreground))" }}
-                    >
-                      {block.completedSets}/{block.totalSets}
-                    </span>
-                  ))}
-                  <ChevronRight
-                    className="h-4 w-4"
-                    style={{ color: isActive ? "#C4A24E" : "hsl(var(--muted-foreground))" }}
-                  />
+                  ) : (
+                    <ChevronRight
+                      className="h-4 w-4"
+                      style={{ color: isActive ? "#C4A24E" : "hsl(var(--muted-foreground))" }}
+                    />
+                  )}
                 </div>
               </button>
             );
@@ -622,83 +565,131 @@ function cleanCoachNote(raw: string, weekNumber: number, _totalWeeks: number): s
 }
 
 /**
- * Atelier-quiet coach note. No card chrome — just an italic paragraph
- * with a tiny "Coach" eyebrow and a discreet "¿Sin tiempo?" pill that
- * expands to the short-on-time note when tapped.
+ * Atelier-quiet coach note. Collapsed by default — shows only a small
+ * pill "Notas del coach" that expands inline on tap. The short-on-time
+ * note gets its own pill next to it.
  */
 function CoachNote({
   note, shortOnTimeNote, weekNumber, totalWeeks,
 }: {
   note: string; shortOnTimeNote: string | null; weekNumber: number; totalWeeks: number;
 }) {
+  const [showNote, setShowNote] = useState(false);
   const [showShortNote, setShowShortNote] = useState(false);
   const displayNote = cleanCoachNote(note, weekNumber, totalWeeks);
 
-  return (
-    <div className="px-6 mb-10">
-      <p
-        className="font-mono uppercase mb-3"
-        style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
-      >
-        Coach
-      </p>
-      <ExpandableNote
-        text={displayNote}
-        clampLines={3}
-        className="font-body text-foreground/85"
-        style={{
-          fontSize: 13,
-          lineHeight: 1.55,
-          fontWeight: 300,
-          fontStyle: "italic",
-        }}
-      />
+  const pillStyle: React.CSSProperties = {
+    border: "1px solid rgba(196,162,78,0.25)",
+    borderRadius: 999,
+    padding: "5px 12px",
+  };
 
-      {shortOnTimeNote && !showShortNote && (
+  return (
+    <div className="px-6 flex justify-center">
+      <div className="flex flex-wrap gap-2 justify-center">
         <button
-          onClick={() => setShowShortNote(true)}
-          className="mt-4 inline-flex items-center gap-1.5 press-scale"
-          style={{
-            border: "1px solid rgba(196,162,78,0.25)",
-            borderRadius: 999,
-            padding: "4px 10px",
-          }}
+          onClick={() => setShowNote(v => !v)}
+          className="press-scale inline-flex items-center gap-1.5"
+          style={pillStyle}
+          aria-expanded={showNote}
         >
-          <Clock className="h-3 w-3" style={{ color: "#C4A24E" }} />
           <span
             className="font-mono uppercase"
             style={{ fontSize: 9, letterSpacing: "2px", color: "#C4A24E" }}
           >
-            ¿Sin tiempo?
+            Notas del coach
+          </span>
+          <span
+            style={{
+              fontSize: 10,
+              color: "#C4A24E",
+              transform: showNote ? "rotate(90deg)" : "rotate(0deg)",
+              transition: "transform 0.2s",
+              display: "inline-block",
+            }}
+          >
+            ›
           </span>
         </button>
-      )}
-      {shortOnTimeNote && showShortNote && (
+        {shortOnTimeNote && (
+          <button
+            onClick={() => setShowShortNote(v => !v)}
+            className="press-scale inline-flex items-center gap-1.5"
+            style={pillStyle}
+            aria-expanded={showShortNote}
+          >
+            <Clock className="h-3 w-3" style={{ color: "#C4A24E" }} />
+            <span
+              className="font-mono uppercase"
+              style={{ fontSize: 9, letterSpacing: "2px", color: "#C4A24E" }}
+            >
+              ¿Sin tiempo?
+            </span>
+          </button>
+        )}
+      </div>
+
+      {/* Expanded panel — full-width below the pills */}
+      {(showNote || showShortNote) && (
         <div
-          className="mt-4 p-3 rounded-xl"
+          className="fixed inset-x-0 bottom-0 z-[60] px-6 pt-5 pb-10 rounded-t-3xl"
           style={{
-            background: "rgba(196,162,78,0.06)",
-            border: "1px solid rgba(196,162,78,0.2)",
+            background: "#15151A",
+            borderTop: "1px solid hsl(var(--border))",
+            boxShadow: "0 -16px 36px rgba(0,0,0,0.4)",
+            animation: "fadeInUp 0.25s ease-out",
           }}
         >
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center justify-between mb-3">
             <p
-              className="font-body italic text-foreground/85"
-              style={{ fontSize: 12, lineHeight: 1.55, fontWeight: 300 }}
+              className="font-mono uppercase"
+              style={{ fontSize: 9, letterSpacing: "2.5px", color: "#C4A24E" }}
             >
-              {shortOnTimeNote}
+              {showShortNote && !showNote ? "Sin tiempo" : "Coach"}
             </p>
             <button
-              onClick={() => setShowShortNote(false)}
-              className="shrink-0 text-muted-foreground"
-              style={{ fontSize: 14 }}
+              onClick={() => { setShowNote(false); setShowShortNote(false); }}
+              className="text-muted-foreground"
+              style={{ fontSize: 16 }}
               aria-label="Cerrar"
             >
               ✕
             </button>
           </div>
+          {showNote && (
+            <ExpandableNote
+              text={displayNote}
+              clampLines={20}
+              className="font-body text-foreground/85"
+              style={{
+                fontSize: 13,
+                lineHeight: 1.6,
+                fontWeight: 300,
+                fontStyle: "italic",
+              }}
+            />
+          )}
+          {showShortNote && shortOnTimeNote && (
+            <p
+              className="font-body italic text-foreground/85"
+              style={{
+                fontSize: 13,
+                lineHeight: 1.6,
+                fontWeight: 300,
+                marginTop: showNote ? 16 : 0,
+              }}
+            >
+              {shortOnTimeNote}
+            </p>
+          )}
         </div>
       )}
+      <style>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }
