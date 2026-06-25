@@ -1,7 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { hapticTick, unlockHaptics } from "@/utils/haptics";
-import { useDarkMode } from "@/hooks/useDarkMode";
-import { dia, noche } from "@/lib/colors";
 
 interface Props {
   visible: boolean;
@@ -9,6 +7,9 @@ interface Props {
   onConfirm: (value: number) => void;
   onClose: () => void;
 }
+
+const GOLD = "#C4A24E";
+const SHEET_BG = "#15151A";
 
 function generateValues(): number[] {
   const vals: number[] = [];
@@ -22,8 +23,6 @@ const CONTAINER_HEIGHT = ITEM_HEIGHT * VISIBLE_COUNT;
 const VALUES = generateValues();
 
 export default function RepsPickerSheet({ visible, initialValue, onConfirm, onClose }: Props) {
-  const { isDark } = useDarkMode();
-  const t = isDark ? noche : dia;
   const scrollRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const scrollTimeout = useRef<ReturnType<typeof setTimeout>>();
@@ -39,11 +38,8 @@ export default function RepsPickerSheet({ visible, initialValue, onConfirm, onCl
     setSelectedIndex(closest);
     selectedIndexRef.current = closest;
     isInitialScroll.current = true;
-
     requestAnimationFrame(() => {
-      if (scrollRef.current) {
-        scrollRef.current.scrollTop = closest * ITEM_HEIGHT;
-      }
+      if (scrollRef.current) scrollRef.current.scrollTop = closest * ITEM_HEIGHT;
       setTimeout(() => { isInitialScroll.current = false; }, 150);
     });
   }, [visible, initialValue]);
@@ -59,18 +55,12 @@ export default function RepsPickerSheet({ visible, initialValue, onConfirm, onCl
 
   const handleScroll = useCallback(() => {
     if (!scrollRef.current || isInitialScroll.current) return;
-
     if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
-
     const scrollTop = scrollRef.current.scrollTop;
     const immediateIndex = Math.round(scrollTop / ITEM_HEIGHT);
     const clampedImmediate = Math.max(0, Math.min(immediateIndex, VALUES.length - 1));
-
-    if (clampedImmediate !== selectedIndexRef.current) {
-      hapticTick();
-    }
+    if (clampedImmediate !== selectedIndexRef.current) hapticTick();
     selectedIndexRef.current = clampedImmediate;
-
     scrollTimeout.current = setTimeout(() => {
       if (!scrollRef.current) return;
       const st = scrollRef.current.scrollTop;
@@ -78,11 +68,7 @@ export default function RepsPickerSheet({ visible, initialValue, onConfirm, onCl
       const clampedIndex = Math.max(0, Math.min(index, VALUES.length - 1));
       setSelectedIndex(clampedIndex);
       selectedIndexRef.current = clampedIndex;
-
-      scrollRef.current.scrollTo({
-        top: clampedIndex * ITEM_HEIGHT,
-        behavior: "smooth",
-      });
+      scrollRef.current.scrollTo({ top: clampedIndex * ITEM_HEIGHT, behavior: "smooth" });
     }, 80);
   }, []);
 
@@ -96,47 +82,65 @@ export default function RepsPickerSheet({ visible, initialValue, onConfirm, onCl
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onClose}>
-      <div className="absolute inset-0 bg-foreground/40" />
+      <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.55)" }} />
 
       <div
-        className="relative w-full max-w-md rounded-t-2xl overflow-hidden animate-slide-up"
-        style={{ background: t.card }}
+        className="relative w-full max-w-md overflow-hidden"
+        style={{
+          background: SHEET_BG,
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+          borderTop: "1px solid hsl(var(--border))",
+          animation: "atelierSlideUp 0.25s ease-out",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3" style={{ borderBottom: `1px solid ${t.border}` }}>
-          <button onClick={onClose} className="font-body text-sm" style={{ color: t.muted }}>
+        <div className="mx-auto mt-3 mb-2 h-0.5 w-9 rounded-full" style={{ background: "hsl(var(--muted-foreground))", opacity: 0.4 }} />
+
+        <div className="flex items-center justify-between px-6 py-3">
+          <button
+            onClick={onClose}
+            className="press-scale font-mono uppercase"
+            style={{ fontSize: 10, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+          >
             Cancelar
           </button>
-          <span className="font-mono text-xs uppercase tracking-widest" style={{ color: t.muted }}>
-            REPS
+          <span
+            className="font-mono uppercase"
+            style={{ fontSize: 10, letterSpacing: "3px", color: "hsl(var(--muted-foreground))" }}
+          >
+            Reps
           </span>
-          <button onClick={handleConfirm} className="font-body text-sm font-semibold" style={{ color: t.accent }}>
+          <button
+            onClick={handleConfirm}
+            className="press-scale font-mono uppercase"
+            style={{ fontSize: 10, letterSpacing: "2.5px", color: GOLD, fontWeight: 600 }}
+          >
             Listo
           </button>
         </div>
 
+        <div className="h-px w-full" style={{ background: "hsl(var(--border))", opacity: 0.5 }} />
+
         {/* Wheel */}
         <div className="relative" style={{ height: CONTAINER_HEIGHT }}>
-          {/* Selection highlight band */}
           <div
-            className="absolute left-4 right-4 pointer-events-none rounded-xl"
+            className="absolute left-6 right-6 pointer-events-none"
             style={{
               top: ITEM_HEIGHT * 2,
               height: ITEM_HEIGHT,
-              background: t.accentBg,
-              border: `1.5px solid ${t.accentBgStrong}`,
+              borderTop: `1px solid ${GOLD}`,
+              borderBottom: `1px solid ${GOLD}`,
             }}
           />
 
-          {/* Top/bottom fade gradients — reduced intensity for readability */}
           <div
             className="absolute top-0 left-0 right-0 pointer-events-none z-10"
-            style={{ height: ITEM_HEIGHT * 1.5, background: `linear-gradient(to bottom, ${t.card} 5%, transparent)` }}
+            style={{ height: ITEM_HEIGHT * 1.5, background: `linear-gradient(to bottom, ${SHEET_BG} 5%, transparent)` }}
           />
           <div
             className="absolute bottom-0 left-0 right-0 pointer-events-none z-10"
-            style={{ height: ITEM_HEIGHT * 1.5, background: `linear-gradient(to top, ${t.card} 5%, transparent)` }}
+            style={{ height: ITEM_HEIGHT * 1.5, background: `linear-gradient(to top, ${SHEET_BG} 5%, transparent)` }}
           />
 
           <div
@@ -165,18 +169,17 @@ export default function RepsPickerSheet({ visible, initialValue, onConfirm, onCl
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    opacity: distance === 0 ? 1 : distance === 1 ? 0.75 : 0.45,
-                    transform: `scale(${distance === 0 ? 1 : distance === 1 ? 0.92 : 0.84})`,
-                    transition: "opacity 0.15s, transform 0.15s",
+                    opacity: distance === 0 ? 1 : distance === 1 ? 0.7 : 0.35,
+                    transition: "opacity 0.15s",
                   }}
                 >
                   <span
-                    className="font-mono tabular-nums"
+                    className="font-display tabular-nums"
                     style={{
-                      fontSize: isSelected ? 32 : distance === 1 ? 24 : 22,
-                      fontWeight: isSelected ? 600 : 400,
-                      color: isSelected ? t.text : distance === 1 ? t.muted : t.subtle,
-                      letterSpacing: "0.02em",
+                      fontSize: isSelected ? 30 : distance === 1 ? 22 : 20,
+                      fontWeight: isSelected ? 400 : 300,
+                      color: isSelected ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
+                      letterSpacing: "-0.03em",
                     }}
                   >
                     {val}
@@ -184,9 +187,9 @@ export default function RepsPickerSheet({ visible, initialValue, onConfirm, onCl
                   {isSelected && (
                     <span
                       className="font-mono uppercase ml-2"
-                      style={{ fontSize: 14, color: t.accent, fontWeight: 600, letterSpacing: "0.1em" }}
+                      style={{ fontSize: 10, color: GOLD, fontWeight: 600, letterSpacing: "2px" }}
                     >
-                      REPS
+                      Reps
                     </span>
                   )}
                 </div>
@@ -199,8 +202,8 @@ export default function RepsPickerSheet({ visible, initialValue, onConfirm, onCl
 
         {/* Quick increment buttons */}
         <div
-          className="flex items-center justify-center gap-2 px-5 py-3"
-          style={{ borderTop: `1px solid ${t.border}` }}
+          className="flex items-center justify-center gap-6 px-5 py-4"
+          style={{ borderTop: "1px solid hsl(var(--border))" }}
         >
           {[-5, -2, -1, 1, 2, 5].map((inc) => (
             <button
@@ -213,11 +216,11 @@ export default function RepsPickerSheet({ visible, initialValue, onConfirm, onCl
                 );
                 scrollToIndex(closest);
               }}
-              className="rounded-full px-3 py-1.5 font-mono text-sm transition-colors"
+              className="press-scale font-mono tabular-nums"
               style={{
-                background: inc > 0 ? t.accentBgStrong : (isDark ? "rgba(138,126,114,0.15)" : "rgba(129,109,102,0.1)"),
-                color: inc > 0 ? t.accent : t.muted,
-                fontSize: 13,
+                fontSize: 12,
+                color: inc > 0 ? GOLD : "hsl(var(--muted-foreground))",
+                fontWeight: 500,
               }}
             >
               {inc > 0 ? `+${inc}` : inc}
@@ -229,10 +232,7 @@ export default function RepsPickerSheet({ visible, initialValue, onConfirm, onCl
       </div>
 
       <style>{`
-        .animate-slide-up {
-          animation: slideUp 0.25s ease-out;
-        }
-        @keyframes slideUp {
+        @keyframes atelierSlideUp {
           from { transform: translateY(100%); }
           to { transform: translateY(0); }
         }

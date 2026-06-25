@@ -1237,8 +1237,8 @@ export default function EmomTimerBlock({
               </p>
               {currentRpe && phase === "active" && (
                 <span
-                  className="inline-block mt-2 font-mono text-sm px-3 py-1 rounded-full font-medium"
-                  style={{ backgroundColor: t.accentBgStrong, color: t.accent }}
+                  className="inline-block mt-3 font-mono uppercase"
+                  style={{ fontSize: 10, letterSpacing: "2.5px", color: "#C4A24E", fontWeight: 600 }}
                 >
                   RPE {currentRpe}
                 </span>
@@ -1246,71 +1246,70 @@ export default function EmomTimerBlock({
             </div>
           )}
 
-          {/* Timer display — circular for active states, simple for idle */}
+          {/* Timer display — Atelier ring (gold hairline) for active, Syne for idle */}
           {phase === "idle" ? (
-            <div className="flex items-center justify-center py-4">
+            <div className="flex items-center justify-center py-6">
               <span
-                className="font-mono tabular-nums font-bold"
-                style={{ color: t.text, fontSize: "3rem", lineHeight: 1 }}
+                className="font-display tabular-nums"
+                style={{ fontWeight: 300, color: "hsl(var(--foreground))", fontSize: 64, lineHeight: 1, letterSpacing: "-0.05em" }}
               >
                 {formatTime(windowSeconds)}
               </span>
             </div>
           ) : (
-            <div className="flex items-center justify-center py-2">
+            <div className="flex items-center justify-center py-3">
               <div className="relative" style={{ width: RADIUS * 2 + STROKE * 2, height: RADIUS * 2 + STROKE * 2 }}>
-                {/* SVG circular progress */}
                 <svg
                   width={RADIUS * 2 + STROKE * 2}
                   height={RADIUS * 2 + STROKE * 2}
                   className="absolute inset-0"
                   style={{ transform: "rotate(-90deg)" }}
                 >
-                  {/* Background track */}
                   <circle
                     cx={RADIUS + STROKE}
                     cy={RADIUS + STROKE}
                     r={RADIUS}
                     fill="none"
-                    stroke={t.border}
-                    strokeWidth={STROKE}
+                    stroke="hsl(var(--border))"
+                    strokeWidth={1.5}
+                    opacity={0.4}
                   />
-                  {/* Progress arc */}
                   <circle
                     cx={RADIUS + STROKE}
                     cy={RADIUS + STROKE}
                     r={RADIUS}
                     fill="none"
-                    stroke={isWarning ? "#D45555" : phase === "countdown" ? t.muted : t.accent}
-                    strokeWidth={STROKE}
+                    stroke={isWarning ? "#D45555" : phase === "countdown" ? "hsl(var(--muted-foreground))" : "#C4A24E"}
+                    strokeWidth={1.5}
                     strokeLinecap="round"
                     strokeDasharray={CIRCUMFERENCE}
                     strokeDashoffset={strokeDash}
                     className="transition-all duration-1000 ease-linear"
+                    style={{ filter: phase === "active" && !isWarning ? `drop-shadow(0 0 8px #C4A24E40)` : "none" }}
                   />
                 </svg>
 
-                {/* Center content */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
                   <span
-                    className={`font-mono tabular-nums font-bold transition-all duration-300 ${
+                    className={`font-display tabular-nums transition-all duration-300 ${
                       ventanaFlash ? "opacity-30 scale-95" : "opacity-100 scale-100"
                     } ${isWarning ? "animate-pulse" : ""}`}
                     style={{
-                      color: isWarning ? "#D45555" : phase === "countdown" ? t.muted : t.accent,
-                      fontSize: "4rem",
+                      fontWeight: 300,
+                      color: isWarning ? "#D45555" : phase === "countdown" ? "hsl(var(--muted-foreground))" : "hsl(var(--foreground))",
+                      fontSize: 64,
                       lineHeight: 1,
-                      letterSpacing: "-0.02em",
+                      letterSpacing: "-0.05em",
                     }}
                   >
                     {formatTime(secondsLeft)}
                   </span>
                   {phase === "active" && (
                     <span
-                      className="font-mono text-[10px] tracking-wider mt-1"
-                      style={{ color: t.muted }}
+                      className="font-mono uppercase"
+                      style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
                     >
-                      VENTANA {currentWindow + 1}/{totalVentanas}
+                      Ventana {currentWindow + 1}/{totalVentanas}
                     </span>
                   )}
                 </div>
@@ -1318,88 +1317,83 @@ export default function EmomTimerBlock({
             </div>
           )}
 
-          {/* Next ventana preview — show if there's any meaningful info (new exercise, RPE change, or new ronda) */}
+          {/* Next ventana preview — hairline row */}
           {phase === "active" && hasNextVentana && (nextExercise || rpeChanges || isNextNewRonda) && (
-            <div
-              className="flex items-center justify-center gap-2 mt-3 px-4 py-2 rounded-xl mx-auto"
-              style={{ backgroundColor: t.accentBg, maxWidth: "fit-content" }}
-            >
-              <span className="font-mono text-[10px] tracking-wider uppercase" style={{ color: t.muted }}>
-                {isNextNewRonda ? `RONDA ${nextRonda + 1}:` : "SIGUIENTE:"}
+            <div className="flex items-center justify-center gap-3 mt-5">
+              <span
+                className="font-mono uppercase"
+                style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+              >
+                {isNextNewRonda ? `Ronda ${nextRonda + 1}` : "Siguiente"}
               </span>
               {nextExercise && (
-                <span className="font-body text-xs font-medium text-foreground">
+                <span
+                  className="font-display"
+                  style={{ fontWeight: 500, fontSize: 12, color: "hsl(var(--foreground))", letterSpacing: "-0.01em" }}
+                >
                   {nextExercise}
                 </span>
               )}
-              {nextRpe && rpeChanges && (
+              {nextRpe && (
                 <span
-                  className="font-mono text-[10px] px-2 py-0.5 rounded-full"
-                  style={{ backgroundColor: t.accentBg, color: t.accent }}
+                  className="font-mono uppercase"
+                  style={{ fontSize: 9, letterSpacing: "2px", color: rpeChanges ? "#C4A24E" : "hsl(var(--muted-foreground))", fontWeight: rpeChanges ? 600 : 400 }}
                 >
-                  RPE {nextRpe}
-                </span>
-              )}
-              {nextRpe && !rpeChanges && (
-                <span className="font-mono text-xs" style={{ color: t.muted }}>
                   RPE {nextRpe}
                 </span>
               )}
             </div>
           )}
 
-          {/* Controls */}
-          <div className="flex items-center justify-center gap-4 mt-4">
-            {/* Back */}
+          {/* Atelier controls — hairline circles, play/pause breathing */}
+          <div className="flex items-center justify-center gap-5 mt-6">
             {phase !== "idle" && (
               <button
                 onClick={handleBack}
-                className="flex h-12 w-12 items-center justify-center rounded-full transition-colors"
-                style={{ backgroundColor: t.accentBg }}
+                className="press-scale flex items-center justify-center"
+                style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid hsl(var(--border))" }}
                 title="Ventana anterior"
               >
-                <SkipBack className="w-5 h-5 text-muted-foreground" />
+                <SkipBack className="w-3.5 h-3.5" style={{ color: "hsl(var(--muted-foreground))" }} />
               </button>
             )}
 
-            {/* Reset */}
             {phase !== "idle" && (
               <button
                 onClick={handleReset}
-                className="flex h-12 w-12 items-center justify-center rounded-full transition-colors"
-                style={{ backgroundColor: t.accentBg }}
+                className="press-scale flex items-center justify-center"
+                style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid hsl(var(--border))" }}
                 title="Reiniciar todo"
               >
-                <RotateCcw className="w-5 h-5 text-muted-foreground" />
+                <RotateCcw className="w-3.5 h-3.5" style={{ color: "hsl(var(--muted-foreground))" }} />
               </button>
             )}
 
-            {/* Play / Pause */}
             <button
               onClick={running ? handlePause : handleStart}
               disabled={saving}
-              className="flex h-16 w-16 items-center justify-center rounded-full transition-all disabled:opacity-50 shadow-lg"
+              className={`press-scale flex items-center justify-center disabled:opacity-50 ${!running && !saving ? "liftory-breathe" : ""}`}
               style={{
-                backgroundColor: t.accent,
-                boxShadow: running ? `0 0 24px ${t.shadow}` : "0 4px 12px rgba(0,0,0,0.3)",
+                width: 56, height: 56, borderRadius: "50%",
+                border: "1px solid #C4A24E",
+                boxShadow: running ? `0 0 28px #C4A24E40` : `0 0 18px #C4A24E30`,
               }}
             >
               {running ? (
-                <Pause className="w-7 h-7" style={{ color: t.btnText }} />
+                <Pause className="w-5 h-5" style={{ color: "#C4A24E" }} />
               ) : (
-                <Play className="w-7 h-7 ml-0.5" style={{ color: t.btnText }} />
+                <Play className="w-5 h-5 ml-0.5" style={{ color: "#C4A24E" }} />
               )}
             </button>
 
-            {/* Skip */}
             {phase !== "idle" && (
               <button
                 onClick={handleSkip}
-                className="flex h-12 w-12 items-center justify-center rounded-full transition-colors"
-                style={{ backgroundColor: t.accentBg }}
+                className="press-scale flex items-center justify-center"
+                style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid hsl(var(--border))" }}
                 title="Saltar ventana"
               >
-                <SkipForward className="w-5 h-5 text-muted-foreground" />
+                <SkipForward className="w-3.5 h-3.5" style={{ color: "hsl(var(--muted-foreground))" }} />
               </button>
             )}
           </div>

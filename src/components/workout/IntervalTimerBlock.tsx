@@ -356,76 +356,80 @@ export default function IntervalTimerBlock({
             </div>
           )}
 
-          {/* Progress bar */}
+          {/* Progress hairline */}
           {phase !== "idle" && (
-            <div className="h-1 rounded-full bg-secondary overflow-hidden">
+            <div className="h-px overflow-hidden" style={{ background: "hsl(var(--border))", opacity: 0.5 }}>
               <div
-                className="h-full rounded-full transition-all duration-1000 ease-linear"
-                style={{ width: `${progress}%`, backgroundColor: phaseColor }}
+                className="h-full transition-all duration-1000 ease-linear"
+                style={{ width: `${progress}%`, background: phaseColor }}
               />
             </div>
           )}
 
-          {/* Timer display */}
+          {/* Timer display — Syne 300 */}
           <div className="flex items-center justify-center">
             <span
-              className="font-mono tabular-nums"
+              className="font-display tabular-nums"
               style={{
-                color: phase === "idle" ? t.text : phaseColor,
-                fontSize: phase === "idle" ? "2rem" : "3.5rem",
-                fontWeight: 700,
+                fontWeight: 300,
+                color: phase === "idle" ? "hsl(var(--foreground))" : phaseColor,
+                fontSize: phase === "idle" ? 40 : 72,
                 lineHeight: 1,
+                letterSpacing: "-0.05em",
               }}
             >
               {formatTime(secondsLeft)}
             </span>
           </div>
 
-          {/* Controls */}
-          <div className="flex items-center justify-center gap-3">
-            {/* Back round */}
+          {/* Atelier controls */}
+          <div className="flex items-center justify-center gap-5">
             {phase !== "idle" && (
               <button
                 onClick={handleBack}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+                className="press-scale flex items-center justify-center"
+                style={{ width: 32, height: 32, borderRadius: "50%", border: "1px solid hsl(var(--border))" }}
                 title="Ronda anterior"
               >
-                <SkipBack className="w-4 h-4" />
+                <SkipBack className="w-3.5 h-3.5" style={{ color: "hsl(var(--muted-foreground))" }} />
               </button>
             )}
 
-            {/* Reset all */}
             {phase !== "idle" && (
               <button
                 onClick={handleReset}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+                className="press-scale flex items-center justify-center"
+                style={{ width: 32, height: 32, borderRadius: "50%", border: "1px solid hsl(var(--border))" }}
                 title="Reiniciar todo"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-3.5 h-3.5" style={{ color: "hsl(var(--muted-foreground))" }} />
               </button>
             )}
 
-            {/* Play / Pause */}
             <button
               onClick={running ? handlePause : handleStart}
-              className="flex h-14 w-14 items-center justify-center rounded-full transition-colors"
-              style={{ backgroundColor: phase === "idle" ? t.accent : phaseColor }}
+              className={`press-scale flex items-center justify-center ${!running && phase === "idle" ? "liftory-breathe" : ""}`}
+              style={{
+                width: 52, height: 52, borderRadius: "50%",
+                border: `1px solid ${phase === "idle" ? "#C4A24E" : phaseColor}`,
+                boxShadow: running ? `0 0 22px ${phaseColor}40` : `0 0 16px #C4A24E30`,
+              }}
             >
               {running ? (
-                <Pause className="w-6 h-6" style={{ color: t.btnText }} />
+                <Pause className="w-4 h-4" style={{ color: phaseColor }} />
               ) : (
-                <Play className="w-6 h-6 ml-0.5" style={{ color: t.btnText }} />
+                <Play className="w-4 h-4 ml-0.5" style={{ color: phase === "idle" ? "#C4A24E" : phaseColor }} />
               )}
             </button>
 
-            {/* Skip round */}
             {phase !== "idle" && (
               <button
                 onClick={handleSkip}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+                className="press-scale flex items-center justify-center"
+                style={{ width: 32, height: 32, borderRadius: "50%", border: "1px solid hsl(var(--border))" }}
                 title="Saltar ronda"
               >
-                <SkipForward className="w-4 h-4" />
+                <SkipForward className="w-3.5 h-3.5" style={{ color: "hsl(var(--muted-foreground))" }} />
               </button>
             )}
           </div>

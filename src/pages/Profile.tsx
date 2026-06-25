@@ -491,20 +491,15 @@ export default function Profile() {
           ) : (
             <button
               onClick={() => navigate("/badges")}
-              className="mt-3 flex w-full items-center gap-4 rounded-xl bg-card p-4 text-left press-scale"
-              style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+              className="mt-4 press-scale flex w-full items-center gap-4 py-4 text-left"
+              style={{ borderTop: "1px solid hsl(var(--border))", borderBottom: "1px solid hsl(var(--border))" }}
             >
-              <div
-                className="flex h-9 w-9 items-center justify-center rounded-lg"
-                style={{ background: t.accentBg }}
-              >
-                <Lock className="h-4 w-4" style={{ color: t.accent }} />
-              </div>
+              <Lock className="h-3.5 w-3.5 shrink-0" style={{ color: "#C4A24E" }} />
               <div className="flex-1">
-                <p className="text-sm font-body font-medium text-foreground">Desbloquea tu primer badge</p>
-                <p className="text-xs text-muted-foreground font-body">Demuestra tu fuerza y gana insignias verificadas</p>
+                <p className="font-display" style={{ fontWeight: 500, fontSize: 13, color: "hsl(var(--foreground))", letterSpacing: "-0.01em" }}>Desbloquea tu primer badge</p>
+                <p className="font-mono uppercase mt-1" style={{ fontSize: 9, letterSpacing: "2px", color: "hsl(var(--muted-foreground))" }}>Demuestra tu fuerza · insignias verificadas</p>
               </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              <ChevronRight className="h-3.5 w-3.5" style={{ color: "hsl(var(--muted-foreground))" }} />
             </button>
           )}
         </div>
@@ -512,43 +507,48 @@ export default function Profile() {
         {/* ═══ BIBLIOTECA DE EJERCICIOS ═══ */}
         <button
           onClick={() => navigate("/exercises")}
-          className="press-scale mt-8 flex w-full items-center gap-4 rounded-xl bg-card p-4 text-left transition-colors"
-          style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+          className="press-scale mt-10 flex w-full items-center gap-4 py-4 text-left"
+          style={{ borderTop: "1px solid hsl(var(--border))", borderBottom: "1px solid hsl(var(--border))" }}
         >
-          <div
-            className="flex h-9 w-9 items-center justify-center rounded-lg"
-            style={{ background: t.accentBg }}
-          >
-            <BookOpen className="h-4 w-4" style={{ color: t.accent }} />
-          </div>
+          <BookOpen className="h-3.5 w-3.5 shrink-0" style={{ color: "#C4A24E" }} />
           <div className="flex-1">
-            <p className="text-sm font-body font-medium text-foreground">Biblioteca de Ejercicios</p>
-            <p className="text-xs text-muted-foreground font-body">Videos, técnica y coaching cues</p>
+            <p className="font-display" style={{ fontWeight: 500, fontSize: 13, color: "hsl(var(--foreground))", letterSpacing: "-0.01em" }}>Biblioteca de Ejercicios</p>
+            <p className="font-mono uppercase mt-1" style={{ fontSize: 9, letterSpacing: "2px", color: "hsl(var(--muted-foreground))" }}>Videos · técnica · coaching cues</p>
           </div>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          <ChevronRight className="h-3.5 w-3.5" style={{ color: "hsl(var(--muted-foreground))" }} />
         </button>
 
         {/* ═══ CERRAR SESIÓN ═══ */}
         <button
           onClick={handleSignOut}
-          className="press-scale mt-8 flex w-full items-center gap-4 rounded-xl p-4 text-left transition-colors hover:bg-destructive/10"
+          className="press-scale mt-8 flex w-full items-center gap-4 py-3 text-left"
         >
-          <LogOut className="h-5 w-5 text-destructive" />
-          <span className="flex-1 text-sm font-body font-medium text-destructive">Cerrar sesión</span>
+          <LogOut className="h-3.5 w-3.5" style={{ color: "#D45555" }} />
+          <span className="font-mono uppercase" style={{ fontSize: 10, letterSpacing: "2.5px", color: "#D45555", fontWeight: 600 }}>Cerrar sesión</span>
         </button>
 
         {/* ═══ ELIMINAR CUENTA ═══ */}
         <button
           onClick={() => setShowDeleteModal(true)}
-          className="press-scale mt-2 flex w-full items-center gap-4 rounded-xl p-4 text-left transition-colors hover:bg-destructive/10"
+          className="press-scale mt-1 flex w-full items-center gap-4 py-3 text-left"
         >
-          <Trash2 className="h-5 w-5 text-destructive/60" />
-          <span className="flex-1 text-sm font-body font-normal text-destructive/60">Eliminar cuenta</span>
+          <Trash2 className="h-3.5 w-3.5" style={{ color: "#D45555", opacity: 0.6 }} />
+          <span className="font-mono uppercase" style={{ fontSize: 10, letterSpacing: "2.5px", color: "#D45555", opacity: 0.7 }}>Eliminar cuenta</span>
         </button>
 
         {/* Footer */}
-        <div className="flex flex-col items-center py-8">
-          <span className="font-display" style={{ fontSize: 11, fontWeight: 800, letterSpacing: "-0.04em", color: "hsl(var(--muted-foreground))", textAlign: "center" }}>
+        <div className="flex flex-col items-center py-10">
+          <span
+            className="font-display uppercase"
+            style={{
+              fontFamily: "'Syne', sans-serif",
+              fontWeight: 800,
+              fontSize: 11,
+              letterSpacing: "-0.04em",
+              color: "hsl(var(--muted-foreground))",
+              opacity: 0.5,
+            }}
+          >
             LIFTORY v1.0
           </span>
         </div>

@@ -428,14 +428,12 @@ export default function Workout() {
 
   const handleUncompleteSet = useCallback(
     async (setId: string) => {
-      // Also clear is_pr — leaving it true on an uncompleted set creates an
-      // invalid state (no weight + flagged PR) and inflates PR counters.
+      // Preserve actual_weight / actual_reps when uncompleting — if the athlete
+      // mis-taps the toggle, their log shouldn't vanish. The set just goes back
+      // to "not done yet" state. Re-completing reuses the existing values.
+      // Clear is_pr (an uncompleted set can't be a PR) and logged_at.
       const payload = {
         is_completed: false,
-        actual_weight: null,
-        actual_reps: null,
-        actual_rpe: null,
-        actual_rir: null,
         is_pr: false,
         logged_at: null,
       };
@@ -552,7 +550,11 @@ export default function Workout() {
     }
   };
 
-  if (loading) {
+  // Skeleton only on the FIRST load (no workout yet). Once we have data, refetches
+  // (triggered by visibilitychange after >3s in background) must NOT unmount the
+  // tree — that was kicking RestTimerSheet to remount with possibly-expired
+  // initialEndTime, and clobbering BlockDetail's local edit state mid-write.
+  if (loading && !workout) {
     return (
       <div className="flex min-h-dvh flex-col bg-background px-5 pt-14">
         <Skeleton className="h-6 w-48 bg-muted" />

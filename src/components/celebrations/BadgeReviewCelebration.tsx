@@ -1,8 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { X, ChevronRight, RefreshCw, Share2, Loader2 } from "lucide-react";
-import { useDarkMode } from "@/hooks/useDarkMode";
-import { dia, noche } from "@/lib/colors";
+import { ChevronRight, RefreshCw, Share2, Loader2 } from "lucide-react";
 import { getBadgeIcon } from "@/lib/badgeIcons";
 import { useShareBadgeCard } from "@/hooks/useShareBadgeCard";
 import BadgeShareCard from "@/components/share/BadgeShareCard";
@@ -14,15 +12,16 @@ interface Props {
   onCheckNext: () => void;
 }
 
+const GOLD = "#C4A24E";
+const RED = "#D45555";
+const SHEET_BG = "#15151A";
+
 export default function BadgeReviewCelebration({ notification, onDismiss, onCheckNext }: Props) {
   const navigate = useNavigate();
-  const { isDark } = useDarkMode();
-  const t = isDark ? noche : dia;
   const [visible, setVisible] = useState(false);
   const [exiting, setExiting] = useState(false);
   const { cardRef, sharing, share, cardData, athleteName, avatarUrl } = useShareBadgeCard();
 
-  // Animate in when notification arrives
   useEffect(() => {
     if (notification) {
       setExiting(false);
@@ -41,7 +40,6 @@ export default function BadgeReviewCelebration({ notification, onDismiss, onChec
       setVisible(false);
       setExiting(false);
       onDismiss();
-      // After dismiss animation, check for next review
       setTimeout(() => onCheckNext(), 200);
     }, 400);
   }, [onDismiss, onCheckNext]);
@@ -82,14 +80,15 @@ export default function BadgeReviewCelebration({ notification, onDismiss, onChec
 
   const Icon = getBadgeIcon(notification.iconName);
   const isApproved = notification.status === "approved";
+  const accent = isApproved ? notification.tierColor : RED;
 
   return (
     <>
       <div
         className="fixed inset-0 z-[72] flex items-center justify-center px-6"
         style={{
-          background: "rgba(0,0,0,0.7)",
-          backdropFilter: "blur(8px)",
+          background: "rgba(0,0,0,0.75)",
+          backdropFilter: "blur(10px)",
           transition: "opacity 0.4s ease",
           opacity: visible && !exiting ? 1 : 0,
           pointerEvents: visible && !exiting ? "auto" : "none",
@@ -97,203 +96,185 @@ export default function BadgeReviewCelebration({ notification, onDismiss, onChec
         onClick={handleDismiss}
       >
         <div
-          className="relative w-full max-w-sm rounded-2xl overflow-hidden"
+          className="relative w-full max-w-sm overflow-hidden text-center"
           style={{
-            background: t.card,
-            border: `1px solid ${isApproved ? notification.tierColor + "40" : "rgba(239,68,68,0.3)"}`,
-            boxShadow: isApproved
-              ? `0 0 60px ${notification.tierColor}20, 0 20px 60px rgba(0,0,0,0.5)`
-              : "0 20px 60px rgba(0,0,0,0.5)",
+            background: SHEET_BG,
+            borderRadius: 24,
+            border: "1px solid hsl(var(--border))",
             transition: "transform 0.4s ease, opacity 0.4s ease",
-            transform: visible && !exiting ? "scale(1) translateY(0)" : "scale(0.9) translateY(20px)",
+            transform: visible && !exiting ? "scale(1) translateY(0)" : "scale(0.95) translateY(20px)",
             opacity: visible && !exiting ? 1 : 0,
+            padding: "40px 32px 32px",
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Top accent bar */}
-          <div
-            className="h-1"
-            style={{
-              background: isApproved
-                ? `linear-gradient(90deg, ${notification.tierColor}, ${notification.tierColor}60)`
-                : "linear-gradient(90deg, #EF4444, #EF444460)",
-            }}
-          />
-
-          {/* Close button */}
-          <button
-            onClick={handleDismiss}
-            className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full"
-            style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(61,43,36,0.08)" }}
+          {/* Eyebrow */}
+          <p
+            className="font-mono uppercase"
+            style={{ fontSize: 9, letterSpacing: "3px", color: accent }}
           >
-            <X className="h-3.5 w-3.5" style={{ color: t.muted }} />
-          </button>
+            {isApproved ? "Badge aprobado" : "Video no aprobado"}
+          </p>
 
-          <div className="px-6 pt-8 pb-6 text-center">
-            {/* Icon */}
+          {/* Icon — gold ring or red ring */}
+          <div className="relative mx-auto mt-5" style={{ width: 88, height: 88 }}>
+            {isApproved && (
+              <div
+                className="absolute inset-0 rounded-full animate-ping"
+                style={{ background: `${accent}10`, animationDuration: "2.5s" }}
+              />
+            )}
+            <div
+              className="absolute inset-0 rounded-full flex items-center justify-center"
+              style={{
+                border: `1px solid ${accent}`,
+                boxShadow: isApproved ? `0 0 28px ${accent}50` : "none",
+              }}
+            >
+              {isApproved ? (
+                <Icon className="h-7 w-7" style={{ color: accent }} />
+              ) : (
+                <RefreshCw className="h-6 w-6" style={{ color: accent }} />
+              )}
+            </div>
+          </div>
+
+          {/* Title */}
+          <h2
+            className="font-display mt-6"
+            style={{
+              fontWeight: 300,
+              fontSize: 28,
+              letterSpacing: "-0.04em",
+              lineHeight: 1.05,
+              color: "hsl(var(--foreground))",
+            }}
+          >
             {isApproved ? (
               <>
-                {/* Glow rings */}
-                <div className="relative mx-auto mb-5" style={{ width: 88, height: 88 }}>
-                  <div
-                    className="absolute inset-0 rounded-full animate-ping"
-                    style={{
-                      background: `${notification.tierColor}10`,
-                      animationDuration: "2s",
-                    }}
-                  />
-                  <div
-                    className="absolute inset-2 rounded-full"
-                    style={{ border: `1.5px solid ${notification.tierColor}20`, background: `${notification.tierColor}08` }}
-                  />
-                  <div
-                    className="absolute inset-0 flex items-center justify-center"
-                  >
-                    <div
-                      className="h-16 w-16 rounded-full flex items-center justify-center"
-                      style={{ background: `${notification.tierColor}20`, border: `2px solid ${notification.tierColor}40` }}
-                    >
-                      <Icon className="h-7 w-7" style={{ color: notification.tierColor }} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Title */}
-                <h2
-                  className="font-display text-[22px] font-[800]"
-                  style={{ color: notification.tierColor, letterSpacing: "-0.03em" }}
-                >
-                  Badge aprobado
-                </h2>
-                <p
-                  className="font-display text-[16px] font-[700] mt-1"
-                  style={{ color: t.text, letterSpacing: "-0.02em" }}
-                >
-                  {notification.badgeName}
-                </p>
-                <p
-                  className="font-mono text-[10px] uppercase tracking-[1.5px] mt-1"
-                  style={{ color: notification.tierColor }}
-                >
-                  {notification.tierLabel}
-                </p>
-                <p className="font-body text-[13px] mt-3 leading-relaxed" style={{ color: t.muted }}>
-                  Tu video fue revisado y aprobado. Este badge ya es parte de tu perfil.
-                </p>
-
-                {notification.reviewNotes && (
-                  <div
-                    className="mt-4 rounded-xl px-4 py-3 text-left"
-                    style={{ background: isDark ? "rgba(255,255,255,0.03)" : "rgba(61,43,36,0.03)", border: `1px solid ${notification.tierColor}20` }}
-                  >
-                    <p className="font-mono text-[9px] uppercase tracking-wider mb-1" style={{ color: t.muted }}>
-                      Nota del coach
-                    </p>
-                    <p className="font-body text-[12px] leading-relaxed" style={{ color: t.muted }}>
-                      {notification.reviewNotes}
-                    </p>
-                  </div>
-                )}
+                <strong style={{ fontWeight: 700 }}>{notification.badgeName}</strong>
               </>
             ) : (
               <>
-                {/* Rejected icon */}
-                <div className="relative mx-auto mb-5" style={{ width: 72, height: 72 }}>
-                  <div
-                    className="absolute inset-0 rounded-full flex items-center justify-center"
-                    style={{ background: "rgba(239,68,68,0.1)", border: "1.5px solid rgba(239,68,68,0.2)" }}
-                  >
-                    <RefreshCw className="h-7 w-7" style={{ color: "#EF4444" }} />
-                  </div>
-                </div>
-
-                <h2
-                  className="font-display text-[20px] font-[800]"
-                  style={{ color: "#EF4444", letterSpacing: "-0.03em" }}
-                >
-                  Video no aprobado
-                </h2>
-                <p
-                  className="font-display text-[15px] font-[700] mt-1"
-                  style={{ color: t.text, letterSpacing: "-0.02em" }}
-                >
-                  {notification.badgeName} — {notification.tierLabel}
-                </p>
-                <p className="font-body text-[13px] mt-3 leading-relaxed" style={{ color: t.muted }}>
-                  Tu video fue revisado pero no cumplio con los requisitos. Puedes volver a enviarlo.
-                </p>
-
-                {notification.reviewNotes && (
-                  <div
-                    className="mt-4 rounded-xl px-4 py-3 text-left"
-                    style={{ background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.15)" }}
-                  >
-                    <p className="font-mono text-[9px] uppercase tracking-wider mb-1" style={{ color: t.muted }}>
-                      Motivo
-                    </p>
-                    <p className="font-body text-[12px] leading-relaxed" style={{ color: t.muted }}>
-                      {notification.reviewNotes}
-                    </p>
-                  </div>
-                )}
+                <strong style={{ fontWeight: 700 }}>{notification.badgeName}</strong>
               </>
             )}
+          </h2>
 
-            {/* Actions */}
-            <div className="mt-6 space-y-2">
-              {isApproved ? (
-                <>
-                  <button
-                    onClick={handleViewBadges}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 font-display text-[13px] font-[700] transition-all active:scale-[0.98]"
-                    style={{ background: notification.tierColor, color: t.btnText }}
+          <p
+            className="font-mono uppercase mt-3"
+            style={{ fontSize: 9, letterSpacing: "2.5px", color: accent }}
+          >
+            {notification.tierLabel}
+          </p>
+
+          <div className="mx-auto h-px mt-5" style={{ width: 36, background: accent }} />
+
+          {/* Body */}
+          <p
+            className="font-body italic mt-5 leading-snug"
+            style={{ fontWeight: 300, fontSize: 13, color: "hsl(var(--muted-foreground))", maxWidth: 280, marginLeft: "auto", marginRight: "auto" }}
+          >
+            {isApproved
+              ? "Tu video fue revisado y aprobado. Este badge ya es parte de tu perfil."
+              : "Tu video fue revisado pero no cumplió con los requisitos. Puedes volver a enviarlo."}
+          </p>
+
+          {notification.reviewNotes && (
+            <div className="mt-5 text-left">
+              <p
+                className="font-mono uppercase"
+                style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+              >
+                {isApproved ? "Nota del coach" : "Motivo"}
+              </p>
+              <p
+                className="font-body mt-2"
+                style={{ fontWeight: 300, fontSize: 12, color: "hsl(var(--muted-foreground))", lineHeight: 1.5 }}
+              >
+                {notification.reviewNotes}
+              </p>
+            </div>
+          )}
+
+          {/* Actions — Atelier CTAs */}
+          <div className="mt-8 flex flex-col items-center gap-4">
+            {isApproved ? (
+              <>
+                <button
+                  onClick={handleViewBadges}
+                  className="press-scale flex items-center gap-3"
+                >
+                  <span
+                    className="font-mono uppercase"
+                    style={{ fontSize: 11, letterSpacing: "2.5px", color: "hsl(var(--foreground))", fontWeight: 600 }}
                   >
                     Ver mis badges
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={handleShare}
-                    disabled={sharing}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl py-3 font-display text-[13px] font-[700] transition-all active:scale-[0.98]"
+                  </span>
+                  <span
+                    className="liftory-breathe flex items-center justify-center shrink-0"
                     style={{
-                      background: "transparent",
-                      border: `1px solid ${notification.tierColor}40`,
-                      color: notification.tierColor,
+                      width: 36, height: 36, borderRadius: "50%",
+                      border: `1px solid ${accent}`,
+                      boxShadow: `0 0 24px ${accent}40`,
                     }}
                   >
-                    {sharing ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <>
-                        <Share2 className="h-4 w-4" />
-                        Compartir
-                      </>
-                    )}
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={handleResubmit}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 font-display text-[13px] font-[700] transition-all active:scale-[0.98]"
-                  style={{ background: "#EF4444", color: t.text }}
-                >
-                  Volver a enviar video
-                  <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-3.5 w-3.5" style={{ color: accent }} />
+                  </span>
                 </button>
-              )}
+                <button
+                  onClick={handleShare}
+                  disabled={sharing}
+                  className="press-scale flex items-center gap-2 disabled:opacity-50"
+                >
+                  {sharing ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" style={{ color: "hsl(var(--muted-foreground))" }} />
+                  ) : (
+                    <Share2 className="h-3.5 w-3.5" style={{ color: "hsl(var(--muted-foreground))" }} />
+                  )}
+                  <span
+                    className="font-mono uppercase"
+                    style={{ fontSize: 10, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+                  >
+                    Compartir
+                  </span>
+                </button>
+              </>
+            ) : (
               <button
-                onClick={handleDismiss}
-                className="w-full py-2 font-body text-[12px]"
-                style={{ color: t.muted }}
+                onClick={handleResubmit}
+                className="press-scale flex items-center gap-3"
               >
-                Cerrar
+                <span
+                  className="font-mono uppercase"
+                  style={{ fontSize: 11, letterSpacing: "2.5px", color: "hsl(var(--foreground))", fontWeight: 600 }}
+                >
+                  Volver a enviar
+                </span>
+                <span
+                  className="liftory-breathe flex items-center justify-center shrink-0"
+                  style={{
+                    width: 36, height: 36, borderRadius: "50%",
+                    border: `1px solid ${accent}`,
+                    boxShadow: `0 0 18px ${accent}40`,
+                  }}
+                >
+                  <ChevronRight className="h-3.5 w-3.5" style={{ color: accent }} />
+                </span>
               </button>
-            </div>
+            )}
+            <button
+              onClick={handleDismiss}
+              className="font-mono uppercase"
+              style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+            >
+              Cerrar
+            </button>
           </div>
         </div>
       </div>
 
-      {/* ═══ HIDDEN SHARE CARD (captured by html2canvas) ═══ */}
+      {/* HIDDEN SHARE CARD (captured by html2canvas) */}
       <div style={{ position: "fixed", left: "-9999px", top: 0, pointerEvents: "none" }}>
         <BadgeShareCard
           ref={cardRef}

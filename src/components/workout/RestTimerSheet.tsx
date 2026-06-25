@@ -49,6 +49,12 @@ export default function RestTimerSheet({
       const secsLeft = Math.max(0, Math.ceil(msLeft / 1000));
       setRemaining(secsLeft);
       setTotal(durationSeconds);
+    } else if (initialEndTime != null) {
+      // initialEndTime exists but already expired — the timer ran out while the
+      // athlete was away. Dismiss instead of creating a fresh full-duration
+      // timer (that was Víctor's "timer reinicia al volver" bug).
+      onDismiss();
+      return;
     } else {
       const end = Date.now() + durationSeconds * 1000;
       endTimeRef.current = end;
@@ -157,65 +163,72 @@ export default function RestTimerSheet({
       }}
     >
       <div
-        className="rounded-t-2xl px-6 pb-8 pt-4 transition-colors duration-200"
+        className="px-6 pb-8 pt-4 transition-colors duration-200"
         style={{
-          backgroundColor: flash ? "hsl(var(--primary))" : "hsl(var(--card))",
-          boxShadow: "0 -8px 32px rgba(0,0,0,0.5)",
+          background: flash ? "#C4A24E" : "#15151A",
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+          borderTop: "1px solid hsl(var(--border))",
           height: 180,
           animation: done ? "rest-pulse 1s ease-in-out infinite" : undefined,
         }}
       >
-        {/* Pulse animation for done state */}
         <style>{`
           @keyframes rest-pulse {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
+            50% { opacity: 0.65; }
           }
         `}</style>
 
         {/* Drag handle */}
-        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-muted-foreground/30" />
+        <div className="mx-auto mb-4 h-0.5 w-9 rounded-full" style={{ background: "hsl(var(--muted-foreground))", opacity: 0.4 }} />
 
         <div className="flex items-center justify-between">
           <button
             onClick={onDismiss}
-            className="font-body text-sm text-muted-foreground"
+            className="press-scale font-mono uppercase"
+            style={{ fontSize: 10, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
           >
             {done ? "Cerrar" : "Saltar"}
           </button>
-          <p className="font-body text-sm text-muted-foreground">
+          <p
+            className="font-mono uppercase"
+            style={{ fontSize: 10, letterSpacing: "3px", color: done ? "#C4A24E" : "hsl(var(--muted-foreground))" }}
+          >
             {done ? "Listo" : "Descanso"}
           </p>
           <button
             onClick={addTime}
-            className="font-body text-sm font-medium text-primary"
+            className="press-scale font-mono uppercase"
+            style={{ fontSize: 10, letterSpacing: "2.5px", color: "#C4A24E", fontWeight: 600 }}
           >
             +15s
           </button>
         </div>
 
-        {/* Countdown */}
+        {/* Countdown — Syne 300 light */}
         <p
-          className="mt-2 text-center font-mono font-bold"
+          className="mt-3 text-center font-display tabular-nums"
           style={{
-            fontSize: 48,
+            fontWeight: 300,
+            fontSize: 56,
             lineHeight: 1,
-            letterSpacing: "-0.02em",
+            letterSpacing: "-0.05em",
             color: done
-              ? "hsl(var(--primary))"
+              ? "#C4A24E"
               : remaining <= 5 && remaining > 0
-                ? "hsl(var(--primary))"
+                ? "#C4A24E"
                 : "hsl(var(--foreground))",
           }}
         >
           {formatTime(remaining)}
         </p>
 
-        {/* Progress bar */}
-        <div className="mt-3 h-1 w-full overflow-hidden rounded-full" style={{ backgroundColor: "hsl(var(--border))" }}>
+        {/* Progress hairline */}
+        <div className="mt-4 h-px w-full overflow-hidden" style={{ background: "hsl(var(--border))", opacity: 0.5 }}>
           <div
-            className="h-full rounded-full bg-primary transition-all duration-1000 linear"
-            style={{ width: `${progress * 100}%` }}
+            className="h-full transition-all duration-1000 linear"
+            style={{ width: `${progress * 100}%`, background: "#C4A24E" }}
           />
         </div>
       </div>

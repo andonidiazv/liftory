@@ -2,7 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useWorkoutData } from "@/hooks/useWorkoutData";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Trophy, TrendingUp, Clock, Dumbbell, Star, Send, Share2, Download, ChevronLeft, Instagram } from "lucide-react";
+import { Trophy, TrendingUp, Clock, Dumbbell, Star, Send, Share2, Download, ChevronLeft, ChevronRight, Instagram } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { useMilestoneDetection } from "@/hooks/useMilestoneDetection";
@@ -683,73 +683,108 @@ export default function WorkoutComplete() {
           </div>
         </div>
 
-        {/* Share buttons */}
-        <div className="flex w-full max-w-md gap-3 mt-4">
+        {/* Share — Atelier text + circle pattern */}
+        <div className="flex w-full justify-center gap-7 mt-5">
           <button
             onClick={() => handleShare("story")}
             disabled={sharing}
-            className="press-scale flex flex-1 items-center justify-center gap-2 rounded-xl py-4 font-display text-[15px] font-semibold transition-all"
-            style={{ background: t.accent, color: t.btnText }}
+            className="press-scale flex items-center gap-2 disabled:opacity-50"
           >
-            <Instagram className="h-4 w-4" />
-            {sharing ? "..." : "Stories"}
+            <Instagram className="h-3.5 w-3.5" style={{ color: "#C4A24E" }} />
+            <span
+              className="font-mono uppercase"
+              style={{ fontSize: 10, letterSpacing: "2.5px", color: "#C4A24E", fontWeight: 600 }}
+            >
+              {sharing ? "..." : "Stories"}
+            </span>
           </button>
           <button
             onClick={() => handleShare("card")}
             disabled={sharing}
-            className="press-scale flex flex-1 items-center justify-center gap-2 rounded-xl py-4 font-display text-[15px] font-semibold transition-all"
-            style={{ background: t.accentBgStrong, color: t.accent, border: `1px solid ${t.accent}4D` }}
+            className="press-scale flex items-center gap-2 disabled:opacity-50"
           >
-            <Share2 className="h-4 w-4" />
-            {sharing ? "..." : "Compartir"}
+            <Share2 className="h-3.5 w-3.5" style={{ color: "hsl(var(--muted-foreground))" }} />
+            <span
+              className="font-mono uppercase"
+              style={{ fontSize: 10, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+            >
+              {sharing ? "..." : "Compartir"}
+            </span>
           </button>
         </div>
 
-        {/* ── FEEDBACK SECTION ── */}
+        {/* ── FEEDBACK SECTION ── Atelier hairline questions */}
         {showFeedback && (
-          <div className="mt-8 w-full max-w-md">
-            <p className="font-mono uppercase text-muted-foreground text-center mb-5" style={{ fontSize: 11, letterSpacing: "0.15em", fontWeight: 600 }}>
-              FEEDBACK RÁPIDO
+          <div className="mt-10 w-full max-w-md">
+            <p
+              className="font-mono uppercase text-center mb-7"
+              style={{ fontSize: 9, letterSpacing: "3px", color: "#C4A24E" }}
+            >
+              Feedback rápido
             </p>
 
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-8">
               {questions.map((q) => (
-                <div key={q.id} className="rounded-xl border border-border bg-card p-4">
-                  <p className="font-display text-[15px] font-semibold text-foreground mb-3" style={{ letterSpacing: "-0.02em" }}>
+                <div key={q.id}>
+                  <p
+                    className="font-display mb-4"
+                    style={{ fontWeight: 500, fontSize: 14, color: "hsl(var(--foreground))", letterSpacing: "-0.01em" }}
+                  >
                     {q.text}
                   </p>
 
                   {q.type === "emoji" && q.options && (
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                       {q.options.map((opt) => (
                         <button
                           key={opt.value}
                           onClick={() => handleSelect(q.id, opt.value, false)}
-                          className={`press-scale rounded-xl border-2 py-3 px-2 font-body text-sm font-medium transition-all ${
-                            isSelected(q.id, opt.value)
-                              ? "border-primary bg-primary/10 text-foreground"
-                              : "border-border bg-secondary/50 text-muted-foreground"
-                          }`}
+                          className="press-scale py-3 flex items-center justify-center gap-1.5"
+                          style={{
+                            borderBottom: `1px solid ${isSelected(q.id, opt.value) ? "#C4A24E" : "hsl(var(--border))"}`,
+                          }}
                         >
-                          {opt.label}
+                          <span
+                            className="font-mono uppercase"
+                            style={{
+                              fontSize: 10,
+                              letterSpacing: "2px",
+                              color: isSelected(q.id, opt.value) ? "#C4A24E" : "hsl(var(--muted-foreground))",
+                              fontWeight: isSelected(q.id, opt.value) ? 600 : 400,
+                            }}
+                          >
+                            {opt.label}
+                          </span>
                         </button>
                       ))}
                     </div>
                   )}
 
                   {q.type === "single" && q.options && (
-                    <div className="flex gap-2">
+                    <div className="flex justify-center gap-6">
                       {q.options.map((opt) => (
                         <button
                           key={opt.value}
                           onClick={() => handleSelect(q.id, opt.value, false)}
-                          className={`press-scale flex-1 rounded-xl border-2 py-3 font-body text-sm font-medium transition-all ${
-                            isSelected(q.id, opt.value)
-                              ? "border-primary bg-primary/10 text-foreground"
-                              : "border-border bg-secondary/50 text-muted-foreground"
-                          }`}
+                          className="press-scale py-2 flex flex-col items-center gap-1.5"
                         >
-                          {opt.label}
+                          <span
+                            className="font-mono uppercase"
+                            style={{
+                              fontSize: 10,
+                              letterSpacing: "2px",
+                              color: isSelected(q.id, opt.value) ? "#C4A24E" : "hsl(var(--muted-foreground))",
+                              fontWeight: isSelected(q.id, opt.value) ? 600 : 400,
+                            }}
+                          >
+                            {opt.label}
+                          </span>
+                          <span
+                            style={{
+                              height: 1, width: 14,
+                              background: isSelected(q.id, opt.value) ? "#C4A24E" : "transparent",
+                            }}
+                          />
                         </button>
                       ))}
                     </div>
@@ -757,30 +792,54 @@ export default function WorkoutComplete() {
 
                   {q.type === "chips" && q.options && (
                     <div className="flex flex-col gap-2">
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-x-5 gap-y-2">
                         {q.options.map((opt) => (
                           <button
                             key={opt.value}
                             onClick={() => handleSelect(q.id, opt.value, true)}
-                            className={`press-scale rounded-full border-2 px-4 py-2 font-body text-sm font-medium transition-all ${
-                              isSelected(q.id, opt.value)
-                                ? "border-primary bg-primary/10 text-foreground"
-                                : "border-border bg-secondary/50 text-muted-foreground"
-                            }`}
+                            className="press-scale py-1.5 flex flex-col items-center gap-1"
                           >
-                            {opt.label}
+                            <span
+                              className="font-mono uppercase"
+                              style={{
+                                fontSize: 10,
+                                letterSpacing: "2px",
+                                color: isSelected(q.id, opt.value) ? "#C4A24E" : "hsl(var(--muted-foreground))",
+                                fontWeight: isSelected(q.id, opt.value) ? 600 : 400,
+                              }}
+                            >
+                              {opt.label}
+                            </span>
+                            <span
+                              style={{
+                                height: 1, width: 12,
+                                background: isSelected(q.id, opt.value) ? "#C4A24E" : "transparent",
+                              }}
+                            />
                           </button>
                         ))}
                         {q.allowOther && (
                           <button
                             onClick={() => setShowOtherInput(prev => ({ ...prev, [q.id]: !prev[q.id] }))}
-                            className={`press-scale rounded-full border-2 px-4 py-2 font-body text-sm font-medium transition-all ${
-                              showOtherInput[q.id]
-                                ? "border-primary bg-primary/10 text-foreground"
-                                : "border-border bg-secondary/50 text-muted-foreground"
-                            }`}
+                            className="press-scale py-1.5 flex flex-col items-center gap-1"
                           >
-                            + Otro
+                            <span
+                              className="font-mono uppercase"
+                              style={{
+                                fontSize: 10,
+                                letterSpacing: "2px",
+                                color: showOtherInput[q.id] ? "#C4A24E" : "hsl(var(--muted-foreground))",
+                                fontWeight: showOtherInput[q.id] ? 600 : 400,
+                              }}
+                            >
+                              + Otro
+                            </span>
+                            <span
+                              style={{
+                                height: 1, width: 12,
+                                background: showOtherInput[q.id] ? "#C4A24E" : "transparent",
+                              }}
+                            />
                           </button>
                         )}
                       </div>
@@ -790,7 +849,15 @@ export default function WorkoutComplete() {
                           placeholder="Describe..."
                           value={otherTexts[q.id] || ""}
                           onChange={(e) => setOtherTexts(prev => ({ ...prev, [q.id]: e.target.value }))}
-                          className="rounded-xl border-2 border-border bg-secondary/50 px-4 py-2.5 font-body text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors"
+                          className="font-body bg-transparent focus:outline-none transition-colors mt-2"
+                          style={{
+                            borderBottom: "1px solid hsl(var(--border))",
+                            paddingBottom: 8,
+                            paddingTop: 8,
+                            color: "hsl(var(--foreground))",
+                            fontSize: 13,
+                            fontWeight: 300,
+                          }}
                           maxLength={200}
                         />
                       )}
@@ -800,19 +867,34 @@ export default function WorkoutComplete() {
               ))}
             </div>
 
-            {/* Submit / Skip */}
-            <div className="mt-5 flex flex-col gap-2">
+            {/* Submit / Skip — Atelier */}
+            <div className="mt-8 flex flex-col items-center gap-4">
               <button
                 onClick={submitFeedback}
                 disabled={submitting || Object.keys(answers).length === 0}
-                className="press-scale flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-body text-[15px] font-medium text-primary-foreground disabled:opacity-40"
+                className="press-scale flex items-center gap-3 disabled:opacity-40"
               >
-                <Send className="h-4 w-4" />
-                {submitting ? "Enviando..." : "Enviar feedback"}
+                <span
+                  className="font-mono uppercase"
+                  style={{ fontSize: 11, letterSpacing: "2.5px", color: "hsl(var(--foreground))", fontWeight: 600 }}
+                >
+                  {submitting ? "Enviando…" : "Enviar feedback"}
+                </span>
+                <span
+                  className="liftory-breathe flex items-center justify-center shrink-0"
+                  style={{
+                    width: 36, height: 36, borderRadius: "50%",
+                    border: "1px solid #C4A24E",
+                    boxShadow: "0 0 18px #C4A24E40",
+                  }}
+                >
+                  <Send className="h-3.5 w-3.5" style={{ color: "#C4A24E" }} />
+                </span>
               </button>
               <button
                 onClick={() => setFeedbackSkipped(true)}
-                className="w-full py-2 text-center font-body text-sm text-muted-foreground"
+                className="font-mono uppercase"
+                style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
               >
                 Saltar
               </button>
@@ -820,43 +902,65 @@ export default function WorkoutComplete() {
           </div>
         )}
 
-        {/* Feedback done badge */}
+        {/* Feedback done — hairline */}
         {feedbackDone && (
-          <div className="mt-4 w-full max-w-md flex items-center justify-center gap-2 rounded-xl py-3 bg-primary/10 border border-primary/20">
-            <Send className="h-3.5 w-3.5 text-primary" />
-            <span className="font-body text-sm font-medium text-primary">
-              Feedback enviado — gracias
+          <div className="mt-6 w-full max-w-md flex items-center justify-center gap-2 py-3">
+            <Send className="h-3 w-3" style={{ color: "#C4A24E" }} />
+            <span
+              className="font-mono uppercase"
+              style={{ fontSize: 10, letterSpacing: "2.5px", color: "#C4A24E" }}
+            >
+              Feedback enviado · gracias
             </span>
           </div>
         )}
 
-        {/* Phase info card */}
-        <div className="mt-6 w-full max-w-md rounded-xl p-4" style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="font-mono uppercase" style={{ fontSize: 10, letterSpacing: "0.12em", fontWeight: 700, color: t.accent }}>
-              SEMANA {weekNumber} · {phaseLabel}
-            </span>
-          </div>
-          <p className="font-body text-muted-foreground" style={{ fontSize: 13, lineHeight: 1.5 }}>
+        {/* Phase info — hairline section */}
+        <div className="mt-10 w-full max-w-md text-center">
+          <span
+            className="font-mono uppercase"
+            style={{ fontSize: 9, letterSpacing: "3px", color: "#C4A24E" }}
+          >
+            Semana {weekNumber} · {phaseLabel}
+          </span>
+          <div className="mx-auto h-px mt-3" style={{ width: 36, background: "hsl(var(--border))" }} />
+          <p
+            className="mt-4 font-body italic"
+            style={{ fontWeight: 300, fontSize: 13, color: "hsl(var(--muted-foreground))", lineHeight: 1.5 }}
+          >
             {phaseDesc}
           </p>
         </div>
 
-        {/* Navigation buttons */}
-        <div className="mt-6 mb-8 w-full max-w-md flex flex-col gap-3">
-          <button
-            onClick={() => navigate(`/workout/${id}`, { replace: true })}
-            className="press-scale w-full rounded-xl py-4 font-body text-[15px] font-medium text-foreground transition-all"
-            style={{ background: "hsl(var(--secondary))" }}
-          >
-            Ver resumen del workout
-          </button>
+        {/* Atelier nav CTAs */}
+        <div className="mt-10 mb-8 w-full max-w-md flex flex-col items-center gap-5">
           <button
             onClick={() => navigate("/home", { replace: true })}
-            className="press-scale w-full rounded-xl py-4 font-body text-[15px] font-medium transition-all"
-            style={{ background: t.accent, color: t.btnText }}
+            className="press-scale flex items-center gap-3"
           >
-            Volver al inicio
+            <span
+              className="font-mono uppercase"
+              style={{ fontSize: 11, letterSpacing: "2.5px", color: "hsl(var(--foreground))", fontWeight: 600 }}
+            >
+              Volver al inicio
+            </span>
+            <span
+              className="liftory-breathe flex items-center justify-center shrink-0"
+              style={{
+                width: 36, height: 36, borderRadius: "50%",
+                border: "1px solid #C4A24E",
+                boxShadow: "0 0 24px #C4A24E40",
+              }}
+            >
+              <ChevronRight className="h-3.5 w-3.5" style={{ color: "#C4A24E" }} />
+            </span>
+          </button>
+          <button
+            onClick={() => navigate(`/workout/${id}`, { replace: true })}
+            className="press-scale font-mono uppercase"
+            style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+          >
+            Ver resumen del workout
           </button>
         </div>
       </div>

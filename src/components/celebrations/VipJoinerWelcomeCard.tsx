@@ -59,21 +59,21 @@ export default function VipJoinerWelcomeCard({ firstName, onStart, onSkip }: Pro
       <style>{animations}</style>
 
       <div className="mx-auto max-w-[420px] px-4 py-8 min-h-screen">
-        <div className="rounded-[28px] border" style={{ ...frameStyle, borderColor: "#1c1c22", boxShadow: "0 30px 90px rgba(0,0,0,0.6)" }}>
-          <div className="px-7 pt-9 pb-7 flex flex-col" style={{ minHeight: 720 }}>
+        <div style={{ ...frameStyle }}>
+          <div className="px-7 pt-12 pb-7 flex flex-col" style={{ minHeight: 720 }}>
 
-            {/* Brand header — always visible */}
-            <div className="flex items-center justify-center pb-3.5 mb-3.5 relative" style={{ borderBottom: `1px solid #1c1c22` }}>
-              <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 14, letterSpacing: "-0.02em", color: colors.text }}>
-                LIFTORY<span style={{ color: colors.gold }}>.</span>
+            {/* Brand header — Atelier wordmark, no card chrome */}
+            <div className="flex items-center justify-center pb-5 mb-5 relative">
+              <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 14, letterSpacing: "-0.04em", color: colors.gold, textShadow: "0 0 14px rgba(196,162,78,0.28)" }}>
+                LIFTORY
               </span>
               <button
                 onClick={onSkip}
-                className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center justify-center"
-                style={{ width: 32, height: 32, borderRadius: 10, background: colors.card, border: `1px solid ${colors.border}` }}
+                className="press-scale absolute right-0 top-1/2 -translate-y-1/2 flex items-center justify-center"
+                style={{ width: 32, height: 32, borderRadius: "50%", border: "1px solid hsl(var(--border))" }}
                 aria-label="Cerrar"
               >
-                <X className="w-3 h-3" style={{ color: colors.muted }} strokeWidth={2} />
+                <X className="w-3 h-3" style={{ color: colors.muted }} strokeWidth={1.5} />
               </button>
             </div>
 

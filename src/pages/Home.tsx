@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, Loader2 } from "lucide-react";
+import { ChevronRight, Loader2, BatteryCharging, Battery } from "lucide-react";
 import Layout from "@/components/Layout";
 import { useAuth } from "@/context/AuthContext";
-import { useNavigableHome } from "@/hooks/useNavigableHome";
+import { useNavigableHome, type NavWeekDay } from "@/hooks/useNavigableHome";
 import { Skeleton } from "@/components/ui/skeleton";
 import PrimeWeeklyReset from "@/components/home/PrimeWeeklyReset";
 import FirstDayExperience from "@/components/onboarding/FirstDayExperience";
@@ -84,6 +84,7 @@ export default function Home() {
     quickStats,
     loading,
     todayStr,
+    selectDay,
     showNextCyclePrompt,
     nextCycleInfo,
     transitionToCycle,
@@ -223,8 +224,14 @@ export default function Home() {
 
       <Layout>
         <div
-          className="flex flex-col px-8 pt-14 pb-6"
-          style={{ minHeight: "calc(100dvh - 76px)" }}
+          className="flex flex-col px-8"
+          style={{
+            // Subtract tabbar (76px) AND the home-indicator safe-area-bottom so
+            // the sticky strip+meso always sit fully above the tabbar instead
+            // of being clipped on iPhones with a home indicator.
+            minHeight: "calc(100dvh - 76px - env(safe-area-inset-bottom, 0px))",
+            paddingTop: "max(40px, calc(env(safe-area-inset-top, 0px) + 16px))",
+          }}
         >
           {/* Top mark — single watermark of the brand. No hairline, no
               supporting copy. 14px is the premium-wellness sweet spot
@@ -249,7 +256,10 @@ export default function Home() {
           </div>
 
           {/* Hero — centered, single decision per day */}
-          <div className="flex-1 flex flex-col items-center justify-center gap-7 text-center py-10">
+          <div className="flex-1 flex flex-col items-center justify-center gap-5 text-center py-4">
+            {!isSelectedToday && programInfo && (
+              <DayContextEyebrow selectedDate={selectedDate} todayStr={todayStr} />
+            )}
             {!programInfo ? (
               <NoProgramHero onStart={() => navigate("/onboarding")} />
             ) : showNextCyclePrompt && nextCycleInfo ? (
@@ -284,13 +294,32 @@ export default function Home() {
             )}
           </div>
 
-          {/* Current mesocycle marker — tap to open archive */}
-          {currentMesoNum && programInfo && (
-            <MesoStrip
-              current={currentMesoNum}
-              onTap={() => navigate("/program")}
-            />
-          )}
+          {/* Bottom strips — sticky so they stay visible above the tabbar even
+              when a tall hero (PrimeWeeklyReset on Sunday) causes the page to
+              scroll. In short-content views (no scroll) sticky is a no-op and
+              they sit at the bottom of the column as before. */}
+          <div
+            className="sticky bottom-0"
+            style={{ background: "hsl(var(--background))", paddingBottom: 2, paddingTop: 4 }}
+          >
+            {/* Week navigator — 7 hairline dots, tap to view another day */}
+            {programInfo && weekDays.length > 0 && (
+              <WeekStrip
+                days={weekDays}
+                selectedDate={selectedDate}
+                todayStr={todayStr}
+                onSelect={selectDay}
+              />
+            )}
+
+            {/* Current mesocycle marker — tap to open archive */}
+            {currentMesoNum && programInfo && (
+              <MesoStrip
+                current={currentMesoNum}
+                onTap={() => navigate("/program")}
+              />
+            )}
+          </div>
         </div>
       </Layout>
     </>
@@ -470,7 +499,7 @@ function NoWorkoutHero() {
         className="font-mono uppercase"
         style={{ fontSize: 10, letterSpacing: "3px", color: "hsl(var(--muted-foreground))" }}
       >
-        Sin sesión hoy
+        Sin sesión
       </span>
       <h1
         className="font-display"
@@ -605,6 +634,186 @@ function NextCycleHero({
         Ahora no
       </button>
     </>
+  );
+}
+
+const SPANISH_DOW = ["D", "L", "M", "X", "J", "V", "S"];
+const SPANISH_DAY_FULL = ["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"];
+const SPANISH_MONTH_SHORT = ["ENE", "FEB", "MAR", "ABR", "MAY", "JUN", "JUL", "AGO", "SEP", "OCT", "NOV", "DIC"];
+
+function DayContextEyebrow({
+  selectedDate,
+  todayStr,
+}: {
+  selectedDate: string;
+  todayStr: string;
+}) {
+  const sel = new Date(selectedDate + "T12:00:00");
+  const today = new Date(todayStr + "T12:00:00");
+  const diffDays = Math.round((sel.getTime() - today.getTime()) / 86400000);
+  const dowShort = SPANISH_DAY_FULL[sel.getDay()];
+  const monthShort = SPANISH_MONTH_SHORT[sel.getMonth()];
+  const dayNum = sel.getDate();
+
+  let prefix: string;
+  if (diffDays === 1) prefix = "Mañana";
+  else if (diffDays === -1) prefix = "Ayer";
+  else prefix = dowShort;
+
+  const label = diffDays === 1 || diffDays === -1
+    ? `${prefix} · ${dowShort} ${dayNum} ${monthShort}`
+    : `${dowShort} ${dayNum} ${monthShort}`;
+
+  return (
+    <span
+      className="font-mono uppercase"
+      style={{
+        fontSize: 9,
+        letterSpacing: "3px",
+        color: "hsl(var(--muted-foreground))",
+        marginTop: -8,
+      }}
+    >
+      {label}
+    </span>
+  );
+}
+
+
+function WeekStrip({
+  days,
+  selectedDate,
+  todayStr,
+  onSelect,
+}: {
+  days: NavWeekDay[];
+  selectedDate: string;
+  todayStr: string;
+  onSelect: (date: string) => void;
+}) {
+  return (
+    <div
+      className="flex items-start justify-center mb-4"
+      style={{ gap: 22 }}
+      role="group"
+      aria-label="Días de la semana"
+    >
+      {days.map((day) => {
+        const isToday = day.date === todayStr;
+        const isSelected = day.date === selectedDate;
+        const isPast = day.date < todayStr;
+
+        const letterColor = isToday
+          ? "#C4A24E"
+          : isSelected
+          ? "hsl(var(--foreground))"
+          : "hsl(var(--muted-foreground))";
+        const letterWeight = isToday || isSelected ? 600 : 400;
+
+        let indicator: React.ReactNode;
+        if (!day.hasWorkout) {
+          indicator = <span style={{ display: "block", width: 4, height: 4, opacity: 0 }} />;
+        } else if (day.workoutType === "mobility") {
+          indicator = (
+            <BatteryCharging
+              size={11}
+              strokeWidth={1.25}
+              style={{
+                color: day.isCompleted ? "#C4A24E" : "#7A8B5C",
+                opacity: day.isCompleted ? 1 : 0.85,
+              }}
+            />
+          );
+        } else if (day.isRestDay) {
+          indicator = (
+            <Battery
+              size={11}
+              strokeWidth={1.25}
+              style={{
+                color: "hsl(var(--muted-foreground))",
+                opacity: 0.6,
+              }}
+            />
+          );
+        } else if (day.isCompleted) {
+          indicator = (
+            <span
+              style={{
+                display: "block",
+                width: 4,
+                height: 4,
+                borderRadius: "50%",
+                background: "#C4A24E",
+              }}
+            />
+          );
+        } else if (isPast) {
+          indicator = (
+            <span
+              style={{
+                display: "block",
+                width: 4,
+                height: 4,
+                borderRadius: "50%",
+                border: "1px solid hsl(var(--muted-foreground))",
+                opacity: 0.3,
+              }}
+            />
+          );
+        } else {
+          indicator = (
+            <span
+              style={{
+                display: "block",
+                width: 4,
+                height: 4,
+                borderRadius: "50%",
+                border: "1px solid hsl(var(--muted-foreground))",
+                opacity: 0.6,
+              }}
+            />
+          );
+        }
+
+        const dow = new Date(day.date + "T12:00:00").getDay();
+        const letter = SPANISH_DOW[dow];
+
+        return (
+          <button
+            key={day.date}
+            onClick={() => onSelect(day.date)}
+            disabled={!day.isEnabled}
+            className="press-scale flex flex-col items-center disabled:opacity-25"
+            style={{ minWidth: 16, paddingTop: 4, paddingBottom: 4 }}
+            aria-label={`${letter} ${day.date}${isToday ? " (hoy)" : ""}`}
+            aria-pressed={isSelected}
+          >
+            <span
+              className="font-mono uppercase"
+              style={{
+                fontSize: 10,
+                letterSpacing: "2px",
+                color: letterColor,
+                fontWeight: letterWeight,
+                lineHeight: 1,
+              }}
+            >
+              {letter}
+            </span>
+            <span style={{ height: 7 }} />
+            {indicator}
+            <span
+              style={{
+                marginTop: 5,
+                height: 1,
+                width: 12,
+                background: isSelected && !isToday ? "#C4A24E" : "transparent",
+              }}
+            />
+          </button>
+        );
+      })}
+    </div>
   );
 }
 

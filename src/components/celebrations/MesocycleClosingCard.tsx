@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Share2, X } from "lucide-react";
+import { Share2, X, ChevronRight, Loader2 } from "lucide-react";
 import type { MesocycleStats, MesocycleTopPR } from "@/lib/mesocycle-stats";
 import type { MesocycleClosingContent } from "@/lib/mesocycle-content";
 import { shareMesocycleClosing } from "@/lib/share-mesocycle";
@@ -8,16 +8,13 @@ import MesocycleShareAsset from "./MesocycleShareAsset";
 interface Props {
   closingContent: MesocycleClosingContent;
   stats: MesocycleStats;
-  /** Display name used inside the share-sheet "X cerró M1" text. */
   userName?: string;
-  /** Called when the user taps the primary CTA ("Conocer M2" or similar). */
   onContinue: () => void;
-  /** Called when the user dismisses without continuing to next-meso content. */
   onSkip: () => void;
 }
 
-const KG_TO_LB = 2.20462;
-void KG_TO_LB; // referenced indirectly via stats (kept for clarity)
+const GOLD = "#C4A24E";
+const GREEN_MUTE = "#7A8B5C";
 
 export default function MesocycleClosingCard({
   closingContent,
@@ -42,7 +39,6 @@ export default function MesocycleClosingCard({
     }
   };
 
-  // Substitute {prCount} / {bestStreak} placeholders in achievement copy.
   const achievements = closingContent.achievements.map((a) => ({
     title: a.title
       .replace("{prCount}", String(stats.prCount))
@@ -54,105 +50,114 @@ export default function MesocycleClosingCard({
 
   return (
     <>
-      {/* Hidden 1080×1920 share asset — captured by html2canvas on share */}
       <MesocycleShareAsset ref={shareNodeRef} closingContent={closingContent} stats={stats} />
 
       <div className="fixed inset-0 z-[100] bg-background overflow-y-auto animate-fade-in">
-        <div className="mx-auto max-w-md px-5 pt-14 pb-8">
+        <div className="mx-auto max-w-md px-7 pt-14 pb-12">
           {/* Header */}
-          <div className="flex items-start justify-between mb-7">
-            <div className="font-mono text-[10px] uppercase tracking-[2px] text-muted-foreground">
-              <span className="text-primary">PASO 1 / 2</span> · CIERRE {stats.mesoId}
+          <div className="flex items-start justify-between mb-10">
+            <div
+              className="font-mono uppercase"
+              style={{ fontSize: 9, letterSpacing: "3px", color: "hsl(var(--muted-foreground))" }}
+            >
+              <span style={{ color: GOLD }}>Paso 1 / 2</span> · Cierre {stats.mesoId}
             </div>
             <button
               onClick={onSkip}
-              className="press-scale flex h-9 w-9 items-center justify-center rounded-xl bg-card border border-border"
+              className="press-scale flex items-center justify-center"
+              style={{ width: 32, height: 32, borderRadius: "50%", border: "1px solid hsl(var(--border))" }}
               aria-label="Cerrar"
             >
-              <X className="h-4 w-4 text-muted-foreground" />
+              <X className="h-3.5 w-3.5" style={{ color: "hsl(var(--muted-foreground))" }} />
             </button>
           </div>
 
-          {/* Seal */}
-          <div className="flex flex-col items-center mb-6">
+          {/* Seal — gold ring (hairline) */}
+          <div className="flex flex-col items-center mb-8">
             <div
-              className="relative flex h-24 w-24 flex-col items-center justify-center rounded-full"
+              className="relative flex flex-col items-center justify-center rounded-full"
               style={{
-                background:
-                  "radial-gradient(circle at 30% 25%, rgba(196,162,78,0.30), rgba(196,162,78,0.05) 70%)",
-                border: "1px solid rgba(196,162,78,0.25)",
-                boxShadow: "0 0 60px rgba(196,162,78,0.18)",
+                width: 96, height: 96,
+                border: `1px solid ${GOLD}`,
+                boxShadow: `0 0 32px ${GOLD}30`,
               }}
             >
               <span
-                className="font-display text-[30px] font-[800] text-primary"
-                style={{ letterSpacing: "-0.04em", lineHeight: 1 }}
+                className="font-display tabular-nums"
+                style={{ fontWeight: 300, fontSize: 32, color: GOLD, letterSpacing: "-0.04em", lineHeight: 1 }}
               >
                 {stats.mesoId}
               </span>
-              <span className="mt-1 font-mono text-[8px] tracking-[2px] text-primary">
-                COMPLETADO
+              <span
+                className="font-mono uppercase mt-1.5"
+                style={{ fontSize: 7, letterSpacing: "2.5px", color: GOLD }}
+              >
+                Completado
               </span>
             </div>
-            <div className="mt-4 font-mono text-[10px] uppercase tracking-[1.5px] text-muted-foreground">
-              {formatLongDate(stats.startDate)} — {formatLongDate(stats.endDate)} · {stats.weeksCount}{" "}
-              semanas
+            <div
+              className="mt-5 font-mono uppercase text-center"
+              style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+            >
+              {formatLongDate(stats.startDate)} — {formatLongDate(stats.endDate)} · {stats.weeksCount} semanas
             </div>
           </div>
 
           {/* Hero */}
-          <div className="text-center mb-10">
+          <div className="text-center mb-12">
             <h1
-              className="font-display text-[30px] font-bold leading-tight"
-              style={{ letterSpacing: "-0.02em" }}
+              className="font-display"
+              style={{ fontWeight: 300, fontSize: 32, letterSpacing: "-0.04em", lineHeight: 1.05, color: "hsl(var(--foreground))" }}
             >
-              {closingContent.hero}
+              <strong style={{ fontWeight: 700 }}>{closingContent.hero}</strong>
             </h1>
-            <p className="mt-3 font-body text-[14px] text-muted-foreground">
+            <div className="mx-auto h-px mt-5" style={{ width: 36, background: GOLD }} />
+            <p
+              className="mt-5 font-body italic"
+              style={{ fontWeight: 300, fontSize: 13, color: "hsl(var(--muted-foreground))", lineHeight: 1.5 }}
+            >
               {closingContent.heroSubline}
             </p>
           </div>
 
-          {/* Stats grid */}
+          {/* Stats — hairline rows */}
           <SectionTitle>Tus números</SectionTitle>
-          <div className="grid grid-cols-2 gap-2.5 mb-9">
-            <StatCard num={String(stats.sessionsCompleted)} label="Sesiones completadas" />
-            <StatCard num={String(stats.prCount)} suffix=" PRs" label="Records personales" />
-            <StatCard
-              num={String(stats.bestStreak)}
-              suffix=" días"
-              label="Mejor racha"
-              tone="sage"
-            />
-            <StatCard num={formatVolumeShort(stats.totalVolumeLb)} label="Lb totales movidas" tone="sage" />
+          <div className="mb-10" style={{ borderTop: "1px solid hsl(var(--border))" }}>
+            <StatRow label="Sesiones completadas" value={String(stats.sessionsCompleted)} />
+            <StatRow label="Records personales" value={`${stats.prCount} PRs`} accent={GOLD} />
+            <StatRow label="Mejor racha" value={`${stats.bestStreak} días`} accent={GREEN_MUTE} />
+            <StatRow label="Lb totales movidas" value={formatVolumeShort(stats.totalVolumeLb)} accent={GREEN_MUTE} />
           </div>
 
-          {/* Top 3 PRs */}
+          {/* Top 3 PRs — hairline rows */}
           <SectionTitle>Top 3 lifts del meso</SectionTitle>
-          <div className="flex flex-col gap-2 mb-9">
+          <div className="mb-10" style={{ borderTop: "1px solid hsl(var(--border))" }}>
             {stats.topThreePRs.map((pr, i) => (
               <PRRow key={pr.exerciseName + i} pr={pr} rank={(i + 1) as 1 | 2 | 3} />
             ))}
           </div>
 
-          {/* Achievements */}
+          {/* Achievements — hairline list */}
           <SectionTitle>Lo que lograste</SectionTitle>
-          <div className="bg-card border border-border rounded-2xl px-4 py-1 mb-9">
+          <div className="mb-10" style={{ borderTop: "1px solid hsl(var(--border))" }}>
             {achievements.map((a, i) => (
               <div
                 key={i}
-                className="flex items-start gap-2.5 py-3"
-                style={{ borderBottom: i < achievements.length - 1 ? "1px solid #1c1c22" : "none" }}
+                className="flex items-start gap-3 py-4"
+                style={{ borderBottom: "1px solid hsl(var(--border))" }}
               >
-                <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-                    strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-primary">
+                <span className="mt-1 shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2"
+                    strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 </span>
-                <p className="text-[13px] leading-relaxed">
-                  <strong className="text-foreground">{a.title}</strong>{" "}
-                  <span className="text-muted-foreground">{a.body}</span>
+                <p
+                  className="font-body leading-relaxed"
+                  style={{ fontWeight: 300, fontSize: 13, color: "hsl(var(--muted-foreground))" }}
+                >
+                  <strong style={{ color: "hsl(var(--foreground))", fontWeight: 600 }}>{a.title}</strong>{" "}
+                  {a.body}
                 </p>
               </div>
             ))}
@@ -160,35 +165,35 @@ export default function MesocycleClosingCard({
 
           {/* Bridge to next meso */}
           {closingContent.nextMesoName && (
-            <div
-              className="rounded-2xl p-5 mb-6 relative"
-              style={{
-                background: "linear-gradient(135deg, hsl(var(--card)), rgba(196,162,78,0.04))",
-                border: "1px solid rgba(196,162,78,0.25)",
-              }}
-            >
-              <div className="absolute left-5 -top-px w-8 h-px bg-primary" />
-              <div className="font-mono text-[10px] uppercase tracking-[2px] text-primary mb-2">
-                Lo que sigue
-              </div>
-              <h2
-                className="font-display text-[22px] font-bold leading-tight"
-                style={{ letterSpacing: "-0.02em" }}
+            <div className="mb-10 text-center">
+              <p
+                className="font-mono uppercase"
+                style={{ fontSize: 9, letterSpacing: "3px", color: GOLD }}
               >
-                {closingContent.nextMesoName}
+                Lo que sigue
+              </p>
+              <h2
+                className="font-display mt-3"
+                style={{ fontWeight: 300, fontSize: 26, letterSpacing: "-0.04em", lineHeight: 1.05, color: "hsl(var(--foreground))" }}
+              >
+                <strong style={{ fontWeight: 700 }}>{closingContent.nextMesoName}</strong>
               </h2>
+              <div className="mx-auto h-px mt-5" style={{ width: 36, background: GOLD }} />
               {closingContent.nextMesoDescription && (
-                <p className="mt-2 font-body text-[13px] text-muted-foreground leading-relaxed">
+                <p
+                  className="mt-5 font-body italic"
+                  style={{ fontWeight: 300, fontSize: 13, color: "hsl(var(--muted-foreground))", lineHeight: 1.5 }}
+                >
                   {closingContent.nextMesoDescription}
                 </p>
               )}
               {closingContent.nextMesoFormats?.length ? (
-                <div className="flex flex-wrap gap-1.5 mt-3.5">
+                <div className="flex flex-wrap justify-center gap-4 mt-5">
                   {closingContent.nextMesoFormats.map((fmt) => (
                     <span
                       key={fmt}
-                      className="font-mono text-[9px] tracking-[1px] uppercase rounded-full px-2 py-1 text-primary"
-                      style={{ border: "1px solid rgba(196,162,78,0.25)" }}
+                      className="font-mono uppercase"
+                      style={{ fontSize: 9, letterSpacing: "2px", color: GOLD }}
                     >
                       {fmt}
                     </span>
@@ -198,29 +203,56 @@ export default function MesocycleClosingCard({
             </div>
           )}
 
-          {/* CTAs */}
-          <button
-            onClick={onContinue}
-            className="press-scale w-full rounded-xl bg-primary py-4 font-display text-[15px] font-semibold text-primary-foreground mb-3"
-            style={{ letterSpacing: "-0.01em" }}
-          >
-            {closingContent.nextMesoId ? `Conocer ${closingContent.nextMesoId} →` : "Continuar →"}
-          </button>
-          <button
-            onClick={handleShare}
-            disabled={sharing}
-            className="press-scale w-full rounded-xl py-3.5 font-display text-[13px] font-semibold text-primary mb-3 flex items-center justify-center gap-2 disabled:opacity-60"
-            style={{ border: "1px solid rgba(196,162,78,0.35)" }}
-          >
-            <Share2 className="h-4 w-4" />
-            {sharing ? "Generando imagen…" : `Compartir mi cierre de ${stats.mesoId}`}
-          </button>
-          <button
-            onClick={onSkip}
-            className="press-scale w-full rounded-xl bg-card py-3.5 font-body text-[13px] text-muted-foreground border border-border"
-          >
-            Saltar al primer workout
-          </button>
+          {/* Atelier CTAs */}
+          <div className="flex flex-col items-center gap-5 mt-10">
+            <button
+              onClick={onContinue}
+              className="press-scale flex items-center gap-3"
+            >
+              <span
+                className="font-mono uppercase"
+                style={{ fontSize: 11, letterSpacing: "2.5px", color: "hsl(var(--foreground))", fontWeight: 600 }}
+              >
+                {closingContent.nextMesoId ? `Conocer ${closingContent.nextMesoId}` : "Continuar"}
+              </span>
+              <span
+                className="liftory-breathe flex items-center justify-center shrink-0"
+                style={{
+                  width: 40, height: 40, borderRadius: "50%",
+                  border: `1px solid ${GOLD}`,
+                  boxShadow: `0 0 24px ${GOLD}40`,
+                }}
+              >
+                <ChevronRight className="h-4 w-4" style={{ color: GOLD }} />
+              </span>
+            </button>
+
+            <button
+              onClick={handleShare}
+              disabled={sharing}
+              className="press-scale flex items-center gap-2 disabled:opacity-60"
+            >
+              {sharing ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" style={{ color: "hsl(var(--muted-foreground))" }} />
+              ) : (
+                <Share2 className="h-3.5 w-3.5" style={{ color: "hsl(var(--muted-foreground))" }} />
+              )}
+              <span
+                className="font-mono uppercase"
+                style={{ fontSize: 10, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+              >
+                {sharing ? "Generando…" : "Compartir cierre"}
+              </span>
+            </button>
+
+            <button
+              onClick={onSkip}
+              className="press-scale font-mono uppercase"
+              style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+            >
+              Saltar al primer workout
+            </button>
+          </div>
         </div>
       </div>
     </>
@@ -229,81 +261,85 @@ export default function MesocycleClosingCard({
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <div className="font-mono text-[10px] uppercase tracking-[2px] text-primary mb-3.5">
+    <p
+      className="font-mono uppercase mb-4"
+      style={{ fontSize: 9, letterSpacing: "3px", color: GOLD }}
+    >
       {children}
-    </div>
+    </p>
   );
 }
 
-function StatCard({
-  num,
-  suffix,
-  label,
-  tone = "gold",
-}: {
-  num: string;
-  suffix?: string;
-  label: string;
-  tone?: "gold" | "sage";
-}) {
-  const numColor = tone === "sage" ? "#7A8B5C" : "hsl(var(--primary))";
+function StatRow({ label, value, accent }: { label: string; value: string; accent?: string }) {
   return (
-    <div className="rounded-2xl bg-card border border-border p-4">
-      <div
-        className="font-display font-[800]"
-        style={{ fontSize: 26, letterSpacing: "-0.02em", lineHeight: 1, color: numColor }}
+    <div
+      className="flex items-baseline justify-between py-4"
+      style={{ borderBottom: "1px solid hsl(var(--border))" }}
+    >
+      <span
+        className="font-mono uppercase"
+        style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
       >
-        {num}
-        {suffix && (
-          <small className="text-[14px] text-muted-foreground font-semibold">{suffix}</small>
-        )}
-      </div>
-      <div className="mt-2 font-mono text-[9px] uppercase tracking-[1.5px] text-muted-foreground">
         {label}
-      </div>
+      </span>
+      <span
+        className="font-display tabular-nums"
+        style={{ fontWeight: 400, fontSize: 18, letterSpacing: "-0.02em", color: accent || "hsl(var(--foreground))" }}
+      >
+        {value}
+      </span>
     </div>
   );
 }
 
 function PRRow({ pr, rank }: { pr: MesocycleTopPR; rank: 1 | 2 | 3 }) {
-  const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : "🥉";
   const accentColor =
-    rank === 1 ? "#C4A24E" : rank === 2 ? "#A0A0A8" : "#B8763A";
+    rank === 1 ? GOLD : rank === 2 ? "#A0A0A8" : "#B8763A";
   return (
     <div
-      className="flex items-center gap-3 rounded-2xl p-3.5 px-4 relative overflow-hidden"
-      style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+      className="flex items-center gap-4 py-4"
+      style={{ borderBottom: "1px solid hsl(var(--border))" }}
     >
-      <div
-        className="absolute left-0 top-0 bottom-0 w-[3px]"
-        style={{ background: accentColor }}
-      />
-      <span className="text-[26px] leading-none shrink-0 drop-shadow-md">{medal}</span>
+      <span
+        className="font-display tabular-nums shrink-0"
+        style={{ fontWeight: 300, fontSize: 28, color: accentColor, letterSpacing: "-0.04em", width: 28 }}
+      >
+        {rank}
+      </span>
       <div className="flex-1 min-w-0">
-        <p className="font-body text-[14px] font-semibold text-foreground leading-tight" style={{ wordBreak: "break-word" }}>
+        <p
+          className="font-display"
+          style={{ fontWeight: 600, fontSize: 14, color: "hsl(var(--foreground))", lineHeight: 1.2, letterSpacing: "-0.01em", wordBreak: "break-word" }}
+        >
           {pr.exerciseName}
         </p>
-        <p className="font-mono text-[11px] text-muted-foreground mt-1">
+        <p
+          className="font-mono uppercase mt-1.5"
+          style={{ fontSize: 9, letterSpacing: "2px", color: "hsl(var(--muted-foreground))" }}
+        >
           {pr.reps} reps ·{" "}
           {pr.estreno ? (
-            <span className="text-primary font-semibold tracking-[0.5px]">
-              ESTRENO @ {pr.reps} reps
+            <span style={{ color: GOLD, fontWeight: 600 }}>
+              Estreno
             </span>
           ) : (
-            <span style={{ color: "#7A8B5C" }} className="font-semibold">
-              +{pr.deltaLb} lb @ {pr.reps} reps
+            <span style={{ color: GREEN_MUTE, fontWeight: 600 }}>
+              +{pr.deltaLb} lb
             </span>
           )}
         </p>
       </div>
       <div className="text-right shrink-0">
         <div
-          className="font-display font-[800]"
-          style={{ fontSize: 20, color: accentColor, letterSpacing: "-0.02em", lineHeight: 1 }}
+          className="font-display tabular-nums"
+          style={{ fontWeight: 400, fontSize: 22, color: accentColor, letterSpacing: "-0.03em", lineHeight: 1 }}
         >
           {pr.weightLb}
         </div>
-        <div className="mt-1 font-mono text-[9px] uppercase tracking-[1.5px] text-muted-foreground">
+        <div
+          className="mt-1 font-mono uppercase"
+          style={{ fontSize: 9, letterSpacing: "2px", color: "hsl(var(--muted-foreground))" }}
+        >
           lb
         </div>
       </div>

@@ -297,51 +297,61 @@ export default function ForTimeTimerBlock({
             )}
           </div>
         ) : countdown !== null ? (
-          <div className="flex flex-col items-center gap-3">
-            <p className="font-mono uppercase text-muted-foreground" style={{ fontSize: 10, letterSpacing: "2px" }}>
-              Preparate
+          <div className="flex flex-col items-center gap-4">
+            <p className="font-mono uppercase" style={{ fontSize: 9, letterSpacing: "3px", color: "#C4A24E" }}>
+              Prepárate
             </p>
             <p
-              className="font-mono font-bold text-primary"
+              className="font-display tabular-nums"
               style={{
-                fontSize: 120,
+                fontWeight: 300,
+                fontSize: 140,
                 lineHeight: 1,
-                letterSpacing: "-0.04em",
+                letterSpacing: "-0.06em",
+                color: "#C4A24E",
                 animation: countdown <= 3 ? "pulse 0.8s infinite" : undefined,
               }}
             >
               {countdown}
             </p>
-            <p className="font-body text-muted-foreground" style={{ fontSize: 13 }}>
+            <p className="font-body italic" style={{ fontWeight: 300, fontSize: 13, color: "hsl(var(--muted-foreground))" }}>
               Empieza el For Time en {countdown} {countdown === 1 ? "segundo" : "segundos"}
             </p>
-            <button onClick={() => setCountdown(null)} className="mt-4 press-scale font-body text-sm text-muted-foreground underline">
+            <button
+              onClick={() => setCountdown(null)}
+              className="press-scale mt-3 font-mono uppercase"
+              style={{ fontSize: 10, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+            >
               Cancelar
             </button>
           </div>
         ) : (
           <>
             <p
-              className="font-mono font-bold text-foreground transition-colors"
+              className="font-display tabular-nums transition-colors"
               style={{
-                fontSize: 56,
+                fontWeight: 300,
+                fontSize: 72,
                 lineHeight: 1,
-                letterSpacing: "-0.02em",
-                color: isLast60 ? "#D45555" : undefined,
+                letterSpacing: "-0.05em",
+                color: isLast60 ? "#D45555" : "hsl(var(--foreground))",
                 animation: isLast60 ? "pulse 1s infinite" : undefined,
               }}
             >
               {formatTime(elapsed)}
             </p>
-            <p className="mt-2 font-mono text-primary" style={{ fontSize: 14 }}>
-              Quedan {formatTime(remaining)} del cap
+            <p
+              className="mt-3 font-mono uppercase"
+              style={{ fontSize: 10, letterSpacing: "2.5px", color: "#C4A24E" }}
+            >
+              {formatTime(remaining)} restantes
             </p>
 
-            <div className="mt-4 h-1.5 w-full max-w-xs overflow-hidden rounded-full" style={{ backgroundColor: "hsl(var(--border))" }}>
-              <div className="h-full rounded-full bg-primary transition-all duration-1000" style={{ width: `${progress * 100}%` }} />
+            <div className="mt-4 h-px w-full max-w-xs overflow-hidden" style={{ background: "hsl(var(--border))", opacity: 0.5 }}>
+              <div className="h-full transition-all duration-1000" style={{ width: `${progress * 100}%`, background: "#C4A24E" }} />
             </div>
 
-            <div className="mt-6 flex items-center gap-5">
+            <div className="mt-7 flex items-center gap-6">
               <button
                 onClick={() => {
                   if (!hasStarted && !running) {
@@ -350,63 +360,86 @@ export default function ForTimeTimerBlock({
                     setRunning((r) => !r);
                   }
                 }}
-                className="press-scale flex h-[60px] w-[60px] items-center justify-center rounded-full bg-primary"
-              >
-                {running ? (
-                  <Pause className="h-6 w-6 text-primary-foreground" />
-                ) : (
-                  <Play className="h-6 w-6 text-primary-foreground ml-0.5" />
-                )}
-              </button>
-              {/* "Terminé" pill — was a muted text-link before, easy to miss next
-                  to the giant Play circle. Promoted to a visible bordered pill so
-                  athletes notice they can close out the For Time before the cap
-                  hits (the cap auto-completes too, but most For Times finish
-                  early). */}
-              <button
-                onClick={handleFinish}
-                className="press-scale rounded-full px-5 py-2.5 font-display text-xs font-semibold uppercase"
+                className={`press-scale flex items-center justify-center ${!running ? "liftory-breathe" : ""}`}
                 style={{
-                  background: tc.accentBg,
-                  color: tc.accent,
-                  border: `1px solid ${tc.accent}66`,
-                  letterSpacing: "0.05em",
+                  width: 56, height: 56, borderRadius: "50%",
+                  border: "1px solid #C4A24E",
+                  boxShadow: running ? `0 0 28px #C4A24E40` : `0 0 18px #C4A24E30`,
                 }}
               >
-                Terminé
+                {running ? (
+                  <Pause className="h-5 w-5" style={{ color: "#C4A24E" }} />
+                ) : (
+                  <Play className="h-5 w-5 ml-0.5" style={{ color: "#C4A24E" }} />
+                )}
+              </button>
+              <button
+                onClick={handleFinish}
+                className="press-scale flex items-center gap-2"
+              >
+                <span
+                  className="font-mono uppercase"
+                  style={{ fontSize: 10, letterSpacing: "2.5px", color: "#C4A24E", fontWeight: 600 }}
+                >
+                  Terminé
+                </span>
+                <span
+                  className="flex items-center justify-center shrink-0"
+                  style={{
+                    width: 28, height: 28, borderRadius: "50%",
+                    border: "1px solid #C4A24E",
+                  }}
+                >
+                  <Check className="h-3 w-3" style={{ color: "#C4A24E" }} />
+                </span>
               </button>
             </div>
 
-            {/* Restart pill — same pattern as TimerBlockDetail */}
             {(hasStarted || running) && (
               <button
                 onClick={handleRestart}
-                className="press-scale mt-4 flex items-center gap-2 rounded-full px-4 py-2 font-body text-xs text-muted-foreground"
-                style={{ background: "hsl(var(--secondary))" }}
+                className="press-scale mt-5 flex items-center gap-2"
                 title="Reiniciar timer"
               >
-                <RotateCcw className="h-3.5 w-3.5" />
-                Reiniciar
+                <RotateCcw className="h-3 w-3" style={{ color: "hsl(var(--muted-foreground))" }} />
+                <span
+                  className="font-mono uppercase"
+                  style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+                >
+                  Reiniciar
+                </span>
               </button>
             )}
 
-            {/* Round counter — increment as you finish each round during the timer */}
-            <div className="mt-6 flex items-center gap-5">
+            {/* Round counter */}
+            <div className="mt-7 flex items-center gap-6">
               <button
                 onClick={() => setRounds((r) => Math.max(0, r - 1))}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary"
+                className="press-scale flex items-center justify-center"
+                style={{ width: 32, height: 32, borderRadius: "50%", border: "1px solid hsl(var(--border))" }}
               >
-                <Minus className="h-4 w-4 text-foreground" />
+                <Minus className="h-3.5 w-3.5" style={{ color: "hsl(var(--muted-foreground))" }} />
               </button>
               <div className="text-center">
-                <p className="font-mono font-bold text-foreground" style={{ fontSize: 36, lineHeight: 1 }}>{rounds}</p>
-                <p className="font-mono text-muted-foreground" style={{ fontSize: 10 }}>RONDAS</p>
+                <p
+                  className="font-display tabular-nums"
+                  style={{ fontWeight: 300, fontSize: 40, lineHeight: 1, letterSpacing: "-0.04em", color: "hsl(var(--foreground))" }}
+                >
+                  {rounds}
+                </p>
+                <p
+                  className="font-mono uppercase mt-1"
+                  style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+                >
+                  Rondas
+                </p>
               </div>
               <button
                 onClick={() => setRounds((r) => r + 1)}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary"
+                className="press-scale flex items-center justify-center"
+                style={{ width: 32, height: 32, borderRadius: "50%", border: "1px solid hsl(var(--border))" }}
               >
-                <Plus className="h-4 w-4 text-foreground" />
+                <Plus className="h-3.5 w-3.5" style={{ color: "hsl(var(--muted-foreground))" }} />
               </button>
             </div>
           </>

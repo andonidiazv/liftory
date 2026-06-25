@@ -1,67 +1,76 @@
 import { useState, useEffect, useRef } from "react";
 import { usePrimeWeeklyReset, PrevWeekMetrics } from "@/hooks/usePrimeWeeklyReset";
-import { useDarkMode } from "@/hooks/useDarkMode";
 import { useAuth } from "@/context/AuthContext";
 import { toDisplayWeight } from "@/utils/weightConversion";
-import { dia, noche } from "@/lib/colors";
-import {
-  Loader2,
-  Repeat,
-  Hash,
-  Weight,
-  Target,
-  Flame,
-  Trophy,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-} from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 interface PrimeWeeklyResetProps {
   selectedDate: string;
 }
+
+/* ATELIER PRIME WEEKLY RESET
+ * Sunday card redesign — no chrome, no chips, only hairlines + Syne + gold.
+ * Visual logic:
+ *  - Eyebrow mono gold "PRIME · DOMINGO"
+ *  - Title Syne 300/700 split
+ *  - Gold score ring (thin stroke, elegant)
+ *  - Hairline rows for each metric — label · value · delta (small mono delta, no pill)
+ *  - PR row as hairline aside
+ *  - Italic 300 footer
+ */
+
+const GOLD = "#C4A24E";
+const GREEN_MUTE = "#7A8B5C";
 
 function AnimatedScore({ target }: { target: number }) {
   const [current, setCurrent] = useState(0);
   const rafRef = useRef<number>();
 
   useEffect(() => {
-    if (target === 0) {
-      setCurrent(0);
-      return;
-    }
+    if (target === 0) { setCurrent(0); return; }
     const duration = 1500;
     const start = performance.now();
-
     const animate = (now: number) => {
       const elapsed = now - start;
       const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
       setCurrent(Math.round(eased * target));
-      if (progress < 1) {
-        rafRef.current = requestAnimationFrame(animate);
-      }
+      if (progress < 1) rafRef.current = requestAnimationFrame(animate);
     };
-
     rafRef.current = requestAnimationFrame(animate);
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
   }, [target]);
 
   return <>{current}</>;
 }
 
-const buildMetricCards = (weightUnit: string) => [
-  { key: "sets", icon: <Repeat className="h-4 w-4" />, label: "Sets", comparable: true },
-  { key: "reps", icon: <Hash className="h-4 w-4" />, label: "Repeticiones", comparable: true },
-  { key: "volume", icon: <Weight className="h-4 w-4" />, label: `Volumen (${weightUnit})`, comparable: true },
-  { key: "consistency", icon: <Target className="h-4 w-4" />, label: "Consistencia", comparable: true },
-  { key: "streak", icon: <Flame className="h-4 w-4" />, label: "Racha", comparable: false },
-] as const;
+function Eyebrow() {
+  return (
+    <span
+      className="font-mono uppercase"
+      style={{ fontSize: 9, letterSpacing: "3px", color: GOLD }}
+    >
+      Prime · domingo
+    </span>
+  );
+}
+
+function Hairline({ color = "hsl(var(--border))", width = 36 }: { color?: string; width?: number }) {
+  return <div className="h-px" style={{ width, background: color }} />;
+}
+
+function Footer() {
+  return (
+    <p
+      className="font-body italic leading-snug text-center"
+      style={{ fontWeight: 300, fontSize: 13, color: "hsl(var(--muted-foreground))" }}
+    >
+      Vuelve el lunes. Tu programa ya está listo.
+    </p>
+  );
+}
 
 type ComparableKey = "sets" | "reps" | "volume" | "consistency";
-
 const prevKeyMap: Record<ComparableKey, keyof PrevWeekMetrics> = {
   sets: "totalSets",
   reps: "totalReps",
@@ -69,76 +78,70 @@ const prevKeyMap: Record<ComparableKey, keyof PrevWeekMetrics> = {
   consistency: "consistency",
 };
 
-function ComparisonBadge({ current, previous }: { current: number; previous: number }) {
-  const { isDark } = useDarkMode();
-  const t = isDark ? noche : dia;
+function Delta({ current, previous }: { current: number; previous: number }) {
   if (previous === 0 && current === 0) return null;
   if (previous === 0) {
     return (
-      <span className="mt-1 inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-mono text-[8px] font-bold"
-        style={{ background: "rgba(122, 139, 92, 0.15)", color: "#7A8B5C" }}>
-        NUEVO
+      <span
+        className="font-mono uppercase"
+        style={{ fontSize: 8, letterSpacing: "2px", color: GREEN_MUTE }}
+      >
+        Nuevo
       </span>
     );
   }
-
   const pct = Math.round(((current - previous) / previous) * 100);
-
   if (pct === 0) {
     return (
-      <span className="mt-1 inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-mono text-[8px] font-bold text-muted-foreground"
-        style={{ background: "rgba(128, 128, 128, 0.1)" }}>
-        <Minus className="h-2.5 w-2.5" /> =
+      <span
+        className="font-mono"
+        style={{ fontSize: 9, color: "hsl(var(--muted-foreground))", opacity: 0.6 }}
+      >
+        =
       </span>
     );
   }
-
   const isUp = pct > 0;
   return (
     <span
-      className="mt-1 inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-mono text-[8px] font-bold"
-      style={{
-        background: isUp ? `${t.success}26` : t.accentBgStrong,
-        color: isUp ? t.success : t.accent,
-      }}
+      className="font-mono tabular-nums"
+      style={{ fontSize: 9, color: isUp ? GREEN_MUTE : "hsl(var(--muted-foreground))", opacity: isUp ? 1 : 0.7 }}
     >
-      {isUp ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
-      {isUp ? "+" : ""}{pct}%
+      {isUp ? "↑" : "↓"} {Math.abs(pct)}%
     </span>
   );
 }
 
-/* Shared card wrapper */
-function CardShell({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function MetricRow({
+  label,
+  value,
+  delta,
+}: {
+  label: string;
+  value: string;
+  delta?: React.ReactNode;
+}) {
   return (
     <div
-      className={`flex flex-col items-center rounded-2xl px-6 py-10 text-center ${className}`}
-      style={{
-        background: "hsl(var(--card))",
-        border: "1px solid hsl(var(--border))",
-        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.04)",
-      }}
+      className="flex items-baseline justify-between py-3"
+      style={{ borderBottom: "1px solid hsl(var(--border))" }}
     >
-      {children}
+      <span
+        className="font-mono uppercase"
+        style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+      >
+        {label}
+      </span>
+      <div className="flex items-baseline gap-3">
+        <span
+          className="font-display tabular-nums"
+          style={{ fontWeight: 400, fontSize: 16, color: "hsl(var(--foreground))", letterSpacing: "-0.01em" }}
+        >
+          {value}
+        </span>
+        <span style={{ width: 38, textAlign: "right" }}>{delta}</span>
+      </div>
     </div>
-  );
-}
-
-/* Eyebrow label */
-function Eyebrow() {
-  return (
-    <p className="font-mono text-[9px] uppercase tracking-[3px] text-primary">
-      PRIME WEEKLY RESET
-    </p>
-  );
-}
-
-/* Footer */
-function Footer() {
-  return (
-    <p className="mt-8 font-serif text-[14px] italic text-muted-foreground text-center">
-      Vuelve el lunes. Tu programa ya está listo.
-    </p>
   );
 }
 
@@ -146,13 +149,12 @@ export default function PrimeWeeklyReset({ selectedDate }: PrimeWeeklyResetProps
   const { metrics, loading } = usePrimeWeeklyReset(selectedDate);
   const { profile } = useAuth();
   const weightUnit = profile?.weight_unit || "kg";
-  const metricCards = buildMetricCards(weightUnit);
 
   if (loading) {
     return (
-      <CardShell>
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </CardShell>
+      <div className="flex flex-col items-center gap-6 py-8">
+        <Loader2 className="h-6 w-6 animate-spin" style={{ color: GOLD }} />
+      </div>
     );
   }
 
@@ -161,193 +163,203 @@ export default function PrimeWeeklyReset({ selectedDate }: PrimeWeeklyResetProps
   // ── First week — welcome ──
   if (metrics.isFirstWeek && !metrics.hasWorkoutsThisWeek) {
     return (
-      <CardShell>
+      <div className="flex flex-col items-center gap-6 text-center w-full max-w-[320px]">
         <Eyebrow />
-        <h2 className="mt-5 font-display text-[22px] font-bold leading-tight text-foreground">
-          Bienvenido a LIFTORY.
+        <h2
+          className="font-display"
+          style={{ fontWeight: 300, fontSize: 32, letterSpacing: "-0.04em", lineHeight: 0.95, color: "hsl(var(--foreground))" }}
+        >
+          Bienvenido a<br />
+          <strong style={{ fontWeight: 700 }}>LIFTORY</strong>
         </h2>
-        <p className="mt-3 font-body text-[14px] leading-relaxed text-muted-foreground">
-          Tu primer mesociclo empieza el lunes. Descansa, prepárate mentalmente y
-          confía en el proceso.
+        <Hairline color={GOLD} />
+        <p
+          className="font-body italic leading-snug"
+          style={{ fontWeight: 300, fontSize: 13, color: "hsl(var(--muted-foreground))" }}
+        >
+          Tu primer mesociclo empieza el lunes. Descansa, prepárate mentalmente y confía en el proceso.
         </p>
-        <Footer />
-      </CardShell>
+      </div>
     );
   }
 
   // ── No workouts this week ──
   if (!metrics.hasWorkoutsThisWeek) {
     return (
-      <CardShell>
+      <div className="flex flex-col items-center gap-6 text-center w-full max-w-[320px]">
         <Eyebrow />
-        <div className="mt-6">
-          <span
-            className="font-display font-extrabold tabular-nums"
-            style={{ fontSize: 72, lineHeight: 1, color: "hsl(var(--border))" }}
-          >
-            0
-          </span>
-          <p className="mt-1 font-mono text-[11px] font-bold uppercase tracking-[2px] text-muted-foreground">
-            PRIME SCORE
-          </p>
-        </div>
-        <p className="mt-6 font-display text-[18px] font-semibold text-foreground">
-          Esta semana fue difícil.
+        <span
+          className="font-display tabular-nums"
+          style={{ fontWeight: 200, fontSize: 80, lineHeight: 0.9, color: "hsl(var(--border))" }}
+        >
+          0
+        </span>
+        <span
+          className="font-mono uppercase"
+          style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))", marginTop: -8 }}
+        >
+          Prime Score
+        </span>
+        <Hairline color={GOLD} />
+        <p
+          className="font-display text-center"
+          style={{ fontWeight: 300, fontSize: 24, lineHeight: 1, color: "hsl(var(--foreground))", letterSpacing: "-0.03em" }}
+        >
+          Esta semana fue<br /><strong style={{ fontWeight: 700 }}>difícil</strong>.
         </p>
-        <p className="mt-1 font-body text-[14px] text-muted-foreground">
+        <p
+          className="font-body italic"
+          style={{ fontWeight: 300, fontSize: 13, color: "hsl(var(--muted-foreground))" }}
+        >
           El lunes es tuyo.
         </p>
         <Footer />
-      </CardShell>
+      </div>
     );
   }
 
   // ── Full PRIME Weekly Reset with metrics ──
   const displayVolume = toDisplayWeight(metrics.totalVolume, weightUnit);
-  const metricValues: Record<string, string> = {
-    sets: String(metrics.totalSets),
-    reps: String(metrics.totalReps),
-    volume: displayVolume.toLocaleString("es-MX"),
-    consistency: `${metrics.consistency}%`,
-    streak: `${metrics.weekStreak} sem`,
-  };
 
-  // Ring constants
-  const ringSize = 96;
-  const strokeW = 6;
+  // Ring constants — thinner & more elegant
+  const ringSize = 108;
+  const strokeW = 1.5;
   const radius = (ringSize - strokeW) / 2;
   const circumference = 2 * Math.PI * radius;
   const dashOffset = circumference - (metrics.primeScore / 100) * circumference;
 
-  return (
-    <CardShell className="px-5 py-8">
-      <Eyebrow />
-      <p className="mt-3 font-display text-[15px] font-semibold text-foreground text-center">
-        Descansa. Lo ganaste.
-      </p>
+  const scoreColor = metrics.primeScore >= 70 ? GOLD
+    : metrics.primeScore >= 40 ? GOLD
+    : "hsl(var(--muted-foreground))";
 
-      {/* PRIME Score ring */}
-      <div className="mt-6 relative" style={{ width: ringSize, height: ringSize }}>
+  const metricList: Array<{ label: string; value: string; deltaNode: React.ReactNode }> = [
+    {
+      label: "Sets",
+      value: String(metrics.totalSets),
+      deltaNode: metrics.prevWeek && !metrics.isFirstWeek
+        ? <Delta current={metrics.totalSets} previous={metrics.prevWeek[prevKeyMap.sets]} />
+        : null,
+    },
+    {
+      label: "Repeticiones",
+      value: metrics.totalReps.toLocaleString("es-MX"),
+      deltaNode: metrics.prevWeek && !metrics.isFirstWeek
+        ? <Delta current={metrics.totalReps} previous={metrics.prevWeek[prevKeyMap.reps]} />
+        : null,
+    },
+    {
+      label: `Volumen (${weightUnit})`,
+      value: displayVolume.toLocaleString("es-MX"),
+      deltaNode: metrics.prevWeek && !metrics.isFirstWeek
+        ? <Delta current={displayVolume} previous={toDisplayWeight(metrics.prevWeek[prevKeyMap.volume], weightUnit)} />
+        : null,
+    },
+    {
+      label: "Consistencia",
+      value: `${metrics.consistency}%`,
+      deltaNode: metrics.prevWeek && !metrics.isFirstWeek
+        ? <Delta current={metrics.consistency} previous={metrics.prevWeek[prevKeyMap.consistency]} />
+        : null,
+    },
+    {
+      label: "Racha",
+      value: `${metrics.weekStreak} sem`,
+      deltaNode: null,
+    },
+  ];
+
+  return (
+    <div className="flex flex-col items-center gap-6 text-center w-full max-w-[340px]">
+      <Eyebrow />
+
+      <h2
+        className="font-display text-center"
+        style={{ fontWeight: 300, fontSize: 28, letterSpacing: "-0.04em", lineHeight: 0.95, color: "hsl(var(--foreground))" }}
+      >
+        Descansa.<br />
+        <strong style={{ fontWeight: 700 }}>Lo ganaste.</strong>
+      </h2>
+
+      {/* PRIME Score ring — single gold hairline */}
+      <div className="relative" style={{ width: ringSize, height: ringSize }}>
         <svg width={ringSize} height={ringSize} className="-rotate-90">
           <circle
             cx={ringSize / 2}
             cy={ringSize / 2}
             r={radius}
             fill="none"
-            stroke="hsl(var(--secondary))"
+            stroke="hsl(var(--border))"
             strokeWidth={strokeW}
+            opacity={0.4}
           />
           <circle
             cx={ringSize / 2}
             cy={ringSize / 2}
             r={radius}
             fill="none"
-            stroke="hsl(var(--primary))"
+            stroke={GOLD}
             strokeWidth={strokeW}
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={dashOffset}
             className="transition-all duration-1000 ease-out"
+            style={{ filter: `drop-shadow(0 0 8px ${GOLD}40)` }}
           />
         </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
           <span
-            className="font-display font-extrabold tabular-nums"
-            style={{
-              fontSize: 32,
-              lineHeight: 1,
-              color: metrics.primeScore >= 70
-                ? "hsl(var(--primary))"
-                : metrics.primeScore >= 40
-                ? "hsl(var(--accent))"
-                : "hsl(var(--muted-foreground))",
-            }}
+            className="font-display tabular-nums"
+            style={{ fontWeight: 300, fontSize: 44, lineHeight: 1, letterSpacing: "-0.04em", color: scoreColor }}
           >
             <AnimatedScore target={metrics.primeScore} />
           </span>
+          <span
+            className="font-mono uppercase"
+            style={{ fontSize: 7, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+          >
+            Score
+          </span>
         </div>
       </div>
-      <p className="mt-2 font-mono text-[9px] font-bold uppercase tracking-[2.5px] text-muted-foreground">
-        PRIME SCORE
-      </p>
 
-      {/* Separator */}
-      <div className="w-full mt-6 mb-5" style={{ height: 1, background: "hsl(var(--border))" }} />
+      <Hairline color={GOLD} width={36} />
 
-      {/* Metric cards — top row 3, bottom row 2 centered */}
-      {(() => {
-        const topRow = metricCards.slice(0, 3);
-        const bottomRow = metricCards.slice(3);
+      {/* Metric hairline rows */}
+      <div
+        className="w-full"
+        style={{ borderTop: "1px solid hsl(var(--border))" }}
+      >
+        {metricList.map((m) => (
+          <MetricRow key={m.label} label={m.label} value={m.value} delta={m.deltaNode} />
+        ))}
+      </div>
 
-        const renderCard = (card: typeof metricCards[number]) => {
-          // Volume values are in kg (storage); convert to display unit for comparison too
-          const numericCurrent = card.key === "volume" ? displayVolume
-            : card.key === "sets" ? metrics.totalSets
-            : card.key === "reps" ? metrics.totalReps
-            : card.key === "consistency" ? metrics.consistency
-            : 0;
-
-          const showComparison = card.comparable && metrics.prevWeek && !metrics.isFirstWeek;
-          const rawPrev = showComparison
-            ? metrics.prevWeek![prevKeyMap[card.key as ComparableKey]]
-            : 0;
-          const prevValue = card.key === "volume" ? toDisplayWeight(rawPrev, weightUnit) : rawPrev;
-
-          return (
-            <div
-              key={card.key}
-              className="flex flex-col items-center rounded-xl px-2 py-3 text-center"
-              style={{ background: "hsl(var(--secondary))" }}
-            >
-              <span className="text-primary">{card.icon}</span>
-              <span className="mt-1.5 font-display text-[15px] font-bold tabular-nums text-foreground">
-                {metricValues[card.key]}
-              </span>
-              <span className="mt-0.5 font-mono text-[8px] uppercase tracking-wider text-muted-foreground">
-                {card.label}
-              </span>
-              {showComparison && (
-                <ComparisonBadge current={numericCurrent} previous={prevValue} />
-              )}
-            </div>
-          );
-        };
-
-        return (
-          <>
-            <div className="grid w-full grid-cols-3 gap-2">
-              {topRow.map(renderCard)}
-            </div>
-            <div className="flex w-full justify-center gap-2 mt-2">
-              <div className="flex-1 max-w-[calc((100%-16px)/3)]">{renderCard(bottomRow[0])}</div>
-              <div className="flex-1 max-w-[calc((100%-16px)/3)]">{renderCard(bottomRow[1])}</div>
-            </div>
-          </>
-        );
-      })()}
-
-      {/* Best PR card */}
+      {/* Best PR row — hairline only, no chrome */}
       {metrics.bestPR && (
-        <div
-          className="mt-3 flex w-full items-center gap-3 rounded-xl px-4 py-3"
-          style={{ background: "hsl(var(--secondary))" }}
-        >
-          <Trophy className="h-4 w-4 text-primary shrink-0" />
-          <div className="flex-1 min-w-0">
-            <p className="font-mono text-[8px] uppercase tracking-wider text-muted-foreground">
-              Mejor PR
-            </p>
-            <p className="mt-0.5 font-display text-[14px] font-bold text-foreground leading-tight" style={{ wordBreak: "break-word" }}>
-              {metrics.bestPR.exerciseName}
-            </p>
-          </div>
-          <span className="font-display text-[18px] font-bold text-primary">
-            {toDisplayWeight(metrics.bestPR.weight, weightUnit)} {weightUnit}
+        <div className="w-full flex flex-col items-center gap-1.5 pt-2">
+          <span
+            className="font-mono uppercase"
+            style={{ fontSize: 9, letterSpacing: "3px", color: GOLD }}
+          >
+            Mejor PR de la semana
           </span>
+          <p
+            className="font-display"
+            style={{ fontWeight: 600, fontSize: 18, color: "hsl(var(--foreground))", letterSpacing: "-0.02em", lineHeight: 1.1 }}
+          >
+            {metrics.bestPR.exerciseName}
+          </p>
+          <p
+            className="font-display tabular-nums"
+            style={{ fontWeight: 300, fontSize: 22, color: GOLD, letterSpacing: "-0.02em" }}
+          >
+            {toDisplayWeight(metrics.bestPR.weight, weightUnit)}{" "}
+            <span style={{ fontSize: 12, color: "hsl(var(--muted-foreground))" }}>{weightUnit}</span>
+          </p>
         </div>
       )}
 
       <Footer />
-    </CardShell>
+    </div>
   );
 }

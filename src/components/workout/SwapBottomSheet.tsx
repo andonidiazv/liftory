@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
-import { Loader2, X, ChevronRight, ArrowLeft } from "lucide-react";
+import { Loader2, ChevronRight, ArrowLeft } from "lucide-react";
 import ExerciseThumbnail from "./ExerciseThumbnail";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { useDarkMode } from "@/hooks/useDarkMode";
-import { dia, noche } from "@/lib/colors";
+
+const GOLD = "#C4A24E";
+const GREEN_MUTE = "#7A8B5C";
+const SHEET_BG = "#15151A";
 
 const difficultyLabels: Record<string, string> = {
   beginner: "Principiante",
@@ -12,14 +14,9 @@ const difficultyLabels: Record<string, string> = {
   advanced: "Avanzado",
   all_levels: "Todos",
 };
-const difficultyColors: Record<string, string> = {
-  beginner: "bg-[#7A8B5C]/20 text-[#7A8B5C]",
-  intermediate: "bg-[#C4A24E]/20 text-[#C4A24E]",
-  advanced: "bg-[#C4A24E]/20 text-[#C4A24E]",
-  all_levels: "bg-secondary text-muted-foreground",
-};
-const priorityLabels: Record<number, { label: string; sublabel: string; color?: string }> = {
-  0: { label: "Original", sublabel: "Volver al ejercicio del programa", color: "#C4A24E" },
+
+const priorityLabels: Record<number, { label: string; sublabel: string }> = {
+  0: { label: "Original", sublabel: "Volver al ejercicio del programa" },
   1: { label: "Opción 1", sublabel: "Regresión más cercana" },
   2: { label: "Opción 2", sublabel: "Alternativa más accesible" },
 };
@@ -42,7 +39,6 @@ interface SwapBottomSheetProps {
   blockLabel: string;
   workoutId: string;
   userId: string;
-  /** The original template exercise ID (if user already swapped) */
   originalExerciseId?: string | null;
   onClose: () => void;
   onSwapComplete: () => void;
@@ -59,18 +55,14 @@ export default function SwapBottomSheet({
   onClose,
   onSwapComplete,
 }: SwapBottomSheetProps) {
-  const { isDark } = useDarkMode();
-  const t = isDark ? noche : dia;
   const [options, setOptions] = useState<SubOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<SubOption | null>(null);
   const [swapping, setSwapping] = useState(false);
 
-  // The exercise whose substitutions we look up — always the original template exercise
   const lookupId = originalExerciseId || exerciseId;
   const isAlreadySwapped = !!originalExerciseId && originalExerciseId !== exerciseId;
 
-  // Fetch substitution options when sheet opens
   useEffect(() => {
     if (!visible) {
       setSelected(null);
@@ -80,7 +72,6 @@ export default function SwapBottomSheet({
     setLoading(true);
 
     const fetchOptions = async () => {
-      // 1. Fetch subs from the ORIGINAL exercise (always)
       const { data: subsData } = await supabase
         .from("exercise_substitutions")
         .select(
@@ -102,10 +93,8 @@ export default function SwapBottomSheet({
           priority: d.priority,
         }))
         .filter((o: SubOption) => o.id)
-        // Don't show the currently active exercise as an option
         .filter((o: SubOption) => o.id !== exerciseId);
 
-      // 2. If user already swapped, add "Volver al original" as priority 0
       if (isAlreadySwapped) {
         const { data: origEx } = await supabase
           .from("exercises")
@@ -138,7 +127,6 @@ export default function SwapBottomSheet({
     if (!selected) return;
     setSwapping(true);
     try {
-      // Update the actual workout sets
       const { error: setErr } = await supabase
         .from("workout_sets")
         .update({ exercise_id: selected.id })
@@ -152,7 +140,6 @@ export default function SwapBottomSheet({
       const isRestoringOriginal = selected.id === trueOriginalId;
 
       if (isRestoringOriginal) {
-        // User is going back to original — remove swap record
         await supabase
           .from("workout_exercise_swaps")
           .delete()
@@ -162,7 +149,6 @@ export default function SwapBottomSheet({
 
         toast({ title: "Ejercicio restaurado" });
       } else {
-        // Save/update swap record (always track from original)
         await supabase.from("workout_exercise_swaps").upsert(
           {
             user_id: userId,
@@ -197,12 +183,10 @@ export default function SwapBottomSheet({
       className="fixed inset-0 z-[90] flex items-end justify-center"
       onClick={onClose}
     >
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 animate-fade-in" />
+      <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.6)" }} />
 
-      {/* Sheet */}
       <div
-        className="relative w-full max-w-lg animate-slide-up"
+        className="relative w-full max-w-lg"
         onClick={(e) => e.stopPropagation()}
         onTouchStart={(e) => {
           const startY = e.touches[0].clientY;
@@ -221,43 +205,68 @@ export default function SwapBottomSheet({
         }}
       >
         <div
-          className="rounded-t-2xl px-5 pb-8 pt-3"
           style={{
-            backgroundColor: "hsl(var(--card))",
-            boxShadow: "0 -8px 32px rgba(0,0,0,0.4)",
+            background: SHEET_BG,
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
+            borderTop: "1px solid hsl(var(--border))",
+            paddingLeft: 24,
+            paddingRight: 24,
+            paddingBottom: 32,
+            paddingTop: 12,
+            animation: "atelierSlideUp 0.25s ease-out",
           }}
         >
           {/* Drag handle */}
-          <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-muted-foreground/30" />
+          <div className="mx-auto mb-5 h-0.5 w-9 rounded-full" style={{ background: "hsl(var(--muted-foreground))", opacity: 0.4 }} />
 
           {/* ─── CONFIRMATION VIEW ─── */}
           {selected ? (
-            <div className="animate-fade-up">
+            <div>
               <button
                 onClick={() => setSelected(null)}
-                className="flex items-center gap-1 text-muted-foreground mb-4"
+                className="press-scale flex items-center gap-2 mb-5"
               >
-                <ArrowLeft className="h-4 w-4" />
-                <span className="font-body text-sm">Volver</span>
+                <ArrowLeft className="h-3.5 w-3.5" style={{ color: "hsl(var(--muted-foreground))" }} />
+                <span
+                  className="font-mono uppercase"
+                  style={{ fontSize: 10, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+                >
+                  Volver
+                </span>
               </button>
 
-              <p className="font-display text-lg font-semibold text-foreground">
+              <p
+                className="font-mono uppercase mb-3"
+                style={{ fontSize: 9, letterSpacing: "3px", color: GOLD }}
+              >
                 Confirmar sustitución
               </p>
-              <p className="mt-1 text-sm text-muted-foreground font-body">
-                ¿Sustituir{" "}
-                <span className="text-foreground font-medium">{exerciseName}</span>{" "}
+
+              <h2
+                className="font-display"
+                style={{ fontWeight: 300, fontSize: 24, letterSpacing: "-0.03em", lineHeight: 1.1, color: "hsl(var(--foreground))" }}
+              >
+                Reemplazar <strong style={{ fontWeight: 700 }}>{exerciseName}</strong>
+              </h2>
+              <p
+                className="font-body italic mt-2"
+                style={{ fontWeight: 300, fontSize: 13, color: "hsl(var(--muted-foreground))" }}
+              >
                 por:
               </p>
 
-              {/* Selected exercise card */}
+              {/* Selected exercise — hairline row */}
               <div
-                className="mt-4 flex items-center gap-3 rounded-xl p-3"
-                style={{ background: "hsl(var(--secondary))" }}
+                className="flex items-center gap-4 py-4 mt-4"
+                style={{
+                  borderTop: "1px solid hsl(var(--border))",
+                  borderBottom: "1px solid hsl(var(--border))",
+                }}
               >
                 <div
-                  className="shrink-0 overflow-hidden rounded-lg"
-                  style={{ width: 56, height: 42 }}
+                  className="shrink-0 overflow-hidden"
+                  style={{ width: 56, height: 42, borderRadius: 4 }}
                 >
                   <ExerciseThumbnail
                     thumbnailUrl={selected.thumbnail_url}
@@ -268,83 +277,107 @@ export default function SwapBottomSheet({
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-body text-[15px] font-semibold text-foreground leading-snug" style={{ wordBreak: "break-word" }}>
+                  <p
+                    className="font-display"
+                    style={{ fontWeight: 600, fontSize: 15, color: "hsl(var(--foreground))", lineHeight: 1.2, letterSpacing: "-0.01em", wordBreak: "break-word" }}
+                  >
                     {selected.name}
                   </p>
                   {selected.name_es && selected.name_es !== selected.name && (
-                    <p className="font-body text-xs text-muted-foreground/60 leading-snug mt-0.5" style={{ wordBreak: "break-word" }}>
+                    <p
+                      className="font-mono mt-1"
+                      style={{ fontSize: 10, color: "hsl(var(--muted-foreground))", opacity: 0.7, wordBreak: "break-word" }}
+                    >
                       {selected.name_es}
                     </p>
                   )}
                 </div>
               </div>
 
-              {/* Action buttons */}
-              <div className="mt-5 flex gap-3">
-                <button
-                  onClick={() => setSelected(null)}
-                  className="flex-1 rounded-xl py-3 font-body text-sm font-medium text-foreground"
-                  style={{ background: "hsl(var(--secondary))" }}
-                >
-                  Cancelar
-                </button>
+              {/* Atelier CTAs */}
+              <div className="mt-7 flex flex-col items-center gap-4">
                 <button
                   onClick={handleSwap}
                   disabled={swapping}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 font-body text-sm font-medium text-primary-foreground disabled:opacity-50"
-                  style={{ background: "hsl(var(--primary))" }}
+                  className="press-scale flex items-center gap-3 disabled:opacity-50"
                 >
-                  {swapping ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : null}
-                  Sustituir
+                  <span
+                    className="font-mono uppercase"
+                    style={{ fontSize: 11, letterSpacing: "2.5px", color: "hsl(var(--foreground))", fontWeight: 600 }}
+                  >
+                    Sustituir
+                  </span>
+                  <span
+                    className="flex items-center justify-center shrink-0"
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: "50%",
+                      border: `1px solid ${GOLD}`,
+                      boxShadow: swapping ? "none" : `0 0 24px ${GOLD}59`,
+                    }}
+                  >
+                    {swapping ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" style={{ color: GOLD }} />
+                    ) : (
+                      <ChevronRight className="h-3.5 w-3.5" style={{ color: GOLD }} />
+                    )}
+                  </span>
+                </button>
+                <button
+                  onClick={() => setSelected(null)}
+                  disabled={swapping}
+                  className="font-mono uppercase disabled:opacity-50"
+                  style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+                >
+                  Cancelar
                 </button>
               </div>
             </div>
           ) : (
             /* ─── OPTIONS LIST VIEW ─── */
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <p className="font-display text-lg font-semibold text-foreground">
-                  Cambiar ejercicio
-                </p>
-                <button
-                  onClick={onClose}
-                  className="flex h-8 w-8 items-center justify-center rounded-full"
-                  style={{ background: "hsl(var(--secondary))" }}
-                >
-                  <X className="h-4 w-4 text-foreground" />
-                </button>
-              </div>
-              <p className="text-sm text-muted-foreground font-body mb-4">
-                Reemplazar{" "}
-                <span className="text-foreground font-medium">{exerciseName}</span>
+              <p
+                className="font-mono uppercase mb-2"
+                style={{ fontSize: 9, letterSpacing: "3px", color: GOLD }}
+              >
+                Cambiar ejercicio
               </p>
+              <h2
+                className="font-display"
+                style={{ fontWeight: 300, fontSize: 22, letterSpacing: "-0.03em", lineHeight: 1.1, color: "hsl(var(--foreground))" }}
+              >
+                <strong style={{ fontWeight: 700 }}>{exerciseName}</strong>
+              </h2>
 
               {loading ? (
                 <div className="flex items-center justify-center py-10">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                  <Loader2 className="h-5 w-5 animate-spin" style={{ color: GOLD }} />
                 </div>
               ) : options.length === 0 ? (
-                <p className="text-sm text-muted-foreground font-body py-8 text-center">
+                <p
+                  className="font-body italic text-center py-10"
+                  style={{ fontWeight: 300, fontSize: 13, color: "hsl(var(--muted-foreground))" }}
+                >
                   No hay sustituciones disponibles para este ejercicio.
                 </p>
               ) : (
-                <div className="space-y-3">
+                <div className="mt-5" style={{ borderTop: "1px solid hsl(var(--border))" }}>
                   {options.map((opt) => {
-                    const pLabel =
-                      priorityLabels[opt.priority] || priorityLabels[1];
+                    const pLabel = priorityLabels[opt.priority] || priorityLabels[1];
+                    const accent = opt.priority === 0 ? GOLD
+                      : opt.priority === 1 ? GOLD
+                      : GREEN_MUTE;
                     return (
                       <button
                         key={opt.id}
                         onClick={() => setSelected(opt)}
-                        className="flex w-full items-start gap-3 rounded-xl p-3 transition-all press-scale text-left"
-                        style={{ background: "hsl(var(--secondary))" }}
+                        className="press-scale flex w-full items-start gap-4 py-4 text-left"
+                        style={{ borderBottom: "1px solid hsl(var(--border))" }}
                       >
-                        {/* Thumbnail */}
                         <div
-                          className="shrink-0 overflow-hidden rounded-lg"
-                          style={{ width: 56, height: 42 }}
+                          className="shrink-0 overflow-hidden"
+                          style={{ width: 56, height: 42, borderRadius: 4 }}
                         >
                           <ExerciseThumbnail
                             thumbnailUrl={opt.thumbnail_url}
@@ -355,51 +388,40 @@ export default function SwapBottomSheet({
                           />
                         </div>
 
-                        {/* Info */}
                         <div className="flex-1 min-w-0">
-                          {/* Priority label */}
                           <span
-                            className="font-mono uppercase mb-1 block"
-                            style={{
-                              fontSize: 9,
-                              letterSpacing: "1.5px",
-                              color: pLabel.color ? t.accent : (opt.priority === 1 ? t.accent : t.success),
-                            }}
+                            className="font-mono uppercase block"
+                            style={{ fontSize: 8, letterSpacing: "2.5px", color: accent }}
                           >
-                            {pLabel.label} — {pLabel.sublabel}
+                            {pLabel.label} · {pLabel.sublabel}
                           </span>
-
-                          {/* Name */}
-                          <p className="font-body text-[14px] font-semibold text-foreground leading-snug" style={{ wordBreak: "break-word" }}>
+                          <p
+                            className="font-display mt-1.5"
+                            style={{ fontWeight: 600, fontSize: 14, color: "hsl(var(--foreground))", letterSpacing: "-0.01em", lineHeight: 1.2, wordBreak: "break-word" }}
+                          >
                             {opt.name}
                           </p>
                           {opt.name_es && opt.name_es !== opt.name && (
-                            <p className="font-body text-xs text-muted-foreground/60 leading-snug mt-0.5" style={{ wordBreak: "break-word" }}>
+                            <p
+                              className="font-mono mt-0.5"
+                              style={{ fontSize: 10, color: "hsl(var(--muted-foreground))", opacity: 0.7, wordBreak: "break-word" }}
+                            >
                               {opt.name_es}
                             </p>
                           )}
 
-                          {/* Badges row */}
-                          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                            {/* Difficulty */}
+                          <div className="mt-2 flex flex-wrap items-center gap-3">
                             <span
-                              className={`rounded px-1.5 py-0.5 font-mono ${
-                                difficultyColors[opt.difficulty] ??
-                                "bg-secondary text-muted-foreground"
-                              }`}
-                              style={{ fontSize: 9, letterSpacing: "0.03em" }}
+                              className="font-mono uppercase"
+                              style={{ fontSize: 8, letterSpacing: "1.5px", color: "hsl(var(--muted-foreground))" }}
                             >
                               {difficultyLabels[opt.difficulty] ?? opt.difficulty}
                             </span>
-                            {/* Muscles (max 3) */}
                             {opt.primary_muscles.slice(0, 3).map((m) => (
                               <span
                                 key={m}
-                                className="rounded px-1.5 py-0.5 font-mono text-muted-foreground"
-                                style={{
-                                  fontSize: 9,
-                                  background: "hsl(var(--border))",
-                                }}
+                                className="font-mono uppercase"
+                                style={{ fontSize: 8, letterSpacing: "1.5px", color: "hsl(var(--muted-foreground))", opacity: 0.7 }}
                               >
                                 {m}
                               </span>
@@ -407,8 +429,7 @@ export default function SwapBottomSheet({
                           </div>
                         </div>
 
-                        {/* Arrow */}
-                        <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 mt-3" />
+                        <ChevronRight className="h-3.5 w-3.5 shrink-0 mt-3" style={{ color: "hsl(var(--muted-foreground))" }} />
                       </button>
                     );
                   })}
@@ -418,6 +439,13 @@ export default function SwapBottomSheet({
           )}
         </div>
       </div>
+
+      <style>{`
+        @keyframes atelierSlideUp {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }

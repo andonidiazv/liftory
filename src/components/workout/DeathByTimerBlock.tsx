@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight, Play, Dumbbell, Check } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play, Pause, Dumbbell, Check } from "lucide-react";
 import type { WorkoutBlock } from "./WorkoutOverview";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
@@ -209,38 +209,42 @@ export default function DeathByTimerBlock({ block, onBack, onCompleteBlock, onOp
       <div className="flex flex-col items-center justify-center px-5 py-8" style={{ minHeight: "45vh" }}>
         {stopped ? (
           /* Input screen: ¿Hasta qué minuto completaste? */
-          <div className="flex flex-col items-center gap-4 animate-fade-in w-full max-w-xs">
-            <p className="font-mono uppercase text-primary" style={{ fontSize: 10, letterSpacing: "2px" }}>
+          <div className="flex flex-col items-center gap-5 animate-fade-in w-full max-w-xs">
+            <p className="font-mono uppercase" style={{ fontSize: 9, letterSpacing: "3px", color: "#C4A24E" }}>
               ¿Hasta qué minuto completaste?
             </p>
-            <div className="flex items-center gap-5 my-3">
+            <div className="flex items-center gap-6 my-2">
               <button
                 onClick={() => setScoreInput((s) => Math.max(1, s - 1))}
-                className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary press-scale"
+                className="press-scale flex items-center justify-center"
+                style={{ width: 32, height: 32, borderRadius: "50%", border: "1px solid hsl(var(--border))" }}
               >
-                <span className="text-2xl text-foreground">−</span>
+                <span style={{ fontSize: 18, color: "hsl(var(--muted-foreground))" }}>−</span>
               </button>
-              <div className="text-center min-w-[80px]">
-                <p className="font-mono font-bold text-primary" style={{ fontSize: 72, lineHeight: 1 }}>
+              <div className="text-center min-w-[88px]">
+                <p
+                  className="font-display tabular-nums"
+                  style={{ fontWeight: 300, fontSize: 80, lineHeight: 1, letterSpacing: "-0.05em", color: "hsl(var(--foreground))" }}
+                >
                   {scoreInput}
                 </p>
-                <p className="font-mono text-muted-foreground" style={{ fontSize: 10, letterSpacing: "2px" }}>
-                  MINUTOS
+                <p
+                  className="font-mono uppercase mt-1"
+                  style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+                >
+                  Minutos
                 </p>
               </div>
               <button
                 onClick={() => setScoreInput((s) => Math.min(capMin, s + 1))}
-                className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary press-scale"
+                className="press-scale flex items-center justify-center"
+                style={{ width: 32, height: 32, borderRadius: "50%", border: "1px solid hsl(var(--border))" }}
               >
-                <span className="text-2xl text-foreground">+</span>
+                <span style={{ fontSize: 18, color: "hsl(var(--muted-foreground))" }}>+</span>
               </button>
             </div>
-            <p className="font-body text-muted-foreground text-center" style={{ fontSize: 13 }}>
-              Total reps: <span className="font-mono text-foreground">{totalRepsAtScore}</span>
-              <br />
-              <span style={{ fontSize: 11 }}>
-                (min 1 = 1 rep, min 2 = 2 reps, ...)
-              </span>
+            <p className="font-body italic text-center" style={{ fontWeight: 300, fontSize: 13, color: "hsl(var(--muted-foreground))" }}>
+              Total reps: <span className="font-display" style={{ color: "hsl(var(--foreground))", fontWeight: 500 }}>{totalRepsAtScore}</span>
             </p>
             {/* Block-level next-step CTA — single line + breathing circle */}
             {onNextBlock && nextBlockName ? (
@@ -290,78 +294,120 @@ export default function DeathByTimerBlock({ block, onBack, onCompleteBlock, onOp
             )}
           </div>
         ) : countdown !== null ? (
-          /* 10s prep countdown */
-          <div className="flex flex-col items-center gap-3">
-            <p className="font-mono uppercase text-muted-foreground" style={{ fontSize: 10, letterSpacing: "2px" }}>
-              Preparate
+          <div className="flex flex-col items-center gap-4">
+            <p className="font-mono uppercase" style={{ fontSize: 9, letterSpacing: "3px", color: "#C4A24E" }}>
+              Prepárate
             </p>
             <p
-              className="font-mono font-bold text-primary"
+              className="font-display tabular-nums"
               style={{
-                fontSize: 120,
+                fontWeight: 300,
+                fontSize: 140,
                 lineHeight: 1,
-                letterSpacing: "-0.04em",
+                letterSpacing: "-0.06em",
+                color: "#C4A24E",
                 animation: countdown <= 3 ? "pulse 0.8s infinite" : undefined,
               }}
             >
               {countdown}
             </p>
-            <p className="font-body text-muted-foreground" style={{ fontSize: 13 }}>
+            <p className="font-body italic" style={{ fontWeight: 300, fontSize: 13, color: "hsl(var(--muted-foreground))" }}>
               Empieza en {countdown} {countdown === 1 ? "segundo" : "segundos"}
             </p>
-            <button onClick={() => setCountdown(null)} className="mt-4 press-scale font-body text-sm text-muted-foreground underline">
+            <button
+              onClick={() => setCountdown(null)}
+              className="press-scale mt-3 font-mono uppercase"
+              style={{ fontSize: 10, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+            >
               Cancelar
             </button>
           </div>
         ) : !hasStarted ? (
-          /* Idle state before first start */
-          <div className="flex flex-col items-center gap-3">
-            <p className="font-mono uppercase text-primary" style={{ fontSize: 10, letterSpacing: "2px" }}>
-              Minuto 1 — 1 rep
+          <div className="flex flex-col items-center gap-4">
+            <p className="font-mono uppercase" style={{ fontSize: 9, letterSpacing: "3px", color: "#C4A24E" }}>
+              Minuto 1 · 1 rep
             </p>
-            <p className="font-body text-muted-foreground text-center" style={{ fontSize: 13, maxWidth: 280 }}>
+            <p className="font-body italic text-center" style={{ fontWeight: 300, fontSize: 13, color: "hsl(var(--muted-foreground))", maxWidth: 280 }}>
               Cada minuto añades 1 rep. Timer corre solo. Tú ejecutas. Para cuando ya no puedas completar en el minuto.
             </p>
             <button
               onClick={() => setCountdown(COUNTDOWN_SECONDS)}
-              className="mt-6 press-scale flex items-center gap-3 rounded-full bg-primary px-8 py-4 font-display text-sm font-semibold text-primary-foreground"
+              className="press-scale mt-6 flex items-center gap-3"
             >
-              <Play className="h-5 w-5" />
-              INICIAR
+              <span
+                className="font-mono uppercase"
+                style={{ fontSize: 11, letterSpacing: "2.5px", color: "hsl(var(--foreground))", fontWeight: 600 }}
+              >
+                Iniciar
+              </span>
+              <span
+                className="liftory-breathe flex items-center justify-center shrink-0"
+                style={{
+                  width: 44, height: 44, borderRadius: "50%",
+                  border: "1px solid #C4A24E",
+                  boxShadow: "0 0 24px #C4A24E40",
+                }}
+              >
+                <Play className="h-4 w-4 ml-0.5" style={{ color: "#C4A24E" }} />
+              </span>
             </button>
           </div>
         ) : (
-          /* Active state: show current minute + seconds left */
           <>
-            <p className="font-mono uppercase text-muted-foreground" style={{ fontSize: 10, letterSpacing: "2px" }}>
+            <p className="font-mono uppercase" style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}>
               Minuto actual
             </p>
             <p
-              className="font-mono font-bold text-primary"
-              style={{ fontSize: 80, lineHeight: 1, letterSpacing: "-0.04em" }}
+              className="font-display tabular-nums"
+              style={{ fontWeight: 300, fontSize: 96, lineHeight: 1, letterSpacing: "-0.06em", color: "hsl(var(--foreground))" }}
             >
               {currentMinute}
             </p>
-            <p className="font-display text-foreground" style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.01em" }}>
-              HAZ {currentMinute} {currentMinute === 1 ? "REP" : "REPS"}
+            <p
+              className="font-display mt-2"
+              style={{ fontWeight: 500, fontSize: 20, color: "#C4A24E", letterSpacing: "-0.01em", textTransform: "uppercase" }}
+            >
+              Haz {currentMinute} {currentMinute === 1 ? "rep" : "reps"}
             </p>
 
             <div
-              className="mt-6 font-mono text-muted-foreground"
-              style={{ fontSize: 36, fontWeight: 500, color: secondsInMinute <= 5 ? "#D45555" : undefined }}
+              className="mt-7 font-display tabular-nums"
+              style={{
+                fontWeight: 300,
+                fontSize: 36,
+                color: secondsInMinute <= 5 ? "#D45555" : "hsl(var(--muted-foreground))",
+                letterSpacing: "-0.03em",
+                lineHeight: 1,
+              }}
             >
               0:{formatSecs(secondsInMinute)}
             </div>
-            <p className="font-mono text-muted-foreground mt-1" style={{ fontSize: 10, letterSpacing: "2px" }}>
-              segundos en este minuto
+            <p
+              className="font-mono uppercase mt-2"
+              style={{ fontSize: 9, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+            >
+              Segundos en este minuto
             </p>
 
             <button
               onClick={handleStop}
-              className="mt-8 press-scale rounded-full bg-destructive px-10 py-4 font-display text-base font-semibold text-destructive-foreground"
-              style={{ minWidth: 200 }}
+              className="press-scale mt-8 flex items-center gap-3"
             >
-              PARAR (ya no puedo)
+              <span
+                className="font-mono uppercase"
+                style={{ fontSize: 11, letterSpacing: "2.5px", color: "#D45555", fontWeight: 600 }}
+              >
+                Parar
+              </span>
+              <span
+                className="flex items-center justify-center shrink-0"
+                style={{
+                  width: 36, height: 36, borderRadius: "50%",
+                  border: "1px solid #D45555",
+                }}
+              >
+                <Pause className="h-3.5 w-3.5" style={{ color: "#D45555" }} />
+              </span>
             </button>
           </>
         )}
