@@ -40,13 +40,36 @@ import SyncStatusBadge from "./components/SyncStatusBadge";
 import Splash from "./components/Splash";
 import { useAuth } from "./context/AuthContext";
 
-/** Reads the profile to greet the athlete by name on cold-start splash.
- *  Lives inside AuthProvider so useAuth resolves. Splash self-times-out
- *  even when the profile hasn't loaded yet — name is purely decorative. */
+/** Gate that mounts the Splash. Two paths:
+ *   1) Post-login (ceremonial 3s): Login.tsx sets the flag right before
+ *      navigating to /home. We read+clear it here and switch variant.
+ *   2) Cold-start (compact 1.5s): regular brand-entry on every fresh PWA open.
+ *  Re-mounts on user.id change via `key` so a successful login fires it again
+ *  even when the gate stayed mounted at the App root. */
+const POST_LOGIN_FLAG = "liftory_splash_post_login";
+
+// Module-level singleton so the variant decision survives React Strict Mode's
+// double-mount in dev. Without this, the first mount consumes the flag and the
+// second mount sees null → falls back to "compact" silently.
+let _splashVariantCached: "ceremonial" | "compact" | null = null;
+function resolveSplashVariant(): "ceremonial" | "compact" {
+  if (_splashVariantCached !== null) return _splashVariantCached;
+  try {
+    if (localStorage.getItem(POST_LOGIN_FLAG) === "1") {
+      localStorage.removeItem(POST_LOGIN_FLAG);
+      _splashVariantCached = "ceremonial";
+      return "ceremonial";
+    }
+  } catch { /* noop */ }
+  _splashVariantCached = "compact";
+  return "compact";
+}
+
 function SplashGate() {
   const { profile } = useAuth();
   const firstName = profile?.full_name?.split(" ")[0];
-  return <Splash name={firstName} />;
+  const variant = resolveSplashVariant();
+  return <Splash name={firstName} variant={variant} />;
 }
 
 // Apply dark mode preference on load (before render)
