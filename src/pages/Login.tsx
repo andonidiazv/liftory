@@ -74,6 +74,9 @@ export default function Login() {
       }
 
       if (data.user) {
+        // Cue the ceremonial Splash on the next render (read+cleared by
+        // SplashGate). Tiny side-effect, gracefully ignored if storage fails.
+        try { localStorage.setItem("liftory_splash_post_login", "1"); } catch { /* noop */ }
         navigate("/home", { replace: true });
       }
     } catch {
