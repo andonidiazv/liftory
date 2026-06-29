@@ -295,6 +295,21 @@ export default function ForTimeTimerBlock({
                 {rounds} {rounds === 1 ? "ronda" : "rondas"}
               </p>
             )}
+            {/* Restart — athlete can re-run the For Time (mistake, redo, second
+                attempt). Without this, completed locks the block. */}
+            <button
+              onClick={handleRestart}
+              className="press-scale mt-4 flex items-center gap-2"
+              title="Volver a correr el For Time"
+            >
+              <RotateCcw className="h-3 w-3" style={{ color: "hsl(var(--muted-foreground))" }} />
+              <span
+                className="font-mono uppercase"
+                style={{ fontSize: 10, letterSpacing: "2.5px", color: "hsl(var(--muted-foreground))" }}
+              >
+                Reintentar
+              </span>
+            </button>
           </div>
         ) : countdown !== null ? (
           <div className="flex flex-col items-center gap-4">
