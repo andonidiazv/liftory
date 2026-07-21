@@ -526,6 +526,7 @@ export const M1_CLOSING_CONTENT: MesocycleClosingContent = {
 export const MESOCYCLE_DATE_RANGES: Record<string, { start: string; end: string }> = {
   M2: { start: "2026-04-27", end: "2026-06-07" },
   M3: { start: "2026-06-08", end: "2026-07-19" },
+  M4: { start: "2026-07-20", end: "2026-08-30" },
 };
 
 /**

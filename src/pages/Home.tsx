@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, Loader2, BatteryCharging, Battery } from "lucide-react";
+import { ChevronRight, ChevronLeft, Loader2, BatteryCharging, Battery } from "lucide-react";
 import Layout from "@/components/Layout";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigableHome, type NavWeekDay } from "@/hooks/useNavigableHome";
@@ -85,6 +85,10 @@ export default function Home() {
     loading,
     todayStr,
     selectDay,
+    goToPrevWeek,
+    goToNextWeek,
+    canGoPrev,
+    canGoNext,
     showNextCyclePrompt,
     nextCycleInfo,
     transitionToCycle,
@@ -302,13 +306,18 @@ export default function Home() {
             className="sticky bottom-0"
             style={{ background: "hsl(var(--background))", paddingBottom: 2, paddingTop: 4 }}
           >
-            {/* Week navigator — 7 hairline dots, tap to view another day */}
+            {/* Week navigator — 7 hairline dots, tap to view another day.
+                Chevrons at the ends walk backward/forward through weeks. */}
             {programInfo && weekDays.length > 0 && (
               <WeekStrip
                 days={weekDays}
                 selectedDate={selectedDate}
                 todayStr={todayStr}
                 onSelect={selectDay}
+                onPrev={goToPrevWeek}
+                onNext={goToNextWeek}
+                canPrev={canGoPrev}
+                canNext={canGoNext}
               />
             )}
 
@@ -685,19 +694,43 @@ function WeekStrip({
   selectedDate,
   todayStr,
   onSelect,
+  onPrev,
+  onNext,
+  canPrev,
+  canNext,
 }: {
   days: NavWeekDay[];
   selectedDate: string;
   todayStr: string;
   onSelect: (date: string) => void;
+  onPrev?: () => void;
+  onNext?: () => void;
+  canPrev?: boolean;
+  canNext?: boolean;
 }) {
   return (
     <div
       className="flex items-start justify-center mb-4"
-      style={{ gap: 22 }}
+      style={{ gap: 14 }}
       role="group"
       aria-label="Días de la semana"
     >
+      {onPrev && (
+        <button
+          onClick={onPrev}
+          disabled={!canPrev}
+          className="press-scale flex flex-col items-center disabled:opacity-20"
+          style={{ minWidth: 16, paddingTop: 4, paddingBottom: 4 }}
+          aria-label="Semana anterior"
+        >
+          <ChevronLeft
+            size={13}
+            strokeWidth={1.5}
+            style={{ color: "hsl(var(--muted-foreground))", marginTop: 1 }}
+          />
+        </button>
+      )}
+      <div className="flex items-start" style={{ gap: 22 }}>
       {days.map((day) => {
         const isToday = day.date === todayStr;
         const isSelected = day.date === selectedDate;
@@ -813,6 +846,22 @@ function WeekStrip({
           </button>
         );
       })}
+      </div>
+      {onNext && (
+        <button
+          onClick={onNext}
+          disabled={!canNext}
+          className="press-scale flex flex-col items-center disabled:opacity-20"
+          style={{ minWidth: 16, paddingTop: 4, paddingBottom: 4 }}
+          aria-label="Semana siguiente"
+        >
+          <ChevronRight
+            size={13}
+            strokeWidth={1.5}
+            style={{ color: "hsl(var(--muted-foreground))", marginTop: 1 }}
+          />
+        </button>
+      )}
     </div>
   );
 }
