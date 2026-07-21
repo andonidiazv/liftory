@@ -4,6 +4,7 @@ import type { WorkoutBlock } from "./WorkoutOverview";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
 import { playBeep } from "@/lib/audio";
+import { useWakeLock } from "@/hooks/useWakeLock";
 
 interface Props {
   block: WorkoutBlock;
@@ -69,77 +70,147 @@ export default function DeathByTimerBlock({ block, onBack, onCompleteBlock, onOp
   const [hasStarted, setHasStarted] = useState(allDone);
   const [scoreInput, setScoreInput] = useState<number>(initialMinute);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const countdownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Absolute-time trackers so background/throttle can't drift the clock.
+  const countdownEndRef = useRef<number>(0);
+  const lastCountdownBeepRef = useRef<number>(-1);
+  const minuteEndRef = useRef<number>(0); // Date.now() ms when the current minute hits 0
+  const lastMinuteBeepRef = useRef<number>(-1); // dedupe last-3s beeps within a minute
+
+  // Ref for currentMinute so interval closure has fresh value
+  const currentMinuteRef = useRef(currentMinute);
+  currentMinuteRef.current = currentMinute;
+
+  // Keep the screen on during countdown + running.
+  useWakeLock(!stopped && (running || countdown !== null));
 
   // Cleanup
   useEffect(() => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
-      if (countdownRef.current) clearTimeout(countdownRef.current);
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
     };
   }, []);
 
-  // Prep countdown
+  // Prep countdown — absolute time so it survives backgrounding.
   useEffect(() => {
-    if (countdown === null) return;
-    if (countdown <= 0) {
-      playBeep(1000, 300);
-      vibrate(200);
-      setCountdown(null);
-      setHasStarted(true);
-      setRunning(true);
+    if (countdown === null) {
+      countdownEndRef.current = 0;
+      lastCountdownBeepRef.current = -1;
       return;
     }
-    if (countdown <= 3) {
-      playBeep(900, 120);
-      vibrate(50);
-    } else {
-      playBeep(700, 80);
+    if (countdownEndRef.current === 0) {
+      countdownEndRef.current = Date.now() + countdown * 1000;
+      lastCountdownBeepRef.current = -1;
     }
-    countdownRef.current = setTimeout(() => setCountdown((c) => (c == null ? null : c - 1)), 1000);
-    return () => { if (countdownRef.current) clearTimeout(countdownRef.current); };
-  }, [countdown]);
+    const tick = () => {
+      const msLeft = countdownEndRef.current - Date.now();
+      const secsLeft = Math.max(0, Math.ceil(msLeft / 1000));
+      setCountdown(secsLeft);
+      if (secsLeft > 0 && lastCountdownBeepRef.current !== secsLeft) {
+        lastCountdownBeepRef.current = secsLeft;
+        if (secsLeft <= 3) {
+          playBeep(900, 120);
+          vibrate(50);
+        } else {
+          playBeep(700, 80);
+        }
+      }
+      if (secsLeft <= 0) {
+        countdownEndRef.current = 0;
+        playBeep(1000, 300);
+        vibrate(200);
+        setCountdown(null);
+        setHasStarted(true);
+        setRunning(true);
+      }
+    };
+    tick();
+    countdownIntervalRef.current = setInterval(tick, 250);
+    const onVis = () => { if (document.visibilityState === "visible") tick(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countdown === null]);
 
-  // Main tick — counts down seconds within a minute, then advances to next minute
+  // Reset minute clock when we transition into (or out of) running.
+  useEffect(() => {
+    if (running && !stopped) {
+      // Start the current minute now (if not already set).
+      if (minuteEndRef.current === 0) {
+        minuteEndRef.current = Date.now() + SECONDS_PER_MINUTE * 1000;
+        lastMinuteBeepRef.current = -1;
+      }
+    } else if (!running) {
+      // Paused/stopped — remember how many seconds were left so resume is honest.
+      // We do this by leaving minuteEndRef alone if paused mid-minute would need
+      // a resume; but Death By doesn't currently support pause (no pause button),
+      // so on stop we simply zero it.
+      if (stopped) {
+        minuteEndRef.current = 0;
+      }
+    }
+  }, [running, stopped]);
+
+  // Main tick — absolute time within a minute. When 0 is reached: either advance
+  // to next minute or hit cap. Backgrounded jumps: if we crossed multiple minute
+  // boundaries silently, we advance by one per tick (rare edge — normally the
+  // athlete would notice and tap Stop when they get back).
   useEffect(() => {
     if (!running || stopped) return;
-    intervalRef.current = setInterval(() => {
-      setSecondsInMinute((prev) => {
-        if (prev <= 1) {
-          // Minute complete — advance
-          const nextMin = currentMinuteRef.current + 1;
-          if (nextMin > capMin) {
-            // Hit cap — auto-stop. Null-check the ref defensively: in the
-            // edge case where unmount happens on the same frame, the cleanup
-            // function may have already nulled it.
-            if (intervalRef.current) clearInterval(intervalRef.current);
-            setRunning(false);
-            setStopped(true);
-            setScoreInput(capMin); // default to last minute
-            playBeep(500, 300);
-            setTimeout(() => playBeep(500, 300), 300);
-            vibrate(500);
-            return 0;
-          }
-          // New minute starts
-          setCurrentMinute(nextMin);
-          playBeep(1000, 200);
-          vibrate(150);
-          return SECONDS_PER_MINUTE;
+
+    const tick = () => {
+      const msLeft = minuteEndRef.current - Date.now();
+      const secsLeft = Math.max(0, Math.ceil(msLeft / 1000));
+      setSecondsInMinute(secsLeft);
+      if (secsLeft <= 0) {
+        // Minute complete — advance
+        const nextMin = currentMinuteRef.current + 1;
+        if (nextMin > capMin) {
+          // Hit cap — auto-stop.
+          if (intervalRef.current) clearInterval(intervalRef.current);
+          setRunning(false);
+          setStopped(true);
+          setScoreInput(capMin);
+          playBeep(500, 300);
+          setTimeout(() => playBeep(500, 300), 300);
+          vibrate(500);
+          minuteEndRef.current = 0;
+          return;
         }
-        // Warn at last 3 seconds of minute
-        if (prev <= 4) {
-          playBeep(600, 80);
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+        setCurrentMinute(nextMin);
+        playBeep(1000, 200);
+        vibrate(150);
+        // Roll the minute clock forward from where it was, not from now, so
+        // small tick delays don't add up over 15+ min sessions.
+        minuteEndRef.current += SECONDS_PER_MINUTE * 1000;
+        lastMinuteBeepRef.current = -1;
+      }
+    };
+
+    tick();
+    intervalRef.current = setInterval(tick, 250);
+    const onVis = () => { if (document.visibilityState === "visible") tick(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, [running, stopped, capMin]);
 
-  // Ref for currentMinute so interval closure has fresh value
-  const currentMinuteRef = useRef(currentMinute);
-  currentMinuteRef.current = currentMinute;
+  // Last-3-seconds beeps within a minute — separated from tick so it can dedupe
+  // and survive time jumps.
+  useEffect(() => {
+    if (!running || stopped) return;
+    if (secondsInMinute < 1 || secondsInMinute > 3) return;
+    if (lastMinuteBeepRef.current === secondsInMinute) return;
+    lastMinuteBeepRef.current = secondsInMinute;
+    playBeep(600, 80);
+  }, [secondsInMinute, running, stopped]);
 
   const handleStop = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);

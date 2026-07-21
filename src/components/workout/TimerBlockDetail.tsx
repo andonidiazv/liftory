@@ -4,6 +4,7 @@ import type { WorkoutBlock } from "./WorkoutOverview";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
 import { playBeep } from "@/lib/audio";
+import { useWakeLock } from "@/hooks/useWakeLock";
 
 interface Props {
   block: WorkoutBlock;
@@ -66,47 +67,91 @@ export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpe
   const [countdown, setCountdown] = useState<number | null>(null); // null = no countdown, N = N seconds left
   const [hasStarted, setHasStarted] = useState(allDone); // true once the first countdown finishes
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  // countdownRef stores a setTimeout handle, NOT setInterval — was mistyped.
-  // The function works in browser (clearInterval/clearTimeout share handles
-  // on web) but the type was a foot-gun for any future refactor.
-  const countdownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Countdown tick
+  // Absolute-time trackers: wall-clock ms when the current phase ends.
+  const countdownEndRef = useRef<number>(0);
+  const lastCountdownBeepRef = useRef<number>(-1);
+  const timeRemainingEndRef = useRef<number>(0); // Date.now() ms when the AMRAP ends
+  const timeRemainingRef = useRef<number>(timeRemaining);
+  useEffect(() => { timeRemainingRef.current = timeRemaining; }, [timeRemaining]);
+
+  // Keep screen awake during countdown + running.
+  useWakeLock(!completed && (running || countdown !== null));
+
+  // Countdown tick — absolute time so it survives backgrounding.
   useEffect(() => {
-    if (countdown === null) return;
-    if (countdown <= 0) {
-      // Final "GO" beep (longer, slightly higher)
-      playBeep(1000, 300);
-      vibrate(200);
-      setCountdown(null);
-      setHasStarted(true);
-      setRunning(true);
+    if (countdown === null) {
+      countdownEndRef.current = 0;
+      lastCountdownBeepRef.current = -1;
       return;
     }
-    // Short tick each second (final 3 are louder/higher)
-    if (countdown <= 3) {
-      playBeep(900, 120);
-      vibrate(50);
-    } else {
-      playBeep(700, 80);
+    if (countdownEndRef.current === 0) {
+      countdownEndRef.current = Date.now() + countdown * 1000;
+      lastCountdownBeepRef.current = -1;
     }
-    countdownRef.current = setTimeout(() => setCountdown((c) => (c == null ? null : c - 1)), 1000);
-    return () => { if (countdownRef.current) clearTimeout(countdownRef.current); };
-  }, [countdown]);
+    const tick = () => {
+      const msLeft = countdownEndRef.current - Date.now();
+      const secsLeft = Math.max(0, Math.ceil(msLeft / 1000));
+      setCountdown(secsLeft);
+      if (secsLeft > 0 && lastCountdownBeepRef.current !== secsLeft) {
+        lastCountdownBeepRef.current = secsLeft;
+        if (secsLeft <= 3) {
+          playBeep(900, 120);
+          vibrate(50);
+        } else {
+          playBeep(700, 80);
+        }
+      }
+      if (secsLeft <= 0) {
+        countdownEndRef.current = 0;
+        playBeep(1000, 300);
+        vibrate(200);
+        setCountdown(null);
+        setHasStarted(true);
+        setRunning(true);
+      }
+    };
+    tick();
+    countdownIntervalRef.current = setInterval(tick, 250);
+    const onVis = () => { if (document.visibilityState === "visible") tick(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countdown === null]);
 
+  // Manage the main-timer end time on running/adjust transitions.
+  useEffect(() => {
+    if (running && !completed) {
+      // Arm the end time relative to the remaining seconds we currently have.
+      timeRemainingEndRef.current = Date.now() + timeRemainingRef.current * 1000;
+    }
+    // On pause/complete we leave the ref alone; the next resume will re-arm.
+  }, [running, completed]);
+
+  // Main countdown — absolute time.
   useEffect(() => {
     if (!running || completed) return;
-    intervalRef.current = setInterval(() => {
-      setTimeRemaining(prev => {
-        if (prev <= 1) {
-          // Defensive null-check: unmount-on-same-frame can null the ref.
-          if (intervalRef.current) clearInterval(intervalRef.current);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+
+    const tick = () => {
+      const msLeft = timeRemainingEndRef.current - Date.now();
+      const secsLeft = Math.max(0, Math.ceil(msLeft / 1000));
+      setTimeRemaining(secsLeft);
+      if (secsLeft <= 0) {
+        if (intervalRef.current) clearInterval(intervalRef.current);
+      }
+    };
+    tick();
+    intervalRef.current = setInterval(tick, 250);
+    const onVis = () => { if (document.visibilityState === "visible") tick(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, [running, completed]);
 
   const isLast60 = timeRemaining <= 60 && timeRemaining > 0 && running;
@@ -129,7 +174,13 @@ export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpe
 
   const adjustTime = (delta: number) => {
     if (completed) return;
-    setTimeRemaining(prev => Math.max(0, prev + delta));
+    setTimeRemaining(prev => {
+      const next = Math.max(0, prev + delta);
+      // Keep the absolute end time in sync so the tick doesn't overwrite our
+      // manual adjustment on the next 250 ms cycle.
+      timeRemainingEndRef.current = Date.now() + next * 1000;
+      return next;
+    });
   };
 
   const handleFinish = async () => {
@@ -139,7 +190,10 @@ export default function TimerBlockDetail({ block, onBack, onCompleteBlock, onOpe
 
   const handleRestart = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
-    if (countdownRef.current) clearTimeout(countdownRef.current);
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    countdownEndRef.current = 0;
+    lastCountdownBeepRef.current = -1;
+    timeRemainingEndRef.current = 0;
     setRunning(false);
     setCompleted(false);
     setHasStarted(false);

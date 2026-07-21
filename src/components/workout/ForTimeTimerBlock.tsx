@@ -5,6 +5,7 @@ import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
 import { toDisplayWeight, toStorageWeight } from "@/utils/weightConversion";
 import { playBeep } from "@/lib/audio";
+import { useWakeLock } from "@/hooks/useWakeLock";
 import WeightPickerSheet, { BODYWEIGHT_SENTINEL } from "./WeightPickerSheet";
 
 interface Props {
@@ -139,59 +140,130 @@ export default function ForTimeTimerBlock({
   const [saving, setSaving] = useState(false);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const countdownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Absolute-time tracking so background/throttle doesn't drift the clock.
+  const countdownEndRef = useRef<number>(0);
+  const lastCountdownBeepRef = useRef<number>(-1);
+  // Count-up: elapsed = accumulatedSec + (running ? (Date.now() - segmentStart)/1000 : 0)
+  const segmentStartRef = useRef<number>(0); // Date.now() when the current running segment began (0 when paused/stopped)
+  const accumulatedRef = useRef<number>(0); // seconds elapsed BEFORE the current running segment
+  const warnedRef = useRef<boolean>(false); // cap-60s warning fired
+  const finishedRef = useRef<boolean>(allDone); // cap-reached beep fired
+  const completedRef = useRef<boolean>(allDone);
+  useEffect(() => { completedRef.current = completed; }, [completed]);
+
+  // Keep the screen on during countdown, running timer, and finish flow.
+  useWakeLock(!completed && (running || countdown !== null));
 
   useEffect(() => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
-      if (countdownRef.current) clearTimeout(countdownRef.current);
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
     };
   }, []);
 
-  // Countdown tick — shared shape with TimerBlockDetail (AMRAP)
+  // Countdown tick — absolute time so it survives backgrounding.
   useEffect(() => {
-    if (countdown === null) return;
-    if (countdown <= 0) {
-      playBeep(1000, 300);
-      vibrate(200);
-      setCountdown(null);
-      setHasStarted(true);
-      setRunning(true);
+    if (countdown === null) {
+      // Reset so a future Start begins the countdown fresh.
+      countdownEndRef.current = 0;
+      lastCountdownBeepRef.current = -1;
       return;
     }
-    if (countdown <= 3) {
-      playBeep(900, 120);
-      vibrate(50);
-    } else {
-      playBeep(700, 80);
+    // Set the absolute end time on the first entry into countdown.
+    if (countdownEndRef.current === 0) {
+      countdownEndRef.current = Date.now() + countdown * 1000;
+      lastCountdownBeepRef.current = -1;
     }
-    countdownRef.current = setTimeout(() => setCountdown((c) => (c == null ? null : c - 1)), 1000);
-    return () => { if (countdownRef.current) clearTimeout(countdownRef.current); };
-  }, [countdown]);
+    const tick = () => {
+      const msLeft = countdownEndRef.current - Date.now();
+      const secsLeft = Math.max(0, Math.ceil(msLeft / 1000));
+      setCountdown(secsLeft);
+      // Per-second beep (deduped so background jumps don't double-fire).
+      if (secsLeft > 0 && lastCountdownBeepRef.current !== secsLeft) {
+        lastCountdownBeepRef.current = secsLeft;
+        if (secsLeft <= 3) {
+          playBeep(900, 120);
+          vibrate(50);
+        } else {
+          playBeep(700, 80);
+        }
+      }
+      if (secsLeft <= 0) {
+        countdownEndRef.current = 0;
+        playBeep(1000, 300);
+        vibrate(200);
+        setCountdown(null);
+        setHasStarted(true);
+        setRunning(true);
+      }
+    };
+    tick();
+    countdownIntervalRef.current = setInterval(tick, 250);
+    const onVis = () => { if (document.visibilityState === "visible") tick(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countdown === null]);
 
-  // Main count-up
+  // Manage count-up base on running/completed transitions.
+  useEffect(() => {
+    if (completed) {
+      // Freeze — nothing to accumulate.
+      segmentStartRef.current = 0;
+      return;
+    }
+    if (running) {
+      // Starting a new running segment.
+      segmentStartRef.current = Date.now();
+    } else {
+      // Being paused/stopped — commit the segment to accumulated.
+      if (segmentStartRef.current > 0) {
+        accumulatedRef.current += (Date.now() - segmentStartRef.current) / 1000;
+        segmentStartRef.current = 0;
+      }
+    }
+  }, [running, completed]);
+
+  // Main count-up tick — absolute time so it stays honest under backgrounding.
   useEffect(() => {
     if (!running || completed) return;
-    intervalRef.current = setInterval(() => {
-      setElapsed((prev) => {
-        const next = prev + 1;
-        if (next === capSec - 60) {
-          playBeep(900, 150);
-          vibrate(100);
-        }
-        if (next >= capSec) {
-          if (intervalRef.current) clearInterval(intervalRef.current);
-          setRunning(false);
-          setCompleted(true);
-          playBeep(500, 200);
-          setTimeout(() => playBeep(500, 200), 250);
-          vibrate(500);
-          return capSec;
-        }
-        return next;
-      });
-    }, 1000);
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+
+    const tick = () => {
+      const now = Date.now();
+      const seg = segmentStartRef.current > 0 ? (now - segmentStartRef.current) / 1000 : 0;
+      const secs = Math.floor(accumulatedRef.current + seg);
+      const next = Math.min(secs, capSec);
+      setElapsed(next);
+      // Cap-60s warning — fires exactly once (background jumps included).
+      if (!warnedRef.current && capSec - 60 > 0 && next >= capSec - 60) {
+        warnedRef.current = true;
+        playBeep(900, 150);
+        vibrate(100);
+      }
+      // Cap hit — fires exactly once.
+      if (next >= capSec && !finishedRef.current) {
+        finishedRef.current = true;
+        setRunning(false);
+        setCompleted(true);
+        playBeep(500, 200);
+        setTimeout(() => playBeep(500, 200), 250);
+        vibrate(500);
+      }
+    };
+
+    tick();
+    intervalRef.current = setInterval(tick, 250);
+    const onVis = () => { if (document.visibilityState === "visible") tick(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, [running, completed, capSec]);
 
   const remaining = Math.max(0, capSec - elapsed);
@@ -213,7 +285,14 @@ export default function ForTimeTimerBlock({
 
   const handleRestart = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
-    if (countdownRef.current) clearTimeout(countdownRef.current);
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    // Reset absolute-time counters so a fresh run starts from zero.
+    segmentStartRef.current = 0;
+    accumulatedRef.current = 0;
+    countdownEndRef.current = 0;
+    lastCountdownBeepRef.current = -1;
+    warnedRef.current = false;
+    finishedRef.current = false;
     setElapsed(0);
     setCountdown(null);
     setRunning(false);

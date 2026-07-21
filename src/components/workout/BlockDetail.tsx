@@ -20,6 +20,7 @@ import IntervalTimerBlock from "./IntervalTimerBlock";
 import EmomTimerBlock from "./EmomTimerBlock";
 import { TimerErrorBoundary } from "./TimerErrorBoundary";
 import { playSetClick, playBeep } from "@/lib/audio";
+import { useWakeLock } from "@/hooks/useWakeLock";
 
 /** Block types by render mode */
 const CARDIO_BLOCKS = ['ENGINE BLOCK'];
@@ -1777,51 +1778,89 @@ function TimedSetRow({
   const completedRef = useRef(completed);
   useEffect(() => { completedRef.current = completed; }, [completed]);
 
-  // Tick: drives both the prep 3-2-1 and the actual timer based on phase.
+  // Absolute end-time (ms). Set on phase transitions; tick reads from it so a
+  // backgrounded/throttled interval doesn't cause the timer to drift.
+  const endTimeRef = useRef<number>(0);
+  const lastBeepRef = useRef<number>(-1); // dedupe countdown beeps
+  const remainingRef = useRef<number>(targetSec); // frozen value used by resume-from-paused
+  useEffect(() => { remainingRef.current = remaining; }, [remaining]);
+  const phaseRef = useRef<TimerPhase>(phase);
+  useEffect(() => { phaseRef.current = phase; }, [phase]);
+
+  // Keep the screen awake while the timer is prepping or running (phone on the floor).
+  useWakeLock(phase === "prep" || phase === "running");
+
+  // Phase transitions set the absolute end time + reset beep dedupe.
+  useEffect(() => {
+    if (phase === "prep") {
+      endTimeRef.current = Date.now() + PREP_SECONDS * 1000;
+      lastBeepRef.current = -1;
+    } else if (phase === "running") {
+      // From prep or resumed from paused — both use current `remaining` correctly.
+      endTimeRef.current = Date.now() + remainingRef.current * 1000;
+      lastBeepRef.current = -1;
+    }
+  }, [phase]);
+
+  // Tick from absolute time so the timer stays honest across background/throttle.
   // Audio + haptic cues are intentionally generous because the athlete has the
   // phone on the floor and can't see the screen during a hold — they need to
   // hear when prep is about to end and when the hold itself finishes.
   useEffect(() => {
     if (phase !== "prep" && phase !== "running") return;
-    const intervalId = window.setInterval(() => {
-      if (phase === "prep") {
-        setPrepRemaining((p) => {
-          if (p <= 1) {
-            // Prep finished — start the real timer next tick.
-            playBeep(1000, 300);
-            try { navigator.vibrate?.(200); } catch { /* noop */ }
-            setPhase("running");
-            return PREP_SECONDS; // reset for any future restart
-          }
-          if (p <= 4) {
-            // Last 3 seconds of prep: short tick beeps so athlete knows to grip.
-            playBeep(700, 80);
-            try { navigator.vibrate?.(40); } catch { /* noop */ }
-          }
-          return p - 1;
-        });
+
+    const tick = () => {
+      const msLeft = endTimeRef.current - Date.now();
+      const secsLeft = Math.max(0, Math.ceil(msLeft / 1000));
+      if (phaseRef.current === "prep") {
+        setPrepRemaining(secsLeft);
+        if (secsLeft <= 0) {
+          // Prep finished — start the real timer.
+          playBeep(1000, 300);
+          try { navigator.vibrate?.(200); } catch { /* noop */ }
+          setPhase("running");
+        }
       } else {
-        setRemaining((r) => {
-          if (r <= 1) {
-            // Timer finished — long beep + buzz so athlete can drop the load.
-            playBeep(500, 400);
-            window.setTimeout(() => playBeep(500, 400), 450);
-            try { navigator.vibrate?.([400, 100, 400]); } catch { /* noop */ }
-            setPhase("done");
-            if (!completedRef.current) onCompleteRef.current();
-            return 0;
-          }
-          if (r <= 4) {
-            // Last 3 seconds of the hold: tick beeps for "almost there".
-            playBeep(900, 100);
-            try { navigator.vibrate?.(50); } catch { /* noop */ }
-          }
-          return r - 1;
-        });
+        setRemaining(secsLeft);
+        if (secsLeft <= 0) {
+          // Timer finished — long beep + buzz so athlete can drop the load.
+          playBeep(500, 400);
+          window.setTimeout(() => playBeep(500, 400), 450);
+          try { navigator.vibrate?.([400, 100, 400]); } catch { /* noop */ }
+          setPhase("done");
+          if (!completedRef.current) onCompleteRef.current();
+        }
       }
-    }, 1000);
-    return () => { window.clearInterval(intervalId); };
+    };
+
+    tick(); // immediate sync (catches up after remount / phase change)
+    const intervalId = window.setInterval(tick, 250);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") tick();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [phase]);
+
+  // Last-3-seconds countdown beeps — separate from tick so backgrounded time
+  // jumps don't double-fire the same second.
+  useEffect(() => {
+    if (phase !== "prep" && phase !== "running") return;
+    const val = phase === "prep" ? prepRemaining : remaining;
+    if (val < 1 || val > 3) return;
+    if (lastBeepRef.current === val) return;
+    lastBeepRef.current = val;
+    if (phase === "prep") {
+      playBeep(700, 80);
+      try { navigator.vibrate?.(40); } catch { /* noop */ }
+    } else {
+      playBeep(900, 100);
+      try { navigator.vibrate?.(50); } catch { /* noop */ }
+    }
+  }, [phase, prepRemaining, remaining]);
 
   // Reset state when the set gets uncompleted externally (e.g. user untaps the check).
   useEffect(() => {

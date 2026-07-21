@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { playTick, playFinishBeep, unlockAudio } from "@/lib/audio";
+import { useWakeLock } from "@/hooks/useWakeLock";
 
 interface RestTimerSheetProps {
   durationSeconds: number;
@@ -27,6 +28,9 @@ export default function RestTimerSheet({
   const endTimeRef = useRef<number>(0); // absolute timestamp (ms) when timer should hit 0
   const lastBeepSecRef = useRef<number>(-1); // dedupe beeps if tick fires multiple times
   const wasVisibleRef = useRef(false); // tracks false→true transitions so we only init once per session
+
+  // Keep the screen on while the countdown is visible and not yet dismissed.
+  useWakeLock(visible && !done);
 
   // Initialize the timer ONCE per visible session (and on remounts while visible).
   // We intentionally do NOT re-init when initialEndTime changes mid-session,

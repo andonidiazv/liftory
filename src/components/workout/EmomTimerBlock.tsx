@@ -7,6 +7,7 @@ import type { WorkoutSetData } from "@/hooks/useWorkoutData";
 import { toDisplayWeight, toStorageWeight } from "@/utils/weightConversion";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
+import { useWakeLock } from "@/hooks/useWakeLock";
 
 /* ─── types ─── */
 
@@ -337,6 +338,13 @@ export default function EmomTimerBlock({
   const audioCtxRef = useRef<AudioContext | null>(null);
   const audioUnlockedRef = useRef(false);
 
+  // Absolute-time trackers. `ventanaEndRef` is the wall-clock ms when the
+  // current window / countdown hits 0. `lastBeepInVentanaRef` dedupes the
+  // 1..5 s countdown beeps so that a background→foreground catch-up doesn't
+  // double-fire the same second.
+  const ventanaEndRef = useRef<number>(0);
+  const lastBeepInVentanaRef = useRef<number>(-1);
+
   // Stable refs for use inside tick
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
@@ -344,6 +352,9 @@ export default function EmomTimerBlock({
   currentWindowRef.current = currentWindow;
   const onCompleteAllRef = useRef(onCompleteAll);
   onCompleteAllRef.current = onCompleteAll;
+
+  // Keep the screen awake during countdown + active running.
+  useWakeLock(running && (phase === "countdown" || phase === "active"));
 
   // Cleanup on unmount
   useEffect(() => {
@@ -397,71 +408,82 @@ export default function EmomTimerBlock({
       const ctx = audioCtxRef.current;
       if (!ctx) return;
 
-      try {
-        if (ctx.state === "suspended") ctx.resume();
+      // Schedule oscillators ONLY once the context is actually running.
+      // iOS Safari suspends the context on backgrounding/screen lock; calling
+      // ctx.resume() is async — starting an oscillator before it settles plays
+      // into silence. `.then(schedule)` guarantees the beep lands audibly.
+      const schedule = () => {
+        try {
+          const now = ctx.currentTime;
+          const SAFE = 0.25; // hard volume cap — never exceed
 
-        const now = ctx.currentTime;
-
-        const SAFE = 0.25; // hard volume cap — never exceed
-
-        if (type === "tick") {
-          // Short high beep — Tabata countdown style
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.type = "sine";
-          osc.frequency.value = 880;
-          gain.gain.setValueAtTime(SAFE, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-          osc.start(now);
-          osc.stop(now + 0.13);
-        } else if (type === "transition") {
-          // Single beep — ventana change within same ronda
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.type = "sine";
-          osc.frequency.value = 1046.5; // C6
-          gain.gain.setValueAtTime(SAFE, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-          osc.start(now);
-          osc.stop(now + 0.13);
-        } else if (type === "ronda") {
-          // Double beep — new ronda starts
-          for (let i = 0; i < 2; i++) {
-            const t = now + i * 0.15;
+          if (type === "tick") {
+            // Short high beep — Tabata countdown style
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = "sine";
+            osc.frequency.value = 880;
+            gain.gain.setValueAtTime(SAFE, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+            osc.start(now);
+            osc.stop(now + 0.13);
+          } else if (type === "transition") {
+            // Single beep — ventana change within same ronda
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
             osc.connect(gain);
             gain.connect(ctx.destination);
             osc.type = "sine";
             osc.frequency.value = 1046.5; // C6
-            gain.gain.setValueAtTime(SAFE, t);
-            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
-            osc.start(t);
-            osc.stop(t + 0.13);
+            gain.gain.setValueAtTime(SAFE, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+            osc.start(now);
+            osc.stop(now + 0.13);
+          } else if (type === "ronda") {
+            // Double beep — new ronda starts
+            for (let i = 0; i < 2; i++) {
+              const t = now + i * 0.15;
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.type = "sine";
+              osc.frequency.value = 1046.5; // C6
+              gain.gain.setValueAtTime(SAFE, t);
+              gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+              osc.start(t);
+              osc.stop(t + 0.13);
+            }
+          } else {
+            // Triple ascending beep — done
+            const freqs = [880, 1046.5, 1318.5]; // A5, C6, E6
+            for (let i = 0; i < 3; i++) {
+              const t = now + i * 0.18;
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.type = "sine";
+              osc.frequency.value = freqs[i];
+              gain.gain.setValueAtTime(SAFE, t);
+              gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+              osc.start(t);
+              osc.stop(t + 0.22);
+            }
           }
-        } else {
-          // Triple ascending beep — done
-          const freqs = [880, 1046.5, 1318.5]; // A5, C6, E6
-          for (let i = 0; i < 3; i++) {
-            const t = now + i * 0.18;
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.type = "sine";
-            osc.frequency.value = freqs[i];
-            gain.gain.setValueAtTime(SAFE, t);
-            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
-            osc.start(t);
-            osc.stop(t + 0.22);
-          }
-        }
-      } catch {
-        // silent fail
+        } catch { /* silent fail */ }
+      };
+
+      if (ctx.state === "running") {
+        schedule();
+      } else {
+        let played = false;
+        const play = () => { if (!played) { played = true; schedule(); } };
+        try { ctx.resume().then(play).catch(() => {}); } catch { /* noop */ }
+        // Safety fallback so we never lose the beep entirely.
+        setTimeout(play, 80);
       }
     },
     [],
@@ -469,10 +491,17 @@ export default function EmomTimerBlock({
 
   /* ─── timer core ─── */
 
+  // Visibility-listener ref, cleared alongside the interval.
+  const visListenerRef = useRef<(() => void) | null>(null);
+
   const clearTimer = useCallback(() => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
+    }
+    if (visListenerRef.current) {
+      document.removeEventListener("visibilitychange", visListenerRef.current);
+      visListenerRef.current = null;
     }
   }, []);
 
@@ -485,71 +514,89 @@ export default function EmomTimerBlock({
   ventanasPerRondaRef.current = ventanasPerRonda;
   const startTickingRef = useRef<() => void>(() => {});
 
+  // Mirror of secondsLeft so pause→resume can re-arm the absolute end time
+  // from wherever the counter was actually frozen.
+  const secondsLeftRef = useRef(secondsLeft);
+  secondsLeftRef.current = secondsLeft;
+
+  // Start (or restart) a countdown/ventana against the wall clock.
+  const armVentana = useCallback((secs: number) => {
+    ventanaEndRef.current = Date.now() + secs * 1000;
+    lastBeepInVentanaRef.current = -1;
+    setSecondsLeft(secs);
+  }, []);
+
   const tick = useCallback(() => {
-    setSecondsLeft((prev) => {
-      const next = prev - 1;
+    const msLeft = ventanaEndRef.current - Date.now();
+    const secsLeft = Math.max(0, Math.ceil(msLeft / 1000));
+    setSecondsLeft(secsLeft);
 
-      // Tabata-style countdown beeps for last 5 seconds
-      if (next >= 1 && next <= 5) {
-        playBeep("tick");
-      }
+    // Tabata-style countdown beeps for last 5 seconds — deduped so a
+    // background→foreground catch-up doesn't fire the same second twice.
+    if (secsLeft >= 1 && secsLeft <= 5 && lastBeepInVentanaRef.current !== secsLeft) {
+      lastBeepInVentanaRef.current = secsLeft;
+      playBeep("tick");
+    }
 
-      if (next <= 0) {
-        // Timer hit zero — schedule phase transition as microtask so we
-        // never nest setState calls inside this functional updater.
-        clearTimer();
-        queueMicrotask(() => {
-          const _windowSeconds = windowSecondsRef.current;
-          const _totalVentanas = totalVentanasRef.current;
-          const _ventanasPerRonda = ventanasPerRondaRef.current;
+    if (secsLeft <= 0) {
+      // Ventana hit zero — clear the interval and defer phase transition to a
+      // microtask so we never nest setState calls inside a synchronous tick.
+      clearTimer();
+      queueMicrotask(() => {
+        const _windowSeconds = windowSecondsRef.current;
+        const _totalVentanas = totalVentanasRef.current;
+        const _ventanasPerRonda = ventanasPerRondaRef.current;
 
-          if (phaseRef.current === "countdown") {
-            playBeep("ronda");
-            setPhase("active");
-            phaseRef.current = "active";
-            setCurrentWindow(0);
-            currentWindowRef.current = 0;
-            setSecondsLeft(_windowSeconds);
-            setVentanaFlash(true);
-            setTimeout(() => setVentanaFlash(false), 500);
-            startTickingRef.current();
+        if (phaseRef.current === "countdown") {
+          playBeep("ronda");
+          setPhase("active");
+          phaseRef.current = "active";
+          setCurrentWindow(0);
+          currentWindowRef.current = 0;
+          armVentana(_windowSeconds);
+          setVentanaFlash(true);
+          setTimeout(() => setVentanaFlash(false), 500);
+          startTickingRef.current();
+          return;
+        }
+
+        if (phaseRef.current === "active") {
+          const nextWin = currentWindowRef.current + 1;
+          if (nextWin >= _totalVentanas) {
+            // All done
+            playBeep("finish");
+            setPhase("done");
+            phaseRef.current = "done";
+            setRunning(false);
+            onCompleteAllRef.current();
             return;
           }
-
-          if (phaseRef.current === "active") {
-            const nextWin = currentWindowRef.current + 1;
-            if (nextWin >= _totalVentanas) {
-              // All done
-              playBeep("finish");
-              setPhase("done");
-              phaseRef.current = "done";
-              setRunning(false);
-              onCompleteAllRef.current();
-              return;
-            }
-            // Determine if we're crossing into a new ronda
-            const isNewRonda = nextWin % _ventanasPerRonda === 0;
-            playBeep(isNewRonda ? "ronda" : "transition");
-            setCurrentWindow(nextWin);
-            currentWindowRef.current = nextWin;
-            setSecondsLeft(_windowSeconds);
-            setVentanaFlash(true);
-            setTimeout(() => setVentanaFlash(false), 500);
-            startTickingRef.current();
-          }
-        });
-        return 0;
-      }
-      return next;
-    });
-  }, [clearTimer, playBeep]);
+          // Determine if we're crossing into a new ronda
+          const isNewRonda = nextWin % _ventanasPerRonda === 0;
+          playBeep(isNewRonda ? "ronda" : "transition");
+          setCurrentWindow(nextWin);
+          currentWindowRef.current = nextWin;
+          armVentana(_windowSeconds);
+          setVentanaFlash(true);
+          setTimeout(() => setVentanaFlash(false), 500);
+          startTickingRef.current();
+        }
+      });
+    }
+  }, [clearTimer, playBeep, armVentana]);
 
   const tickRef = useRef(tick);
   tickRef.current = tick;
 
   const startTicking = useCallback(() => {
     clearTimer();
-    intervalRef.current = setInterval(() => tickRef.current(), 1000);
+    // 250 ms interval + visibility catch-up keeps the display honest across
+    // browser throttling. `secsLeft` is derived from wall time so extra ticks
+    // are display no-ops (React bails on same-value setState).
+    intervalRef.current = setInterval(() => tickRef.current(), 250);
+    const onVis = () => { if (document.visibilityState === "visible") tickRef.current(); };
+    visListenerRef.current = onVis;
+    document.addEventListener("visibilitychange", onVis);
   }, [clearTimer]);
 
   // Keep startTickingRef current
@@ -564,14 +611,17 @@ export default function EmomTimerBlock({
     if (phase === "idle") {
       setPhase("countdown");
       phaseRef.current = "countdown";
-      setSecondsLeft(COUNTDOWN_SECONDS);
+      armVentana(COUNTDOWN_SECONDS);
       setRunning(true);
       startTicking();
     } else if (phase === "countdown" || phase === "active") {
+      // Resume from pause — re-arm the wall-clock end time from wherever the
+      // counter was frozen so we pick up exactly where we left off.
+      armVentana(secondsLeftRef.current);
       setRunning(true);
       startTicking();
     }
-  }, [phase, startTicking, unlockAudio]);
+  }, [phase, startTicking, unlockAudio, armVentana]);
 
   const handlePause = useCallback(() => {
     clearTimer();
@@ -587,7 +637,7 @@ export default function EmomTimerBlock({
       phaseRef.current = "active";
       setCurrentWindow(0);
       currentWindowRef.current = 0;
-      setSecondsLeft(windowSeconds);
+      armVentana(windowSeconds);
       setVentanaFlash(true);
       setTimeout(() => setVentanaFlash(false), 500);
       if (running) startTicking();
@@ -604,13 +654,13 @@ export default function EmomTimerBlock({
         playBeep(isNewRonda ? "ronda" : "transition");
         setCurrentWindow(nextWindow);
         currentWindowRef.current = nextWindow;
-        setSecondsLeft(windowSeconds);
+        armVentana(windowSeconds);
         setVentanaFlash(true);
         setTimeout(() => setVentanaFlash(false), 500);
         if (running) startTicking();
       }
     }
-  }, [clearTimer, phase, currentWindow, totalVentanas, ventanasPerRonda, windowSeconds, running, startTicking, playBeep, onCompleteAll]);
+  }, [clearTimer, phase, currentWindow, totalVentanas, ventanasPerRonda, windowSeconds, running, startTicking, playBeep, onCompleteAll, armVentana]);
 
   const handleBack = useCallback(() => {
     clearTimer();
@@ -619,19 +669,19 @@ export default function EmomTimerBlock({
       setPhase("idle");
       phaseRef.current = "idle";
       setRunning(false);
-      setSecondsLeft(windowSeconds);
+      armVentana(windowSeconds);
     } else if (phase === "active") {
       if (currentWindow > 0) {
         setCurrentWindow(currentWindow - 1);
         currentWindowRef.current = currentWindow - 1;
-        setSecondsLeft(windowSeconds);
+        armVentana(windowSeconds);
         if (running) startTicking();
       } else {
-        setSecondsLeft(windowSeconds);
+        armVentana(windowSeconds);
         if (running) startTicking();
       }
     }
-  }, [clearTimer, phase, currentWindow, windowSeconds, running, startTicking]);
+  }, [clearTimer, phase, currentWindow, windowSeconds, running, startTicking, armVentana]);
 
   const handleReset = useCallback(() => {
     clearTimer();
@@ -640,9 +690,9 @@ export default function EmomTimerBlock({
     phaseRef.current = "idle";
     setCurrentWindow(0);
     currentWindowRef.current = 0;
-    setSecondsLeft(windowSeconds);
+    armVentana(windowSeconds);
     onUncompleteAll();
-  }, [clearTimer, windowSeconds, onUncompleteAll]);
+  }, [clearTimer, windowSeconds, onUncompleteAll, armVentana]);
 
   /* ─── derived values ─── */
 

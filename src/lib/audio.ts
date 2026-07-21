@@ -55,16 +55,35 @@ function getCtx(): AudioContext | null {
       return null;
     }
   }
-  if (ctxSingleton?.state === "suspended") ctxSingleton.resume().catch(() => {});
   return ctxSingleton;
+}
+
+/** Run `schedule` once the AudioContext is actually running. iOS Safari suspends
+ *  the context whenever the app backgrounds or the screen locks. Calling
+ *  `ctx.resume()` is async — starting an oscillator BEFORE the resume promise
+ *  settles produces silence (the source ends before the context is unmuted).
+ *  So: if suspended, we resume AND wait; if it doesn't settle in a small budget,
+ *  we try anyway (better than losing every beep after a backgrounding). */
+function playWhenRunning(schedule: (ctx: AudioContext, now: number) => void): void {
+  const ctx = getCtx();
+  if (!ctx) return;
+  const run = () => {
+    try { schedule(ctx, ctx.currentTime); } catch { /* noop */ }
+  };
+  if (ctx.state === "running") {
+    run();
+    return;
+  }
+  let played = false;
+  const play = () => { if (!played) { played = true; run(); } };
+  ctx.resume().then(play).catch(() => {});
+  // Safety fallback: if resume never resolves within 80 ms, fire anyway.
+  setTimeout(play, 80);
 }
 
 /** Single countdown tick — same 880Hz as EMOM */
 export function playTick(): void {
-  try {
-    const ctx = getCtx();
-    if (!ctx) return;
-    const now = ctx.currentTime;
+  playWhenRunning((ctx, now) => {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
@@ -75,15 +94,12 @@ export function playTick(): void {
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
     osc.start(now);
     osc.stop(now + 0.13);
-  } catch {}
+  });
 }
 
 /** Micro-click for set completion — subtle tactile feedback for iOS */
 export function playSetClick(): void {
-  try {
-    const ctx = getCtx();
-    if (!ctx) return;
-    const now = ctx.currentTime;
+  playWhenRunning((ctx, now) => {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
@@ -94,7 +110,7 @@ export function playSetClick(): void {
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.008);
     osc.start(now);
     osc.stop(now + 0.01);
-  } catch {}
+  });
 }
 
 /** Generic beep at arbitrary freq and duration (ms), reusing the shared AudioContext.
@@ -102,10 +118,7 @@ export function playSetClick(): void {
  *  PWA hits the platform's context-per-origin limit during long sessions
  *  (For Time 15min, AMRAP, Death By) and the audio dies mid-workout. */
 export function playBeep(freq: number = 800, durationMs: number = 100): void {
-  try {
-    const ctx = getCtx();
-    if (!ctx) return;
-    const now = ctx.currentTime;
+  playWhenRunning((ctx, now) => {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
@@ -116,15 +129,12 @@ export function playBeep(freq: number = 800, durationMs: number = 100): void {
     gain.gain.exponentialRampToValueAtTime(0.001, now + durationMs / 1000);
     osc.start(now);
     osc.stop(now + durationMs / 1000 + 0.02);
-  } catch { /* noop */ }
+  });
 }
 
 /** Double finish beep — same 1046.5Hz as EMOM */
 export function playFinishBeep(): void {
-  try {
-    const ctx = getCtx();
-    if (!ctx) return;
-    const now = ctx.currentTime;
+  playWhenRunning((ctx, now) => {
     for (let i = 0; i < 2; i++) {
       const t = now + i * 0.15;
       const osc = ctx.createOscillator();
@@ -138,5 +148,5 @@ export function playFinishBeep(): void {
       osc.start(t);
       osc.stop(t + 0.13);
     }
-  } catch {}
+  });
 }
