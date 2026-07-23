@@ -8,6 +8,8 @@ import { toDisplayWeight, toStorageWeight } from "@/utils/weightConversion";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
 import { useWakeLock } from "@/hooks/useWakeLock";
+import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 /* ─── types ─── */
 
@@ -261,7 +263,7 @@ function createSilentBuffer(ctx: AudioContext): AudioBuffer {
 export default function EmomTimerBlock({
   block,
   saving,
-  weightUnit,
+  weightUnit: initialWeightUnit,
   isCompleted,
   onCompleteAll,
   onUncompleteAll,
@@ -271,6 +273,14 @@ export default function EmomTimerBlock({
 }: EmomTimerBlockProps) {
   const { isDark } = useDarkMode();
   const t = isDark ? noche : dia;
+  const { user, refreshProfile } = useAuth();
+
+  // Local KG/LB toggle — persists to profile like BlockDetail does. When the
+  // user flips the unit, we convert every cached input in place (same batch =
+  // no flash) then write the new preference to user_profiles.
+  const [localUnit, setLocalUnit] = useState<"kg" | "lb">((initialWeightUnit as "kg" | "lb") || "kg");
+  const weightUnit = localUnit;
+
   // Defensive: if block has no groups or no sets, show a minimal fallback
   const hasData = block.groups.length > 0 && block.groups.some((g) => g.sets.length > 0);
 
@@ -332,6 +342,31 @@ export default function EmomTimerBlock({
   const [pickerRondaIndex, setPickerRondaIndex] = useState<number | null>(null);
   const [pickerInitial, setPickerInitial] = useState(0);
   const [running, setRunning] = useState(false);
+
+  // Convert every cached weight in place when unit flips + persist to profile.
+  // Same batch as setLocalUnit → single render, zero flash. Mirrors BlockDetail.
+  const handleToggleUnit = useCallback(async () => {
+    const oldUnit = localUnit;
+    const newUnit: "kg" | "lb" = oldUnit === "kg" ? "lb" : "kg";
+    setExerciseWeights((prev) => {
+      const converted: Record<string, string[]> = {};
+      for (const [exId, arr] of Object.entries(prev)) {
+        converted[exId] = arr.map((v) => {
+          if (v === "BW" || v === "") return v;
+          const n = parseFloat(v);
+          if (isNaN(n) || n <= 0) return v;
+          const kg = toStorageWeight(n, oldUnit);
+          return String(toDisplayWeight(kg, newUnit));
+        });
+      }
+      return converted;
+    });
+    setLocalUnit(newUnit);
+    if (user) {
+      await supabase.from("user_profiles").update({ weight_unit: newUnit }).eq("user_id", user.id);
+      refreshProfile();
+    }
+  }, [localUnit, user, refreshProfile]);
   const [ventanaFlash, setVentanaFlash] = useState(false);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -740,10 +775,53 @@ export default function EmomTimerBlock({
     <div className="rounded-2xl border border-border bg-card overflow-hidden">
       {/* Header */}
       <div className="px-5 pt-5 pb-3">
-        <div className="flex items-center justify-between mb-1">
-          <p className="font-display text-lg font-bold text-foreground tracking-tight">
+        <div className="flex items-center justify-between mb-1 gap-3">
+          <p className="font-display text-lg font-bold text-foreground tracking-tight flex-1 min-w-0">
             {block.name}
           </p>
+          {/* KG/LB toggle — same pill style as BlockDetail so athletes get a
+              consistent unit switcher no matter what block type they're in. */}
+          <button
+            onClick={handleToggleUnit}
+            className="press-scale flex items-center rounded-full shrink-0"
+            aria-label={`Cambiar a ${localUnit === "kg" ? "libras" : "kilogramos"}`}
+            style={{
+              background: t.accentBg,
+              border: `1px solid ${t.accentBgStrong}`,
+              height: 22,
+              width: 64,
+              padding: 0,
+            }}
+          >
+            <span
+              className="font-mono flex-1 text-center transition-all"
+              style={{
+                fontSize: 9,
+                fontWeight: localUnit === "kg" ? 700 : 400,
+                color: localUnit === "kg" ? t.btnText : t.muted,
+                background: localUnit === "kg" ? t.accent : "transparent",
+                borderRadius: 9999,
+                lineHeight: "20px",
+                letterSpacing: "0.05em",
+              }}
+            >
+              KG
+            </span>
+            <span
+              className="font-mono flex-1 text-center transition-all"
+              style={{
+                fontSize: 9,
+                fontWeight: localUnit === "lb" ? 700 : 400,
+                color: localUnit === "lb" ? t.btnText : t.muted,
+                background: localUnit === "lb" ? t.accent : "transparent",
+                borderRadius: 9999,
+                lineHeight: "20px",
+                letterSpacing: "0.05em",
+              }}
+            >
+              LB
+            </span>
+          </button>
           {phase === "done" && (
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary shrink-0">
               <Check className="h-4.5 w-4.5 text-primary-foreground" />
@@ -1052,7 +1130,11 @@ export default function EmomTimerBlock({
                               style={{ color: t.muted }}
                             />
                           </button>
-                          <div className="flex gap-1.5">
+                          {/* Ronda pills: wrap to a new line when they overflow
+                              (7-8 pills at KG width don't fit on a phone in one
+                              row). flex-wrap keeps every ronda visible without
+                              forcing horizontal scroll. */}
+                          <div className="flex flex-wrap gap-1.5">
                             {group.sets.map((rondaSet, idx) => {
                               const rondaWeight = weights[idx] ?? "";
                               const hasRondaWeight = rondaWeight === "BW" || (rondaWeight !== "" && parseFloat(rondaWeight) > 0);
@@ -1065,7 +1147,7 @@ export default function EmomTimerBlock({
                                     const init = rondaWeight === "BW" ? BODYWEIGHT_SENTINEL : (parseFloat(rondaWeight) || (mainWeight === "BW" ? BODYWEIGHT_SENTINEL : (parseFloat(mainWeight) || 0)));
                                     setPickerInitial(init);
                                   }}
-                                  className="flex items-center gap-1 rounded-lg px-2 py-1.5 transition-colors"
+                                  className="flex items-center gap-1 rounded-lg px-2 py-1.5 transition-colors shrink-0"
                                   style={{
                                     background: hasRondaWeight ? t.accentBg : t.accentBg,
                                     border: hasRondaWeight
