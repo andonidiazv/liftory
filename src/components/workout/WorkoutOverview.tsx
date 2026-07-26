@@ -337,7 +337,8 @@ export default function WorkoutOverview({
                 style={{
                   borderTop: blockIdx === 0 ? "1px solid hsl(var(--border))" : "none",
                   borderBottom: "1px solid hsl(var(--border))",
-                  opacity: done ? 0.4 : 1,
+                  // Unified "completed" opacity across the app: 0.5.
+                  opacity: done ? 0.5 : 1,
                 }}
               >
                 {/* Just the order number. Active is gold + slight glow; no

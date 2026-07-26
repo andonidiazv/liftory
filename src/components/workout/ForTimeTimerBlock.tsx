@@ -561,8 +561,11 @@ export default function ForTimeTimerBlock({
 
       {/* Exercise list — each loaded exercise carries its own weight chip
           (same pattern as the rest of the app: weight lives with the exercise,
-          not in a separate "pesos usados" form). */}
-      <div className="flex-1 px-5 pb-4">
+          not in a separate "pesos usados" form).
+          When the chipper is fully completed, dim the whole list to the
+          unified 0.5 "done" opacity — matches strength rows, mobility rows,
+          cooldown cards, and block cards in WorkoutOverview. */}
+      <div className="flex-1 px-5 pb-4 transition-opacity" style={{ opacity: completed ? 0.5 : 1 }}>
         <p className="font-mono uppercase text-muted-foreground mb-3" style={{ fontSize: 9, letterSpacing: "2px" }}>
           EJERCICIOS
         </p>

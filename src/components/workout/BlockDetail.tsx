@@ -1289,7 +1289,9 @@ function ExerciseCard({
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleRowTap(); } }}
               className="grid grid-cols-[28px_48px_72px_52px_40px] gap-2 items-center px-1 py-1.5 rounded-lg transition-all cursor-pointer active:opacity-70"
               style={{
-                opacity: completed ? 0.8 : isWarmup ? 0.6 : 1,
+                // Unified "completed" opacity across the app: 0.5.
+                // Warmup rows stay at 0.6 as their own visual state when not done.
+                opacity: completed ? 0.5 : isWarmup ? 0.6 : 1,
                 backgroundColor: isJustDone ? tc.accentBg : undefined,
               }}
               aria-label={`Set ${si + 1}${completed ? " completado — toca para deshacer" : " — toca para marcar completado"}`}
