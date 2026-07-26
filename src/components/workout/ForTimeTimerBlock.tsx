@@ -32,7 +32,26 @@ interface Props {
 /** Heuristic: a movement that's never loaded (no weight chip needed). */
 function isPureBodyweight(name: string): boolean {
   const n = name.toLowerCase();
+  // Anything with "weighted", "plate", "loaded" in the name is by definition
+  // NOT bodyweight — must show the weight input (e.g. Weighted Plank, Plate
+  // Ground to Overhead, Loaded Carry). Guard early so the "plank" match below
+  // doesn't swallow "Weighted Plank".
+  if (/\b(weighted|plate|loaded)\b/i.test(n)) return false;
   return /^bodyweight\b|^pull-?up\b|^chin-?up\b|^air\s+squat\b|^sit-?up\b|^crunch\b|^burpee\b|^push-?up\b|^box\s+jump\b|hollow\s+body|plank/i.test(n);
+}
+
+/**
+ * Parse a "Penalty por break: X" phrase from a coaching cue.
+ * Returns just the penalty description ("70 Jump Rope Singles") or null.
+ * Used to render a red BREAK badge on chipper exercises with penalties so
+ * athletes see the rule at a glance without reading the full header.
+ */
+function parsePenalty(cue: string | null | undefined): string | null {
+  if (!cue) return null;
+  // Match "Penalty por break: <phrase>." (stopping at period or end of string).
+  const m = cue.match(/penalty\s+por\s+break\s*:\s*([^.]+?)(?:\s+antes\s+de\b|\.|$)/i);
+  if (!m) return null;
+  return m[1].trim();
 }
 
 /** Parse cap from cue like "cap 10 min" or "10 min cap" */
@@ -555,6 +574,8 @@ export default function ForTimeTimerBlock({
             const isBW = isPureBodyweight(ex.name);
             const currentWeight = weights[exId] ?? "";
             const hasWeight = currentWeight === "BW" || (currentWeight !== "" && parseFloat(currentWeight) > 0);
+            const durationSec = group.sets[0]?.planned_duration_seconds;
+            const penalty = parsePenalty(cue);
             return (
               <div
                 key={ex.id}
@@ -576,10 +597,36 @@ export default function ForTimeTimerBlock({
                 </button>
                 <div className="flex-1 min-w-0">
                   <p className="font-body text-sm font-semibold text-foreground leading-snug" style={{ wordBreak: "break-word" }}>{ex.name}</p>
-                  {group.sets[0]?.planned_reps && (
+                  {group.sets[0]?.planned_reps != null && group.sets[0].planned_reps > 0 && (
                     <p className="font-mono text-muted-foreground" style={{ fontSize: 11 }}>
                       {group.sets[0].planned_reps} reps
                     </p>
+                  )}
+                  {durationSec != null && durationSec > 0 && (
+                    <p className="font-mono text-muted-foreground" style={{ fontSize: 11 }}>
+                      {durationSec >= 60
+                        ? `${Math.floor(durationSec / 60)} min${durationSec % 60 ? ` ${durationSec % 60}s` : ""}`
+                        : `${durationSec}s`}
+                    </p>
+                  )}
+                  {/* BREAK penalty badge — parsed from cue. Bright red pill so
+                      athletes see the rule without opening the video card. */}
+                  {penalty && (
+                    <div
+                      className="mt-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5"
+                      style={{
+                        background: "#D4555520",
+                        border: "1px solid #D4555560",
+                      }}
+                    >
+                      <span className="font-mono font-bold" style={{ fontSize: 9, letterSpacing: "1px", color: "#D45555" }}>
+                        BREAK
+                      </span>
+                      <span className="font-mono" style={{ fontSize: 10, color: "#D45555" }}>·</span>
+                      <span className="font-mono font-medium" style={{ fontSize: 10, color: "#D45555" }}>
+                        {penalty}
+                      </span>
+                    </div>
                   )}
                 </div>
                 {/* Weight chip — same look as EmomTimerBlock's "Peso de la barra".
