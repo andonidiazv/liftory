@@ -1422,10 +1422,28 @@ function MobilityContent({
         const primary = durLabel || repsLabel;
         const cueIsVerbose = cleanCue && cleanCue.length > 20;
 
+        // Row is one big tap target when the exercise has a single set (the
+        // common case in PRIME / mobility — 1 row = 1 exercise, cue says
+        // "2 rondas"). Thumbnail button + individual check buttons still work
+        // with stopPropagation. When there are multiple sets the row is inert
+        // and each check must be tapped individually (unambiguous).
+        const singleSet = sets.length === 1;
+        const handleRowTap = () => {
+          if (saving || !singleSet) return;
+          onToggle(sets[0]);
+        };
         return (
           <div
             key={ex.id}
-            className="flex items-start gap-4 py-4"
+            {...(singleSet ? {
+              role: "button" as const,
+              tabIndex: 0,
+              onClick: handleRowTap,
+              onKeyDown: (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleRowTap(); } },
+              "aria-label": `${ex.name}${allDone ? " completado — toca para deshacer" : " — toca para marcar completado"}`,
+              "aria-pressed": allDone,
+            } : {})}
+            className={`flex items-start gap-4 py-4 ${singleSet ? "cursor-pointer active:opacity-70" : ""} transition-all`}
             style={{
               borderBottom: "1px solid hsl(var(--border))",
               opacity: allDone ? 0.5 : 1,
@@ -1433,7 +1451,7 @@ function MobilityContent({
           >
             {/* Tiny thumbnail — taps open the video */}
             <button
-              onClick={() => onOpenVideo({ name: ex.name, videoUrl: ex.video_url, coachingCue: cleanCue })}
+              onClick={(e) => { e.stopPropagation(); onOpenVideo({ name: ex.name, videoUrl: ex.video_url, coachingCue: cleanCue }); }}
               className="shrink-0 overflow-hidden rounded-md"
               style={{ width: 40, height: 30 }}
               aria-label={`Ver video · ${ex.name}`}
@@ -1497,14 +1515,16 @@ function MobilityContent({
               })()}
             </div>
 
-            {/* Check buttons — one per set/round. Minimal circles. */}
+            {/* Check buttons — one per set/round. Minimal circles.
+                stopPropagation so tapping a specific check doesn't ALSO trigger
+                the row-level toggle when singleSet is true. */}
             <div className="flex gap-1.5 shrink-0 mt-0.5">
               {sets.map((set) => {
                 const done = isCompleted(set);
                 return (
                   <button
                     key={set.id}
-                    onClick={() => onToggle(set)}
+                    onClick={(e) => { e.stopPropagation(); onToggle(set); }}
                     disabled={saving}
                     className="press-scale flex items-center justify-center transition-all"
                     style={{
@@ -1550,16 +1570,31 @@ function CooldownCard({
   const cueText = cueOverride?.trim() || null;
   const cueIsShort = cueText && cueText.length <= 12;
 
+  // Same row-tap-target treatment as MobilityContent: single-set cards let
+  // athletes tap anywhere to mark done.
+  const singleSet = sets.length === 1;
+  const handleRowTap = () => {
+    if (saving || !singleSet) return;
+    onToggle(sets[0]);
+  };
   return (
     <div
-      className="flex items-start gap-4 py-4"
+      {...(singleSet ? {
+        role: "button" as const,
+        tabIndex: 0,
+        onClick: handleRowTap,
+        onKeyDown: (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleRowTap(); } },
+        "aria-label": `${ex.name}${allDone ? " completado — toca para deshacer" : " — toca para marcar completado"}`,
+        "aria-pressed": allDone,
+      } : {})}
+      className={`flex items-start gap-4 py-4 ${singleSet ? "cursor-pointer active:opacity-70" : ""} transition-all`}
       style={{
         borderBottom: "1px solid hsl(var(--border))",
         opacity: allDone ? 0.5 : 1,
       }}
     >
       <button
-        onClick={() => onOpenVideo({ name: ex.name, videoUrl: ex.video_url, coachingCue: cueOverride })}
+        onClick={(e) => { e.stopPropagation(); onOpenVideo({ name: ex.name, videoUrl: ex.video_url, coachingCue: cueOverride }); }}
         className="shrink-0 overflow-hidden rounded-md mt-0.5"
         style={{ width: 40, height: 30 }}
         aria-label={`Ver video · ${ex.name}`}
@@ -1605,7 +1640,7 @@ function CooldownCard({
           return (
             <button
               key={set.id}
-              onClick={() => onToggle(set)}
+              onClick={(e) => { e.stopPropagation(); onToggle(set); }}
               disabled={saving}
               className="press-scale flex items-center justify-center transition-all"
               style={{
