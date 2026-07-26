@@ -1270,14 +1270,30 @@ function ExerciseCard({
             );
           }
 
+          // Wrap the whole row in a "big tap area" that toggles completion.
+          // The two pickers (weight / reps) stopPropagation so their taps still
+          // open the sheet instead of accidentally marking the set done.
+          // Rationale: the 28×28 check circle was too small to hit reliably
+          // mid-workout — Apple guideline is 44×44. Making the row itself the
+          // hit target gives ~330×44 without changing layout.
+          const handleRowTap = () => {
+            if (saving) return;
+            onToggle(set);
+          };
           return (
             <div
               key={set.id}
-              className="grid grid-cols-[28px_48px_72px_52px_28px] gap-2 items-center px-1 py-1.5 rounded-lg transition-all"
+              role="button"
+              tabIndex={0}
+              onClick={handleRowTap}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleRowTap(); } }}
+              className="grid grid-cols-[28px_48px_72px_52px_40px] gap-2 items-center px-1 py-1.5 rounded-lg transition-all cursor-pointer active:opacity-70"
               style={{
                 opacity: completed ? 0.8 : isWarmup ? 0.6 : 1,
                 backgroundColor: isJustDone ? tc.accentBg : undefined,
               }}
+              aria-label={`Set ${si + 1}${completed ? " completado — toca para deshacer" : " — toca para marcar completado"}`}
+              aria-pressed={completed}
             >
               <div className="flex items-center gap-1">
                 <span className="flex h-5 w-5 items-center justify-center rounded-full font-mono text-foreground" style={{ fontSize: 11, backgroundColor: "hsl(var(--secondary))" }}>
@@ -1292,7 +1308,7 @@ function ExerciseCard({
               </span>
 
               <button
-                onClick={() => openWeightPicker(set)}
+                onClick={(e) => { e.stopPropagation(); openWeightPicker(set); }}
                 className="font-mono text-sm text-foreground rounded-lg px-2 py-1.5 w-full text-left"
                 style={{ background: "hsl(var(--border))", border: "none", fontSize: 14, minHeight: 34 }}
               >
@@ -1312,7 +1328,7 @@ function ExerciseCard({
 
               {/* Reps with /lado */}
               <button
-                onClick={() => openRepsPicker(set)}
+                onClick={(e) => { e.stopPropagation(); openRepsPicker(set); }}
                 className="font-mono text-sm text-foreground rounded-lg px-2 py-1.5 w-full text-left"
                 style={{ background: "hsl(var(--border))", border: "none", fontSize: 14, minHeight: 34 }}
               >
@@ -1330,16 +1346,22 @@ function ExerciseCard({
                 })()}
               </button>
 
+              {/* Visual indicator only — the whole row is the tap target now.
+                  Still tappable individually with stopPropagation for anyone
+                  aiming at the circle. Bigger (36×36) + thicker check for
+                  clearer done state. */}
               <button
-                onClick={() => onToggle(set)}
+                onClick={(e) => { e.stopPropagation(); handleRowTap(); }}
                 disabled={saving}
-                className="flex h-7 w-7 items-center justify-center rounded-full border-2 transition-all mx-auto"
+                className="flex h-9 w-9 items-center justify-center rounded-full border-2 transition-all mx-auto"
                 style={{
                   borderColor: completed ? "hsl(var(--primary))" : "hsl(var(--border))",
                   backgroundColor: completed ? "hsl(var(--primary))" : "transparent",
                 }}
+                aria-hidden="true"
+                tabIndex={-1}
               >
-                {completed ? <Check className="h-3.5 w-3.5 text-primary-foreground" /> : null}
+                {completed ? <Check className="h-4 w-4 text-primary-foreground" strokeWidth={2.5} /> : null}
               </button>
             </div>
           );

@@ -45,7 +45,9 @@ export default function WeightPickerSheet({
   const isInitialScroll = useRef(true);
   const selectedIndexRef = useRef(0);
 
-  const [mode, setMode] = useState<Mode>("wheel");
+  // Default mode = numpad (per Andoni's preference — faster entry in gym).
+  // Wheel and BW are still one-tap away from the mode toggle row.
+  const [mode, setMode] = useState<Mode>("numpad");
   const [numpadValue, setNumpadValue] = useState("");
 
   const jumpValues = unit === "kg" ? JUMP_VALUES_KG : JUMP_VALUES_LB;
@@ -54,7 +56,7 @@ export default function WeightPickerSheet({
     if (!visible) return;
     unlockHaptics();
     if (initialValue === BODYWEIGHT_SENTINEL) setMode("bodyweight");
-    else setMode("wheel");
+    else setMode("numpad");
     setNumpadValue("");
   }, [visible, initialValue]);
 
