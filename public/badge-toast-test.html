@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=400, maximum-scale=1">
+<title>Badge Toast Test</title>
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  body { background: #0D0C0A; font-family: 'DM Sans', system-ui, sans-serif; min-height: 100vh; padding: 20px; }
+  h1 { color: #FAF8F5; font-family: 'Syne', sans-serif; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 20px; font-size: 20px; }
+
+  .btn { padding: 12px 20px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; margin: 6px; display: inline-block; }
+  .btn-sage { background: rgba(122,139,92,0.2); color: #7A8B5C; }
+  .btn-terra { background: rgba(199,91,57,0.2); color: #C75B39; }
+  .btn-gold { background: rgba(201,169,110,0.2); color: #C9A96E; }
+  .btn-dismiss { background: rgba(255,255,255,0.1); color: #8A8A8E; }
+
+  /* Toast simulation */
+  .toast-container {
+    position: fixed; left: 0; right: 0; bottom: 100px;
+    display: flex; justify-content: center; padding: 0 16px;
+    z-index: 75;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    transform: translateY(20px); opacity: 0;
+    pointer-events: none;
+  }
+  .toast-container.visible { transform: translateY(0); opacity: 1; pointer-events: auto; }
+  .toast-container.exiting { transform: translateY(20px); opacity: 0; pointer-events: none; }
+
+  .toast-card {
+    position: relative;
+    width: 100%; max-width: 400px;
+    border-radius: 16px; padding: 16px;
+    background: #1a1a1a;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .toast-close {
+    position: absolute; right: 12px; top: 12px;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: rgba(255,255,255,0.1); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.5); font-size: 14px;
+  }
+  .toast-body { display: flex; align-items: flex-start; gap: 12px; padding-right: 24px; }
+  .toast-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    font-size: 20px;
+  }
+  .toast-title {
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700;
+    letter-spacing: -0.03em; color: rgba(255,255,255,0.9);
+  }
+  .toast-desc {
+    margin-top: 2px; font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.4;
+  }
+  .toast-cta {
+    margin-top: 10px; padding: 6px 12px; border: none; border-radius: 8px;
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+</style>
+</head>
+<body>
+<h1>Badge Qualification Toast — Test</h1>
+<p style="color:#8A8A8E; font-size:13px; margin-bottom:20px;">Simula la notificacion que ve el atleta al completar un set que califica para un badge.</p>
+
+<button class="btn btn-sage" onclick="showToast('longevity')">LONGEVITY (sage)</button>
+<button class="btn btn-terra" onclick="showToast('excelente')">EXCELENTE (terracotta)</button>
+<button class="btn btn-gold" onclick="showToast('elite')">ELITE (gold)</button>
+<button class="btn btn-dismiss" onclick="hideToast()">Dismiss</button>
+
+<div class="toast-container" id="toast">
+  <div class="toast-card" id="toastCard">
+    <button class="toast-close" onclick="hideToast()">&times;</button>
+    <div class="toast-body">
+      <div class="toast-icon" id="toastIcon">🏆</div>
+      <div style="flex:1; min-width:0">
+        <div class="toast-title">Calificaste para un badge</div>
+        <div class="toast-desc" id="toastDesc"></div>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:10px;">
+          <button class="toast-cta" id="toastCta" onclick="alert('Navegaria a /badges/claim/front-squat-club/longevity')">
+            Sube tu video ›
+          </button>
+          <button onclick="hideToast();alert('Notificacion desactivada permanentemente para este tier')" style="background:none;border:none;cursor:pointer;font-size:11px;color:rgba(255,255,255,0.3);font-family:'DM Sans',sans-serif;">No me interesa</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const tiers = {
+  longevity: {
+    label: 'LONGEVITY STRENGTH', color: '#7A8B5C',
+    desc: '70 kg x 5 reps en Heel Elevated Front Squat',
+  },
+  excelente: {
+    label: 'EXCELENTE', color: '#C75B39',
+    desc: '95 kg x 5 reps en Heel Elevated Front Squat',
+  },
+  elite: {
+    label: 'ELITE', color: '#C9A96E',
+    desc: '120 kg x 5 reps en Heel Elevated Front Squat',
+  },
+};
+
+function showToast(tier) {
+  const t = tiers[tier];
+  const el = document.getElementById('toast');
+  const card = document.getElementById('toastCard');
+  const desc = document.getElementById('toastDesc');
+  const icon = document.getElementById('toastIcon');
+  const cta = document.getElementById('toastCta');
+
+  card.style.borderColor = t.color + '40';
+  card.style.border = '1px solid ' + t.color + '40';
+  icon.style.background = t.color + '20';
+  desc.innerHTML = t.desc + ' — nivel <span style="color:' + t.color + ';font-weight:500">' + t.label + '</span>';
+  cta.style.background = t.color + '20';
+  cta.style.color = t.color;
+
+  el.classList.remove('exiting');
+  el.classList.add('visible');
+
+  // Auto-dismiss after 8s
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(hideToast, 8000);
+}
+
+function hideToast() {
+  const el = document.getElementById('toast');
+  el.classList.add('exiting');
+  setTimeout(() => el.classList.remove('visible', 'exiting'), 300);
+}
+</script>
+</body>
+</html>

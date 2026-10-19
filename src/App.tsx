@@ -27,6 +27,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminExercises from "./pages/admin/AdminExercises";
 import AdminInsights from "./pages/admin/AdminInsights";
+import AdminSwaps from "./pages/admin/AdminSwaps";
 import AdminAIRules from "./pages/admin/AdminAIRules";
 import AdminAuditLog from "./pages/admin/AdminAuditLog";
 import AdminPrograms from "./pages/admin/AdminPrograms";
@@ -128,6 +129,7 @@ const App = () => (
               <Route path="/admin/badges" element={<AdminRoute><AdminLayout><AdminBadges /></AdminLayout></AdminRoute>} />
               <Route path="/admin/payments" element={<AdminRoute><AdminLayout><AdminPayments /></AdminLayout></AdminRoute>} />
               <Route path="/admin/insights" element={<AdminRoute><AdminLayout><AdminInsights /></AdminLayout></AdminRoute>} />
+              <Route path="/admin/swaps" element={<AdminRoute><AdminLayout><AdminSwaps /></AdminLayout></AdminRoute>} />
               <Route path="/admin/ai-rules" element={<AdminRoute><AdminLayout><AdminAIRules /></AdminLayout></AdminRoute>} />
               <Route path="/admin/audit" element={<AdminRoute><AdminLayout><AdminAuditLog /></AdminLayout></AdminRoute>} />
 

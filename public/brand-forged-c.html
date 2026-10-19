@@ -1,0 +1,2080 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFTORY — FORGED Camino C Brand Brief</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #08080A;
+    color: #E8E8E8;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ===== CSS VARIABLES — ENCENDIDO ===== */
+  :root {
+    --enc-bg: #08080A;
+    --enc-card: #141416;
+    --enc-text: #E8E8E8;
+    --enc-muted: #6B6B6F;
+    --enc-neon: #D4FF00;
+    --enc-secondary: #2A2A2E;
+    --enc-border: #202024;
+    --enc-success: #7A8B5C;
+    --enc-accent-bg: rgba(212,255,0,0.08);
+    --enc-cta-text: #08080A;
+    --enc-glow: rgba(212,255,0,0.15);
+
+    --apa-bg: #2C2C30;
+    --apa-card: #38383C;
+    --apa-text: #E8E8E8;
+    --apa-muted: #8A8A8E;
+    --apa-neon: #B8D940;
+    --apa-secondary: #44444A;
+    --apa-border: #44444A;
+    --apa-success: #7A8B5C;
+    --apa-accent-bg: rgba(184,217,64,0.10);
+    --apa-cta-text: #1A1A1E;
+    --apa-shadow: rgba(0,0,0,0.3);
+  }
+
+  /* ===== UTILITY ===== */
+  .syne { font-family: 'Syne', sans-serif; }
+  .dm-mono { font-family: 'DM Mono', monospace; }
+  .dm-sans { font-family: 'DM Sans', sans-serif; }
+
+  .section {
+    padding: 100px 60px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .section-full {
+    padding: 100px 0;
+  }
+
+  .section-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 60px;
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--enc-neon);
+    margin-bottom: 12px;
+  }
+
+  .section-number {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--enc-muted);
+    margin-bottom: 8px;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 42px;
+    line-height: 1.1;
+    color: var(--enc-text);
+    margin-bottom: 24px;
+  }
+
+  .section-subtitle {
+    font-size: 18px;
+    color: var(--enc-muted);
+    max-width: 700px;
+    line-height: 1.7;
+  }
+
+  .bg-forge { background: #08080A; }
+  .bg-iron { background: #141416; }
+
+  .divider {
+    width: 60px;
+    height: 2px;
+    background: var(--enc-neon);
+    margin: 40px 0;
+  }
+
+  /* ===== SECTION 1: COVER ===== */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: #08080A;
+    position: relative;
+    overflow: hidden;
+    padding: 60px;
+  }
+
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(212,255,0,0.04) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cover-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--enc-muted);
+    margin-bottom: 40px;
+    padding: 8px 20px;
+    border: 1px solid var(--enc-border);
+    border-radius: 2px;
+  }
+
+  .cover-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--enc-neon);
+    margin-bottom: 32px;
+  }
+
+  .cover-wordmark {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(80px, 12vw, 160px);
+    color: var(--enc-neon);
+    line-height: 1;
+    margin-bottom: 40px;
+    text-shadow: 0 0 80px rgba(212,255,0,0.2), 0 0 160px rgba(212,255,0,0.08);
+    letter-spacing: -2px;
+  }
+
+  .cover-subtitle {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 20px;
+    font-style: italic;
+    color: var(--enc-muted);
+    margin-bottom: 12px;
+    font-weight: 300;
+  }
+
+  .cover-tagline {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    color: var(--enc-text);
+    margin-bottom: 60px;
+    font-weight: 500;
+  }
+
+  .cover-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: var(--enc-muted);
+  }
+
+  /* ===== SECTION 2: DOS TEMPERATURAS ===== */
+  .split-screen {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 500px;
+  }
+
+  .split-half {
+    padding: 80px 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .split-left {
+    background: var(--enc-bg);
+  }
+
+  .split-right {
+    background: var(--apa-bg);
+  }
+
+  .split-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+
+  .split-left .split-label { color: var(--enc-neon); }
+  .split-right .split-label { color: var(--apa-neon); }
+
+  .split-wordmark {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 56px;
+    line-height: 1;
+    margin-bottom: 32px;
+    letter-spacing: -1px;
+  }
+
+  .split-left .split-wordmark {
+    color: var(--enc-neon);
+    text-shadow: 0 0 60px rgba(212,255,0,0.25);
+  }
+
+  .split-right .split-wordmark {
+    color: var(--apa-neon);
+  }
+
+  .split-desc {
+    font-size: 15px;
+    line-height: 1.7;
+    max-width: 320px;
+  }
+
+  .split-left .split-desc { color: var(--enc-muted); }
+  .split-right .split-desc { color: var(--apa-muted); }
+
+  .split-quote {
+    text-align: center;
+    padding: 60px;
+    background: var(--enc-card);
+    border-top: 1px solid var(--enc-border);
+    border-bottom: 1px solid var(--enc-border);
+  }
+
+  .split-quote p {
+    font-family: 'DM Sans', sans-serif;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--enc-text);
+    max-width: 800px;
+    margin: 0 auto;
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  /* ===== SECTION 3: COLOR SYSTEM ===== */
+  .palette-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .swatch {
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .swatch-color {
+    height: 80px;
+    width: 100%;
+    border-radius: 8px 8px 0 0;
+  }
+
+  .swatch-info {
+    padding: 12px;
+    background: var(--enc-card);
+    border: 1px solid var(--enc-border);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+  }
+
+  .swatch-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--enc-text);
+    margin-bottom: 4px;
+  }
+
+  .swatch-hex {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--enc-muted);
+    margin-bottom: 4px;
+  }
+
+  .swatch-role {
+    font-size: 11px;
+    color: var(--enc-muted);
+  }
+
+  .palette-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    padding: 6px 16px;
+    display: inline-block;
+    border-radius: 4px;
+  }
+
+  .palette-label-enc {
+    color: var(--enc-neon);
+    background: var(--enc-accent-bg);
+  }
+
+  .palette-label-apa {
+    color: var(--apa-neon);
+    background: var(--apa-accent-bg);
+  }
+
+  .bridge-section {
+    margin-top: 60px;
+    padding: 40px;
+    background: var(--enc-card);
+    border: 1px solid var(--enc-border);
+    border-radius: 12px;
+  }
+
+  .bridge-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    color: var(--enc-text);
+    margin-bottom: 8px;
+  }
+
+  .bridge-subtitle {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--enc-neon);
+    margin-bottom: 32px;
+  }
+
+  .bridge-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 8px;
+  }
+
+  .bridge-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .bridge-arrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--enc-muted);
+    flex-shrink: 0;
+  }
+
+  .bridge-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--enc-muted);
+    flex: 1;
+    min-width: 100px;
+  }
+
+  .bridge-philosophy {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--enc-border);
+    font-size: 15px;
+    color: var(--enc-muted);
+    font-style: italic;
+    line-height: 1.7;
+  }
+
+  /* ===== SECTION 4: TYPOGRAPHY ===== */
+  .type-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .type-card {
+    padding: 32px;
+    border-radius: 12px;
+    border: 1px solid;
+  }
+
+  .type-card-enc {
+    background: var(--enc-bg);
+    border-color: var(--enc-border);
+  }
+
+  .type-card-apa {
+    background: var(--apa-bg);
+    border-color: var(--apa-border);
+  }
+
+  .type-card-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .type-card-enc .type-card-label { color: var(--enc-neon); }
+  .type-card-apa .type-card-label { color: var(--apa-neon); }
+
+  .type-spec {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid;
+  }
+
+  .type-card-enc .type-spec { color: var(--enc-muted); border-color: var(--enc-border); }
+  .type-card-apa .type-spec { color: var(--apa-muted); border-color: var(--apa-border); }
+
+  .type-row-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--enc-muted);
+    margin-bottom: 24px;
+  }
+
+  /* ===== SECTION 5: KEY QUESTION ===== */
+  .question-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+
+  .question-card {
+    padding: 32px;
+    border-radius: 12px;
+    border: 1px solid var(--enc-border);
+    background: var(--enc-card);
+  }
+
+  .question-card-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .risk-label { color: #FF6B6B; }
+  .advantage-label { color: var(--enc-neon); }
+  .question-label { color: #FFB84D; }
+
+  .question-card p {
+    font-size: 15px;
+    color: var(--enc-muted);
+    line-height: 1.7;
+  }
+
+  .comparison-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 48px;
+  }
+
+  .mini-phone {
+    width: 140px;
+    height: 280px;
+    border-radius: 20px;
+    padding: 16px 12px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .mini-phone-enc {
+    background: var(--apa-bg);
+    border: 2px solid var(--apa-border);
+  }
+
+  .mini-phone-light {
+    background: #FDF8F0;
+    border: 2px solid #E8DFD4;
+  }
+
+  .mini-phone-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+    margin-top: 12px;
+  }
+
+  .mini-phone-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 8px;
+  }
+
+  .mini-phone-card {
+    width: 100%;
+    height: 60px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+
+  .mini-phone-bar {
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    margin-bottom: 6px;
+  }
+
+  .comparison-label {
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--enc-muted);
+    margin-top: 16px;
+  }
+
+  .comparison-vs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--enc-muted);
+    padding: 40px 0;
+  }
+
+  /* ===== SECTION 6: PHONE MOCKUPS ===== */
+  .mockup-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    margin-bottom: 80px;
+    align-items: start;
+  }
+
+  .mockup-pair-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--enc-neon);
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .phone-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .phone-mode-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .phone-mode-enc { color: var(--enc-neon); }
+  .phone-mode-apa { color: var(--apa-neon); }
+
+  .phone-frame {
+    width: 220px;
+    height: 440px;
+    border-radius: 28px;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .phone-frame-enc {
+    background: var(--enc-bg);
+    border: 2px solid var(--enc-border);
+    box-shadow: 0 0 40px var(--enc-glow), 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  .phone-frame-apa {
+    background: var(--apa-bg);
+    border: 2px solid var(--apa-border);
+    box-shadow: 0 20px 60px var(--apa-shadow);
+  }
+
+  .phone-status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 20px 4px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .phone-frame-enc .phone-status-bar { color: var(--enc-text); }
+  .phone-frame-apa .phone-status-bar { color: var(--apa-text); }
+
+  .phone-battery {
+    width: 18px;
+    height: 9px;
+    border: 1px solid;
+    border-radius: 2px;
+    position: relative;
+    display: inline-block;
+  }
+
+  .phone-battery::after {
+    content: '';
+    position: absolute;
+    right: -3px;
+    top: 2px;
+    width: 2px;
+    height: 4px;
+    border-radius: 0 1px 1px 0;
+  }
+
+  .phone-frame-enc .phone-battery { border-color: var(--enc-text); }
+  .phone-frame-enc .phone-battery::after { background: var(--enc-text); }
+  .phone-frame-apa .phone-battery { border-color: var(--apa-text); }
+  .phone-frame-apa .phone-battery::after { background: var(--apa-text); }
+
+  .phone-content {
+    padding: 8px 16px;
+    height: calc(100% - 60px);
+    overflow: hidden;
+  }
+
+  .phone-home-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 4px;
+    border-radius: 2px;
+  }
+
+  .phone-frame-enc .phone-home-indicator { background: var(--enc-muted); }
+  .phone-frame-apa .phone-home-indicator { background: var(--apa-muted); }
+
+  /* Phone content elements */
+  .ph-wordmark {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    margin-bottom: 2px;
+  }
+
+  .ph-subtitle {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    margin-bottom: 12px;
+  }
+
+  .ph-card {
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 8px;
+    border: 1px solid;
+  }
+
+  .ph-card-enc {
+    background: var(--enc-card);
+    border-color: var(--enc-border);
+  }
+
+  .ph-card-apa {
+    background: var(--apa-card);
+    border-color: var(--apa-border);
+  }
+
+  .ph-day {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+
+  .ph-badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-bottom: 6px;
+  }
+
+  .ph-badge-enc {
+    background: var(--enc-neon);
+    color: var(--enc-cta-text);
+  }
+
+  .ph-badge-apa {
+    background: var(--apa-neon);
+    color: var(--apa-cta-text);
+  }
+
+  .ph-heading {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--enc-text);
+    margin-bottom: 4px;
+  }
+
+  .ph-meta {
+    font-size: 9px;
+    margin-bottom: 8px;
+  }
+
+  .ph-progress-track {
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+  }
+
+  .ph-progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    width: 60%;
+  }
+
+  .ph-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .ph-stat {
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    border: 1px solid;
+  }
+
+  .ph-stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 7px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .ph-stat-value {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--enc-text);
+  }
+
+  .ph-tab-bar {
+    position: absolute;
+    bottom: 20px;
+    left: 16px;
+    right: 16px;
+    display: flex;
+    justify-content: space-around;
+  }
+
+  .ph-tab-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+  }
+
+  /* Paywall phone elements */
+  .ph-pw-heading {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--enc-text);
+    text-align: center;
+    margin-bottom: 10px;
+    line-height: 1.3;
+  }
+
+  .ph-plan {
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 6px;
+    border: 1px solid;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .ph-plan-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: var(--enc-text);
+  }
+
+  .ph-plan-price {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--enc-text);
+  }
+
+  .ph-plan-selected-enc {
+    border-color: var(--enc-neon) !important;
+    box-shadow: 0 0 12px var(--enc-glow);
+  }
+
+  .ph-plan-selected-apa {
+    border-color: var(--apa-neon) !important;
+  }
+
+  .ph-cta {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-align: center;
+    margin-top: 8px;
+    margin-bottom: 6px;
+  }
+
+  .ph-cta-enc {
+    background: var(--enc-neon);
+    color: var(--enc-cta-text);
+  }
+
+  .ph-cta-apa {
+    background: var(--apa-neon);
+    color: var(--apa-cta-text);
+  }
+
+  .ph-cancel {
+    text-align: center;
+    font-size: 9px;
+  }
+
+  /* PR Celebration */
+  .ph-pr-overlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 0;
+  }
+
+  .ph-pr-card {
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+    width: 100%;
+    border: 1px solid;
+  }
+
+  .ph-pr-card-enc {
+    background: var(--enc-card);
+    border-color: var(--enc-border);
+    box-shadow: 0 0 30px var(--enc-glow);
+  }
+
+  .ph-pr-card-apa {
+    background: var(--apa-card);
+    border-color: var(--apa-border);
+    box-shadow: 0 8px 24px var(--apa-shadow);
+  }
+
+  .ph-pr-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin: 0 auto 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  .ph-pr-icon-enc { background: var(--enc-neon); color: var(--enc-cta-text); }
+  .ph-pr-icon-apa { background: var(--apa-neon); color: var(--apa-cta-text); }
+
+  .ph-pr-badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 2px;
+    padding: 3px 10px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+  }
+
+  .ph-pr-exercise {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--enc-text);
+    margin-bottom: 4px;
+  }
+
+  .ph-pr-number {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 40px;
+    color: var(--enc-text);
+    line-height: 1;
+  }
+
+  .ph-pr-unit {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    display: inline;
+  }
+
+  .ph-pr-reps {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    margin-top: 2px;
+    margin-bottom: 8px;
+  }
+
+  .ph-pr-improvement {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+  }
+
+  .ph-pr-branding {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 8px;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+
+  /* Savings pill on paywall */
+  .ph-savings {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 7px;
+    letter-spacing: 1px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    margin-left: 4px;
+  }
+
+  /* ===== SECTION 7: BUTTON SYSTEM ===== */
+  .button-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .button-panel {
+    padding: 40px;
+    border-radius: 12px;
+    border: 1px solid;
+  }
+
+  .button-panel-enc {
+    background: var(--enc-bg);
+    border-color: var(--enc-border);
+  }
+
+  .button-panel-apa {
+    background: var(--apa-bg);
+    border-color: var(--apa-border);
+  }
+
+  .button-panel-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+
+  .btn-row {
+    margin-bottom: 20px;
+  }
+
+  .btn-row-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--enc-muted);
+    margin-bottom: 10px;
+  }
+
+  .btn-demo {
+    display: inline-block;
+    padding: 12px 32px;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-primary-enc {
+    background: var(--enc-neon);
+    color: var(--enc-cta-text);
+    border: 2px solid var(--enc-neon);
+  }
+
+  .btn-primary-apa {
+    background: var(--apa-neon);
+    color: var(--apa-cta-text);
+    border: 2px solid var(--apa-neon);
+  }
+
+  .btn-secondary-enc {
+    background: var(--enc-card);
+    color: var(--enc-neon);
+    border: 2px solid var(--enc-neon);
+  }
+
+  .btn-secondary-apa {
+    background: var(--apa-card);
+    color: var(--apa-neon);
+    border: 2px solid var(--apa-neon);
+  }
+
+  .btn-ghost-enc {
+    background: transparent;
+    color: var(--enc-neon);
+    border: 2px solid transparent;
+  }
+
+  .btn-ghost-apa {
+    background: transparent;
+    color: var(--apa-neon);
+    border: 2px solid transparent;
+  }
+
+  .btn-disabled-enc {
+    background: var(--enc-secondary);
+    color: var(--enc-muted);
+    border: 2px solid var(--enc-secondary);
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-disabled-apa {
+    background: var(--apa-secondary);
+    color: var(--apa-muted);
+    border: 2px solid var(--apa-secondary);
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* ===== SECTION 8: HONEST ASSESSMENT ===== */
+  .assessment-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+  }
+
+  .assessment-card {
+    padding: 36px;
+    border-radius: 12px;
+    border: 1px solid var(--enc-border);
+    background: var(--enc-card);
+  }
+
+  .assessment-card-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    margin-bottom: 20px;
+    line-height: 1.3;
+  }
+
+  .assessment-card:nth-child(1) .assessment-card-title { color: var(--enc-neon); }
+  .assessment-card:nth-child(2) .assessment-card-title { color: #FF6B6B; }
+  .assessment-card:nth-child(3) .assessment-card-title { color: #FFB84D; }
+
+  .assessment-card ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .assessment-card li {
+    font-size: 14px;
+    color: var(--enc-muted);
+    line-height: 1.7;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--enc-border);
+  }
+
+  .assessment-card li:last-child {
+    border-bottom: none;
+  }
+
+  .assessment-card li::before {
+    content: '>';
+    font-family: 'DM Mono', monospace;
+    margin-right: 8px;
+    font-size: 12px;
+  }
+
+  .assessment-card:nth-child(1) li::before { color: var(--enc-neon); }
+  .assessment-card:nth-child(2) li::before { color: #FF6B6B; }
+  .assessment-card:nth-child(3) li::before { color: #FFB84D; }
+
+  /* ===== SECTION 9: SCORES ===== */
+  .score-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 20px;
+  }
+
+  .score-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--enc-text);
+    width: 240px;
+    flex-shrink: 0;
+  }
+
+  .score-bar-track {
+    flex: 1;
+    height: 8px;
+    background: var(--enc-secondary);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .score-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: var(--enc-neon);
+    transition: width 0.5s ease;
+  }
+
+  .score-value {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--enc-text);
+    width: 60px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .score-bar-high .score-bar-fill { background: var(--enc-neon); }
+  .score-bar-mid .score-bar-fill { background: #FFB84D; }
+  .score-bar-low .score-bar-fill { background: #FF6B6B; }
+
+  /* ===== SECTION 10: CLOSING ===== */
+  .closing {
+    text-align: center;
+    padding: 120px 60px;
+    background: var(--enc-bg);
+    position: relative;
+  }
+
+  .closing::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--enc-neon), transparent);
+  }
+
+  .closing-quote {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    color: var(--enc-text);
+    max-width: 800px;
+    margin: 0 auto 60px;
+    line-height: 1.5;
+  }
+
+  .closing-quote span {
+    color: var(--enc-neon);
+  }
+
+  .closing-footer {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--enc-muted);
+    padding-top: 40px;
+    border-top: 1px solid var(--enc-border);
+    display: inline-block;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 1024px) {
+    .section { padding: 60px 32px; }
+    .section-inner { padding: 0 32px; }
+    .palette-row { grid-template-columns: repeat(4, 1fr); }
+    .assessment-grid { grid-template-columns: 1fr; }
+    .mockup-pair { gap: 24px; }
+  }
+
+  @media (max-width: 768px) {
+    .split-screen { grid-template-columns: 1fr; }
+    .type-grid { grid-template-columns: 1fr; }
+    .button-grid { grid-template-columns: 1fr; }
+    .mockup-pair { grid-template-columns: 1fr; }
+    .palette-row { grid-template-columns: repeat(3, 1fr); }
+    .score-row { flex-wrap: wrap; }
+    .score-label { width: 100%; }
+    .comparison-row { grid-template-columns: 1fr 1fr; }
+    .question-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     SECTION 1: COVER
+     ============================================================ -->
+<section class="cover">
+  <div class="cover-eyebrow">DOCUMENTO INTERNO &mdash; CONFIDENCIAL</div>
+  <div class="cover-label">BRAND STRATEGY BRIEF</div>
+  <div class="cover-wordmark">LIFTORY</div>
+  <div class="cover-subtitle">"El horno nunca se apaga del todo."</div>
+  <div class="cover-tagline">Dos intensidades. Una forja.</div>
+  <div class="cover-date">ABRIL 2026</div>
+</section>
+
+<!-- ============================================================
+     SECTION 2: DOS TEMPERATURAS
+     ============================================================ -->
+<section class="section-full bg-iron">
+  <div class="section-inner" style="margin-bottom: 48px;">
+    <div class="section-number">02</div>
+    <div class="section-label">EL CONCEPTO</div>
+    <div class="section-title">Dos Temperaturas</div>
+  </div>
+
+  <div class="split-screen">
+    <div class="split-half split-left">
+      <div class="split-label">ENCENDIDO</div>
+      <div class="split-wordmark">LIFTORY</div>
+      <p class="split-desc">Negro absoluto. Neon a maxima potencia. La forja ardiendo.</p>
+    </div>
+    <div class="split-half split-right">
+      <div class="split-label">APAGADO</div>
+      <div class="split-wordmark">LIFTORY</div>
+      <p class="split-desc">Gunmetal calido. Neon enfriado. La forja despues de cerrar.</p>
+    </div>
+  </div>
+
+  <div class="split-quote">
+    <p>"No es light mode. No es dark mode. Son dos temperaturas de la misma forja."</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 3: COLOR SYSTEM
+     ============================================================ -->
+<section class="section bg-forge">
+  <div class="section-number">03</div>
+  <div class="section-label">SISTEMA DE COLOR</div>
+  <div class="section-title">Paleta Termica</div>
+  <div class="section-subtitle" style="margin-bottom: 60px;">Cada color tiene su version encendida y apagada. El sistema completo se mueve como una sola unidad termica.</div>
+
+  <!-- ENCENDIDO PALETTE -->
+  <div class="palette-label palette-label-enc">ENCENDIDO &mdash; La forja ON</div>
+  <div class="palette-row">
+    <div class="swatch">
+      <div class="swatch-color" style="background: #08080A;"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">Forge Black</div>
+        <div class="swatch-hex">#08080A</div>
+        <div class="swatch-role">Background</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background: #141416;"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">Iron</div>
+        <div class="swatch-hex">#141416</div>
+        <div class="swatch-role">Cards</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background: #D4FF00;"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">Neon Forge</div>
+        <div class="swatch-hex">#D4FF00</div>
+        <div class="swatch-role">Primary / CTA</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background: #E8E8E8;"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">Steel White</div>
+        <div class="swatch-hex">#E8E8E8</div>
+        <div class="swatch-role">Text Primary</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background: #6B6B6F;"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">Graphite</div>
+        <div class="swatch-hex">#6B6B6F</div>
+        <div class="swatch-role">Text Muted</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background: #2A2A2E;"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">Anvil</div>
+        <div class="swatch-hex">#2A2A2E</div>
+        <div class="swatch-role">Secondary</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background: #202024;"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">Seam</div>
+        <div class="swatch-hex">#202024</div>
+        <div class="swatch-role">Border</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="height: 48px;"></div>
+
+  <!-- APAGADO PALETTE -->
+  <div class="palette-label palette-label-apa">APAGADO &mdash; La forja OFF</div>
+  <div class="palette-row">
+    <div class="swatch">
+      <div class="swatch-color" style="background: #2C2C30;"></div>
+      <div class="swatch-info" style="background: var(--apa-card); border-color: var(--apa-border);">
+        <div class="swatch-name">Warm Gunmetal</div>
+        <div class="swatch-hex">#2C2C30</div>
+        <div class="swatch-role">Background</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background: #38383C;"></div>
+      <div class="swatch-info" style="background: var(--apa-card); border-color: var(--apa-border);">
+        <div class="swatch-name">Tempered Steel</div>
+        <div class="swatch-hex">#38383C</div>
+        <div class="swatch-role">Cards</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background: #B8D940;"></div>
+      <div class="swatch-info" style="background: var(--apa-card); border-color: var(--apa-border);">
+        <div class="swatch-name">Dimmed Forge</div>
+        <div class="swatch-hex">#B8D940</div>
+        <div class="swatch-role">Primary / CTA</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background: #E8E8E8;"></div>
+      <div class="swatch-info" style="background: var(--apa-card); border-color: var(--apa-border);">
+        <div class="swatch-name">Steel White</div>
+        <div class="swatch-hex">#E8E8E8</div>
+        <div class="swatch-role">Text Primary</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background: #8A8A8E;"></div>
+      <div class="swatch-info" style="background: var(--apa-card); border-color: var(--apa-border);">
+        <div class="swatch-name">Ash</div>
+        <div class="swatch-hex">#8A8A8E</div>
+        <div class="swatch-role">Text Muted</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background: #44444A;"></div>
+      <div class="swatch-info" style="background: var(--apa-card); border-color: var(--apa-border);">
+        <div class="swatch-name">Cool Iron</div>
+        <div class="swatch-hex">#44444A</div>
+        <div class="swatch-role">Secondary / Border</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background: #7A8B5C;"></div>
+      <div class="swatch-info" style="background: var(--apa-card); border-color: var(--apa-border);">
+        <div class="swatch-name">Olive</div>
+        <div class="swatch-hex">#7A8B5C</div>
+        <div class="swatch-role">Success</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PUENTE TERMICO -->
+  <div class="bridge-section">
+    <div class="bridge-subtitle">PUENTE TERMICO</div>
+    <div class="bridge-title">Mapa de Transicion</div>
+
+    <div class="bridge-row">
+      <div class="bridge-dot" style="background: #08080A; border: 1px solid #333;"></div>
+      <div class="bridge-label">#08080A Forge Black</div>
+      <div class="bridge-arrow">---&gt;</div>
+      <div class="bridge-dot" style="background: #2C2C30;"></div>
+      <div class="bridge-label">#2C2C30 Warm Gunmetal</div>
+    </div>
+
+    <div class="bridge-row">
+      <div class="bridge-dot" style="background: #141416; border: 1px solid #333;"></div>
+      <div class="bridge-label">#141416 Iron</div>
+      <div class="bridge-arrow">---&gt;</div>
+      <div class="bridge-dot" style="background: #38383C;"></div>
+      <div class="bridge-label">#38383C Tempered Steel</div>
+    </div>
+
+    <div class="bridge-row">
+      <div class="bridge-dot" style="background: #D4FF00;"></div>
+      <div class="bridge-label">#D4FF00 Neon Forge</div>
+      <div class="bridge-arrow">---&gt;</div>
+      <div class="bridge-dot" style="background: #B8D940;"></div>
+      <div class="bridge-label">#B8D940 Dimmed Forge</div>
+    </div>
+
+    <div class="bridge-row">
+      <div class="bridge-dot" style="background: #6B6B6F;"></div>
+      <div class="bridge-label">#6B6B6F Graphite</div>
+      <div class="bridge-arrow">---&gt;</div>
+      <div class="bridge-dot" style="background: #8A8A8E;"></div>
+      <div class="bridge-label">#8A8A8E Ash</div>
+    </div>
+
+    <div class="bridge-row">
+      <div class="bridge-dot" style="background: #202024; border: 1px solid #333;"></div>
+      <div class="bridge-label">#202024 Seam</div>
+      <div class="bridge-arrow">---&gt;</div>
+      <div class="bridge-dot" style="background: #44444A;"></div>
+      <div class="bridge-label">#44444A Cool Iron</div>
+    </div>
+
+    <div class="bridge-philosophy">
+      "El neon #D4FF00 enfria a #B8D940. El negro #08080A sube a #2C2C30. Todo se mueve en la misma direccion termica."
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 4: TYPOGRAPHY SYSTEM
+     ============================================================ -->
+<section class="section bg-iron">
+  <div class="section-number">04</div>
+  <div class="section-label">TIPOGRAFIA</div>
+  <div class="section-title">Sistema Tipografico</div>
+  <div class="section-subtitle" style="margin-bottom: 60px;">Las mismas fuentes, dos temperaturas. El sistema tipografico se mantiene identico entre modos.</div>
+
+  <!-- SYNE 800 — Wordmark -->
+  <div class="type-row-label">SYNE 800 &mdash; WORDMARK</div>
+  <div class="type-grid">
+    <div class="type-card type-card-enc">
+      <div class="type-card-label">ENCENDIDO</div>
+      <div class="type-spec">Syne ExtraBold 800 / Wordmark</div>
+      <div style="font-family: 'Syne', sans-serif; font-weight: 800; font-size: 36px; color: var(--enc-neon); text-shadow: 0 0 40px rgba(212,255,0,0.2);">LIFTORY</div>
+    </div>
+    <div class="type-card type-card-apa">
+      <div class="type-card-label">APAGADO</div>
+      <div class="type-spec">Syne ExtraBold 800 / Wordmark</div>
+      <div style="font-family: 'Syne', sans-serif; font-weight: 800; font-size: 36px; color: var(--apa-neon);">LIFTORY</div>
+    </div>
+  </div>
+
+  <div style="height: 24px;"></div>
+
+  <!-- SYNE 700 — Headings -->
+  <div class="type-row-label">SYNE 700 &mdash; HEADINGS</div>
+  <div class="type-grid">
+    <div class="type-card type-card-enc">
+      <div class="type-card-label">ENCENDIDO</div>
+      <div class="type-spec">Syne Bold 700 / Headings</div>
+      <div style="font-family: 'Syne', sans-serif; font-weight: 700; font-size: 28px; color: var(--enc-text);">Upper Power</div>
+      <div style="font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; color: var(--enc-text); margin-top: 8px;">Fase de Acumulacion</div>
+    </div>
+    <div class="type-card type-card-apa">
+      <div class="type-card-label">APAGADO</div>
+      <div class="type-spec">Syne Bold 700 / Headings</div>
+      <div style="font-family: 'Syne', sans-serif; font-weight: 700; font-size: 28px; color: var(--apa-text);">Upper Power</div>
+      <div style="font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; color: var(--apa-text); margin-top: 8px;">Fase de Acumulacion</div>
+    </div>
+  </div>
+
+  <div style="height: 24px;"></div>
+
+  <!-- DM SANS — Body -->
+  <div class="type-row-label">DM SANS 400/500 &mdash; BODY</div>
+  <div class="type-grid">
+    <div class="type-card type-card-enc">
+      <div class="type-card-label">ENCENDIDO</div>
+      <div class="type-spec">DM Sans Regular/Medium / Body</div>
+      <div style="font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--enc-text); line-height: 1.7; margin-bottom: 8px;">Tu entrenamiento de hoy esta diseñado para maximizar la fuerza en el tren superior.</div>
+      <div style="font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--enc-muted); line-height: 1.6;">5 ejercicios — 45 min estimados — RPE objetivo 7-8</div>
+    </div>
+    <div class="type-card type-card-apa">
+      <div class="type-card-label">APAGADO</div>
+      <div class="type-spec">DM Sans Regular/Medium / Body</div>
+      <div style="font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--apa-text); line-height: 1.7; margin-bottom: 8px;">Tu entrenamiento de hoy esta diseñado para maximizar la fuerza en el tren superior.</div>
+      <div style="font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--apa-muted); line-height: 1.6;">5 ejercicios — 45 min estimados — RPE objetivo 7-8</div>
+    </div>
+  </div>
+
+  <div style="height: 24px;"></div>
+
+  <!-- DM MONO — Data -->
+  <div class="type-row-label">DM MONO 400 &mdash; DATA / LABELS</div>
+  <div class="type-grid">
+    <div class="type-card type-card-enc">
+      <div class="type-card-label">ENCENDIDO</div>
+      <div class="type-spec">DM Mono Regular 400 / Data</div>
+      <div style="font-family: 'DM Mono', monospace; font-size: 20px; color: var(--enc-text); margin-bottom: 8px;">100 kg &mdash; 3x5 &mdash; RPE 8</div>
+      <div style="font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 2px; color: var(--enc-muted); text-transform: uppercase;">DIA 3 / SEMANA 4 / ACUMULACION</div>
+    </div>
+    <div class="type-card type-card-apa">
+      <div class="type-card-label">APAGADO</div>
+      <div class="type-spec">DM Mono Regular 400 / Data</div>
+      <div style="font-family: 'DM Mono', monospace; font-size: 20px; color: var(--apa-text); margin-bottom: 8px;">100 kg &mdash; 3x5 &mdash; RPE 8</div>
+      <div style="font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 2px; color: var(--apa-muted); text-transform: uppercase;">DIA 3 / SEMANA 4 / ACUMULACION</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 5: THE KEY QUESTION
+     ============================================================ -->
+<section class="section bg-forge">
+  <div class="section-number">05</div>
+  <div class="section-label">LA PREGUNTA CLAVE</div>
+  <div class="section-title">Funciona?</div>
+  <div class="section-subtitle" style="margin-bottom: 48px;">Antes de comprometerse con este camino, hay que ser honestos sobre lo que implica un sistema dual donde ambos modos son oscuros.</div>
+
+  <div class="question-grid">
+    <div class="question-card">
+      <div class="question-card-title risk-label">EL RIESGO</div>
+      <p>Ambos modos son oscuros. El usuario que quiere "light mode" probablemente quiere BLANCO — no gunmetal. Al activar el toggle y obtener un gris calido en vez de blanco, la reaccion puede ser confusion o decepcion.</p>
+    </div>
+    <div class="question-card">
+      <div class="question-card-title advantage-label">LA VENTAJA</div>
+      <p>La identidad FORGED sobrevive intacta. No hay compromiso en el color neon. No hay esa transicion incomoda donde el neon #D4FF00 sobre blanco pierde toda su magia industrial.</p>
+    </div>
+  </div>
+
+  <div class="question-card" style="margin-bottom: 48px;">
+    <div class="question-card-title question-label">LA PREGUNTA</div>
+    <p>Tu usuario quiere elegir entre dos oscuridades, o quiere el contraste real de claro vs oscuro? Esa es la decision fundamental de este camino.</p>
+  </div>
+
+  <!-- Mini comparison -->
+  <div style="text-align: center; margin-bottom: 24px;">
+    <div class="section-label">COMPARACION VISUAL</div>
+    <div style="font-size: 14px; color: var(--enc-muted);">FORGED Apagado vs Mallorquina Dia — dos filosofias opuestas</div>
+  </div>
+
+  <div class="comparison-row">
+    <div style="text-align: center;">
+      <div class="mini-phone mini-phone-enc" style="margin: 0 auto;">
+        <div style="font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px; color: var(--apa-neon); text-align: center; margin-top: 16px;">LIFTORY</div>
+        <div style="font-size: 9px; color: var(--apa-muted); text-align: center; margin-bottom: 12px;">Hoy</div>
+        <div class="mini-phone-card" style="background: var(--apa-card); border-radius: 8px;"></div>
+        <div class="mini-phone-bar" style="background: var(--apa-secondary);"><div style="width: 60%; height: 100%; background: var(--apa-neon); border-radius: 4px;"></div></div>
+        <div class="mini-phone-card" style="background: var(--apa-card); border-radius: 8px; height: 40px;"></div>
+      </div>
+      <div class="comparison-label" style="color: var(--apa-neon);">FORGED APAGADO</div>
+      <div style="font-size: 11px; color: var(--enc-muted); margin-top: 4px;">Gunmetal + neon atenuado</div>
+    </div>
+    <div style="text-align: center;">
+      <div class="mini-phone mini-phone-light" style="margin: 0 auto;">
+        <div style="font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px; color: #C17A2F; text-align: center; margin-top: 16px;">LIFTORY</div>
+        <div style="font-size: 9px; color: #8B7355; text-align: center; margin-bottom: 12px;">Hoy</div>
+        <div class="mini-phone-card" style="background: #FFFFFF; border-radius: 8px; border: 1px solid #E8DFD4;"></div>
+        <div class="mini-phone-bar" style="background: #E8DFD4;"><div style="width: 60%; height: 100%; background: #C17A2F; border-radius: 4px;"></div></div>
+        <div class="mini-phone-card" style="background: #FFFFFF; border-radius: 8px; height: 40px; border: 1px solid #E8DFD4;"></div>
+      </div>
+      <div class="comparison-label" style="color: #C17A2F;">MALLORQUINA DIA</div>
+      <div style="font-size: 11px; color: var(--enc-muted); margin-top: 4px;">Lino + terracota calido</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 6: PHONE MOCKUPS
+     ============================================================ -->
+<section class="section bg-iron">
+  <div class="section-number">06</div>
+  <div class="section-label">MOCKUPS</div>
+  <div class="section-title">Interfaz en Contexto</div>
+  <div class="section-subtitle" style="margin-bottom: 60px;">Seis pantallas. Tres pares. Cada una mostrando la misma interfaz en ambas temperaturas de la forja.</div>
+
+  <!-- PAIR A: HOME SCREEN -->
+  <div class="mockup-pair-label">MOCKUP A &mdash; HOME SCREEN</div>
+  <div class="mockup-pair">
+
+    <!-- Encendido Home -->
+    <div class="phone-wrapper">
+      <div class="phone-mode-label phone-mode-enc">ENCENDIDO</div>
+      <div class="phone-frame phone-frame-enc">
+        <div class="phone-status-bar">
+          <span>9:41</span>
+          <span class="phone-battery"></span>
+        </div>
+        <div class="phone-content">
+          <div class="ph-wordmark" style="color: var(--enc-neon); text-shadow: 0 0 20px rgba(212,255,0,0.15);">LIFTORY</div>
+          <div class="ph-subtitle" style="color: var(--enc-muted);">Hoy</div>
+
+          <div class="ph-card ph-card-enc">
+            <div class="ph-day" style="color: var(--enc-muted);">DIA 3</div>
+            <div class="ph-badge ph-badge-enc">ACUMULACION</div>
+            <div class="ph-heading">Upper Power</div>
+            <div class="ph-meta" style="color: var(--enc-muted);">5 ejercicios &mdash; 45 min est.</div>
+            <div class="ph-progress-track" style="background: var(--enc-border);">
+              <div class="ph-progress-fill" style="background: var(--enc-neon);"></div>
+            </div>
+          </div>
+
+          <div class="ph-stats">
+            <div class="ph-stat" style="background: var(--enc-card); border-color: var(--enc-border);">
+              <div class="ph-stat-label" style="color: var(--enc-muted);">RACHA SEMANA</div>
+              <div class="ph-stat-value">4</div>
+            </div>
+            <div class="ph-stat" style="background: var(--enc-card); border-color: var(--enc-border);">
+              <div class="ph-stat-label" style="color: var(--enc-muted);">VOLUMEN</div>
+              <div class="ph-stat-value">48.2t</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ph-tab-bar">
+          <div class="ph-tab-icon" style="background: var(--enc-neon); opacity: 1;"></div>
+          <div class="ph-tab-icon" style="background: var(--enc-muted); opacity: 0.4;"></div>
+          <div class="ph-tab-icon" style="background: var(--enc-muted); opacity: 0.4;"></div>
+          <div class="ph-tab-icon" style="background: var(--enc-muted); opacity: 0.4;"></div>
+        </div>
+        <div class="phone-home-indicator"></div>
+      </div>
+    </div>
+
+    <!-- Apagado Home -->
+    <div class="phone-wrapper">
+      <div class="phone-mode-label phone-mode-apa">APAGADO</div>
+      <div class="phone-frame phone-frame-apa">
+        <div class="phone-status-bar">
+          <span>9:41</span>
+          <span class="phone-battery"></span>
+        </div>
+        <div class="phone-content">
+          <div class="ph-wordmark" style="color: var(--apa-neon);">LIFTORY</div>
+          <div class="ph-subtitle" style="color: var(--apa-muted);">Hoy</div>
+
+          <div class="ph-card ph-card-apa">
+            <div class="ph-day" style="color: var(--apa-muted);">DIA 3</div>
+            <div class="ph-badge ph-badge-apa">ACUMULACION</div>
+            <div class="ph-heading">Upper Power</div>
+            <div class="ph-meta" style="color: var(--apa-muted);">5 ejercicios &mdash; 45 min est.</div>
+            <div class="ph-progress-track" style="background: var(--apa-border);">
+              <div class="ph-progress-fill" style="background: var(--apa-neon);"></div>
+            </div>
+          </div>
+
+          <div class="ph-stats">
+            <div class="ph-stat" style="background: var(--apa-card); border-color: var(--apa-border);">
+              <div class="ph-stat-label" style="color: var(--apa-muted);">RACHA SEMANA</div>
+              <div class="ph-stat-value">4</div>
+            </div>
+            <div class="ph-stat" style="background: var(--apa-card); border-color: var(--apa-border);">
+              <div class="ph-stat-label" style="color: var(--apa-muted);">VOLUMEN</div>
+              <div class="ph-stat-value">48.2t</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ph-tab-bar">
+          <div class="ph-tab-icon" style="background: var(--apa-neon); opacity: 1;"></div>
+          <div class="ph-tab-icon" style="background: var(--apa-muted); opacity: 0.4;"></div>
+          <div class="ph-tab-icon" style="background: var(--apa-muted); opacity: 0.4;"></div>
+          <div class="ph-tab-icon" style="background: var(--apa-muted); opacity: 0.4;"></div>
+        </div>
+        <div class="phone-home-indicator"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAIR B: PAYWALL -->
+  <div class="mockup-pair-label">MOCKUP B &mdash; PAYWALL</div>
+  <div class="mockup-pair">
+
+    <!-- Encendido Paywall -->
+    <div class="phone-wrapper">
+      <div class="phone-mode-label phone-mode-enc">ENCENDIDO</div>
+      <div class="phone-frame phone-frame-enc">
+        <div class="phone-status-bar">
+          <span>9:41</span>
+          <span class="phone-battery"></span>
+        </div>
+        <div class="phone-content">
+          <div class="ph-wordmark" style="color: var(--enc-neon); text-shadow: 0 0 20px rgba(212,255,0,0.15); font-size: 16px; text-align: center; margin-bottom: 12px;">LIFTORY</div>
+          <div class="ph-pw-heading">Tu club.<br>Tu disciplina.</div>
+
+          <div class="ph-plan ph-card-enc" style="background: var(--enc-card); border-color: var(--enc-border);">
+            <div class="ph-plan-name">MENSUAL</div>
+            <div class="ph-plan-price">$399</div>
+          </div>
+
+          <div class="ph-plan ph-plan-selected-enc" style="background: var(--enc-card); border-color: var(--enc-neon);">
+            <div>
+              <div class="ph-plan-name">SEMESTRAL</div>
+              <span class="ph-savings" style="background: var(--enc-accent-bg); color: var(--enc-neon);">-30%</span>
+            </div>
+            <div class="ph-plan-price">$1,674</div>
+          </div>
+
+          <div class="ph-plan ph-card-enc" style="background: var(--enc-card); border-color: var(--enc-border);">
+            <div class="ph-plan-name">ANUAL</div>
+            <div class="ph-plan-price">$3,588</div>
+          </div>
+
+          <div class="ph-cta ph-cta-enc">SUSCRIBIRSE</div>
+          <div class="ph-cancel" style="color: var(--enc-muted);">Cancela cuando quieras</div>
+        </div>
+        <div class="phone-home-indicator"></div>
+      </div>
+    </div>
+
+    <!-- Apagado Paywall -->
+    <div class="phone-wrapper">
+      <div class="phone-mode-label phone-mode-apa">APAGADO</div>
+      <div class="phone-frame phone-frame-apa">
+        <div class="phone-status-bar">
+          <span>9:41</span>
+          <span class="phone-battery"></span>
+        </div>
+        <div class="phone-content">
+          <div class="ph-wordmark" style="color: var(--apa-neon); font-size: 16px; text-align: center; margin-bottom: 12px;">LIFTORY</div>
+          <div class="ph-pw-heading">Tu club.<br>Tu disciplina.</div>
+
+          <div class="ph-plan" style="background: var(--apa-card); border-color: var(--apa-border);">
+            <div class="ph-plan-name">MENSUAL</div>
+            <div class="ph-plan-price">$399</div>
+          </div>
+
+          <div class="ph-plan ph-plan-selected-apa" style="background: var(--apa-card); border-color: var(--apa-neon);">
+            <div>
+              <div class="ph-plan-name">SEMESTRAL</div>
+              <span class="ph-savings" style="background: var(--apa-accent-bg); color: var(--apa-neon);">-30%</span>
+            </div>
+            <div class="ph-plan-price">$1,674</div>
+          </div>
+
+          <div class="ph-plan" style="background: var(--apa-card); border-color: var(--apa-border);">
+            <div class="ph-plan-name">ANUAL</div>
+            <div class="ph-plan-price">$3,588</div>
+          </div>
+
+          <div class="ph-cta ph-cta-apa">SUSCRIBIRSE</div>
+          <div class="ph-cancel" style="color: var(--apa-muted);">Cancela cuando quieras</div>
+        </div>
+        <div class="phone-home-indicator"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAIR C: PR CELEBRATION -->
+  <div class="mockup-pair-label">MOCKUP C &mdash; PR CELEBRATION</div>
+  <div class="mockup-pair">
+
+    <!-- Encendido PR -->
+    <div class="phone-wrapper">
+      <div class="phone-mode-label phone-mode-enc">ENCENDIDO</div>
+      <div class="phone-frame phone-frame-enc">
+        <div class="phone-status-bar">
+          <span>9:41</span>
+          <span class="phone-battery"></span>
+        </div>
+        <div class="phone-content ph-pr-overlay">
+          <div class="ph-pr-card ph-pr-card-enc">
+            <div class="ph-pr-icon ph-pr-icon-enc">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L7 13M7 1L3 5M7 1L11 5" stroke="#08080A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="ph-pr-badge" style="background: var(--enc-neon); color: var(--enc-cta-text);">NUEVO PR</div>
+            <div class="ph-pr-exercise">Bench Press</div>
+            <div class="ph-pr-number">100<span class="ph-pr-unit" style="color: var(--enc-muted);"> kg</span></div>
+            <div class="ph-pr-reps" style="color: var(--enc-muted);">3 reps</div>
+            <div class="ph-pr-improvement" style="background: var(--enc-accent-bg); color: var(--enc-neon);">+5 kg vs anterior</div>
+            <div class="ph-pr-branding" style="color: var(--enc-neon);">LIFTORY</div>
+            <div class="ph-cta ph-cta-enc" style="font-size: 11px; padding: 8px;">SEGUIR</div>
+          </div>
+        </div>
+        <div class="phone-home-indicator"></div>
+      </div>
+    </div>
+
+    <!-- Apagado PR -->
+    <div class="phone-wrapper">
+      <div class="phone-mode-label phone-mode-apa">APAGADO</div>
+      <div class="phone-frame phone-frame-apa">
+        <div class="phone-status-bar">
+          <span>9:41</span>
+          <span class="phone-battery"></span>
+        </div>
+        <div class="phone-content ph-pr-overlay">
+          <div class="ph-pr-card ph-pr-card-apa">
+            <div class="ph-pr-icon ph-pr-icon-apa">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L7 13M7 1L3 5M7 1L11 5" stroke="#1A1A1E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="ph-pr-badge" style="background: var(--apa-neon); color: var(--apa-cta-text);">NUEVO PR</div>
+            <div class="ph-pr-exercise">Bench Press</div>
+            <div class="ph-pr-number">100<span class="ph-pr-unit" style="color: var(--apa-muted);"> kg</span></div>
+            <div class="ph-pr-reps" style="color: var(--apa-muted);">3 reps</div>
+            <div class="ph-pr-improvement" style="background: var(--apa-accent-bg); color: var(--apa-neon);">+5 kg vs anterior</div>
+            <div class="ph-pr-branding" style="color: var(--apa-neon);">LIFTORY</div>
+            <div class="ph-cta ph-cta-apa" style="font-size: 11px; padding: 8px;">SEGUIR</div>
+          </div>
+        </div>
+        <div class="phone-home-indicator"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 7: BUTTON SYSTEM
+     ============================================================ -->
+<section class="section bg-forge">
+  <div class="section-number">07</div>
+  <div class="section-label">BOTONES</div>
+  <div class="section-title">Sistema de Botones</div>
+  <div class="section-subtitle" style="margin-bottom: 60px;">Cuatro estados, dos temperaturas. El sistema de interaccion mantiene coherencia termica completa.</div>
+
+  <div class="button-grid">
+    <!-- Encendido Buttons -->
+    <div class="button-panel button-panel-enc">
+      <div class="button-panel-label" style="color: var(--enc-neon);">ENCENDIDO</div>
+
+      <div class="btn-row">
+        <div class="btn-row-label" style="color: var(--enc-muted);">PRIMARY</div>
+        <div class="btn-demo btn-primary-enc">SUSCRIBIRSE</div>
+      </div>
+
+      <div class="btn-row">
+        <div class="btn-row-label" style="color: var(--enc-muted);">SECONDARY</div>
+        <div class="btn-demo btn-secondary-enc">VER DETALLES</div>
+      </div>
+
+      <div class="btn-row">
+        <div class="btn-row-label" style="color: var(--enc-muted);">GHOST</div>
+        <div class="btn-demo btn-ghost-enc">CANCELAR</div>
+      </div>
+
+      <div class="btn-row">
+        <div class="btn-row-label" style="color: var(--enc-muted);">DISABLED</div>
+        <div class="btn-demo btn-disabled-enc">NO DISPONIBLE</div>
+      </div>
+    </div>
+
+    <!-- Apagado Buttons -->
+    <div class="button-panel button-panel-apa">
+      <div class="button-panel-label" style="color: var(--apa-neon);">APAGADO</div>
+
+      <div class="btn-row">
+        <div class="btn-row-label" style="color: var(--apa-muted);">PRIMARY</div>
+        <div class="btn-demo btn-primary-apa">SUSCRIBIRSE</div>
+      </div>
+
+      <div class="btn-row">
+        <div class="btn-row-label" style="color: var(--apa-muted);">SECONDARY</div>
+        <div class="btn-demo btn-secondary-apa">VER DETALLES</div>
+      </div>
+
+      <div class="btn-row">
+        <div class="btn-row-label" style="color: var(--apa-muted);">GHOST</div>
+        <div class="btn-demo btn-ghost-apa">CANCELAR</div>
+      </div>
+
+      <div class="btn-row">
+        <div class="btn-row-label" style="color: var(--apa-muted);">DISABLED</div>
+        <div class="btn-demo btn-disabled-apa">NO DISPONIBLE</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 8: HONEST ASSESSMENT
+     ============================================================ -->
+<section class="section bg-iron">
+  <div class="section-number">08</div>
+  <div class="section-label">EVALUACION HONESTA</div>
+  <div class="section-title">Tres Perspectivas</div>
+  <div class="section-subtitle" style="margin-bottom: 60px;">Sin endulzar. Lo que funciona, lo que arriesga, y el veredicto real.</div>
+
+  <div class="assessment-grid">
+    <!-- Column 1: Lo que funciona -->
+    <div class="assessment-card">
+      <div class="assessment-card-title">Lo que funciona</div>
+      <ul>
+        <li>La coherencia de marca es perfecta. La familia neon se mantiene intacta.</li>
+        <li>No hay crisis de identidad entre modos. FORGED es FORGED en ambas temperaturas.</li>
+        <li>Todo usuario de apps de fuerza esta comodo en dark mode.</li>
+        <li>El toggle se siente como ajustar el horno, no como cambiar de marca.</li>
+        <li>El neon #D4FF00 a #B8D940 es una transicion organica y creible.</li>
+      </ul>
+    </div>
+
+    <!-- Column 2: El riesgo real -->
+    <div class="assessment-card">
+      <div class="assessment-card-title">El riesgo real</div>
+      <ul>
+        <li>Usuarios que activan "light mode" esperan BLANCO. Obtener gunmetal puede confundir o decepcionar.</li>
+        <li>Ofreces dos oscuridades, no una eleccion real entre claro y oscuro.</li>
+        <li>En luz solar directa, ambos modos pueden tener problemas de legibilidad.</li>
+        <li>La diferencia de ahorro de bateria entre modos es minima (ambos oscuros).</li>
+        <li>El mercado casual/lifestyle puede sentirse excluido.</li>
+      </ul>
+    </div>
+
+    <!-- Column 3: El veredicto -->
+    <div class="assessment-card">
+      <div class="assessment-card-title">El veredicto</div>
+      <ul>
+        <li>FORGED Camino C funciona SI tu audiencia es 100% lifters serios que viven en dark mode.</li>
+        <li>Si alguna vez quieres atraer usuarios casuales o de fitness lifestyle, el light mode real de Mallorquina es una apuesta mas segura.</li>
+        <li>La pregunta no es de diseño — es de audiencia.</li>
+        <li>Para un nicho hardcore, esto es perfecto. Para crecimiento masivo, es limitante.</li>
+        <li>La decision depende de a quien quieres servir, no de que se ve mejor.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 9: SCORES
+     ============================================================ -->
+<section class="section bg-forge">
+  <div class="section-number">09</div>
+  <div class="section-label">PUNTUACION</div>
+  <div class="section-title">Scorecard</div>
+  <div class="section-subtitle" style="margin-bottom: 60px;">Evaluacion cuantitativa del sistema FORGED Camino C en seis dimensiones clave.</div>
+
+  <div class="score-row">
+    <div class="score-label">Brand Coherence</div>
+    <div class="score-bar-track score-bar-high">
+      <div class="score-bar-fill" style="width: 98%;"></div>
+    </div>
+    <div class="score-value">9.8</div>
+  </div>
+
+  <div class="score-row">
+    <div class="score-label">Energia</div>
+    <div class="score-bar-track score-bar-high">
+      <div class="score-bar-fill" style="width: 95%;"></div>
+    </div>
+    <div class="score-value">9.5</div>
+  </div>
+
+  <div class="score-row">
+    <div class="score-label">Premium Feel</div>
+    <div class="score-bar-track score-bar-mid">
+      <div class="score-bar-fill" style="width: 75%;"></div>
+    </div>
+    <div class="score-value">7.5</div>
+  </div>
+
+  <div class="score-row">
+    <div class="score-label">Accesibilidad</div>
+    <div class="score-bar-track score-bar-low">
+      <div class="score-bar-fill" style="width: 60%;"></div>
+    </div>
+    <div class="score-value">6.0</div>
+  </div>
+
+  <div class="score-row">
+    <div class="score-label">Versatilidad</div>
+    <div class="score-bar-track score-bar-low">
+      <div class="score-bar-fill" style="width: 55%;"></div>
+    </div>
+    <div class="score-value">5.5</div>
+  </div>
+
+  <div class="score-row">
+    <div class="score-label">Diferencia Real Entre Modos</div>
+    <div class="score-bar-track score-bar-low">
+      <div class="score-bar-fill" style="width: 60%;"></div>
+    </div>
+    <div class="score-value">6.0</div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 10: CLOSING
+     ============================================================ -->
+<section class="closing">
+  <div class="section-number" style="margin-bottom: 40px;">10</div>
+  <div class="closing-quote">
+    FORGED nunca se apaga. Solo <span>baja la temperatura</span>.<br>
+    La pregunta es: eso es suficiente para tu usuario?
+  </div>
+  <div class="closing-footer">
+    LIFTORY &mdash; FORGED Camino C Brief &mdash; Abril 2026 &mdash; Documento Confidencial
+  </div>
+</section>
+
+</body>
+</html>

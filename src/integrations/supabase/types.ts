@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       ai_rules: {
@@ -225,7 +250,9 @@ export type Database = {
           founder_notes: string | null
           id: string
           is_active: boolean | null
+          is_draft: boolean
           movement_pattern: string
+          movement_plane: string | null
           name: string
           name_es: string
           primary_muscles: string[]
@@ -248,7 +275,9 @@ export type Database = {
           founder_notes?: string | null
           id?: string
           is_active?: boolean | null
+          is_draft?: boolean
           movement_pattern: string
+          movement_plane?: string | null
           name: string
           name_es: string
           primary_muscles: string[]
@@ -271,7 +300,9 @@ export type Database = {
           founder_notes?: string | null
           id?: string
           is_active?: boolean | null
+          is_draft?: boolean
           movement_pattern?: string
+          movement_plane?: string | null
           name?: string
           name_es?: string
           primary_muscles?: string[]
@@ -363,39 +394,60 @@ export type Database = {
       }
       mesocycles: {
         Row: {
+          accent: string | null
+          benefits: string[] | null
           created_at: string
           cycle_end_date: string | null
           cycle_number: number
           cycle_start_date: string
+          focus_stats: Json | null
           id: string
+          is_selectable: boolean
           previous_cycle_id: string | null
           program_name: string
           status: string
+          summary: string | null
+          tagline: string | null
           template_program_id: string
+          title: string | null
           total_weeks: number
         }
         Insert: {
+          accent?: string | null
+          benefits?: string[] | null
           created_at?: string
           cycle_end_date?: string | null
           cycle_number: number
           cycle_start_date: string
+          focus_stats?: Json | null
           id?: string
+          is_selectable?: boolean
           previous_cycle_id?: string | null
           program_name: string
           status?: string
+          summary?: string | null
+          tagline?: string | null
           template_program_id: string
+          title?: string | null
           total_weeks?: number
         }
         Update: {
+          accent?: string | null
+          benefits?: string[] | null
           created_at?: string
           cycle_end_date?: string | null
           cycle_number?: number
           cycle_start_date?: string
+          focus_stats?: Json | null
           id?: string
+          is_selectable?: boolean
           previous_cycle_id?: string | null
           program_name?: string
           status?: string
+          summary?: string | null
+          tagline?: string | null
           template_program_id?: string
+          title?: string | null
           total_weeks?: number
         }
         Relationships: [
@@ -656,6 +708,60 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      substitution_candidates: {
+        Row: {
+          axis: string
+          candidate_exercise_id: string
+          created_at: string
+          exercise_id: string
+          id: string
+          reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          score: number
+          status: string
+        }
+        Insert: {
+          axis: string
+          candidate_exercise_id: string
+          created_at?: string
+          exercise_id: string
+          id?: string
+          reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          score?: number
+          status?: string
+        }
+        Update: {
+          axis?: string
+          candidate_exercise_id?: string
+          created_at?: string
+          exercise_id?: string
+          id?: string
+          reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          score?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "substitution_candidates_candidate_exercise_id_fkey"
+            columns: ["candidate_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "substitution_candidates_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_badges: {
         Row: {
@@ -1081,7 +1187,17 @@ export type Database = {
     }
     Functions: {
       ex: { Args: { p_name: string }; Returns: string }
-      is_admin: { Args: { _user_id: string }; Returns: boolean }
+      exercise_usage_profile: { Args: { ex: string }; Returns: string }
+      exercise_usage_profiles: {
+        Args: { ex_ids: string[] }
+        Returns: {
+          exercise_id: string
+          profile: string
+        }[]
+      }
+      is_admin:
+        | { Args: never; Returns: boolean }
+        | { Args: { _user_id: string }; Returns: boolean }
       propagate_template_sets: {
         Args: {
           p_from_week?: number
@@ -1093,6 +1209,19 @@ export type Database = {
       recalculate_workout_dates: {
         Args: { p_cycle_start_date: string; p_program_id: string }
         Returns: number
+      }
+      start_mesocycle: {
+        Args: {
+          p_mesocycle_id: string
+          p_start_date?: string
+          p_user_id: string
+        }
+        Returns: {
+          first_date: string
+          last_date: string
+          sets_created: number
+          workouts_created: number
+        }[]
       }
       wk: {
         Args: { p_day_offset: number; p_prog: string; p_week: number }
@@ -1116,12 +1245,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1145,11 +1274,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1170,11 +1299,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1195,11 +1324,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1212,11 +1341,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1226,6 +1355,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

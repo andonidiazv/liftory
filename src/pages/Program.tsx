@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import MesocyclePicker, { type MesocycleCard } from "@/components/program/MesocyclePicker";
 import { useQuery } from "@tanstack/react-query";
 import { useProgramData } from "@/hooks/useProgramData";
 import { supabase } from "@/integrations/supabase/client";
@@ -65,9 +67,37 @@ function ProgramSkeleton() {
   );
 }
 
+/**
+ * Athletes allowed into the mesocycle picker while it is being validated.
+ * Andoni and Víctor only — everyone else keeps the read-only archive below.
+ */
+const PICKER_ALLOWLIST = new Set<string>([
+  "8117e549-8314-471d-87c2-c7c68cccac17", // Andoni
+  "3b1c600f-46ee-4332-a937-731c4445c144", // Víctor
+]);
+
 export default function Program() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { program, workouts, loading } = useProgramData();
+  const puedeElegir = !!user?.id && PICKER_ALLOWLIST.has(user.id);
+
+  // Selectable blocks carry their own editorial copy and stats; the archive
+  // below is built from the raw mesocycle rows and stays as-is for everyone.
+  const { data: catalogo } = useQuery({
+    queryKey: ["meso-catalogo", program?.name],
+    queryFn: async (): Promise<MesocycleCard[]> => {
+      if (!program?.name) return [];
+      const { data } = await supabase
+        .from("mesocycles")
+        .select("id, cycle_number, title, tagline, summary, benefits, focus_stats, accent, total_weeks")
+        .eq("program_name", program.name)
+        .eq("is_selectable", true)
+        .order("cycle_number", { ascending: true });
+      return (data as MesocycleCard[]) ?? [];
+    },
+    enabled: !!program?.name && puedeElegir,
+  });
   const [manualMeso, setManualMeso] = useState<string | null>(null);
 
   // Fetch ALL mesocycles for this program (M1, M2, M3, …) so we can show the
@@ -187,6 +217,19 @@ export default function Program() {
             {titleBottom && <><br /><strong style={{ fontWeight: 700 }}>{titleBottom}</strong></>}
           </h1>
         </div>
+
+        {puedeElegir && !!catalogo?.length && (
+          <>
+            <MesocyclePicker mesocycles={catalogo} userId={user!.id} />
+            <div style={{ height: 1, background: "hsl(var(--border))", margin: "8px 0 26px" }} />
+            <p
+              className="font-mono uppercase mb-4"
+              style={{ fontSize: 9, letterSpacing: "2.4px", color: "hsl(var(--muted-foreground))" }}
+            >
+              Tu historial
+            </p>
+          </>
+        )}
 
         {/* Archive list */}
         <div className="flex flex-col">

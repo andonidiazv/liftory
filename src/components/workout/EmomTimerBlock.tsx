@@ -10,6 +10,7 @@ import { dia, noche } from "@/lib/colors";
 import { useWakeLock } from "@/hooks/useWakeLock";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import SwapButton from "./SwapButton";
 
 /* ─── types ─── */
 
@@ -23,6 +24,9 @@ interface EmomTimerBlockProps {
   onUpdateSetWeight: (setId: string, weightKg: number) => void;
   getSuggestedWeight: (exerciseId: string, plannedReps: number | null) => { weightKg: number | null; hint: string | null };
   onOpenVideo: (v: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
+  workoutId?: string;
+  userId?: string;
+  onSwapExercise?: () => void;
 }
 
 type Phase = "idle" | "countdown" | "active" | "done";
@@ -270,6 +274,9 @@ export default function EmomTimerBlock({
   onUpdateSetWeight,
   getSuggestedWeight,
   onOpenVideo,
+  workoutId,
+  userId,
+  onSwapExercise,
 }: EmomTimerBlockProps) {
   const { isDark } = useDarkMode();
   const t = isDark ? noche : dia;
@@ -876,9 +883,20 @@ export default function EmomTimerBlock({
                         />
                       </button>
                       <div className="flex-1 min-w-0">
-                        <p className="font-body text-[15px] font-semibold text-foreground leading-snug" style={{ wordBreak: "break-word" }}>
-                          {ex.name}
-                        </p>
+                        <div className="flex items-start gap-1.5">
+                          <p className="font-body text-[15px] font-semibold text-foreground leading-snug flex-1 min-w-0" style={{ wordBreak: "break-word" }}>
+                            {ex.name}
+                          </p>
+                          <SwapButton
+                            exerciseId={ex.id}
+                            exerciseName={ex.name}
+                            blockLabel={group.sets[0]?.block_label || ""}
+                            workoutId={workoutId}
+                            userId={userId}
+                            onSwapComplete={onSwapExercise}
+                            size={20}
+                          />
+                        </div>
                         {reps != null && (
                           <span className="font-mono text-xs text-muted-foreground">x{reps} {reps === 1 ? "rep" : "reps"}</span>
                         )}
@@ -1048,9 +1066,20 @@ export default function EmomTimerBlock({
                       />
                     </button>
                     <div className="flex-1 min-w-0">
-                      <p className="font-body text-[15px] font-semibold text-foreground leading-snug" style={{ wordBreak: "break-word" }}>
-                        {ex.name}
-                      </p>
+                      <div className="flex items-start gap-1.5">
+                        <p className="font-body text-[15px] font-semibold text-foreground leading-snug flex-1 min-w-0" style={{ wordBreak: "break-word" }}>
+                          {ex.name}
+                        </p>
+                        <SwapButton
+                          exerciseId={ex.id}
+                          exerciseName={ex.name}
+                          blockLabel={group.sets[0]?.block_label || ""}
+                          workoutId={workoutId}
+                          userId={userId}
+                          onSwapComplete={onSwapExercise}
+                          size={20}
+                        />
+                      </div>
                       {reps != null && (
                         <span className="font-mono text-xs text-muted-foreground">
                           x{reps} {reps === 1 ? "rep" : "reps"}{bilateral && (

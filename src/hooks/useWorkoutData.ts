@@ -69,10 +69,10 @@ export interface ExerciseGroup {
   sets: WorkoutSetData[];
 }
 
-/** A superset group is 2-3 consecutive ExerciseGroups that share set_type 'superset' or 'backoff' */
+/** A superset group is 2+ consecutive ExerciseGroups that share set_type 'superset' or 'backoff' */
 export interface SupersetGroup {
-  type: "single" | "superset" | "triset";
-  label: string; // "SUPERSET", "TRISET", or empty
+  type: "single" | "superset" | "triset" | "megaset";
+  label: string; // "SUPERSET", "TRISERIE", "MEGASERIE", or empty
   groups: ExerciseGroup[];
 }
 
@@ -226,9 +226,11 @@ export function useWorkoutData(workoutId: string | undefined) {
             }
           }
           if (cluster.length >= 2) {
+            const superType = cluster.length >= 4 ? "megaset" : cluster.length >= 3 ? "triset" : "superset";
+            const superLabel = superType === "megaset" ? "MEGASERIE" : superType === "triset" ? "TRISERIE" : "SUPERSET";
             ssGroups.push({
-              type: cluster.length >= 3 ? "triset" : "superset",
-              label: cluster.length >= 3 ? "TRI-SET" : "SUPERSET",
+              type: superType,
+              label: superLabel,
               groups: cluster,
             });
           } else {

@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LIFTORY · Onboarding Audit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* LIFTORY palette */
+    --bg: #08080A;
+    --card: #15151A;
+    --card-hi: #1A1A20;
+    --border: #26262E;
+    --text: #FAFAF7;
+    --muted: #8E8E96;
+    --subtle: #56565E;
+    --gold: #C4A24E;
+    --gold-soft: rgba(196, 162, 78, 0.12);
+    --gold-strong: rgba(196, 162, 78, 0.28);
+    --sage: #7A8B5C;
+    --sage-soft: rgba(122, 139, 92, 0.12);
+    --crimson: #B85546;
+    --crimson-soft: rgba(184, 85, 70, 0.12);
+    --amber: #D4896B;
+    --amber-soft: rgba(212, 137, 107, 0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background:
+      radial-gradient(ellipse 100% 50% at 50% -10%, rgba(196,162,78,0.08) 0%, transparent 60%),
+      var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1.5;
+    min-height: 100vh;
+    padding: 60px 24px 80px;
+  }
+  .container { max-width: 920px; margin: 0 auto; }
+
+  /* ============ HERO ============ */
+  .hero { text-align: center; margin-bottom: 80px; }
+  .hero .brand-mark {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 14px;
+    letter-spacing: 4px; color: var(--gold);
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: clamp(48px, 7vw, 84px);
+    letter-spacing: -0.04em; line-height: 0.95;
+    margin-bottom: 16px;
+  }
+  .hero h1 .accent { color: var(--gold); }
+  .hero .subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic; font-size: 18px;
+    color: var(--muted); max-width: 520px; margin: 0 auto;
+  }
+  .hero .meta {
+    margin-top: 32px;
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    color: var(--subtle); letter-spacing: 2px; text-transform: uppercase;
+  }
+
+  /* ============ Section header ============ */
+  .section { margin-bottom: 100px; scroll-margin-top: 40px; }
+  .section-tag {
+    display: inline-block; font-family: 'DM Mono', monospace;
+    font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--gold);
+    padding: 6px 12px; border: 1px solid var(--gold-strong);
+    border-radius: 999px;
+    margin-bottom: 18px;
+  }
+  .section h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: clamp(32px, 4vw, 44px);
+    letter-spacing: -0.03em; line-height: 1.05;
+    margin-bottom: 12px;
+  }
+  .section .lead {
+    font-size: 15px; color: var(--muted); max-width: 640px;
+    margin-bottom: 36px;
+  }
+
+  /* ============ TOC ============ */
+  .toc {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 18px; padding: 24px;
+    margin-bottom: 80px;
+  }
+  .toc-title {
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 14px;
+  }
+  .toc-list { display: flex; flex-direction: column; gap: 6px; }
+  .toc-item {
+    display: flex; gap: 14px; align-items: baseline;
+    padding: 8px 0; border-bottom: 1px solid var(--border);
+    font-size: 14px; text-decoration: none; color: var(--text);
+    transition: color 0.15s;
+  }
+  .toc-item:last-child { border-bottom: none; }
+  .toc-item:hover { color: var(--gold); }
+  .toc-item .num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); width: 32px; }
+  .toc-item .lbl { flex: 1; }
+  .toc-item .pill { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; }
+  .pill.crit { background: var(--crimson-soft); color: var(--crimson); border: 1px solid rgba(184,85,70,0.25); }
+  .pill.high { background: var(--amber-soft); color: var(--amber); border: 1px solid rgba(212,137,107,0.25); }
+  .pill.med  { background: var(--gold-soft); color: var(--gold); border: 1px solid var(--gold-strong); }
+  .pill.low  { background: var(--sage-soft); color: var(--sage); border: 1px solid rgba(122,139,92,0.25); }
+
+  /* ============ User-type cards ============ */
+  .user-types {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px; margin-top: 36px;
+  }
+  .user-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 20px; padding: 24px;
+    position: relative; overflow: hidden;
+  }
+  .user-card.returning { border-color: rgba(122,139,92,0.35); }
+  .user-card.joiner    { border-color: rgba(212,137,107,0.35); }
+  .user-card.fresh     { border-color: var(--gold-strong); }
+  .user-card .badge {
+    font-family: 'DM Mono', monospace; font-size: 9px;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 999px;
+    display: inline-block; margin-bottom: 16px;
+  }
+  .user-card.returning .badge { background: var(--sage-soft); color: var(--sage); }
+  .user-card.joiner    .badge { background: var(--amber-soft); color: var(--amber); }
+  .user-card.fresh     .badge { background: var(--gold-soft); color: var(--gold); }
+  .user-card h3 {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 22px; letter-spacing: -0.02em; line-height: 1.1;
+    margin-bottom: 10px;
+  }
+  .user-card .when {
+    font-size: 13px; color: var(--muted); margin-bottom: 16px;
+  }
+  .user-card .copy {
+    background: var(--card-hi); border-radius: 12px;
+    padding: 16px; margin-top: 16px;
+  }
+  .user-card .copy .lbl {
+    font-family: 'DM Mono', monospace; font-size: 9px;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 8px;
+  }
+  .user-card .copy .hero-line {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 18px; line-height: 1.2; letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+  .user-card .copy .sub-line {
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-size: 13px; color: var(--muted);
+  }
+  .user-card .status {
+    margin-top: 16px;
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    padding-top: 14px; border-top: 1px solid var(--border);
+  }
+  .user-card.returning .status { color: var(--sage); }
+  .user-card.joiner .status, .user-card.fresh .status { color: var(--amber); }
+
+  /* ============ Screen-by-screen breakdown ============ */
+  .screens { display: flex; flex-direction: column; gap: 24px; }
+  .screen-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 20px; padding: 28px;
+  }
+  .screen-card.crit { border-left: 4px solid var(--crimson); }
+  .screen-card.high { border-left: 4px solid var(--amber); }
+  .screen-card.med  { border-left: 4px solid var(--gold); }
+  .screen-card.low  { border-left: 4px solid var(--sage); }
+  .screen-head {
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .screen-num {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: 12px; letter-spacing: 3px; color: var(--gold);
+    text-transform: uppercase;
+  }
+  .screen-title {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 24px; letter-spacing: -0.02em;
+    margin-top: 4px;
+  }
+  .severity {
+    font-family: 'DM Mono', monospace; font-size: 9px;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 5px 11px; border-radius: 999px;
+    flex-shrink: 0;
+  }
+  .severity.crit { background: var(--crimson-soft); color: var(--crimson); border: 1px solid rgba(184,85,70,0.3); }
+  .severity.high { background: var(--amber-soft); color: var(--amber); border: 1px solid rgba(212,137,107,0.3); }
+  .severity.med  { background: var(--gold-soft); color: var(--gold); border: 1px solid var(--gold-strong); }
+  .severity.low  { background: var(--sage-soft); color: var(--sage); border: 1px solid rgba(122,139,92,0.3); }
+
+  .what-it-is {
+    font-size: 14px; color: var(--muted);
+    padding: 14px 16px; background: var(--card-hi);
+    border-radius: 12px; margin-bottom: 18px;
+    border-left: 2px solid var(--border);
+  }
+  .what-it-is strong { color: var(--text); font-weight: 600; }
+
+  .issues, .recs { margin-bottom: 16px; }
+  .block-label {
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 10px;
+  }
+  .issue, .rec {
+    padding: 12px 14px; border-radius: 10px;
+    margin-bottom: 8px;
+    font-size: 14px; line-height: 1.5;
+  }
+  .issue { background: rgba(184,85,70,0.06); border-left: 2px solid var(--crimson); }
+  .issue.med { background: rgba(212,137,107,0.06); border-left: 2px solid var(--amber); }
+  .issue strong { color: var(--crimson); font-weight: 600; }
+  .issue.med strong { color: var(--amber); }
+  .rec { background: var(--sage-soft); border-left: 2px solid var(--sage); }
+  .rec strong { color: var(--sage); font-weight: 600; }
+
+  .copy-example {
+    background: var(--bg); border: 1px solid var(--gold-strong);
+    border-radius: 10px; padding: 14px 16px; margin-top: 10px;
+  }
+  .copy-example .lbl {
+    font-family: 'DM Mono', monospace; font-size: 9px;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 6px;
+  }
+  .copy-example .text {
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-size: 16px; color: var(--text);
+  }
+
+  /* ============ Priority matrix ============ */
+  .matrix {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px; margin-top: 28px;
+  }
+  .priority {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 18px;
+  }
+  .priority.crit { border-color: rgba(184,85,70,0.3); background: linear-gradient(180deg, rgba(184,85,70,0.04), transparent); }
+  .priority.high { border-color: rgba(212,137,107,0.3); background: linear-gradient(180deg, rgba(212,137,107,0.04), transparent); }
+  .priority.med  { border-color: var(--gold-strong); background: linear-gradient(180deg, var(--gold-soft), transparent); }
+  .priority.low  { border-color: rgba(122,139,92,0.3); background: linear-gradient(180deg, rgba(122,139,92,0.04), transparent); }
+  .priority h4 {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 14px; letter-spacing: 1px; text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .priority.crit h4 { color: var(--crimson); }
+  .priority.high h4 { color: var(--amber); }
+  .priority.med  h4 { color: var(--gold); }
+  .priority.low  h4 { color: var(--sage); }
+  .priority ol { padding-left: 18px; }
+  .priority li { font-size: 13px; line-height: 1.6; color: var(--text); margin-bottom: 6px; }
+  .priority li code { font-family: 'DM Mono', monospace; font-size: 11px; background: var(--card-hi); padding: 1px 6px; border-radius: 4px; color: var(--gold); }
+
+  /* ============ Sprint roadmap ============ */
+  .sprints {
+    display: flex; flex-direction: column; gap: 12px;
+    margin-top: 28px;
+  }
+  .sprint {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 22px;
+    display: flex; gap: 18px; align-items: center;
+  }
+  .sprint .sprint-num {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: 32px; color: var(--gold);
+    letter-spacing: -0.04em; line-height: 1;
+    flex-shrink: 0;
+  }
+  .sprint .sprint-body { flex: 1; }
+  .sprint .sprint-title {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 16px; letter-spacing: -0.01em;
+    margin-bottom: 4px;
+  }
+  .sprint .sprint-detail { font-size: 13px; color: var(--muted); }
+  .sprint .sprint-time {
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--gold); padding: 6px 10px;
+    border: 1px solid var(--gold-strong); border-radius: 999px;
+    flex-shrink: 0;
+  }
+
+  /* ============ Footer ============ */
+  .footer {
+    margin-top: 80px; padding-top: 40px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+  .footer .liftory-mark {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: 16px; letter-spacing: -0.03em; color: var(--gold);
+  }
+  .footer .meta {
+    margin-top: 8px;
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    color: var(--subtle); letter-spacing: 2px; text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ════════════════ HERO ════════════════ -->
+  <div class="hero">
+    <div class="brand-mark">LIFTORY · INTERNAL AUDIT</div>
+    <h1>Onboarding<br/><span class="accent">audit & roadmap</span></h1>
+    <p class="subtitle">Las 12 pantallas del flow + diferenciación por tipo de usuario. Aliado a la dirección actual de la app.</p>
+    <div class="meta">28 abril 2026 · CMO + CTO POV</div>
+  </div>
+
+  <!-- ════════════════ TOC ════════════════ -->
+  <div class="toc">
+    <div class="toc-title">Índice</div>
+    <div class="toc-list">
+      <a href="#user-types" class="toc-item">
+        <span class="num">01</span><span class="lbl">Los 3 perfiles de usuario</span><span class="pill crit">CRÍTICO</span>
+      </a>
+      <a href="#screen-by-screen" class="toc-item">
+        <span class="num">02</span><span class="lbl">Audit pantalla por pantalla (12)</span><span class="pill high">FONDO</span>
+      </a>
+      <a href="#priorities" class="toc-item">
+        <span class="num">03</span><span class="lbl">Priorización</span><span class="pill med">EJECUTIVO</span>
+      </a>
+      <a href="#roadmap" class="toc-item">
+        <span class="num">04</span><span class="lbl">Roadmap de sprints</span><span class="pill low">PLAN</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- ════════════════ SECTION 01 — USER TYPES ════════════════ -->
+  <div class="section" id="user-types">
+    <span class="section-tag">01 · Foundation</span>
+    <h2>3 perfiles, 3 narrativas</h2>
+    <p class="lead">Hoy solo cubrimos M1→M2 transition. Faltan 2 perfiles más. Cada uno necesita su propio mensaje en la WelcomeCard — mismo componente, prop <code style="font-family:'DM Mono',monospace;color:var(--gold);background:var(--card);padding:2px 6px;border-radius:4px;font-size:13px;">variant</code>, copy distinta.</p>
+
+    <div class="user-types">
+      <!-- Returning -->
+      <div class="user-card returning">
+        <span class="badge">Variant · transition</span>
+        <h3>Returning</h3>
+        <p class="when">Atleta completó M1 → arranca M2. Detección automática por boundary de fechas.</p>
+        <div class="copy">
+          <div class="lbl">Hero copy</div>
+          <div class="hero-line">Construiste la base. Ahora ponla a trabajar.</div>
+          <div class="sub-line">Nuevos formatos. Misma intención.</div>
+        </div>
+        <div class="status">✓ Construido. Sprint 2 hoy.</div>
+      </div>
+
+      <!-- Joiner -->
+      <div class="user-card joiner">
+        <span class="badge">Variant · joiner</span>
+        <h3>Mid-cycle joiner</h3>
+        <p class="when">Atleta nuevo se mete a M2 en curso (ej: Step 8 → "Unirse al ciclo live" mientras meso live = M2).</p>
+        <div class="copy">
+          <div class="lbl">Hero copy propuesto</div>
+          <div class="hero-line">Te subes en marcha.</div>
+          <div class="sub-line">El grupo está en Semana N. Aprendes los formatos en orden.</div>
+        </div>
+        <div class="status">⚠ Falta. Reusar componente con prop variant.</div>
+      </div>
+
+      <!-- Fresh -->
+      <div class="user-card fresh">
+        <span class="badge">Variant · first-meso</span>
+        <h3>Brand new at S1</h3>
+        <p class="when">Primer ciclo, desde el inicio. Sale del Onboarding eligiendo "Empezar desde S1".</p>
+        <div class="copy">
+          <div class="lbl">Hero copy propuesto</div>
+          <div class="hero-line">Día 1. Construyamos la base.</div>
+          <div class="sub-line">5 días por semana + active recovery. 6 semanas de meso.</div>
+        </div>
+        <div class="status">⚠ Falta. Hoy va directo a Home sin celebración.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ SECTION 02 — SCREEN BY SCREEN ════════════════ -->
+  <div class="section" id="screen-by-screen">
+    <span class="section-tag">02 · A fondo</span>
+    <h2>Las 12 pantallas, screen by screen</h2>
+    <p class="lead">Cada pantalla con: lo que hace, los issues que detecté, y la recomendación específica de mejora.</p>
+
+    <div class="screens">
+
+      <!-- STEP 0 — SPLASH -->
+      <div class="screen-card med">
+        <div class="screen-head">
+          <div>
+            <div class="screen-num">Step 0</div>
+            <div class="screen-title">Splash · LIFTORY logo</div>
+          </div>
+          <span class="severity med">Brand voice</span>
+        </div>
+        <div class="what-it-is"><strong>Lo que hace:</strong> Muestra el logo LIFTORY animado, tagline "The Wellness Community", botón "LET'S GO" y link a Login.</div>
+        <div class="issues">
+          <div class="block-label">Issues</div>
+          <div class="issue med"><strong>Tagline mal alineada.</strong> "The Wellness Community" suena a app de meditación. LIFTORY es performance, no wellness.</div>
+          <div class="issue med"><strong>"LET'S GO" en inglés</strong> rompe la consistencia es-mx del resto del flow.</div>
+        </div>
+        <div class="recs">
+          <div class="block-label">Recomendación</div>
+          <div class="rec"><strong>Tagline:</strong> usar tu copy de marca real "Move better. Lift stronger. Live longer." o versión es: "Más fuerte. Más capaz. Más cabrón."</div>
+          <div class="copy-example">
+            <div class="lbl">Propuesta CTA</div>
+            <div class="text">"EMPEZAR" o mantener "LET'S GO" si es decisión de marca, pero la tagline secundaria debe alinearse.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 1 — NOMBRE -->
+      <div class="screen-card low">
+        <div class="screen-head">
+          <div>
+            <div class="screen-num">Step 1</div>
+            <div class="screen-title">¿Cómo te llamas?</div>
+          </div>
+          <span class="severity low">Pulido</span>
+        </div>
+        <div class="what-it-is"><strong>Lo que hace:</strong> Input de nombre. Sin contexto extra.</div>
+        <div class="issues">
+          <div class="block-label">Issues</div>
+          <div class="issue med"><strong>Genérico.</strong> No conecta emocionalmente, es solo un input.</div>
+        </div>
+        <div class="recs">
+          <div class="block-label">Recomendación</div>
+          <div class="rec">Sub-headline humanizando: "Te queremos llamar por tu nombre cada vez que entres."</div>
+        </div>
+      </div>
+
+      <!-- STEP 2 — PROGRAMA -->
+      <div class="screen-card crit">
+        <div class="screen-head">
+          <div>
+            <div class="screen-num">Step 2</div>
+            <div class="screen-title">Elige tu programa · Build Him / Sculpt Her</div>
+          </div>
+          <span class="severity crit">Crítico</span>
+        </div>
+        <div class="what-it-is"><strong>Lo que hace:</strong> 2 cards con Crown/Gem icons. La variable interna se llama <code style="font-family:'DM Mono',monospace;color:var(--gold);background:var(--bg);padding:1px 5px;border-radius:3px;font-size:12px;">gender</code> con valores <code style="font-family:'DM Mono',monospace;color:var(--gold);background:var(--bg);padding:1px 5px;border-radius:3px;font-size:12px;">male/female</code>.</div>
+        <div class="issues">
+          <div class="block-label">Issues</div>
+          <div class="issue"><strong>PROGRAMA acoplado a GÉNERO.</strong> Una mujer que quiera Build Him no puede. Un usuario no-binario queda fuera del modelo. Diseño excluyente.</div>
+          <div class="issue"><strong>Solo 2 programas hardcoded.</strong> No escala cuando agregues Foundation, Athletic, etc.</div>
+        </div>
+        <div class="recs">
+          <div class="block-label">Recomendación</div>
+          <div class="rec"><strong>Desacoplar.</strong> Programa = contenido (Build Him, Sculpt Her, Foundation). Género = data demográfica separada (o no la pidas).</div>
+          <div class="rec"><strong>Subtitles más descriptivos:</strong> "Build Him: hipertrofia + fuerza híbrida". "Sculpt Her: tono + glúteos + atletismo".</div>
+        </div>
+      </div>
+
+      <!-- STEP 3 — EXPERIENCE -->
+      <div class="screen-card low">
+        <div class="screen-head">
+          <div>
+            <div class="screen-num">Step 3</div>
+            <div class="screen-title">¿Cuánto tiempo llevas entrenando?</div>
+          </div>
+          <span class="severity low">OK</span>
+        </div>
+        <div class="what-it-is"><strong>Lo que hace:</strong> 3 niveles · Beginner / Intermediate / Advanced.</div>
+        <div class="recs">
+          <div class="block-label">Pulido</div>
+          <div class="rec">Beginner subtitle: "Estoy aprendiendo" en lugar de "Estoy construyendo las bases" — más natural para alguien que ya empezó pero apenas lleva semanas.</div>
+        </div>
+      </div>
+
+      <!-- STEP 4 — OBJETIVO -->
+      <div class="screen-card crit">
+        <div class="screen-head">
+          <div>
+            <div class="screen-num">Step 4</div>
+            <div class="screen-title">¿Qué quieres lograr?</div>
+          </div>
+          <span class="severity crit">Crítico · trust</span>
+        </div>
+        <div class="what-it-is"><strong>Lo que hace:</strong> 4 opciones de objetivo. Pero <strong>el dato no se usa</strong> — el programa final solo depende de gender + experience.</div>
+        <div class="issues">
+          <div class="block-label">Issues</div>
+          <div class="issue"><strong>El input no afecta el output.</strong> Se le pregunta al usuario un objetivo decorativo. Cuando el algoritmo no respeta lo que dijo, el usuario pierde confianza en la "personalización" prometida.</div>
+        </div>
+        <div class="recs">
+          <div class="block-label">Recomendación</div>
+          <div class="rec"><strong>Opción A — Hazlo real.</strong> Usar el objetivo para variar el programa. Si "Moverme mejor sin dolor" → más mobility blocks. Si "Athletic performance" → más metcons.</div>
+          <div class="rec"><strong>Opción B — Quítalo.</strong> Si no se va a usar, no lo preguntes. Onboarding más corto = mejor conversion.</div>
+          <div class="copy-example">
+            <div class="lbl">Mapping sugerido (Opción A)</div>
+            <div class="text">"Ganar músculo" → ELITE · "Performance atlético" → ELITE + intensificar metcons · "Verme mejor" → FOUNDATION · "Moverme sin dolor" → FOUNDATION + énfasis movilidad</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 5 — THE METHOD -->
+      <div class="screen-card med">
+        <div class="screen-head">
+          <div>
+            <div class="screen-num">Step 5</div>
+            <div class="screen-title">THE METHOD · 6 pillars</div>
+          </div>
+          <span class="severity med">Bien con ajustes</span>
+        </div>
+        <div class="what-it-is"><strong>Lo que hace:</strong> Prime / Power / Heavy / Build / Engine / Recovery con icons + descripción + número.</div>
+        <div class="issues">
+          <div class="block-label">Issues</div>
+          <div class="issue med"><strong>"I'M READY" en inglés</strong> rompe consistencia.</div>
+          <div class="issue med"><strong>Icon duplicado:</strong> RotateCcw aparece tanto en Build como en Recovery. Confunde visualmente.</div>
+          <div class="issue med"><strong>Promesa exagerada:</strong> "Diseñado para ti · Ajustado cada semana" sugiere algoritmo personalizado que no existe aún.</div>
+        </div>
+        <div class="recs">
+          <div class="block-label">Recomendación</div>
+          <div class="rec">Cambiar icon de Recovery a algo distinto (Wind, Heart, BatteryCharging).</div>
+          <div class="rec">CTA: "ESTOY LISTO" (ES consistente).</div>
+          <div class="rec">Sub-copy honesto: "Estructura probada · Progresión periodizada" en lugar de prometer adaptación.</div>
+        </div>
+      </div>
+
+      <!-- STEP 6 — PERIODIZATION -->
+      <div class="screen-card low">
+        <div class="screen-head">
+          <div>
+            <div class="screen-num">Step 6</div>
+            <div class="screen-title">Periodización · curva + 5 fases</div>
+          </div>
+          <span class="severity low">Excelente</span>
+        </div>
+        <div class="what-it-is"><strong>Lo que hace:</strong> SVG curve con S1-S6 + cards de cada fase + 3 rationale cards (un año completo, progresión wave, S6 = recargar).</div>
+        <div class="recs">
+          <div class="block-label">Recomendación</div>
+          <div class="rec">Mantenerlo. Es la mejor pantalla del onboarding.</div>
+          <div class="rec">Para returning users (post-M1), reemplazar "Tu primer mesociclo comienza hoy" por "Tu mesociclo Nº X comienza hoy".</div>
+        </div>
+      </div>
+
+      <!-- STEP 7 — VALUE PROP -->
+      <div class="screen-card high">
+        <div class="screen-head">
+          <div>
+            <div class="screen-num">Step 7</div>
+            <div class="screen-title">Tu programa incluye…</div>
+          </div>
+          <span class="severity high">Conversion</span>
+        </div>
+        <div class="what-it-is"><strong>Lo que hace:</strong> 4 bullets de value props (mesociclo periodizado, video, progresión, integración).</div>
+        <div class="issues">
+          <div class="block-label">Issues</div>
+          <div class="issue"><strong>Bullets genéricos.</strong> Cualquier app fitness puede prometer lo mismo. No diferencia LIFTORY de Strong/Hevy/Whoop.</div>
+        </div>
+        <div class="recs">
+          <div class="block-label">Recomendación</div>
+          <div class="rec"><strong>Diferenciadores reales.</strong> Vende lo que LO HACE DIFERENTE.</div>
+          <div class="copy-example">
+            <div class="lbl">Bullets propuestos</div>
+            <div class="text">"Programa escrito por coach, no por algoritmo" · "Cero ejercicios random — cada lift tiene propósito" · "Tu peso e RPE registrado, no estimado" · "Block periodization de 6 semanas, no infinite-loop"</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 8 — LIVE vs S1 -->
+      <div class="screen-card med">
+        <div class="screen-head">
+          <div>
+            <div class="screen-num">Step 8</div>
+            <div class="screen-title">Unirse al ciclo live · vs · Empezar S1</div>
+          </div>
+          <span class="severity med">Bien con copy</span>
+        </div>
+        <div class="what-it-is"><strong>Lo que hace:</strong> Decisión binaria. La opción "Live" tiene border accent (default visual).</div>
+        <div class="issues">
+          <div class="block-label">Issues</div>
+          <div class="issue med">Copy de S1 suena más solitaria que la de Live, pero podríamos enfatizar más el factor social/colectivo de Live.</div>
+        </div>
+        <div class="recs">
+          <div class="block-label">Recomendación</div>
+          <div class="copy-example">
+            <div class="lbl">Live (énfasis colectivo)</div>
+            <div class="text">"Te unes al grupo en Semana 4. Mismos workouts, misma fase, misma energía."</div>
+          </div>
+          <div class="copy-example">
+            <div class="lbl">S1 (énfasis individual)</div>
+            <div class="text">"Empezás desde el principio si quieres tu propio ritmo."</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 9 — SIGNUP -->
+      <div class="screen-card med">
+        <div class="screen-head">
+          <div>
+            <div class="screen-num">Step 9</div>
+            <div class="screen-title">Crear cuenta</div>
+          </div>
+          <span class="severity med">Pulido</span>
+        </div>
+        <div class="what-it-is"><strong>Lo que hace:</strong> Email/password + Google OAuth.</div>
+        <div class="recs">
+          <div class="block-label">Recomendación</div>
+          <div class="rec">Combinar "Nombre + Apellidos" en un input "Nombre completo" — más amigable para latam con apellidos compuestos.</div>
+          <div class="rec">Validación de email en cliente (avisar si typea "andoni@gmail" sin .com).</div>
+          <div class="rec">Pedir requisitos de password explícitos: "Mínimo 8 caracteres, 1 número, 1 letra".</div>
+        </div>
+      </div>
+
+      <!-- STEP 10 — LOADING -->
+      <div class="screen-card crit">
+        <div class="screen-head">
+          <div>
+            <div class="screen-num">Step 10</div>
+            <div class="screen-title">Loading · "Analizando tu perfil…"</div>
+          </div>
+          <span class="severity crit">Crítico · trust</span>
+        </div>
+        <div class="what-it-is"><strong>Lo que hace:</strong> 4 mensajes que rotan: "Analizando perfil… seleccionando ejercicios… armando mesociclo… ¡Listo!"</div>
+        <div class="issues">
+          <div class="block-label">Issues</div>
+          <div class="issue"><strong>Promesa falsa de personalización.</strong> Los mensajes sugieren algoritmo de IA. La asignación real es <code style="font-family:'DM Mono',monospace;color:var(--gold);background:var(--bg);padding:1px 5px;border-radius:3px;font-size:12px;">gender → Build Him/Sculpt Her, experience → ELITE/FOUNDATION</code>. Es básicamente un <code style="font-family:'DM Mono',monospace;color:var(--gold);background:var(--bg);padding:1px 5px;border-radius:3px;font-size:12px;">if</code>.</div>
+          <div class="issue"><strong>Expectation gap.</strong> El usuario espera algo personalizado, recibe template. Cuando el programa no responda a su objetivo, atribuirá la falla al algoritmo (no a la lógica simple).</div>
+        </div>
+        <div class="recs">
+          <div class="block-label">Recomendación</div>
+          <div class="rec"><strong>Opción A — Hacelo real.</strong> Aprovechar Step 4 (objetivo) para variar el programa con reglas reales.</div>
+          <div class="rec"><strong>Opción B — Mensajes honestos.</strong> "Asignando tu programa…", "Cargando tu calendario…", "Listo, vamos." Honestidad gana confianza.</div>
+        </div>
+      </div>
+
+      <!-- STEP 11 — VIP WELCOME -->
+      <div class="screen-card high">
+        <div class="screen-head">
+          <div>
+            <div class="screen-num">Step 11</div>
+            <div class="screen-title">VIP Welcome · Crown</div>
+          </div>
+          <span class="severity high">Edge case</span>
+        </div>
+        <div class="what-it-is"><strong>Lo que hace:</strong> Pantalla con corona icon + LIFTORY mark + título VIP. Solo se muestra a usuarios premium/VIP.</div>
+        <div class="issues">
+          <div class="block-label">Issues</div>
+          <div class="issue"><strong>¿Qué pasa con el non-VIP?</strong> Si usuario regular llega aquí, ¿va al Paywall? ¿Va directo al Home? El path post-onboarding necesita un equivalente WelcomeCard para non-VIP.</div>
+        </div>
+        <div class="recs">
+          <div class="block-label">Recomendación</div>
+          <div class="rec">Crear pantalla "Welcome to LIFTORY" generic para todos los nuevos. La VIP corona es un UPGRADE que se gana o se compra, no la única bienvenida.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════════ SECTION 03 — PRIORITY MATRIX ════════════════ -->
+  <div class="section" id="priorities">
+    <span class="section-tag">03 · Ejecutivo</span>
+    <h2>Priorización</h2>
+    <p class="lead">Lo que daña conversión y trust HOY (crítico) vs polish (bajo). Implementar de izquierda a derecha.</p>
+
+    <div class="matrix">
+      <div class="priority crit">
+        <h4>Crítico</h4>
+        <ol>
+          <li>Desacoplar <code>gender</code> de <code>programa</code> (Step 2)</li>
+          <li>Usar el objetivo o quitarlo (Step 4)</li>
+          <li>No mentir en loading "analizando perfil" (Step 10)</li>
+          <li>Mid-cycle joiner welcome card (variant)</li>
+        </ol>
+      </div>
+      <div class="priority high">
+        <h4>Alto</h4>
+        <ol>
+          <li>Anglicismos sueltos (LET'S GO, I'M READY, THE METHOD)</li>
+          <li>Fresh-at-S1 welcome card (variant)</li>
+          <li>Diferenciadores reales en Step 7</li>
+          <li>Welcome non-VIP (Step 11)</li>
+        </ol>
+      </div>
+      <div class="priority med">
+        <h4>Medio</h4>
+        <ol>
+          <li>Iconos duplicados en pillars (Step 5)</li>
+          <li>Validación de email + password (Step 9)</li>
+          <li>"Nombre + Apellidos" → "Nombre completo"</li>
+          <li>Copy de Live vs S1 más diferenciada</li>
+        </ol>
+      </div>
+      <div class="priority low">
+        <h4>Bajo</h4>
+        <ol>
+          <li>Sub-copy en Step 1 humanizando</li>
+          <li>Tagline real en splash (Step 0)</li>
+          <li>Beginner subtitle más natural (Step 3)</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ SECTION 04 — ROADMAP ════════════════ -->
+  <div class="section" id="roadmap">
+    <span class="section-tag">04 · Plan</span>
+    <h2>Roadmap de sprints</h2>
+    <p class="lead">Orden sugerido. Cada sprint es independiente y puede deployarse solo.</p>
+
+    <div class="sprints">
+      <div class="sprint">
+        <div class="sprint-num">A</div>
+        <div class="sprint-body">
+          <div class="sprint-title">Críticos · trust + diferenciación</div>
+          <div class="sprint-detail">Desacoplar género/programa · Usar o quitar objetivo · Loading honesto · WelcomeCard joiner + fresh variants</div>
+        </div>
+        <div class="sprint-time">~1 día</div>
+      </div>
+      <div class="sprint">
+        <div class="sprint-num">B</div>
+        <div class="sprint-body">
+          <div class="sprint-title">Brand voice + value</div>
+          <div class="sprint-detail">Eliminar anglicismos · Bullets reales en value prop · Welcome non-VIP path · Tagline real splash</div>
+        </div>
+        <div class="sprint-time">~1 día</div>
+      </div>
+      <div class="sprint">
+        <div class="sprint-num">C</div>
+        <div class="sprint-body">
+          <div class="sprint-title">Pulido</div>
+          <div class="sprint-detail">Iconos duplicados · Validation forms · Nombre completo · Sub-copy human</div>
+        </div>
+        <div class="sprint-time">~½ día</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ FOOTER ════════════════ -->
+  <div class="footer">
+    <div class="liftory-mark">LIFTORY</div>
+    <div class="meta">Internal audit · 28 abr 2026</div>
+  </div>
+
+</div>
+
+</body>
+</html>

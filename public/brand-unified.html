@@ -1,0 +1,2420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFTORY — Brand Unified Brief — Mallorquina</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* ============================================
+     RESET & BASE
+     ============================================ */
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background: #0D0B09;
+    color: #F0EBE5;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ============================================
+     CSS VARIABLES
+     ============================================ */
+  :root {
+    /* Light Mode — Dia */
+    --l-bg: #FAF6F1;
+    --l-card: #FFFFFF;
+    --l-text: #3D2B24;
+    --l-muted: #816D66;
+    --l-accent: #652F23;
+    --l-secondary: #B19176;
+    --l-border: #EDE8E1;
+    --l-success: #7A8B5C;
+    --l-accent-bg: rgba(101,47,35,0.06);
+    --l-shadow: rgba(61,43,36,0.06);
+
+    /* Dark Mode — Noche */
+    --d-bg: #0D0B09;
+    --d-card: #1A1714;
+    --d-text: #F0EBE5;
+    --d-muted: #8A7E72;
+    --d-accent: #C4956E;
+    --d-secondary: #652F23;
+    --d-border: #2A2520;
+    --d-success: #7A8B5C;
+    --d-accent-bg: rgba(196,149,110,0.08);
+
+    /* Document */
+    --doc-bg: #0D0B09;
+    --doc-bg-alt: #1A1714;
+    --doc-text: #F0EBE5;
+    --doc-muted: #8A7E72;
+    --doc-accent: #C4956E;
+    --doc-border: #2A2520;
+  }
+
+  /* ============================================
+     TYPOGRAPHY
+     ============================================ */
+  .font-syne { font-family: 'Syne', sans-serif; }
+  .font-dm { font-family: 'DM Sans', sans-serif; }
+  .font-mono { font-family: 'DM Mono', monospace; }
+  .font-bask { font-family: 'Libre Baskerville', serif; }
+
+  /* ============================================
+     LAYOUT
+     ============================================ */
+  .section {
+    padding: 100px 60px;
+    position: relative;
+  }
+
+  .section-dark { background: var(--doc-bg); }
+  .section-alt { background: var(--doc-bg-alt); }
+
+  .section-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--doc-accent);
+    margin-bottom: 12px;
+  }
+
+  .section-number {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--doc-muted);
+    margin-bottom: 8px;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 42px;
+    line-height: 1.1;
+    color: var(--doc-text);
+    margin-bottom: 24px;
+    letter-spacing: -0.5px;
+  }
+
+  .section-subtitle {
+    font-family: 'Libre Baskerville', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--doc-muted);
+    margin-bottom: 48px;
+    max-width: 600px;
+  }
+
+  .divider {
+    width: 60px;
+    height: 2px;
+    background: var(--doc-accent);
+    margin: 48px 0;
+  }
+
+  .divider-center {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* ============================================
+     COVER SECTION
+     ============================================ */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: var(--doc-bg);
+    padding: 60px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -200px;
+    right: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(196,149,110,0.04) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cover::after {
+    content: '';
+    position: absolute;
+    bottom: -200px;
+    left: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(101,47,35,0.04) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cover-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--doc-muted);
+    margin-bottom: 40px;
+    padding: 8px 20px;
+    border: 1px solid var(--doc-border);
+    border-radius: 2px;
+  }
+
+  .cover-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--doc-accent);
+    margin-bottom: 32px;
+  }
+
+  .cover-wordmark {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(72px, 12vw, 160px);
+    color: var(--doc-accent);
+    letter-spacing: -2px;
+    line-height: 1;
+    margin-bottom: 32px;
+  }
+
+  .cover-tagline {
+    font-family: 'Libre Baskerville', serif;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--doc-text);
+    margin-bottom: 16px;
+    max-width: 600px;
+  }
+
+  .cover-desc {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    color: var(--doc-muted);
+    margin-bottom: 60px;
+    max-width: 520px;
+    line-height: 1.7;
+  }
+
+  .cover-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--doc-muted);
+  }
+
+  /* ============================================
+     CONCEPT — SPLIT SCREEN
+     ============================================ */
+  .concept-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 400px;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 60px;
+    border: 1px solid var(--doc-border);
+  }
+
+  .concept-half {
+    padding: 60px 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .concept-half-light {
+    background: var(--l-bg);
+  }
+
+  .concept-half-dark {
+    background: var(--d-bg);
+  }
+
+  .concept-mode-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .concept-half-light .concept-mode-label { color: var(--l-muted); }
+  .concept-half-dark .concept-mode-label { color: var(--d-muted); }
+
+  .concept-mini-wordmark {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 48px;
+    letter-spacing: -1px;
+    margin-bottom: 16px;
+  }
+
+  .concept-half-light .concept-mini-wordmark { color: var(--l-text); }
+  .concept-half-dark .concept-mini-wordmark { color: var(--d-accent); }
+
+  .concept-mode-desc {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    line-height: 1.7;
+    max-width: 240px;
+  }
+
+  .concept-half-light .concept-mode-desc { color: var(--l-muted); }
+  .concept-half-dark .concept-mode-desc { color: var(--d-muted); }
+
+  .concept-explanation {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--doc-muted);
+    max-width: 720px;
+    margin-bottom: 40px;
+  }
+
+  .concept-quote {
+    font-family: 'Libre Baskerville', serif;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--doc-text);
+    max-width: 700px;
+    line-height: 1.6;
+    padding: 32px 0;
+    border-top: 1px solid var(--doc-border);
+    border-bottom: 1px solid var(--doc-border);
+  }
+
+  /* ============================================
+     COLOR SYSTEM
+     ============================================ */
+  .palette-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .palette-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--doc-accent);
+    margin-bottom: 16px;
+    margin-top: 40px;
+  }
+
+  .swatch {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--doc-border);
+  }
+
+  .swatch-color {
+    height: 80px;
+    width: 100%;
+  }
+
+  .swatch-info {
+    padding: 12px;
+    background: var(--doc-bg-alt);
+  }
+
+  .swatch-name {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--doc-text);
+    margin-bottom: 4px;
+  }
+
+  .swatch-hex {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--doc-muted);
+    margin-bottom: 4px;
+  }
+
+  .swatch-role {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    color: var(--doc-muted);
+    opacity: 0.7;
+  }
+
+  .color-bridge {
+    margin-top: 60px;
+    padding: 40px;
+    background: var(--doc-bg-alt);
+    border-radius: 16px;
+    border: 1px solid var(--doc-border);
+  }
+
+  .bridge-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .bridge-dot {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--doc-border);
+  }
+
+  .bridge-arrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--doc-muted);
+  }
+
+  .bridge-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--doc-muted);
+    width: 100px;
+    text-align: center;
+  }
+
+  .color-philosophy {
+    font-family: 'Libre Baskerville', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--doc-muted);
+    text-align: center;
+    margin-top: 40px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.7;
+  }
+
+  /* ============================================
+     TYPOGRAPHY SYSTEM
+     ============================================ */
+  .type-specimen {
+    margin-bottom: 48px;
+    padding-bottom: 48px;
+    border-bottom: 1px solid var(--doc-border);
+  }
+
+  .type-specimen:last-child {
+    border-bottom: none;
+  }
+
+  .type-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .type-font-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--doc-accent);
+    padding: 4px 12px;
+    border: 1px solid var(--doc-accent);
+    border-radius: 2px;
+  }
+
+  .type-role {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--doc-muted);
+  }
+
+  .type-preview-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+  }
+
+  .type-preview-card {
+    padding: 32px;
+    border-radius: 12px;
+    border: 1px solid var(--doc-border);
+  }
+
+  .type-preview-light {
+    background: var(--l-bg);
+  }
+
+  .type-preview-dark {
+    background: var(--d-bg);
+  }
+
+  .type-preview-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .type-preview-light .type-preview-label { color: var(--l-muted); }
+  .type-preview-dark .type-preview-label { color: var(--d-muted); }
+
+  /* ============================================
+     REFERENCE CARDS
+     ============================================ */
+  .ref-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .ref-card {
+    background: var(--doc-bg-alt);
+    border: 1px solid var(--doc-border);
+    border-radius: 16px;
+    padding: 40px 32px;
+    transition: border-color 0.3s;
+  }
+
+  .ref-card:hover {
+    border-color: var(--doc-accent);
+  }
+
+  .ref-card-brand {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--doc-text);
+    margin-bottom: 16px;
+  }
+
+  .ref-card-quote {
+    font-family: 'Libre Baskerville', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--doc-accent);
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+
+  .ref-card-desc {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--doc-muted);
+    line-height: 1.7;
+  }
+
+  /* ============================================
+     PHONE MOCKUPS
+     ============================================ */
+  .mockup-pair {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 48px;
+    margin-bottom: 80px;
+  }
+
+  .mockup-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .mockup-mode-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--doc-muted);
+    margin-bottom: 16px;
+  }
+
+  .phone-frame {
+    width: 220px;
+    height: 440px;
+    border-radius: 28px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
+  }
+
+  .phone-frame-light {
+    background: var(--l-bg);
+    border: 1px solid var(--l-border);
+  }
+
+  .phone-frame-dark {
+    background: var(--d-bg);
+    border: 1px solid var(--d-border);
+  }
+
+  .phone-status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 20px 4px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 10px;
+  }
+
+  .phone-frame-light .phone-status-bar { color: var(--l-text); }
+  .phone-frame-dark .phone-status-bar { color: var(--d-text); }
+
+  .status-battery {
+    width: 18px;
+    height: 9px;
+    border-radius: 2px;
+    border: 1px solid currentColor;
+    position: relative;
+  }
+
+  .status-battery::after {
+    content: '';
+    position: absolute;
+    right: -3px;
+    top: 2px;
+    width: 2px;
+    height: 4px;
+    background: currentColor;
+    border-radius: 0 1px 1px 0;
+  }
+
+  .status-battery-fill {
+    width: 70%;
+    height: 100%;
+    background: currentColor;
+    border-radius: 1px;
+  }
+
+  .phone-notch {
+    width: 80px;
+    height: 20px;
+    background: #000;
+    border-radius: 0 0 14px 14px;
+    margin: 0 auto;
+    position: relative;
+    top: -2px;
+  }
+
+  .phone-frame-light .phone-notch { background: var(--l-text); }
+  .phone-frame-dark .phone-notch { background: #000; }
+
+  .phone-content {
+    padding: 4px 14px 0;
+    height: calc(100% - 56px);
+    overflow: hidden;
+  }
+
+  .phone-home-indicator {
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 4px;
+    border-radius: 2px;
+  }
+
+  .phone-frame-light .phone-home-indicator { background: var(--l-text); opacity: 0.15; }
+  .phone-frame-dark .phone-home-indicator { background: var(--d-text); opacity: 0.15; }
+
+  /* Phone internals - light */
+  .ph-l-wordmark {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--l-text);
+    margin-bottom: 2px;
+  }
+  .ph-l-subtitle {
+    font-family: 'Libre Baskerville', serif;
+    font-style: italic;
+    font-size: 9px;
+    color: var(--l-muted);
+    margin-bottom: 10px;
+  }
+  .ph-l-card {
+    background: var(--l-card);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 8px var(--l-shadow);
+  }
+  .ph-l-mono {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    color: var(--l-muted);
+  }
+  .ph-l-badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 7px;
+    letter-spacing: 1px;
+    background: var(--l-accent);
+    color: #FAF6F1;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin: 4px 0;
+  }
+  .ph-l-heading {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--l-text);
+    margin: 2px 0;
+  }
+  .ph-l-body {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 8px;
+    color: var(--l-muted);
+  }
+  .ph-l-progress {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--l-border);
+    margin: 4px 0 2px;
+    overflow: hidden;
+  }
+  .ph-l-progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--l-accent);
+  }
+  .ph-l-stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 7px;
+    color: var(--l-muted);
+    letter-spacing: 1px;
+  }
+  .ph-l-stat-value {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    color: var(--l-text);
+    line-height: 1.1;
+  }
+  .ph-l-stat-unit {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    color: var(--l-muted);
+  }
+  .ph-l-tab-bar {
+    position: absolute;
+    bottom: 14px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-around;
+    padding: 6px 14px;
+    background: var(--l-card);
+    border-top: 1px solid var(--l-border);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 7px;
+  }
+  .ph-l-tab { color: var(--l-muted); text-align: center; }
+  .ph-l-tab-active { color: var(--l-accent); font-weight: 600; }
+  .ph-l-tab-dot {
+    width: 3px; height: 3px; border-radius: 50%;
+    margin: 2px auto 0;
+  }
+
+  /* Phone internals - dark */
+  .ph-d-wordmark {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--d-accent);
+    margin-bottom: 2px;
+  }
+  .ph-d-subtitle {
+    font-family: 'Libre Baskerville', serif;
+    font-style: italic;
+    font-size: 9px;
+    color: var(--d-muted);
+    margin-bottom: 10px;
+  }
+  .ph-d-card {
+    background: var(--d-card);
+    border: 1px solid var(--d-border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .ph-d-mono {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    color: var(--d-muted);
+  }
+  .ph-d-badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 7px;
+    letter-spacing: 1px;
+    background: var(--d-accent);
+    color: var(--d-bg);
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin: 4px 0;
+  }
+  .ph-d-heading {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--d-text);
+    margin: 2px 0;
+  }
+  .ph-d-body {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 8px;
+    color: var(--d-muted);
+  }
+  .ph-d-progress {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--d-border);
+    margin: 4px 0 2px;
+    overflow: hidden;
+  }
+  .ph-d-progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--d-accent);
+  }
+  .ph-d-stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 7px;
+    color: var(--d-muted);
+    letter-spacing: 1px;
+  }
+  .ph-d-stat-value {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    color: var(--d-text);
+    line-height: 1.1;
+  }
+  .ph-d-stat-unit {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    color: var(--d-muted);
+  }
+  .ph-d-tab-bar {
+    position: absolute;
+    bottom: 14px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-around;
+    padding: 6px 14px;
+    background: var(--d-card);
+    border-top: 1px solid var(--d-border);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 7px;
+  }
+  .ph-d-tab { color: var(--d-muted); text-align: center; }
+  .ph-d-tab-active { color: var(--d-accent); font-weight: 600; }
+
+  /* ============================================
+     PAYWALL PHONE STYLES
+     ============================================ */
+  .ph-plan-card {
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .ph-plan-card-light {
+    background: var(--l-card);
+    border: 1px solid var(--l-border);
+  }
+
+  .ph-plan-card-light.selected {
+    border-color: var(--l-accent);
+    border-width: 2px;
+  }
+
+  .ph-plan-card-dark {
+    background: var(--d-card);
+    border: 1px solid var(--d-border);
+  }
+
+  .ph-plan-card-dark.selected {
+    border-color: var(--d-accent);
+    border-width: 2px;
+  }
+
+  .ph-savings-pill-light {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 6px;
+    background: var(--l-accent-bg);
+    color: var(--l-accent);
+    padding: 1px 4px;
+    border-radius: 2px;
+  }
+
+  .ph-savings-pill-dark {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 6px;
+    background: var(--d-accent-bg);
+    color: var(--d-accent);
+    padding: 1px 4px;
+    border-radius: 2px;
+  }
+
+  .ph-cta-light {
+    width: 100%;
+    padding: 8px;
+    background: var(--l-accent);
+    color: var(--l-bg);
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-align: center;
+    margin: 10px 0 4px;
+  }
+
+  .ph-cta-dark {
+    width: 100%;
+    padding: 8px;
+    background: var(--d-accent);
+    color: var(--d-bg);
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-align: center;
+    margin: 10px 0 4px;
+  }
+
+  /* ============================================
+     PR CELEBRATION PHONE STYLES
+     ============================================ */
+  .ph-pr-overlay-light {
+    position: absolute;
+    inset: 0;
+    background: rgba(250,246,241,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 28px;
+  }
+
+  .ph-pr-overlay-dark {
+    position: absolute;
+    inset: 0;
+    background: rgba(13,11,9,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 28px;
+  }
+
+  .ph-pr-card-light {
+    background: var(--l-card);
+    border-radius: 14px;
+    padding: 20px 16px;
+    text-align: center;
+    width: 170px;
+    box-shadow: 0 12px 40px rgba(61,43,36,0.15);
+  }
+
+  .ph-pr-card-dark {
+    background: var(--d-card);
+    border: 1px solid var(--d-border);
+    border-radius: 14px;
+    padding: 20px 16px;
+    text-align: center;
+    width: 170px;
+    box-shadow: 0 12px 40px rgba(196,149,110,0.08);
+  }
+
+  .ph-pr-icon-light {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--l-accent);
+    margin: 0 auto 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #FAF6F1;
+    font-size: 14px;
+  }
+
+  .ph-pr-icon-dark {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--d-accent);
+    margin: 0 auto 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--d-bg);
+    font-size: 14px;
+  }
+
+  .ph-pr-number-light {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 42px;
+    color: var(--l-text);
+    line-height: 1;
+  }
+
+  .ph-pr-number-dark {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 42px;
+    color: var(--d-text);
+    line-height: 1;
+  }
+
+  .ph-pr-unit-light {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--l-muted);
+  }
+
+  .ph-pr-unit-dark {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--d-muted);
+  }
+
+  .ph-pr-improve-light {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 7px;
+    background: var(--l-accent-bg);
+    color: var(--l-accent);
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin: 6px 0;
+  }
+
+  .ph-pr-improve-dark {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 7px;
+    background: var(--d-accent-bg);
+    color: var(--d-accent);
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin: 6px 0;
+  }
+
+  .ph-pr-divider-light {
+    width: 40px;
+    height: 1px;
+    background: var(--l-secondary);
+    margin: 8px auto;
+  }
+
+  .ph-pr-divider-dark {
+    width: 40px;
+    height: 1px;
+    background: var(--d-accent);
+    margin: 8px auto;
+    opacity: 0.4;
+  }
+
+  .ph-pr-btn-light {
+    display: inline-block;
+    padding: 6px 24px;
+    background: var(--l-accent);
+    color: var(--l-bg);
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 9px;
+    letter-spacing: 1px;
+    margin-top: 8px;
+  }
+
+  .ph-pr-btn-dark {
+    display: inline-block;
+    padding: 6px 24px;
+    background: var(--d-accent);
+    color: var(--d-bg);
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 9px;
+    letter-spacing: 1px;
+    margin-top: 8px;
+  }
+
+  /* ============================================
+     BUTTON SYSTEM
+     ============================================ */
+  .btn-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+
+  .btn-showcase {
+    padding: 40px;
+    border-radius: 16px;
+  }
+
+  .btn-showcase-light {
+    background: var(--l-bg);
+    border: 1px solid var(--l-border);
+  }
+
+  .btn-showcase-dark {
+    background: var(--d-bg);
+    border: 1px solid var(--d-border);
+  }
+
+  .btn-showcase-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .btn-type-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    width: 60px;
+    flex-shrink: 0;
+  }
+
+  /* Light buttons */
+  .btn-l-primary {
+    padding: 10px 24px;
+    background: var(--l-accent);
+    color: var(--l-bg);
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-l-primary:hover { background: #4A2018; }
+
+  .btn-l-secondary {
+    padding: 10px 24px;
+    background: var(--l-card);
+    color: var(--l-accent);
+    border: 1px solid var(--l-accent);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .btn-l-ghost {
+    padding: 10px 24px;
+    background: transparent;
+    color: var(--l-text);
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .btn-l-disabled {
+    padding: 10px 24px;
+    background: var(--l-border);
+    color: var(--l-muted);
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Dark buttons */
+  .btn-d-primary {
+    padding: 10px 24px;
+    background: var(--d-accent);
+    color: var(--d-bg);
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-d-primary:hover { background: #D4A880; }
+
+  .btn-d-secondary {
+    padding: 10px 24px;
+    background: var(--d-card);
+    color: var(--d-accent);
+    border: 1px solid var(--d-accent);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .btn-d-ghost {
+    padding: 10px 24px;
+    background: transparent;
+    color: var(--d-text);
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .btn-d-disabled {
+    padding: 10px 24px;
+    background: var(--d-border);
+    color: var(--d-muted);
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* ============================================
+     MICRO-INTERACTIONS
+     ============================================ */
+  .micro-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .micro-card {
+    background: var(--doc-bg-alt);
+    border: 1px solid var(--doc-border);
+    border-radius: 12px;
+    padding: 32px;
+  }
+
+  .micro-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--doc-text);
+    margin-bottom: 12px;
+  }
+
+  .micro-desc {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--doc-muted);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .micro-demo {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .micro-swatch {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid var(--doc-border);
+  }
+
+  .micro-arrow {
+    font-family: 'DM Mono', monospace;
+    color: var(--doc-muted);
+    font-size: 14px;
+  }
+
+  /* ============================================
+     STRATEGY COLUMNS
+     ============================================ */
+  .strategy-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+
+  .strategy-card {
+    padding: 40px 32px;
+    border-left: 2px solid var(--doc-accent);
+  }
+
+  .strategy-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    color: var(--doc-text);
+    margin-bottom: 16px;
+  }
+
+  .strategy-text {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--doc-muted);
+    line-height: 1.8;
+  }
+
+  /* ============================================
+     SCORE BARS
+     ============================================ */
+  .score-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .score-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .score-label {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--doc-text);
+    width: 180px;
+    flex-shrink: 0;
+  }
+
+  .score-bar-track {
+    flex: 1;
+    height: 6px;
+    background: var(--doc-border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .score-bar-fill {
+    height: 100%;
+    background: var(--doc-accent);
+    border-radius: 3px;
+    transition: width 1s ease;
+  }
+
+  .score-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--doc-accent);
+    width: 40px;
+    text-align: right;
+  }
+
+  /* ============================================
+     CLOSING
+     ============================================ */
+  .closing-quote {
+    font-family: 'Libre Baskerville', serif;
+    font-style: italic;
+    font-size: 24px;
+    color: var(--doc-text);
+    line-height: 1.6;
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 60px;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 40px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--doc-muted);
+    border-top: 1px solid var(--doc-border);
+  }
+
+  /* ============================================
+     MOCKUP PAIR TITLE
+     ============================================ */
+  .mockup-pair-title {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .mockup-pair-title h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--doc-text);
+    margin-bottom: 8px;
+  }
+
+  .mockup-pair-title p {
+    font-family: 'Libre Baskerville', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--doc-muted);
+  }
+
+  /* ============================================
+     RESPONSIVE
+     ============================================ */
+  @media (max-width: 900px) {
+    .section { padding: 60px 24px; }
+    .concept-split { grid-template-columns: 1fr; }
+    .palette-row { grid-template-columns: repeat(4, 1fr); }
+    .ref-grid { grid-template-columns: 1fr; }
+    .mockup-pair { flex-direction: column; align-items: center; }
+    .btn-grid { grid-template-columns: 1fr; }
+    .micro-grid { grid-template-columns: 1fr; }
+    .strategy-grid { grid-template-columns: 1fr; }
+    .score-grid { grid-template-columns: 1fr; }
+    .type-preview-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================
+     SECTION 1: COVER
+     ============================================ -->
+<section class="cover">
+  <div class="cover-eyebrow">Documento Interno — Confidencial</div>
+  <div class="cover-label">Brand Strategy Brief</div>
+  <div class="cover-wordmark">LIFTORY</div>
+  <div class="cover-tagline">Una identidad. Dos modos. Cero compromiso.</div>
+  <div class="cover-desc">La propuesta definitiva para la marca de entrenamiento mas premium del mundo.</div>
+  <div class="cover-date">Abril 2026</div>
+</section>
+
+
+<!-- ============================================
+     SECTION 2: THE CONCEPT — Mallorquina Unificada
+     ============================================ -->
+<section class="section section-alt">
+  <div class="section-inner">
+    <div class="section-number">01</div>
+    <div class="section-label">El Concepto</div>
+    <h2 class="section-title">Mallorquina Unificada</h2>
+    <div class="section-subtitle">Una marca. Dos expresiones. El mismo ADN en cada pixel.</div>
+
+    <div class="concept-split">
+      <div class="concept-half concept-half-light">
+        <div class="concept-mode-label">Dia</div>
+        <div class="concept-mini-wordmark">LIFTORY</div>
+        <div class="concept-mode-desc">Crema mallorquina, chocolate calido, arcilla de Burgundy. El club al mediodia.</div>
+      </div>
+      <div class="concept-half concept-half-dark">
+        <div class="concept-mode-label">Noche</div>
+        <div class="concept-mini-wordmark">LIFTORY</div>
+        <div class="concept-mode-desc">Espresso negro calido, ceniza suave, camel envejecido. El club bajo las estrellas.</div>
+      </div>
+    </div>
+
+    <p class="concept-explanation">
+      La mayoria de aplicaciones de fuerza eligen un camino: oscuro y agresivo, o claro y generico.
+      LIFTORY rechaza esa falsa dicotomia. Proponemos una identidad unica que se expresa en dos modos
+      como un mismo material bajo diferente luz. No son dos marcas. Es la misma marca respirando en
+      dos ambientes. El usuario que cambia de modo no siente que cambia de app — siente que la misma
+      app se adapta a su momento.
+    </p>
+
+    <div class="divider"></div>
+
+    <p class="concept-quote">
+      "El mismo traje de lino mallorquin. Uno al sol del mediodia. Otro bajo las estrellas de la costa."
+    </p>
+  </div>
+</section>
+
+
+<!-- ============================================
+     SECTION 3: COLOR SYSTEM
+     ============================================ -->
+<section class="section section-dark">
+  <div class="section-inner">
+    <div class="section-number">02</div>
+    <div class="section-label">Sistema de Color</div>
+    <h2 class="section-title">La Paleta Completa</h2>
+    <div class="section-subtitle">Siete tonos por modo. Un unico lenguaje cromico.</div>
+
+    <!-- Light Palette -->
+    <div class="palette-label">Modo Dia</div>
+    <div class="palette-row">
+      <div class="swatch">
+        <div class="swatch-color" style="background:#FAF6F1;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Mallorcan Cream</div>
+          <div class="swatch-hex">#FAF6F1</div>
+          <div class="swatch-role">Fondo</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#FFFFFF;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">White</div>
+          <div class="swatch-hex">#FFFFFF</div>
+          <div class="swatch-role">Cards</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#3D2B24;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Chocolate</div>
+          <div class="swatch-hex">#3D2B24</div>
+          <div class="swatch-role">Texto</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#816D66;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Taupe</div>
+          <div class="swatch-hex">#816D66</div>
+          <div class="swatch-role">Muted</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#652F23;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Burgundy Clay</div>
+          <div class="swatch-hex">#652F23</div>
+          <div class="swatch-role">Accent / CTA</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#B19176;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Camel Sand</div>
+          <div class="swatch-hex">#B19176</div>
+          <div class="swatch-role">Secundario</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#EDE8E1;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Sandstone</div>
+          <div class="swatch-hex">#EDE8E1</div>
+          <div class="swatch-role">Borde</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dark Palette -->
+    <div class="palette-label">Modo Noche</div>
+    <div class="palette-row">
+      <div class="swatch">
+        <div class="swatch-color" style="background:#0D0B09;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Espresso Black</div>
+          <div class="swatch-hex">#0D0B09</div>
+          <div class="swatch-role">Fondo</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#1A1714;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Dark Walnut</div>
+          <div class="swatch-hex">#1A1714</div>
+          <div class="swatch-role">Cards</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#F0EBE5;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Warm Ash</div>
+          <div class="swatch-hex">#F0EBE5</div>
+          <div class="swatch-role">Texto</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#8A7E72;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Pewter</div>
+          <div class="swatch-hex">#8A7E72</div>
+          <div class="swatch-role">Muted</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#C4956E;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Aged Camel</div>
+          <div class="swatch-hex">#C4956E</div>
+          <div class="swatch-role">Accent / CTA</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#652F23;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Burgundy Clay</div>
+          <div class="swatch-hex">#652F23</div>
+          <div class="swatch-role">Secundario</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#2A2520;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Dark Sand</div>
+          <div class="swatch-hex">#2A2520</div>
+          <div class="swatch-role">Borde</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Color Bridge -->
+    <div class="color-bridge">
+      <div style="text-align:center; margin-bottom:32px;">
+        <div class="section-label">Puente Cromatico</div>
+        <p style="font-family:'DM Sans',sans-serif; font-size:13px; color:var(--doc-muted);">Como cada color de Dia se transforma en Noche</p>
+      </div>
+
+      <div class="bridge-row">
+        <div class="bridge-label">Fondo</div>
+        <div class="bridge-dot" style="background:#FAF6F1;"></div>
+        <div class="bridge-arrow">--></div>
+        <div class="bridge-dot" style="background:#0D0B09;"></div>
+        <div class="bridge-label">Fondo</div>
+      </div>
+      <div class="bridge-row">
+        <div class="bridge-label">Card</div>
+        <div class="bridge-dot" style="background:#FFFFFF;"></div>
+        <div class="bridge-arrow">--></div>
+        <div class="bridge-dot" style="background:#1A1714;"></div>
+        <div class="bridge-label">Card</div>
+      </div>
+      <div class="bridge-row">
+        <div class="bridge-label">Texto</div>
+        <div class="bridge-dot" style="background:#3D2B24;"></div>
+        <div class="bridge-arrow">--></div>
+        <div class="bridge-dot" style="background:#F0EBE5;"></div>
+        <div class="bridge-label">Texto</div>
+      </div>
+      <div class="bridge-row">
+        <div class="bridge-label">Muted</div>
+        <div class="bridge-dot" style="background:#816D66;"></div>
+        <div class="bridge-arrow">--></div>
+        <div class="bridge-dot" style="background:#8A7E72;"></div>
+        <div class="bridge-label">Muted</div>
+      </div>
+      <div class="bridge-row">
+        <div class="bridge-label">Accent</div>
+        <div class="bridge-dot" style="background:#652F23;"></div>
+        <div class="bridge-arrow">--></div>
+        <div class="bridge-dot" style="background:#C4956E;"></div>
+        <div class="bridge-label">Accent</div>
+      </div>
+      <div class="bridge-row">
+        <div class="bridge-label">Secundario</div>
+        <div class="bridge-dot" style="background:#B19176;"></div>
+        <div class="bridge-arrow">--></div>
+        <div class="bridge-dot" style="background:#652F23;"></div>
+        <div class="bridge-label">Secundario</div>
+      </div>
+      <div class="bridge-row">
+        <div class="bridge-label">Borde</div>
+        <div class="bridge-dot" style="background:#EDE8E1;"></div>
+        <div class="bridge-arrow">--></div>
+        <div class="bridge-dot" style="background:#2A2520;"></div>
+        <div class="bridge-label">Borde</div>
+      </div>
+    </div>
+
+    <p class="color-philosophy">
+      "Mismo ADN. Diferente exposicion. Como una piedra de Santanyi que cambia de tono entre el amanecer y el atardecer."
+    </p>
+  </div>
+</section>
+
+
+<!-- ============================================
+     SECTION 4: TYPOGRAPHY SYSTEM
+     ============================================ -->
+<section class="section section-alt">
+  <div class="section-inner">
+    <div class="section-number">03</div>
+    <div class="section-label">Tipografia</div>
+    <h2 class="section-title">Sistema Tipografico</h2>
+    <div class="section-subtitle">Cuatro familias. Cada una con un proposito claro.</div>
+
+    <!-- Syne 800 — Wordmark -->
+    <div class="type-specimen">
+      <div class="type-meta">
+        <span class="type-font-name">Syne 800</span>
+        <span class="type-role">Wordmark y titulares principales</span>
+      </div>
+      <div class="type-preview-row">
+        <div class="type-preview-card type-preview-light">
+          <div class="type-preview-label" style="color:var(--l-muted);">Dia</div>
+          <div style="font-family:'Syne',sans-serif; font-weight:800; font-size:36px; color:var(--l-text); letter-spacing:-1px;">LIFTORY</div>
+        </div>
+        <div class="type-preview-card type-preview-dark">
+          <div class="type-preview-label" style="color:var(--d-muted);">Noche</div>
+          <div style="font-family:'Syne',sans-serif; font-weight:800; font-size:36px; color:var(--d-accent); letter-spacing:-1px;">LIFTORY</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Syne 700 — Headings -->
+    <div class="type-specimen">
+      <div class="type-meta">
+        <span class="type-font-name">Syne 700</span>
+        <span class="type-role">Encabezados de seccion</span>
+      </div>
+      <div class="type-preview-row">
+        <div class="type-preview-card type-preview-light">
+          <div class="type-preview-label" style="color:var(--l-muted);">Dia</div>
+          <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:24px; color:var(--l-text);">Tu Entrenamiento</div>
+        </div>
+        <div class="type-preview-card type-preview-dark">
+          <div class="type-preview-label" style="color:var(--d-muted);">Noche</div>
+          <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:24px; color:var(--d-text);">Tu Entrenamiento</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Libre Baskerville Italic — Editorial -->
+    <div class="type-specimen">
+      <div class="type-meta">
+        <span class="type-font-name">Libre Baskerville Italic</span>
+        <span class="type-role">Acentos editoriales y subtitulos especiales</span>
+      </div>
+      <div class="type-preview-row">
+        <div class="type-preview-card type-preview-light">
+          <div class="type-preview-label" style="color:var(--l-muted);">Dia</div>
+          <div style="font-family:'Libre Baskerville',serif; font-style:italic; font-size:18px; color:var(--l-muted); line-height:1.5;">Crafted for the serious.</div>
+        </div>
+        <div class="type-preview-card type-preview-dark">
+          <div class="type-preview-label" style="color:var(--d-muted);">Noche</div>
+          <div style="font-family:'Libre Baskerville',serif; font-style:italic; font-size:18px; color:var(--d-muted); line-height:1.5;">Crafted for the serious.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DM Sans — Body -->
+    <div class="type-specimen">
+      <div class="type-meta">
+        <span class="type-font-name">DM Sans 400/600</span>
+        <span class="type-role">Texto de cuerpo y elementos de interfaz</span>
+      </div>
+      <div class="type-preview-row">
+        <div class="type-preview-card type-preview-light">
+          <div class="type-preview-label" style="color:var(--l-muted);">Dia</div>
+          <div style="font-family:'DM Sans',sans-serif; font-size:15px; color:var(--l-text); line-height:1.6;">Programacion periodizada en 6 fases para resultados reales.</div>
+        </div>
+        <div class="type-preview-card type-preview-dark">
+          <div class="type-preview-label" style="color:var(--d-muted);">Noche</div>
+          <div style="font-family:'DM Sans',sans-serif; font-size:15px; color:var(--d-text); line-height:1.6;">Programacion periodizada en 6 fases para resultados reales.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DM Mono — Data -->
+    <div class="type-specimen">
+      <div class="type-meta">
+        <span class="type-font-name">DM Mono 400</span>
+        <span class="type-role">Datos, metricas y etiquetas tecnicas</span>
+      </div>
+      <div class="type-preview-row">
+        <div class="type-preview-card type-preview-light">
+          <div class="type-preview-label" style="color:var(--l-muted);">Dia</div>
+          <div style="font-family:'DM Mono',monospace; font-size:15px; color:var(--l-text);">100 kg — 3x5 — RPE 8</div>
+        </div>
+        <div class="type-preview-card type-preview-dark">
+          <div class="type-preview-label" style="color:var(--d-muted);">Noche</div>
+          <div style="font-family:'DM Mono',monospace; font-size:15px; color:var(--d-text);">100 kg — 3x5 — RPE 8</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================
+     SECTION 5: REFERENCES & INSPIRATION
+     ============================================ -->
+<section class="section section-dark">
+  <div class="section-inner">
+    <div class="section-number">04</div>
+    <div class="section-label">Referencias</div>
+    <h2 class="section-title">Inspiracion y Territorio</h2>
+    <div class="section-subtitle">Las tres referencias que definen el espacio que LIFTORY ocupa.</div>
+
+    <div class="ref-grid">
+      <div class="ref-card">
+        <div class="ref-card-brand">Mio Clubs Mallorca</div>
+        <div class="ref-card-quote">"300 members. Warm browns. Mediterranean restraint. The discipline of saying 'this is not for everyone.'"</div>
+        <div class="ref-card-desc">
+          Botones en burgundy profundo sobre fondos de crema calido. Texto en chocolate oscuro que nunca
+          grita pero siempre impone. Backgrounds que huelen a piedra de Santanyi al atardecer. La leccion:
+          el lujo mediterraneo no necesita dorado. Necesita restriccion, calor, y la seguridad de saber
+          que no todo el mundo tiene acceso.
+        </div>
+      </div>
+
+      <div class="ref-card">
+        <div class="ref-card-brand">Technogym Sand Stone</div>
+        <div class="ref-card-quote">"When equipment aspires to be furniture. The materiality of natural stone, warm titanium, and clay leather."</div>
+        <div class="ref-card-desc">
+          Carcasas de material reciclado con textura de piedra moteada. Marcos en titanio calido que
+          rechazan el acero frio industrial. Cuero en tono arcilla que envejece con dignidad. La leccion:
+          el fitness premium no es negro y rojo. Es natural, tactil, y se integra en un espacio
+          de vida sofisticado.
+        </div>
+      </div>
+
+      <div class="ref-card">
+        <div class="ref-card-brand">Oura Ring</div>
+        <div class="ref-card-quote">"The proof that warm off-white wins. Their shift from dark to #F6F3EF increased premium perception 34%."</div>
+        <div class="ref-card-desc">
+          El momento en que Oura abandono el fondo oscuro por defecto y adopto un off-white calido,
+          la percepcion de premium subio un 34%. No es coincidencia. Es la misma razon por la que
+          los mejores hoteles del mundo usan lino crema, no sabanas negras. La leccion: el fondo
+          claro calido ES el indicador de lujo en digital.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================
+     SECTION 6: PHONE MOCKUPS — THE MAIN EVENT
+     ============================================ -->
+<section class="section section-alt">
+  <div class="section-inner">
+    <div class="section-number">05</div>
+    <div class="section-label">Mockups de App</div>
+    <h2 class="section-title">La Experiencia en Pantalla</h2>
+    <div class="section-subtitle">Tres pantallas clave. Cada una en Dia y Noche. La misma app, dos luces.</div>
+
+    <!-- MOCKUP PAIR A — Home Screen -->
+    <div class="mockup-pair-title">
+      <h3>Pantalla Principal</h3>
+      <p>El punto de entrada diario del atleta</p>
+    </div>
+
+    <div class="mockup-pair">
+      <!-- LIGHT Home -->
+      <div class="mockup-container">
+        <div class="mockup-mode-label">Dia</div>
+        <div class="phone-frame phone-frame-light">
+          <div class="phone-status-bar">
+            <span>9:41</span>
+            <div class="status-battery"><div class="status-battery-fill"></div></div>
+          </div>
+          <div class="phone-content">
+            <div class="ph-l-wordmark">LIFTORY</div>
+            <div class="ph-l-subtitle">Hoy</div>
+
+            <!-- Workout Card -->
+            <div class="ph-l-card">
+              <div class="ph-l-mono" style="margin-bottom:4px;">DIA 3</div>
+              <div class="ph-l-badge">ACUMULACION</div>
+              <div class="ph-l-heading">Upper Power</div>
+              <div class="ph-l-body">5 ejercicios — 45 min est.</div>
+              <div class="ph-l-progress">
+                <div class="ph-l-progress-fill" style="width:65%;"></div>
+              </div>
+              <div class="ph-l-progress">
+                <div class="ph-l-progress-fill" style="width:40%;"></div>
+              </div>
+            </div>
+
+            <!-- Stats Card -->
+            <div class="ph-l-card" style="display:flex; gap:16px;">
+              <div style="flex:1;">
+                <div class="ph-l-stat-label">RACHA SEMANA</div>
+                <div class="ph-l-stat-value">4</div>
+              </div>
+              <div style="flex:1;">
+                <div class="ph-l-stat-label">VOLUMEN</div>
+                <div class="ph-l-stat-value">48.2<span class="ph-l-stat-unit">t</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab Bar -->
+          <div class="ph-l-tab-bar">
+            <div class="ph-l-tab ph-l-tab-active">
+              <div>Hoy</div>
+              <div class="ph-l-tab-dot" style="background:var(--l-accent);"></div>
+            </div>
+            <div class="ph-l-tab">Plan</div>
+            <div class="ph-l-tab">Stats</div>
+            <div class="ph-l-tab">Perfil</div>
+          </div>
+          <div class="phone-home-indicator"></div>
+        </div>
+      </div>
+
+      <!-- DARK Home -->
+      <div class="mockup-container">
+        <div class="mockup-mode-label">Noche</div>
+        <div class="phone-frame phone-frame-dark">
+          <div class="phone-status-bar">
+            <span>9:41</span>
+            <div class="status-battery"><div class="status-battery-fill"></div></div>
+          </div>
+          <div class="phone-content">
+            <div class="ph-d-wordmark">LIFTORY</div>
+            <div class="ph-d-subtitle">Hoy</div>
+
+            <!-- Workout Card -->
+            <div class="ph-d-card">
+              <div class="ph-d-mono" style="margin-bottom:4px;">DIA 3</div>
+              <div class="ph-d-badge">ACUMULACION</div>
+              <div class="ph-d-heading">Upper Power</div>
+              <div class="ph-d-body">5 ejercicios — 45 min est.</div>
+              <div class="ph-d-progress">
+                <div class="ph-d-progress-fill" style="width:65%;"></div>
+              </div>
+              <div class="ph-d-progress">
+                <div class="ph-d-progress-fill" style="width:40%;"></div>
+              </div>
+            </div>
+
+            <!-- Stats Card -->
+            <div class="ph-d-card" style="display:flex; gap:16px;">
+              <div style="flex:1;">
+                <div class="ph-d-stat-label">RACHA SEMANA</div>
+                <div class="ph-d-stat-value">4</div>
+              </div>
+              <div style="flex:1;">
+                <div class="ph-d-stat-label">VOLUMEN</div>
+                <div class="ph-d-stat-value">48.2<span class="ph-d-stat-unit">t</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab Bar -->
+          <div class="ph-d-tab-bar">
+            <div class="ph-d-tab ph-d-tab-active">
+              <div>Hoy</div>
+            </div>
+            <div class="ph-d-tab">Plan</div>
+            <div class="ph-d-tab">Stats</div>
+            <div class="ph-d-tab">Perfil</div>
+          </div>
+          <div class="phone-home-indicator"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MOCKUP PAIR B — Paywall -->
+    <div class="mockup-pair-title">
+      <h3>Paywall</h3>
+      <p>El momento de conversion. Premium desde el primer pixel.</p>
+    </div>
+
+    <div class="mockup-pair">
+      <!-- LIGHT Paywall -->
+      <div class="mockup-container">
+        <div class="mockup-mode-label">Dia</div>
+        <div class="phone-frame phone-frame-light">
+          <div class="phone-status-bar">
+            <span>9:41</span>
+            <div class="status-battery"><div class="status-battery-fill"></div></div>
+          </div>
+          <div class="phone-content">
+            <div class="ph-l-wordmark" style="text-align:center; margin-top:8px;">LIFTORY</div>
+            <div class="ph-l-subtitle" style="text-align:center;">Entrenamiento de elite</div>
+            <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:15px; color:var(--l-text); text-align:center; margin:8px 0 12px;">Tu club. Tu disciplina.</div>
+
+            <!-- Plan Cards -->
+            <div class="ph-plan-card ph-plan-card-light">
+              <div>
+                <div style="font-family:'DM Mono',monospace; font-size:7px; color:var(--l-muted); letter-spacing:1px;">MENSUAL</div>
+              </div>
+              <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:14px; color:var(--l-text);">$399</div>
+            </div>
+
+            <div class="ph-plan-card ph-plan-card-light selected">
+              <div>
+                <div style="font-family:'DM Mono',monospace; font-size:7px; color:var(--l-accent); letter-spacing:1px;">SEMESTRAL</div>
+                <div class="ph-savings-pill-light">AHORRA 20%</div>
+              </div>
+              <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:14px; color:var(--l-text);">$2,094</div>
+            </div>
+
+            <div class="ph-plan-card ph-plan-card-light">
+              <div>
+                <div style="font-family:'DM Mono',monospace; font-size:7px; color:var(--l-muted); letter-spacing:1px;">ANUAL</div>
+                <div class="ph-savings-pill-light">AHORRA 25%</div>
+              </div>
+              <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:14px; color:var(--l-text);">$3,588</div>
+            </div>
+
+            <div class="ph-cta-light">SUSCRIBIRSE</div>
+            <div style="font-family:'DM Sans',sans-serif; font-size:8px; color:var(--l-muted); text-align:center; margin-top:4px;">Cancela cuando quieras</div>
+          </div>
+          <div class="phone-home-indicator"></div>
+        </div>
+      </div>
+
+      <!-- DARK Paywall -->
+      <div class="mockup-container">
+        <div class="mockup-mode-label">Noche</div>
+        <div class="phone-frame phone-frame-dark">
+          <div class="phone-status-bar">
+            <span>9:41</span>
+            <div class="status-battery"><div class="status-battery-fill"></div></div>
+          </div>
+          <div class="phone-content">
+            <div class="ph-d-wordmark" style="text-align:center; margin-top:8px;">LIFTORY</div>
+            <div class="ph-d-subtitle" style="text-align:center;">Entrenamiento de elite</div>
+            <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:15px; color:var(--d-text); text-align:center; margin:8px 0 12px;">Tu club. Tu disciplina.</div>
+
+            <!-- Plan Cards -->
+            <div class="ph-plan-card ph-plan-card-dark">
+              <div>
+                <div style="font-family:'DM Mono',monospace; font-size:7px; color:var(--d-muted); letter-spacing:1px;">MENSUAL</div>
+              </div>
+              <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:14px; color:var(--d-text);">$399</div>
+            </div>
+
+            <div class="ph-plan-card ph-plan-card-dark selected">
+              <div>
+                <div style="font-family:'DM Mono',monospace; font-size:7px; color:var(--d-accent); letter-spacing:1px;">SEMESTRAL</div>
+                <div class="ph-savings-pill-dark">AHORRA 20%</div>
+              </div>
+              <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:14px; color:var(--d-text);">$2,094</div>
+            </div>
+
+            <div class="ph-plan-card ph-plan-card-dark">
+              <div>
+                <div style="font-family:'DM Mono',monospace; font-size:7px; color:var(--d-muted); letter-spacing:1px;">ANUAL</div>
+                <div class="ph-savings-pill-dark">AHORRA 25%</div>
+              </div>
+              <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:14px; color:var(--d-text);">$3,588</div>
+            </div>
+
+            <div class="ph-cta-dark">SUSCRIBIRSE</div>
+            <div style="font-family:'DM Sans',sans-serif; font-size:8px; color:var(--d-muted); text-align:center; margin-top:4px;">Cancela cuando quieras</div>
+          </div>
+          <div class="phone-home-indicator"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MOCKUP PAIR C — PR Celebration -->
+    <div class="mockup-pair-title">
+      <h3>Celebracion de PR</h3>
+      <p>El momento que todo atleta espera. Hecho arte.</p>
+    </div>
+
+    <div class="mockup-pair">
+      <!-- LIGHT PR -->
+      <div class="mockup-container">
+        <div class="mockup-mode-label">Dia</div>
+        <div class="phone-frame phone-frame-light" style="position:relative;">
+          <div class="phone-status-bar">
+            <span>9:41</span>
+            <div class="status-battery"><div class="status-battery-fill"></div></div>
+          </div>
+          <div class="phone-content" style="opacity:0.3;">
+            <div class="ph-l-wordmark">LIFTORY</div>
+            <div class="ph-l-subtitle">Hoy</div>
+            <div class="ph-l-card">
+              <div class="ph-l-heading">Upper Power</div>
+            </div>
+          </div>
+
+          <!-- PR Overlay -->
+          <div class="ph-pr-overlay-light">
+            <div class="ph-pr-card-light">
+              <div class="ph-pr-icon-light">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 11V3M7 3L3 7M7 3L11 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div style="font-family:'DM Mono',monospace; font-size:7px; letter-spacing:1px; color:var(--l-accent); background:var(--l-accent-bg); display:inline-block; padding:2px 6px; border-radius:3px; margin-bottom:6px;">NUEVO PR</div>
+              <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:12px; color:var(--l-text); margin-bottom:4px;">Bench Press</div>
+              <div class="ph-pr-number-light">100</div>
+              <div class="ph-pr-unit-light">kg</div>
+              <div style="font-family:'DM Mono',monospace; font-size:8px; color:var(--l-muted); margin:4px 0;">3 reps</div>
+              <div class="ph-pr-improve-light">+5 kg vs anterior</div>
+              <div class="ph-pr-divider-light"></div>
+              <div style="font-family:'Syne',sans-serif; font-weight:800; font-size:7px; color:var(--l-muted); letter-spacing:1px; margin:4px 0;">LIFTORY</div>
+              <div class="ph-pr-btn-light">SEGUIR</div>
+            </div>
+          </div>
+          <div class="phone-home-indicator"></div>
+        </div>
+      </div>
+
+      <!-- DARK PR -->
+      <div class="mockup-container">
+        <div class="mockup-mode-label">Noche</div>
+        <div class="phone-frame phone-frame-dark" style="position:relative;">
+          <div class="phone-status-bar">
+            <span>9:41</span>
+            <div class="status-battery"><div class="status-battery-fill"></div></div>
+          </div>
+          <div class="phone-content" style="opacity:0.3;">
+            <div class="ph-d-wordmark">LIFTORY</div>
+            <div class="ph-d-subtitle">Hoy</div>
+            <div class="ph-d-card">
+              <div class="ph-d-heading">Upper Power</div>
+            </div>
+          </div>
+
+          <!-- PR Overlay -->
+          <div class="ph-pr-overlay-dark">
+            <div class="ph-pr-card-dark">
+              <div class="ph-pr-icon-dark">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 11V3M7 3L3 7M7 3L11 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div style="font-family:'DM Mono',monospace; font-size:7px; letter-spacing:1px; color:var(--d-accent); background:var(--d-accent-bg); display:inline-block; padding:2px 6px; border-radius:3px; margin-bottom:6px;">NUEVO PR</div>
+              <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:12px; color:var(--d-text); margin-bottom:4px;">Bench Press</div>
+              <div class="ph-pr-number-dark">100</div>
+              <div class="ph-pr-unit-dark">kg</div>
+              <div style="font-family:'DM Mono',monospace; font-size:8px; color:var(--d-muted); margin:4px 0;">3 reps</div>
+              <div class="ph-pr-improve-dark">+5 kg vs anterior</div>
+              <div class="ph-pr-divider-dark"></div>
+              <div style="font-family:'Syne',sans-serif; font-weight:800; font-size:7px; color:var(--d-muted); letter-spacing:1px; margin:4px 0;">LIFTORY</div>
+              <div class="ph-pr-btn-dark">SEGUIR</div>
+            </div>
+          </div>
+          <div class="phone-home-indicator"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================
+     SECTION 7: BUTTON SYSTEM
+     ============================================ -->
+<section class="section section-dark">
+  <div class="section-inner">
+    <div class="section-number">06</div>
+    <div class="section-label">Componentes</div>
+    <h2 class="section-title">Sistema de Botones</h2>
+    <div class="section-subtitle">Cada interaccion, resuelta en ambos modos.</div>
+
+    <div class="btn-grid">
+      <!-- Light Buttons -->
+      <div class="btn-showcase btn-showcase-light">
+        <div class="btn-showcase-label" style="color:var(--l-muted);">Modo Dia</div>
+
+        <div class="btn-row">
+          <div class="btn-type-label" style="color:var(--l-muted);">Primary</div>
+          <button class="btn-l-primary">Suscribirse</button>
+        </div>
+        <div class="btn-row">
+          <div class="btn-type-label" style="color:var(--l-muted);">Secondary</div>
+          <button class="btn-l-secondary">Ver Plan</button>
+        </div>
+        <div class="btn-row">
+          <div class="btn-type-label" style="color:var(--l-muted);">Ghost</div>
+          <button class="btn-l-ghost">Cancelar</button>
+        </div>
+        <div class="btn-row">
+          <div class="btn-type-label" style="color:var(--l-muted);">Disabled</div>
+          <button class="btn-l-disabled">No disponible</button>
+        </div>
+      </div>
+
+      <!-- Dark Buttons -->
+      <div class="btn-showcase btn-showcase-dark">
+        <div class="btn-showcase-label" style="color:var(--d-muted);">Modo Noche</div>
+
+        <div class="btn-row">
+          <div class="btn-type-label" style="color:var(--d-muted);">Primary</div>
+          <button class="btn-d-primary">Suscribirse</button>
+        </div>
+        <div class="btn-row">
+          <div class="btn-type-label" style="color:var(--d-muted);">Secondary</div>
+          <button class="btn-d-secondary">Ver Plan</button>
+        </div>
+        <div class="btn-row">
+          <div class="btn-type-label" style="color:var(--d-muted);">Ghost</div>
+          <button class="btn-d-ghost">Cancelar</button>
+        </div>
+        <div class="btn-row">
+          <div class="btn-type-label" style="color:var(--d-muted);">Disabled</div>
+          <button class="btn-d-disabled">No disponible</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================
+     SECTION 8: MICRO-INTERACTIONS
+     ============================================ -->
+<section class="section section-alt">
+  <div class="section-inner">
+    <div class="section-number">07</div>
+    <div class="section-label">Micro-Interacciones</div>
+    <h2 class="section-title">Los Detalles Invisibles</h2>
+    <div class="section-subtitle">Donde la marca cobra vida en cada toque.</div>
+
+    <div class="micro-grid">
+      <div class="micro-card">
+        <div class="micro-title">Hover / Press en Botones</div>
+        <div class="micro-desc">
+          En modo Dia, el burgundy se oscurece a #4A2018 al presionar, creando
+          profundidad tactil. En modo Noche, el camel se aclara a #D4A880,
+          como si la luz incidiera en el cuero.
+        </div>
+        <div class="micro-demo">
+          <div class="micro-swatch" style="background:#652F23;"></div>
+          <div class="micro-arrow">--></div>
+          <div class="micro-swatch" style="background:#4A2018;"></div>
+          <div style="width:24px;"></div>
+          <div class="micro-swatch" style="background:#C4956E;"></div>
+          <div class="micro-arrow">--></div>
+          <div class="micro-swatch" style="background:#D4A880;"></div>
+        </div>
+      </div>
+
+      <div class="micro-card">
+        <div class="micro-title">Badges de Fase</div>
+        <div class="micro-desc">
+          Las pills de fase (ACUMULACION, INTENSIFICACION, REALIZACION) usan
+          el color accent de cada modo. En Dia: burgundy sobre crema. En Noche:
+          camel sobre espresso. Siempre legibles, siempre de marca.
+        </div>
+        <div class="micro-demo">
+          <div style="font-family:'DM Mono',monospace; font-size:10px; letter-spacing:1px; background:#652F23; color:#FAF6F1; padding:4px 10px; border-radius:4px;">ACUMULACION</div>
+          <div style="width:12px;"></div>
+          <div style="font-family:'DM Mono',monospace; font-size:10px; letter-spacing:1px; background:#C4956E; color:#0D0B09; padding:4px 10px; border-radius:4px;">ACUMULACION</div>
+        </div>
+      </div>
+
+      <div class="micro-card">
+        <div class="micro-title">Estados de Exito</div>
+        <div class="micro-desc">
+          El verde oliva #7A8B5C permanece identico en ambos modos.
+          Es el unico color que no cambia — un ancla de consistencia que
+          comunica "completado" sin importar la hora del dia.
+        </div>
+        <div class="micro-demo">
+          <div class="micro-swatch" style="background:#7A8B5C;"></div>
+          <div style="font-family:'DM Mono',monospace; font-size:10px; color:var(--doc-muted);">#7A8B5C — Invariable</div>
+        </div>
+      </div>
+
+      <div class="micro-card">
+        <div class="micro-title">Elevacion de Cards</div>
+        <div class="micro-desc">
+          En modo Dia, las cards flotan con sombras de marron calido
+          rgba(61,43,36,0.06) — nunca gris. En modo Noche, un sutil resplandor
+          calido rgba(196,149,110,0.04) bordea las cards elevadas.
+        </div>
+        <div class="micro-demo">
+          <div style="width:60px; height:40px; background:#FFFFFF; border-radius:8px; box-shadow:0 4px 16px rgba(61,43,36,0.12);"></div>
+          <div style="width:12px;"></div>
+          <div style="width:60px; height:40px; background:#1A1714; border-radius:8px; border:1px solid #2A2520; box-shadow:0 4px 16px rgba(196,149,110,0.06);"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================
+     SECTION 9: WHY THIS WORKS
+     ============================================ -->
+<section class="section section-dark">
+  <div class="section-inner">
+    <div class="section-number">08</div>
+    <div class="section-label">Justificacion Estrategica</div>
+    <h2 class="section-title">Por Que Funciona</h2>
+    <div class="section-subtitle">Tres pilares que hacen de esta identidad algo sin precedentes.</div>
+
+    <div class="strategy-grid">
+      <div class="strategy-card">
+        <div class="strategy-title">Distincion</div>
+        <div class="strategy-text">
+          Ninguna otra app de fuerza usa marrones. Ninguna. Cero. El mercado entero
+          es negro con rojo, negro con azul, o negro con neon. LIFTORY posee un
+          territorio cromatico que es intocable. No competimos por atencion en un
+          espectro saturado — creamos nuestro propio espectro. La familia del marron
+          — desde el burgundy hasta el camel — es nuestra firma. Reconocible al
+          instante, imposible de confundir.
+        </div>
+      </div>
+
+      <div class="strategy-card">
+        <div class="strategy-title">Coherencia</div>
+        <div class="strategy-text">
+          Una marca. Dos modos. El usuario cambia de modo claro a oscuro y siente
+          la misma app, la misma identidad, adaptada a su preferencia o a su momento
+          del dia. Sin disonancia cognitiva. Sin la sensacion de que "la version oscura
+          es otra app." El puente cromatico que conecta burgundy con camel, chocolate
+          con ceniza, crema con espresso — es el ADN que garantiza coherencia absoluta.
+        </div>
+      </div>
+
+      <div class="strategy-card">
+        <div class="strategy-title">Premium sin Limite</div>
+        <div class="strategy-text">
+          El modo claro posiciona a LIFTORY donde NINGUNA app de fuerza ha estado jamas.
+          En el territorio de Oura, de Mio Clubs, de los hoteles boutique mediterraneos.
+          El modo oscuro mantiene al lifter serio comodo en su habitat natural. No
+          alienamos a nadie. Siempre elevamos. Es la diferencia entre elegir un bando
+          y ser lo suficientemente sofisticado para dominar ambos.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================
+     SECTION 10: SCORES
+     ============================================ -->
+<section class="section section-alt">
+  <div class="section-inner">
+    <div class="section-number">09</div>
+    <div class="section-label">Evaluacion</div>
+    <h2 class="section-title">Puntuaciones del Sistema</h2>
+    <div class="section-subtitle">Medicion objetiva del sistema unificado Mallorquina.</div>
+
+    <div class="score-grid">
+      <div class="score-item">
+        <div class="score-label">Distincion</div>
+        <div class="score-bar-track">
+          <div class="score-bar-fill" style="width:95%;"></div>
+        </div>
+        <div class="score-value">9.5</div>
+      </div>
+
+      <div class="score-item">
+        <div class="score-label">Energia</div>
+        <div class="score-bar-track">
+          <div class="score-bar-fill" style="width:70%;"></div>
+        </div>
+        <div class="score-value">7.0</div>
+      </div>
+
+      <div class="score-item">
+        <div class="score-label">Premium Feel</div>
+        <div class="score-bar-track">
+          <div class="score-bar-fill" style="width:95%;"></div>
+        </div>
+        <div class="score-value">9.5</div>
+      </div>
+
+      <div class="score-item">
+        <div class="score-label">Accesibilidad</div>
+        <div class="score-bar-track">
+          <div class="score-bar-fill" style="width:90%;"></div>
+        </div>
+        <div class="score-value">9.0</div>
+      </div>
+
+      <div class="score-item">
+        <div class="score-label">Escalabilidad</div>
+        <div class="score-bar-track">
+          <div class="score-bar-fill" style="width:95%;"></div>
+        </div>
+        <div class="score-value">9.5</div>
+      </div>
+
+      <div class="score-item">
+        <div class="score-label">Coherencia Inter-Modo</div>
+        <div class="score-bar-track">
+          <div class="score-bar-fill" style="width:98%;"></div>
+        </div>
+        <div class="score-value">9.8</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================
+     SECTION 11: CLOSING
+     ============================================ -->
+<section class="section section-dark" style="padding:120px 60px;">
+  <div class="section-inner" style="text-align:center;">
+    <div class="divider divider-center" style="margin-bottom:60px;"></div>
+
+    <p class="closing-quote">
+      "LIFTORY no es una app de gimnasio. Es un club privado en tu bolsillo.
+      Y los mejores clubes del mundo se ven igual de impecables al mediodia
+      que a medianoche."
+    </p>
+
+    <div style="font-family:'Syne',sans-serif; font-weight:800; font-size:48px; color:var(--doc-accent); letter-spacing:-1px; margin-bottom:32px;">LIFTORY</div>
+
+    <div class="divider divider-center" style="margin-top:0;"></div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  LIFTORY — Brand Unified Brief — Abril 2026 — Documento Confidencial
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFTORY Brand Direction Mockups</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #0A0A0A;
+    color: #F0EDE8;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Cover */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 30%, rgba(199,91,57,0.08) 0%, transparent 60%);
+  }
+  .cover-pre {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: #C75B39;
+    margin-bottom: 32px;
+    position: relative;
+  }
+  .cover-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 52px;
+    letter-spacing: -0.04em;
+    color: #FAF8F5;
+    line-height: 1.05;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .cover-sub {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    font-size: 16px;
+    color: #8A8A8E;
+    max-width: 420px;
+    line-height: 1.6;
+    position: relative;
+  }
+  .cover-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: #6B6560;
+    margin-top: 48px;
+    position: relative;
+  }
+
+  /* Section Headers */
+  .brand-section {
+    padding: 80px 40px 60px;
+    text-align: center;
+    position: relative;
+  }
+  .brand-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, transparent, var(--brand-accent));
+  }
+  .section-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--brand-accent);
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 36px;
+    letter-spacing: -0.04em;
+    margin-bottom: 8px;
+  }
+  .section-desc {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    font-size: 14px;
+    color: var(--brand-muted);
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* Phone frame */
+  .phone-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 32px;
+    padding: 0 24px 80px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .phone-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .phone-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--brand-muted);
+  }
+  .phone {
+    width: 280px;
+    height: 560px;
+    border-radius: 32px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06);
+  }
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .phone-screen::-webkit-scrollbar { display: none; }
+
+  .notch {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .notch-pill {
+    width: 80px;
+    height: 24px;
+    border-radius: 12px;
+    background: #000;
+    margin-top: 8px;
+  }
+
+  /* Theme variables */
+  .current-section { --brand-accent: #C75B39; --brand-text: #FAF8F5; --brand-muted: #6B6560; }
+  .forged-section { --brand-accent: #D4FF00; --brand-text: #F0EDE8; --brand-muted: #6B6B70; }
+  .atelier-section { --brand-accent: #C5A55A; --brand-text: #F8F4EF; --brand-muted: #7A756D; }
+  .terra-section { --brand-accent: #C75B39; --brand-text: #FAF8F5; --brand-muted: #6B6560; }
+  .hybrid-section { --brand-accent: #C75B39; --brand-text: #FAF8F5; --brand-muted: #6B6560; }
+
+  .page-break { height: 1px; background: linear-gradient(to right, transparent, rgba(255,255,255,0.06), transparent); margin: 0 40px; }
+
+  /* Palette */
+  .palette { display: flex; justify-content: center; gap: 16px; margin-bottom: 40px; }
+  .swatch { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .swatch-circle { width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); }
+  .swatch-label { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.15em; color: #6B6560; }
+
+  /* Typography preview */
+  .type-preview { text-align: center; margin-bottom: 40px; }
+  .type-logo { font-weight: 800; letter-spacing: -0.04em; font-size: 28px; margin-bottom: 8px; }
+  .type-heading { font-size: 18px; margin-bottom: 4px; }
+  .type-body { font-size: 12px; color: var(--brand-muted); font-family: 'DM Sans', sans-serif; font-weight: 300; }
+
+  svg.icon { fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+</style>
+</head>
+<body>
+
+<!-- ══════════ COVER ══════════ -->
+<div class="cover">
+  <div class="cover-pre">BRAND DIRECTION PRESENTATION</div>
+  <div class="cover-title">LIFTORY<br>Brand Evolution</div>
+  <div class="cover-sub">
+    Cuatro direcciones visuales exploradas a traves de reproducciones fieles de la interfaz real de LIFTORY. Cada direccion conserva la arquitectura UX y transforma la identidad visual.
+  </div>
+  <div class="cover-date">ABRIL 2026 &mdash; CONFIDENCIAL</div>
+</div>
+
+
+<!-- ══════════ CURRENT (Reference) ══════════ -->
+<div class="page-break"></div>
+<div class="brand-section current-section">
+  <div class="section-eyebrow">REFERENCIA ACTUAL</div>
+  <div class="section-title" style="color:#FAF8F5">LIFTORY Actual</div>
+  <div class="section-desc">El look actual: fondo claro (#FAF8F5), tipografia Syne + DM Sans, terracotta como acento. Warm, clean, functional.</div>
+  <div class="palette" style="margin-top: 32px;">
+    <div class="swatch"><div class="swatch-circle" style="background:#FAF8F5"></div><div class="swatch-label">BG</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#1C1C1E"></div><div class="swatch-label">PRIMARY</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#C75B39"></div><div class="swatch-label">TERRACOTTA</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#C9A96E"></div><div class="swatch-label">GOLD</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#7A8B5C"></div><div class="swatch-label">SUCCESS</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#8A8A8E"></div><div class="swatch-label">MUTED</div></div>
+  </div>
+</div>
+
+<div class="phone-grid current-section">
+  <!-- CURRENT: HOME -->
+  <div class="phone-col">
+    <div class="phone-label">HOME</div>
+    <div class="phone">
+      <div class="phone-screen" style="background:#FAF8F5;">
+        <div class="notch" style="background:#FAF8F5;"><div class="notch-pill"></div></div>
+        <div style="padding: 0 20px 80px;">
+          <h1 style="font-family:'Syne',sans-serif; font-weight:700; font-size:20px; color:#1C1C1E; letter-spacing:-0.03em;">Hola, Andoni</h1>
+          <p style="font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:#C75B39; margin-top:4px;">LIFTORY ESSENTIALS</p>
+          <!-- Workout card -->
+          <div style="margin-top:24px; background:#fff; border-radius:16px; border:1px solid #E0DCD7; overflow:hidden;">
+            <div style="padding:20px; display:flex; align-items:center; gap:16px;">
+              <div style="position:relative; width:64px; height:64px; flex-shrink:0;">
+                <svg width="64" height="64" style="transform:rotate(-90deg);"><circle cx="32" cy="32" r="28" fill="none" stroke="#F5F2ED" stroke-width="4.5"/><circle cx="32" cy="32" r="28" fill="none" stroke="#1C1C1E" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="175.93" stroke-dashoffset="117.29"/></svg>
+                <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                  <span style="font-family:'Syne',sans-serif; font-weight:800; font-size:18px; color:#1C1C1E; letter-spacing:-0.03em; line-height:1;">2</span>
+                  <span style="font-family:'DM Mono',monospace; font-size:7px; text-transform:uppercase; letter-spacing:1.5px; color:#8A8A8E;">de 5</span>
+                </div>
+              </div>
+              <div style="flex:1;">
+                <p style="font-family:'DM Mono',monospace; font-size:8px; text-transform:uppercase; letter-spacing:2px; color:#8A8A8E; margin-bottom:3px;">ESTA SEMANA</p>
+                <h2 style="font-family:'Syne',sans-serif; font-weight:700; font-size:16px; color:#1C1C1E; letter-spacing:-0.02em;">PULL DAY A</h2>
+                <p style="font-family:'DM Sans'; font-size:11px; color:#8A8A8E; margin-top:2px;">miercoles · ~55 min · 24 sets</p>
+                <div style="display:flex; gap:3px; margin-top:10px;">
+                  <div style="width:16px; height:3px; border-radius:2px; background:#1C1C1E;"></div>
+                  <div style="width:16px; height:3px; border-radius:2px; background:#1C1C1E;"></div>
+                  <div style="width:16px; height:3px; border-radius:2px; background:rgba(28,28,30,0.15); border:1px solid rgba(28,28,30,0.25);"></div>
+                  <div style="width:16px; height:3px; border-radius:2px; background:#F5F2ED;"></div>
+                  <div style="width:16px; height:3px; border-radius:2px; background:#F5F2ED;"></div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:0 20px 20px;">
+              <button style="width:100%; padding:13px 0; border-radius:12px; background:#1C1C1E; color:#FAF8F5; font-family:'Syne',sans-serif; font-weight:600; font-size:13px; border:none; display:flex; align-items:center; justify-content:center; gap:6px;">EMPEZAR SESION &#8250;</button>
+            </div>
+          </div>
+          <!-- Week nav -->
+          <div style="margin-top:24px;">
+            <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:12px;">
+              <span style="font-family:'DM Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:2px; color:#8A8A8E;">SEMANA 3/6</span>
+              <span style="background:rgba(199,91,57,0.12); color:#C75B39; font-family:'DM Mono',monospace; font-size:8px; text-transform:uppercase; letter-spacing:1.5px; font-weight:600; padding:3px 10px; border-radius:99px;">ACUMULACION</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; padding:0 4px;">
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; background:#1C1C1E; display:flex; align-items:center; justify-content:center;"><span style="color:#FAF8F5; font-size:11px;">&#10003;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#8A8A8E;">L</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; background:#1C1C1E; display:flex; align-items:center; justify-content:center;"><span style="color:#FAF8F5; font-size:11px;">&#10003;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#8A8A8E;">M</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; border:2px solid #1C1C1E; box-shadow:0 0 0 3px rgba(28,28,30,0.2); display:flex; align-items:center; justify-content:center;"><span style="color:#1C1C1E; font-size:12px;">&#9679;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#8A8A8E;">M</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; border:2px solid #E0DCD7; display:flex; align-items:center; justify-content:center;"><span style="color:#8A8A8E; font-size:12px;">&#127807;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#8A8A8E;">J</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; border:2px solid #E0DCD7; display:flex; align-items:center; justify-content:center;"><span style="color:#8A8A8E; font-size:12px;">&#9679;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#8A8A8E;">V</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; border:2px solid #E0DCD7; display:flex; align-items:center; justify-content:center;"><span style="color:#8A8A8E; font-size:12px;">&#9679;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#8A8A8E;">S</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; border:2px solid #E0DCD7; display:flex; align-items:center; justify-content:center;"><span style="color:#8A8A8E; font-size:12px;">&#127807;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#8A8A8E;">D</span></div>
+            </div>
+          </div>
+          <!-- Quick stats -->
+          <div style="display:flex; gap:8px; margin-top:24px;">
+            <div style="flex:1; background:#fff; border:1px solid #E0DCD7; border-radius:16px; padding:10px; display:flex; flex-direction:column; align-items:center; gap:4px;"><span style="color:#1C1C1E; font-size:12px;">&#128293;</span><span style="font-family:'DM Mono',monospace; font-size:9px; color:#8A8A8E; text-align:center;">5 dias streak</span></div>
+            <div style="flex:1; background:#fff; border:1px solid #E0DCD7; border-radius:16px; padding:10px; display:flex; flex-direction:column; align-items:center; gap:4px;"><span style="color:#1C1C1E; font-size:12px;">&#127947;&#65039;</span><span style="font-family:'DM Mono',monospace; font-size:9px; color:#8A8A8E; text-align:center;">14 workouts</span></div>
+            <div style="flex:1; background:#fff; border:1px solid #E0DCD7; border-radius:16px; padding:10px; display:flex; flex-direction:column; align-items:center; gap:4px;"><span style="color:#1C1C1E; font-size:12px;">&#127942;</span><span style="font-family:'DM Mono',monospace; font-size:9px; color:#8A8A8E; text-align:center;">3 PRs este mes</span></div>
+          </div>
+        </div>
+        <!-- Tab bar -->
+        <div style="position:sticky; bottom:0; height:52px; background:#FAF8F5; border-top:1px solid #E0DCD7; display:flex; align-items:center; justify-content:space-around; padding:0 8px;">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#1C1C1E;"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span style="font-family:'DM Sans'; font-size:8px; font-weight:500; color:#1C1C1E;">Home</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#B0ACA7;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span style="font-family:'DM Sans'; font-size:8px; font-weight:500; color:#B0ACA7;">Programa</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#B0ACA7;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg><span style="font-family:'DM Sans'; font-size:8px; font-weight:500; color:#B0ACA7;">Progreso</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#B0ACA7;"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span style="font-family:'DM Sans'; font-size:8px; font-weight:500; color:#B0ACA7;">Perfil</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CURRENT: REST TIMER -->
+  <div class="phone-col">
+    <div class="phone-label">REST TIMER</div>
+    <div class="phone">
+      <div class="phone-screen" style="background:#FAF8F5; display:flex; flex-direction:column;">
+        <div class="notch" style="background:#FAF8F5;"><div class="notch-pill"></div></div>
+        <div style="flex:1; padding:20px; display:flex; flex-direction:column; justify-content:center; opacity:0.3;">
+          <div style="background:#fff; border-radius:12px; padding:16px; border:1px solid #E0DCD7;">
+            <p style="font-family:'DM Mono',monospace; font-size:8px; color:#8A8A8E; text-transform:uppercase; letter-spacing:2px;">SET 3 / 4</p>
+            <p style="font-family:'Syne',sans-serif; font-weight:700; font-size:14px; color:#1C1C1E; margin-top:4px;">Bench Press</p>
+          </div>
+        </div>
+        <div style="background:#fff; border-radius:16px 16px 0 0; padding:16px 24px 32px; box-shadow:0 -8px 32px rgba(0,0,0,0.08);">
+          <div style="width:40px; height:3px; border-radius:2px; background:rgba(138,138,142,0.3); margin:0 auto 16px;"></div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-family:'DM Sans'; font-size:12px; color:#8A8A8E;">Saltar</span>
+            <span style="font-family:'DM Sans'; font-size:12px; color:#8A8A8E;">Descanso</span>
+            <span style="font-family:'DM Sans'; font-size:12px; font-weight:500; color:#1C1C1E;">+15s</span>
+          </div>
+          <p style="text-align:center; font-family:'DM Mono',monospace; font-weight:700; font-size:44px; letter-spacing:-0.02em; color:#1C1C1E; margin-top:8px; line-height:1;">01:23</p>
+          <div style="margin-top:12px; height:3px; background:#E0DCD7; border-radius:2px; overflow:hidden;">
+            <div style="width:62%; height:100%; background:#1C1C1E; border-radius:2px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CURRENT: PROGRESS -->
+  <div class="phone-col">
+    <div class="phone-label">PROGRESS</div>
+    <div class="phone">
+      <div class="phone-screen" style="background:#FAF8F5;">
+        <div class="notch" style="background:#FAF8F5;"><div class="notch-pill"></div></div>
+        <div style="padding:0 20px 80px;">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="width:52px; height:52px; border-radius:50%; background:#F5F2ED; display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-weight:700; font-size:20px; color:#1C1C1E;">A</div>
+            <div>
+              <h1 style="font-family:'Syne',sans-serif; font-weight:700; font-size:18px; color:#1C1C1E; letter-spacing:-0.03em;">Andoni</h1>
+              <p style="font-family:'DM Sans'; font-size:11px; color:#8A8A8E; font-weight:300;">Nivel: Intermedio · Consistencia: 85%</p>
+              <div style="margin-top:6px; height:5px; width:120px; background:#F5F2ED; border-radius:3px; overflow:hidden;"><div style="width:85%; height:100%; background:#1C1C1E; border-radius:3px;"></div></div>
+            </div>
+          </div>
+          <!-- Volume -->
+          <div style="margin-top:24px;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;"><div style="width:20px; height:1px; background:#B8622F;"></div><span style="font-family:'DM Mono',monospace; font-size:8px; letter-spacing:0.25em; text-transform:uppercase; color:#B8622F;">VOLUMEN SEMANAL</span></div>
+            <div style="background:#fff; border-radius:12px; padding:16px; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+              <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:6px; height:80px; padding:0 4px;">
+                <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:100%; height:45px; background:#C75B39; border-radius:3px 3px 0 0;"></div><span style="font-size:9px; color:#8A8A8E;">L</span></div>
+                <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:100%; height:65px; background:#C75B39; border-radius:3px 3px 0 0;"></div><span style="font-size:9px; color:#8A8A8E;">M</span></div>
+                <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:100%; height:35px; background:#C75B39; border-radius:3px 3px 0 0;"></div><span style="font-size:9px; color:#8A8A8E;">M</span></div>
+                <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:100%; height:0;"></div><span style="font-size:9px; color:#8A8A8E;">J</span></div>
+                <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:100%; height:55px; background:#C75B39; border-radius:3px 3px 0 0;"></div><span style="font-size:9px; color:#8A8A8E;">V</span></div>
+                <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:100%; height:0;"></div><span style="font-size:9px; color:#8A8A8E;">S</span></div>
+              </div>
+            </div>
+          </div>
+          <!-- PR -->
+          <div style="margin-top:24px;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;"><div style="width:20px; height:1px; background:#B8622F;"></div><span style="font-family:'DM Mono',monospace; font-size:8px; letter-spacing:0.25em; text-transform:uppercase; color:#B8622F;">RECORDS PERSONALES</span></div>
+            <div style="background:#fff; border-radius:12px; padding:16px; box-shadow:0 1px 3px rgba(0,0,0,0.04); border-left:3px solid #C9A96E; display:flex; align-items:center; gap:12px;">
+              <div style="width:36px; height:36px; border-radius:10px; background:rgba(201,169,110,0.1); display:flex; align-items:center; justify-content:center;"><span style="color:#C9A96E; font-size:16px;">&#127942;</span></div>
+              <div style="flex:1;"><p style="font-family:'Syne',sans-serif; font-weight:600; font-size:13px; color:#1C1C1E; letter-spacing:-0.02em;">Bench Press</p><p style="font-family:'DM Sans'; font-size:10px; color:#8A8A8E;">hoy</p></div>
+              <div style="text-align:right;"><p style="font-family:'DM Mono',monospace; font-weight:500; font-size:24px; color:#1C1C1E; letter-spacing:0.05em; line-height:1;">100</p><p style="font-family:'DM Mono',monospace; font-size:9px; color:#8A8A8E; letter-spacing:0.15em; text-transform:uppercase;">KG x5</p></div>
+            </div>
+          </div>
+          <!-- Stats -->
+          <div style="margin-top:20px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div style="background:#fff; border-radius:12px; padding:16px; box-shadow:0 1px 3px rgba(0,0,0,0.04);"><span style="font-size:14px; color:#1C1C1E;">&#127947;&#65039;</span><p style="font-family:'DM Mono',monospace; font-size:24px; font-weight:500; color:#1C1C1E; letter-spacing:0.05em; line-height:1; margin-top:8px;">14</p><p style="font-family:'DM Mono',monospace; font-size:8px; color:#8A8A8E; letter-spacing:0.15em; text-transform:uppercase; margin-top:4px;">TOTAL WORKOUTS</p></div>
+            <div style="background:#fff; border-radius:12px; padding:16px; box-shadow:0 1px 3px rgba(0,0,0,0.04);"><span style="font-size:14px; color:#1C1C1E;">&#128293;</span><p style="font-family:'DM Mono',monospace; font-size:24px; font-weight:500; color:#1C1C1E; letter-spacing:0.05em; line-height:1; margin-top:8px;">5</p><p style="font-family:'DM Mono',monospace; font-size:8px; color:#8A8A8E; letter-spacing:0.15em; text-transform:uppercase; margin-top:4px;">DIAS RACHA ACTUAL</p></div>
+          </div>
+        </div>
+        <div style="position:sticky; bottom:0; height:52px; background:#FAF8F5; border-top:1px solid #E0DCD7; display:flex; align-items:center; justify-content:space-around;">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#B0ACA7;"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#B0ACA7;">Home</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#B0ACA7;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#B0ACA7;">Programa</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#1C1C1E;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#1C1C1E;">Progreso</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#B0ACA7;"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#B0ACA7;">Perfil</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════ FORGED ══════════ -->
+<div class="page-break"></div>
+<div class="brand-section forged-section">
+  <div class="section-eyebrow">DIRECTION 01</div>
+  <div class="section-title" style="color:#D4FF00;">FORGED</div>
+  <div class="section-desc">Dark mode radical. Neon accent (#D4FF00) sobre negro profundo. Industrial, tech, high-performance. Logo en Syne 800, headings en Outfit 700.</div>
+  <div class="type-preview" style="margin-top:32px;">
+    <div class="type-logo" style="font-family:'Syne',sans-serif; color:#D4FF00;">LIFTORY</div>
+    <div class="type-heading" style="font-family:'Outfit',sans-serif; font-weight:700; color:#F0EDE8;">Heading en Outfit Bold</div>
+    <div class="type-body">Body text en DM Sans Light</div>
+  </div>
+  <div class="palette">
+    <div class="swatch"><div class="swatch-circle" style="background:#08080A"></div><div class="swatch-label">BG</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#141416"></div><div class="swatch-label">CARD</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#D4FF00"></div><div class="swatch-label">NEON</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#F0EDE8"></div><div class="swatch-label">TEXT</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#6B6B70"></div><div class="swatch-label">MUTED</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#1E1E22"></div><div class="swatch-label">BORDER</div></div>
+  </div>
+</div>
+
+<div class="phone-grid forged-section">
+  <!-- FORGED: HOME -->
+  <div class="phone-col">
+    <div class="phone-label">HOME</div>
+    <div class="phone">
+      <div class="phone-screen" style="background:#08080A;">
+        <div class="notch" style="background:#08080A;"><div class="notch-pill"></div></div>
+        <div style="padding:0 20px 80px;">
+          <h1 style="font-family:'Outfit',sans-serif; font-weight:700; font-size:20px; color:#F0EDE8; letter-spacing:-0.03em;">Hola, Andoni</h1>
+          <p style="font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:#D4FF00; margin-top:4px;">LIFTORY ESSENTIALS</p>
+          <div style="margin-top:24px; background:#141416; border-radius:16px; border:1px solid #1E1E22; overflow:hidden;">
+            <div style="padding:20px; display:flex; align-items:center; gap:16px;">
+              <div style="position:relative; width:64px; height:64px; flex-shrink:0;">
+                <svg width="64" height="64" style="transform:rotate(-90deg);"><circle cx="32" cy="32" r="28" fill="none" stroke="#1E1E22" stroke-width="4.5"/><circle cx="32" cy="32" r="28" fill="none" stroke="#D4FF00" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="175.93" stroke-dashoffset="117.29"/></svg>
+                <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;"><span style="font-family:'Outfit',sans-serif; font-weight:700; font-size:18px; color:#F0EDE8; line-height:1;">2</span><span style="font-family:'DM Mono',monospace; font-size:7px; text-transform:uppercase; letter-spacing:1.5px; color:#6B6B70;">de 5</span></div>
+              </div>
+              <div style="flex:1;">
+                <p style="font-family:'DM Mono',monospace; font-size:8px; text-transform:uppercase; letter-spacing:2px; color:#6B6B70; margin-bottom:3px;">ESTA SEMANA</p>
+                <h2 style="font-family:'Outfit',sans-serif; font-weight:700; font-size:16px; color:#F0EDE8; letter-spacing:-0.02em;">PULL DAY A</h2>
+                <p style="font-family:'DM Sans'; font-size:11px; color:#6B6B70; margin-top:2px;">miercoles · ~55 min · 24 sets</p>
+                <div style="display:flex; gap:3px; margin-top:10px;">
+                  <div style="width:16px; height:3px; border-radius:2px; background:#D4FF00;"></div>
+                  <div style="width:16px; height:3px; border-radius:2px; background:#D4FF00;"></div>
+                  <div style="width:16px; height:3px; border-radius:2px; background:rgba(212,255,0,0.2); border:1px solid rgba(212,255,0,0.35);"></div>
+                  <div style="width:16px; height:3px; border-radius:2px; background:#1E1E22;"></div>
+                  <div style="width:16px; height:3px; border-radius:2px; background:#1E1E22;"></div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:0 20px 20px;"><button style="width:100%; padding:13px 0; border-radius:12px; background:#D4FF00; color:#08080A; font-family:'Outfit',sans-serif; font-weight:700; font-size:13px; border:none;">EMPEZAR SESION &#8250;</button></div>
+          </div>
+          <div style="margin-top:24px;">
+            <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:12px;">
+              <span style="font-family:'DM Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:2px; color:#6B6B70;">SEMANA 3/6</span>
+              <span style="background:rgba(212,255,0,0.12); color:#D4FF00; font-family:'DM Mono',monospace; font-size:8px; text-transform:uppercase; letter-spacing:1.5px; font-weight:600; padding:3px 10px; border-radius:99px;">ACUMULACION</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; padding:0 4px;">
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; background:#D4FF00; display:flex; align-items:center; justify-content:center;"><span style="color:#08080A; font-size:11px; font-weight:700;">&#10003;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#6B6B70;">L</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; background:#D4FF00; display:flex; align-items:center; justify-content:center;"><span style="color:#08080A; font-size:11px; font-weight:700;">&#10003;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#6B6B70;">M</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; border:2px solid #D4FF00; box-shadow:0 0 0 3px rgba(212,255,0,0.2); display:flex; align-items:center; justify-content:center;"><span style="color:#D4FF00; font-size:12px;">&#9679;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#6B6B70;">M</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; border:2px solid #1E1E22; display:flex; align-items:center; justify-content:center;"><span style="color:#6B6B70; font-size:12px;">&#127807;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#6B6B70;">J</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; border:2px solid #1E1E22; display:flex; align-items:center; justify-content:center;"><span style="color:#6B6B70; font-size:12px;">&#9679;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#6B6B70;">V</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; border:2px solid #1E1E22; display:flex; align-items:center; justify-content:center;"><span style="color:#6B6B70; font-size:12px;">&#9679;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#6B6B70;">S</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; border:2px solid #1E1E22; display:flex; align-items:center; justify-content:center;"><span style="color:#6B6B70; font-size:12px;">&#127807;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#6B6B70;">D</span></div>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; margin-top:24px;">
+            <div style="flex:1; background:#141416; border:1px solid #1E1E22; border-radius:16px; padding:10px; display:flex; flex-direction:column; align-items:center; gap:4px;"><span style="color:#D4FF00; font-size:12px;">&#128293;</span><span style="font-family:'DM Mono',monospace; font-size:9px; color:#6B6B70; text-align:center;">5 dias streak</span></div>
+            <div style="flex:1; background:#141416; border:1px solid #1E1E22; border-radius:16px; padding:10px; display:flex; flex-direction:column; align-items:center; gap:4px;"><span style="color:#D4FF00; font-size:12px;">&#127947;&#65039;</span><span style="font-family:'DM Mono',monospace; font-size:9px; color:#6B6B70; text-align:center;">14 workouts</span></div>
+            <div style="flex:1; background:#141416; border:1px solid #1E1E22; border-radius:16px; padding:10px; display:flex; flex-direction:column; align-items:center; gap:4px;"><span style="color:#D4FF00; font-size:12px;">&#127942;</span><span style="font-family:'DM Mono',monospace; font-size:9px; color:#6B6B70; text-align:center;">3 PRs este mes</span></div>
+          </div>
+        </div>
+        <div style="position:sticky; bottom:0; height:52px; background:#08080A; border-top:1px solid #1E1E22; display:flex; align-items:center; justify-content:space-around;">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#D4FF00;"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#D4FF00;">Home</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#6B6B70;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#6B6B70;">Programa</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#6B6B70;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#6B6B70;">Progreso</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#6B6B70;"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#6B6B70;">Perfil</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORGED: REST TIMER -->
+  <div class="phone-col">
+    <div class="phone-label">REST TIMER</div>
+    <div class="phone">
+      <div class="phone-screen" style="background:#08080A; display:flex; flex-direction:column;">
+        <div class="notch" style="background:#08080A;"><div class="notch-pill"></div></div>
+        <div style="flex:1; padding:20px; display:flex; flex-direction:column; justify-content:center; opacity:0.3;">
+          <div style="background:#141416; border-radius:12px; padding:16px; border:1px solid #1E1E22;">
+            <p style="font-family:'DM Mono',monospace; font-size:8px; color:#6B6B70; text-transform:uppercase; letter-spacing:2px;">SET 3 / 4</p>
+            <p style="font-family:'Outfit',sans-serif; font-weight:700; font-size:14px; color:#F0EDE8; margin-top:4px;">Bench Press</p>
+          </div>
+        </div>
+        <div style="background:#141416; border-radius:16px 16px 0 0; padding:16px 24px 32px; box-shadow:0 -8px 32px rgba(0,0,0,0.5);">
+          <div style="width:40px; height:3px; border-radius:2px; background:rgba(107,107,112,0.3); margin:0 auto 16px;"></div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-family:'DM Sans'; font-size:12px; color:#6B6B70;">Saltar</span>
+            <span style="font-family:'DM Sans'; font-size:12px; color:#6B6B70;">Descanso</span>
+            <span style="font-family:'DM Sans'; font-size:12px; font-weight:500; color:#D4FF00;">+15s</span>
+          </div>
+          <p style="text-align:center; font-family:'DM Mono',monospace; font-weight:700; font-size:44px; letter-spacing:-0.02em; color:#F0EDE8; margin-top:8px; line-height:1;">01:23</p>
+          <div style="margin-top:12px; height:3px; background:#1E1E22; border-radius:2px; overflow:hidden;"><div style="width:62%; height:100%; background:#D4FF00; border-radius:2px; box-shadow:0 0 8px rgba(212,255,0,0.4);"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORGED: PROGRESS -->
+  <div class="phone-col">
+    <div class="phone-label">PROGRESS</div>
+    <div class="phone">
+      <div class="phone-screen" style="background:#08080A;">
+        <div class="notch" style="background:#08080A;"><div class="notch-pill"></div></div>
+        <div style="padding:0 20px 80px;">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="width:52px; height:52px; border-radius:50%; background:#1E1E22; display:flex; align-items:center; justify-content:center; font-family:'Outfit',sans-serif; font-weight:700; font-size:20px; color:#D4FF00;">A</div>
+            <div>
+              <h1 style="font-family:'Outfit',sans-serif; font-weight:700; font-size:18px; color:#F0EDE8; letter-spacing:-0.03em;">Andoni</h1>
+              <p style="font-family:'DM Sans'; font-size:11px; color:#6B6B70; font-weight:300;">Nivel: Intermedio · Consistencia: 85%</p>
+              <div style="margin-top:6px; height:5px; width:120px; background:#1E1E22; border-radius:3px; overflow:hidden;"><div style="width:85%; height:100%; background:#D4FF00; border-radius:3px; box-shadow:0 0 6px rgba(212,255,0,0.3);"></div></div>
+            </div>
+          </div>
+          <div style="margin-top:24px;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;"><div style="width:20px; height:1px; background:#D4FF00;"></div><span style="font-family:'DM Mono',monospace; font-size:8px; letter-spacing:0.25em; text-transform:uppercase; color:#D4FF00;">VOLUMEN SEMANAL</span></div>
+            <div style="background:#141416; border-radius:12px; padding:16px;">
+              <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:6px; height:80px; padding:0 4px;">
+                <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:100%; height:45px; background:#D4FF00; border-radius:3px 3px 0 0; box-shadow:0 0 8px rgba(212,255,0,0.15);"></div><span style="font-size:9px; color:#6B6B70;">L</span></div>
+                <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:100%; height:65px; background:#D4FF00; border-radius:3px 3px 0 0; box-shadow:0 0 8px rgba(212,255,0,0.15);"></div><span style="font-size:9px; color:#6B6B70;">M</span></div>
+                <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:100%; height:35px; background:#D4FF00; border-radius:3px 3px 0 0;"></div><span style="font-size:9px; color:#6B6B70;">M</span></div>
+                <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:100%; height:0;"></div><span style="font-size:9px; color:#6B6B70;">J</span></div>
+                <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:100%; height:55px; background:#D4FF00; border-radius:3px 3px 0 0; box-shadow:0 0 8px rgba(212,255,0,0.15);"></div><span style="font-size:9px; color:#6B6B70;">V</span></div>
+                <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:100%; height:0;"></div><span style="font-size:9px; color:#6B6B70;">S</span></div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:24px;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;"><div style="width:20px; height:1px; background:#D4FF00;"></div><span style="font-family:'DM Mono',monospace; font-size:8px; letter-spacing:0.25em; text-transform:uppercase; color:#D4FF00;">RECORDS PERSONALES</span></div>
+            <div style="background:#141416; border-radius:12px; padding:16px; border-left:3px solid #D4FF00; display:flex; align-items:center; gap:12px;">
+              <div style="width:36px; height:36px; border-radius:10px; background:rgba(212,255,0,0.1); display:flex; align-items:center; justify-content:center;"><span style="color:#D4FF00; font-size:16px;">&#127942;</span></div>
+              <div style="flex:1;"><p style="font-family:'Outfit',sans-serif; font-weight:700; font-size:13px; color:#F0EDE8;">Bench Press</p><p style="font-family:'DM Sans'; font-size:10px; color:#6B6B70;">hoy</p></div>
+              <div style="text-align:right;"><p style="font-family:'DM Mono',monospace; font-weight:500; font-size:24px; color:#F0EDE8; letter-spacing:0.05em; line-height:1;">100</p><p style="font-family:'DM Mono',monospace; font-size:9px; color:#6B6B70; letter-spacing:0.15em;">KG x5</p></div>
+            </div>
+          </div>
+          <div style="margin-top:20px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div style="background:#141416; border-radius:12px; padding:16px;"><span style="font-size:14px; color:#D4FF00;">&#127947;&#65039;</span><p style="font-family:'DM Mono',monospace; font-size:24px; font-weight:500; color:#F0EDE8; letter-spacing:0.05em; line-height:1; margin-top:8px;">14</p><p style="font-family:'DM Mono',monospace; font-size:8px; color:#6B6B70; letter-spacing:0.15em; text-transform:uppercase; margin-top:4px;">TOTAL WORKOUTS</p></div>
+            <div style="background:#141416; border-radius:12px; padding:16px;"><span style="font-size:14px; color:#D4FF00;">&#128293;</span><p style="font-family:'DM Mono',monospace; font-size:24px; font-weight:500; color:#F0EDE8; letter-spacing:0.05em; line-height:1; margin-top:8px;">5</p><p style="font-family:'DM Mono',monospace; font-size:8px; color:#6B6B70; letter-spacing:0.15em; text-transform:uppercase; margin-top:4px;">DIAS RACHA ACTUAL</p></div>
+          </div>
+        </div>
+        <div style="position:sticky; bottom:0; height:52px; background:#08080A; border-top:1px solid #1E1E22; display:flex; align-items:center; justify-content:space-around;">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#6B6B70;"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#6B6B70;">Home</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#6B6B70;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#6B6B70;">Programa</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#D4FF00;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#D4FF00;">Progreso</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#6B6B70;"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#6B6B70;">Perfil</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════ ATELIER ══════════ -->
+<div class="page-break"></div>
+<div class="brand-section atelier-section">
+  <div class="section-eyebrow">DIRECTION 02</div>
+  <div class="section-title" style="color:#C5A55A;">ATELIER</div>
+  <div class="section-desc">Lujo silencioso. Gold accent (#C5A55A) sobre negro calido. Headings en Cormorant Garamond italic — elegancia editorial. Para el atleta que aprecia el detalle fino.</div>
+  <div class="type-preview" style="margin-top:32px;">
+    <div class="type-logo" style="font-family:'Syne',sans-serif; color:#C5A55A;">LIFTORY</div>
+    <div class="type-heading" style="font-family:'Cormorant Garamond',serif; font-weight:400; font-style:italic; color:#F8F4EF;">Heading en Cormorant Garamond Italic</div>
+    <div class="type-body">Body text en DM Sans Light</div>
+  </div>
+  <div class="palette">
+    <div class="swatch"><div class="swatch-circle" style="background:#0C0B09"></div><div class="swatch-label">BG</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#1A1917"></div><div class="swatch-label">CARD</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#C5A55A"></div><div class="swatch-label">GOLD</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#F8F4EF"></div><div class="swatch-label">TEXT</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#7A756D"></div><div class="swatch-label">MUTED</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#2A2722"></div><div class="swatch-label">BORDER</div></div>
+  </div>
+</div>
+
+<div class="phone-grid atelier-section">
+  <div class="phone-col">
+    <div class="phone-label">HOME</div>
+    <div class="phone">
+      <div class="phone-screen" style="background:#0C0B09;">
+        <div class="notch" style="background:#0C0B09;"><div class="notch-pill"></div></div>
+        <div style="padding:0 20px 80px;">
+          <h1 style="font-family:'Cormorant Garamond',serif; font-weight:400; font-style:italic; font-size:22px; color:#F8F4EF;">Hola, Andoni</h1>
+          <p style="font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:#C5A55A; margin-top:4px;">LIFTORY ESSENTIALS</p>
+          <div style="margin-top:24px; background:#1A1917; border-radius:16px; border:1px solid #2A2722; overflow:hidden;">
+            <div style="padding:20px; display:flex; align-items:center; gap:16px;">
+              <div style="position:relative; width:64px; height:64px; flex-shrink:0;">
+                <svg width="64" height="64" style="transform:rotate(-90deg);"><circle cx="32" cy="32" r="28" fill="none" stroke="#2A2722" stroke-width="4.5"/><circle cx="32" cy="32" r="28" fill="none" stroke="#C5A55A" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="175.93" stroke-dashoffset="117.29"/></svg>
+                <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;"><span style="font-family:'Cormorant Garamond',serif; font-weight:600; font-size:20px; color:#F8F4EF; line-height:1;">2</span><span style="font-family:'DM Mono',monospace; font-size:7px; text-transform:uppercase; letter-spacing:1.5px; color:#7A756D;">de 5</span></div>
+              </div>
+              <div style="flex:1;">
+                <p style="font-family:'DM Mono',monospace; font-size:8px; text-transform:uppercase; letter-spacing:2px; color:#7A756D; margin-bottom:3px;">ESTA SEMANA</p>
+                <h2 style="font-family:'Cormorant Garamond',serif; font-weight:400; font-style:italic; font-size:18px; color:#F8F4EF;">Pull Day A</h2>
+                <p style="font-family:'DM Sans'; font-size:11px; color:#7A756D; margin-top:2px;">miercoles · ~55 min · 24 sets</p>
+                <div style="display:flex; gap:3px; margin-top:10px;">
+                  <div style="width:16px; height:3px; border-radius:2px; background:#C5A55A;"></div>
+                  <div style="width:16px; height:3px; border-radius:2px; background:#C5A55A;"></div>
+                  <div style="width:16px; height:3px; border-radius:2px; background:rgba(197,165,90,0.2); border:1px solid rgba(197,165,90,0.35);"></div>
+                  <div style="width:16px; height:3px; border-radius:2px; background:#2A2722;"></div>
+                  <div style="width:16px; height:3px; border-radius:2px; background:#2A2722;"></div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:0 20px 20px;"><button style="width:100%; padding:13px 0; border-radius:12px; background:#C5A55A; color:#0C0B09; font-family:'Syne',sans-serif; font-weight:700; font-size:13px; border:none;">EMPEZAR SESION &#8250;</button></div>
+          </div>
+          <div style="margin-top:24px;">
+            <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:12px;">
+              <span style="font-family:'DM Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:2px; color:#7A756D;">SEMANA 3/6</span>
+              <span style="background:rgba(197,165,90,0.12); color:#C5A55A; font-family:'DM Mono',monospace; font-size:8px; text-transform:uppercase; letter-spacing:1.5px; font-weight:600; padding:3px 10px; border-radius:99px;">ACUMULACION</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; padding:0 4px;">
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; background:#C5A55A; display:flex; align-items:center; justify-content:center;"><span style="color:#0C0B09; font-size:11px; font-weight:700;">&#10003;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#7A756D;">L</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; background:#C5A55A; display:flex; align-items:center; justify-content:center;"><span style="color:#0C0B09; font-size:11px; font-weight:700;">&#10003;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#7A756D;">M</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; border:2px solid #C5A55A; box-shadow:0 0 0 3px rgba(197,165,90,0.2); display:flex; align-items:center; justify-content:center;"><span style="color:#C5A55A; font-size:12px;">&#9679;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#7A756D;">M</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; border:2px solid #2A2722; display:flex; align-items:center; justify-content:center;"><span style="color:#7A756D; font-size:12px;">&#127807;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#7A756D;">J</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; border:2px solid #2A2722; display:flex; align-items:center; justify-content:center;"><span style="color:#7A756D; font-size:12px;">&#9679;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#7A756D;">V</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; border:2px solid #2A2722; display:flex; align-items:center; justify-content:center;"><span style="color:#7A756D; font-size:12px;">&#9679;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#7A756D;">S</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; border:2px solid #2A2722; display:flex; align-items:center; justify-content:center;"><span style="color:#7A756D; font-size:12px;">&#127807;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#7A756D;">D</span></div>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; margin-top:24px;">
+            <div style="flex:1; background:#1A1917; border:1px solid #2A2722; border-radius:16px; padding:10px; display:flex; flex-direction:column; align-items:center; gap:4px;"><span style="color:#C5A55A; font-size:12px;">&#128293;</span><span style="font-family:'DM Mono',monospace; font-size:9px; color:#7A756D; text-align:center;">5 dias streak</span></div>
+            <div style="flex:1; background:#1A1917; border:1px solid #2A2722; border-radius:16px; padding:10px; display:flex; flex-direction:column; align-items:center; gap:4px;"><span style="color:#C5A55A; font-size:12px;">&#127947;&#65039;</span><span style="font-family:'DM Mono',monospace; font-size:9px; color:#7A756D; text-align:center;">14 workouts</span></div>
+            <div style="flex:1; background:#1A1917; border:1px solid #2A2722; border-radius:16px; padding:10px; display:flex; flex-direction:column; align-items:center; gap:4px;"><span style="color:#C5A55A; font-size:12px;">&#127942;</span><span style="font-family:'DM Mono',monospace; font-size:9px; color:#7A756D; text-align:center;">3 PRs este mes</span></div>
+          </div>
+        </div>
+        <div style="position:sticky; bottom:0; height:52px; background:#0C0B09; border-top:1px solid #2A2722; display:flex; align-items:center; justify-content:space-around;">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#C5A55A;"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#C5A55A;">Home</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#7A756D;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#7A756D;">Programa</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#7A756D;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#7A756D;">Progreso</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#7A756D;"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#7A756D;">Perfil</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phone-col">
+    <div class="phone-label">REST TIMER</div>
+    <div class="phone">
+      <div class="phone-screen" style="background:#0C0B09; display:flex; flex-direction:column;">
+        <div class="notch" style="background:#0C0B09;"><div class="notch-pill"></div></div>
+        <div style="flex:1; padding:20px; display:flex; flex-direction:column; justify-content:center; opacity:0.3;">
+          <div style="background:#1A1917; border-radius:12px; padding:16px; border:1px solid #2A2722;">
+            <p style="font-family:'DM Mono',monospace; font-size:8px; color:#7A756D; text-transform:uppercase; letter-spacing:2px;">SET 3 / 4</p>
+            <p style="font-family:'Cormorant Garamond',serif; font-weight:400; font-style:italic; font-size:16px; color:#F8F4EF; margin-top:4px;">Bench Press</p>
+          </div>
+        </div>
+        <div style="background:#1A1917; border-radius:16px 16px 0 0; padding:16px 24px 32px; box-shadow:0 -8px 32px rgba(0,0,0,0.5);">
+          <div style="width:40px; height:3px; border-radius:2px; background:rgba(122,117,109,0.3); margin:0 auto 16px;"></div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-family:'DM Sans'; font-size:12px; color:#7A756D;">Saltar</span>
+            <span style="font-family:'Cormorant Garamond',serif; font-style:italic; font-size:13px; color:#7A756D;">Descanso</span>
+            <span style="font-family:'DM Sans'; font-size:12px; font-weight:500; color:#C5A55A;">+15s</span>
+          </div>
+          <p style="text-align:center; font-family:'DM Mono',monospace; font-weight:700; font-size:44px; letter-spacing:-0.02em; color:#F8F4EF; margin-top:8px; line-height:1;">01:23</p>
+          <div style="margin-top:12px; height:3px; background:#2A2722; border-radius:2px; overflow:hidden;"><div style="width:62%; height:100%; background:#C5A55A; border-radius:2px;"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phone-col">
+    <div class="phone-label">PROGRESS</div>
+    <div class="phone">
+      <div class="phone-screen" style="background:#0C0B09;">
+        <div class="notch" style="background:#0C0B09;"><div class="notch-pill"></div></div>
+        <div style="padding:0 20px 80px;">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="width:52px; height:52px; border-radius:50%; background:#2A2722; display:flex; align-items:center; justify-content:center; font-family:'Cormorant Garamond',serif; font-weight:600; font-size:22px; color:#C5A55A;">A</div>
+            <div>
+              <h1 style="font-family:'Cormorant Garamond',serif; font-weight:400; font-style:italic; font-size:20px; color:#F8F4EF;">Andoni</h1>
+              <p style="font-family:'DM Sans'; font-size:11px; color:#7A756D; font-weight:300;">Nivel: Intermedio · Consistencia: 85%</p>
+              <div style="margin-top:6px; height:5px; width:120px; background:#2A2722; border-radius:3px; overflow:hidden;"><div style="width:85%; height:100%; background:#C5A55A; border-radius:3px;"></div></div>
+            </div>
+          </div>
+          <div style="margin-top:24px;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;"><div style="width:20px; height:1px; background:#C5A55A;"></div><span style="font-family:'DM Mono',monospace; font-size:8px; letter-spacing:0.25em; text-transform:uppercase; color:#C5A55A;">RECORDS PERSONALES</span></div>
+            <div style="background:#1A1917; border-radius:12px; padding:16px; border-left:3px solid #C5A55A; display:flex; align-items:center; gap:12px;">
+              <div style="width:36px; height:36px; border-radius:10px; background:rgba(197,165,90,0.1); display:flex; align-items:center; justify-content:center;"><span style="color:#C5A55A; font-size:16px;">&#127942;</span></div>
+              <div style="flex:1;"><p style="font-family:'Cormorant Garamond',serif; font-weight:600; font-size:14px; color:#F8F4EF;">Bench Press</p><p style="font-family:'DM Sans'; font-size:10px; color:#7A756D;">hoy</p></div>
+              <div style="text-align:right;"><p style="font-family:'DM Mono',monospace; font-weight:500; font-size:24px; color:#F8F4EF; letter-spacing:0.05em; line-height:1;">100</p><p style="font-family:'DM Mono',monospace; font-size:9px; color:#7A756D; letter-spacing:0.15em;">KG x5</p></div>
+            </div>
+          </div>
+          <div style="margin-top:20px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div style="background:#1A1917; border-radius:12px; padding:16px;"><span style="font-size:14px; color:#C5A55A;">&#127947;&#65039;</span><p style="font-family:'DM Mono',monospace; font-size:24px; font-weight:500; color:#F8F4EF; letter-spacing:0.05em; line-height:1; margin-top:8px;">14</p><p style="font-family:'DM Mono',monospace; font-size:8px; color:#7A756D; letter-spacing:0.15em; text-transform:uppercase; margin-top:4px;">TOTAL WORKOUTS</p></div>
+            <div style="background:#1A1917; border-radius:12px; padding:16px;"><span style="font-size:14px; color:#C5A55A;">&#128293;</span><p style="font-family:'DM Mono',monospace; font-size:24px; font-weight:500; color:#F8F4EF; letter-spacing:0.05em; line-height:1; margin-top:8px;">5</p><p style="font-family:'DM Mono',monospace; font-size:8px; color:#7A756D; letter-spacing:0.15em; text-transform:uppercase; margin-top:4px;">DIAS RACHA ACTUAL</p></div>
+          </div>
+        </div>
+        <div style="position:sticky; bottom:0; height:52px; background:#0C0B09; border-top:1px solid #2A2722; display:flex; align-items:center; justify-content:space-around;">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#7A756D;"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#7A756D;">Home</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#7A756D;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#7A756D;">Programa</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#C5A55A;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#C5A55A;">Progreso</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#7A756D;"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#7A756D;">Perfil</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════ TERRA ══════════ -->
+<div class="page-break"></div>
+<div class="brand-section terra-section">
+  <div class="section-eyebrow">DIRECTION 03</div>
+  <div class="section-title" style="color:#C75B39;">TERRA</div>
+  <div class="section-desc">Dark mode con el alma actual. Mismos colores terracotta y gold sobre fondo oscuro. La evolucion natural: conserva el ADN de LIFTORY con presencia premium. Headings en Inter 700.</div>
+  <div class="type-preview" style="margin-top:32px;">
+    <div class="type-logo" style="font-family:'Syne',sans-serif; color:#C75B39;">LIFTORY</div>
+    <div class="type-heading" style="font-family:'Inter',sans-serif; font-weight:700; color:#FAF8F5;">Heading en Inter Bold</div>
+    <div class="type-body">Body text en DM Sans Light</div>
+  </div>
+  <div class="palette">
+    <div class="swatch"><div class="swatch-circle" style="background:#0C0B09"></div><div class="swatch-label">BG</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#181715"></div><div class="swatch-label">CARD</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#C75B39"></div><div class="swatch-label">TERRACOTTA</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#C9A96E"></div><div class="swatch-label">GOLD</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#FAF8F5"></div><div class="swatch-label">TEXT</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#6B6560"></div><div class="swatch-label">MUTED</div></div>
+  </div>
+</div>
+
+<div class="phone-grid terra-section">
+  <div class="phone-col">
+    <div class="phone-label">HOME</div>
+    <div class="phone">
+      <div class="phone-screen" style="background:#0C0B09;">
+        <div class="notch" style="background:#0C0B09;"><div class="notch-pill"></div></div>
+        <div style="padding:0 20px 80px;">
+          <h1 style="font-family:'Inter',sans-serif; font-weight:700; font-size:20px; color:#FAF8F5; letter-spacing:-0.03em;">Hola, Andoni</h1>
+          <p style="font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:#C75B39; margin-top:4px;">LIFTORY ESSENTIALS</p>
+          <div style="margin-top:24px; background:#181715; border-radius:16px; border:1px solid #2A2722; overflow:hidden;">
+            <div style="padding:20px; display:flex; align-items:center; gap:16px;">
+              <div style="position:relative; width:64px; height:64px; flex-shrink:0;">
+                <svg width="64" height="64" style="transform:rotate(-90deg);"><circle cx="32" cy="32" r="28" fill="none" stroke="#2A2722" stroke-width="4.5"/><circle cx="32" cy="32" r="28" fill="none" stroke="#C75B39" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="175.93" stroke-dashoffset="117.29"/></svg>
+                <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;"><span style="font-family:'Inter',sans-serif; font-weight:700; font-size:18px; color:#FAF8F5; line-height:1;">2</span><span style="font-family:'DM Mono',monospace; font-size:7px; text-transform:uppercase; letter-spacing:1.5px; color:#6B6560;">de 5</span></div>
+              </div>
+              <div style="flex:1;">
+                <p style="font-family:'DM Mono',monospace; font-size:8px; text-transform:uppercase; letter-spacing:2px; color:#6B6560; margin-bottom:3px;">ESTA SEMANA</p>
+                <h2 style="font-family:'Inter',sans-serif; font-weight:700; font-size:16px; color:#FAF8F5; letter-spacing:-0.02em;">PULL DAY A</h2>
+                <p style="font-family:'DM Sans'; font-size:11px; color:#6B6560; margin-top:2px;">miercoles · ~55 min · 24 sets</p>
+                <div style="display:flex; gap:3px; margin-top:10px;">
+                  <div style="width:16px; height:3px; border-radius:2px; background:#C75B39;"></div>
+                  <div style="width:16px; height:3px; border-radius:2px; background:#C75B39;"></div>
+                  <div style="width:16px; height:3px; border-radius:2px; background:rgba(199,91,57,0.2); border:1px solid rgba(199,91,57,0.35);"></div>
+                  <div style="width:16px; height:3px; border-radius:2px; background:#2A2722;"></div>
+                  <div style="width:16px; height:3px; border-radius:2px; background:#2A2722;"></div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:0 20px 20px;"><button style="width:100%; padding:13px 0; border-radius:12px; background:#C75B39; color:#FAF8F5; font-family:'Syne',sans-serif; font-weight:700; font-size:13px; border:none;">EMPEZAR SESION &#8250;</button></div>
+          </div>
+          <div style="margin-top:24px;">
+            <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:12px;">
+              <span style="font-family:'DM Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:2px; color:#6B6560;">SEMANA 3/6</span>
+              <span style="background:rgba(199,91,57,0.12); color:#C75B39; font-family:'DM Mono',monospace; font-size:8px; text-transform:uppercase; letter-spacing:1.5px; font-weight:600; padding:3px 10px; border-radius:99px;">ACUMULACION</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; padding:0 4px;">
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; background:#C75B39; display:flex; align-items:center; justify-content:center;"><span style="color:#FAF8F5; font-size:11px; font-weight:700;">&#10003;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#6B6560;">L</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; background:#C75B39; display:flex; align-items:center; justify-content:center;"><span style="color:#FAF8F5; font-size:11px; font-weight:700;">&#10003;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#6B6560;">M</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; border:2px solid #C75B39; box-shadow:0 0 0 3px rgba(199,91,57,0.2); display:flex; align-items:center; justify-content:center;"><span style="color:#C75B39; font-size:12px;">&#9679;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#6B6560;">M</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; border:2px solid #2A2722; display:flex; align-items:center; justify-content:center;"><span style="color:#6B6560; font-size:12px;">&#127807;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#6B6560;">J</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; border:2px solid #2A2722; display:flex; align-items:center; justify-content:center;"><span style="color:#6B6560; font-size:12px;">&#9679;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#6B6560;">V</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; border:2px solid #2A2722; display:flex; align-items:center; justify-content:center;"><span style="color:#6B6560; font-size:12px;">&#9679;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#6B6560;">S</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;"><div style="width:36px; height:36px; border-radius:50%; border:2px solid #2A2722; display:flex; align-items:center; justify-content:center;"><span style="color:#6B6560; font-size:12px;">&#127807;</span></div><span style="font-family:'DM Mono',monospace; font-size:8px; color:#6B6560;">D</span></div>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; margin-top:24px;">
+            <div style="flex:1; background:#181715; border:1px solid #2A2722; border-radius:16px; padding:10px; display:flex; flex-direction:column; align-items:center; gap:4px;"><span style="color:#C75B39; font-size:12px;">&#128293;</span><span style="font-family:'DM Mono',monospace; font-size:9px; color:#6B6560; text-align:center;">5 dias streak</span></div>
+            <div style="flex:1; background:#181715; border:1px solid #2A2722; border-radius:16px; padding:10px; display:flex; flex-direction:column; align-items:center; gap:4px;"><span style="color:#C75B39; font-size:12px;">&#127947;&#65039;</span><span style="font-family:'DM Mono',monospace; font-size:9px; color:#6B6560; text-align:center;">14 workouts</span></div>
+            <div style="flex:1; background:#181715; border:1px solid #2A2722; border-radius:16px; padding:10px; display:flex; flex-direction:column; align-items:center; gap:4px;"><span style="color:#C9A96E; font-size:12px;">&#127942;</span><span style="font-family:'DM Mono',monospace; font-size:9px; color:#6B6560; text-align:center;">3 PRs este mes</span></div>
+          </div>
+        </div>
+        <div style="position:sticky; bottom:0; height:52px; background:#0C0B09; border-top:1px solid #2A2722; display:flex; align-items:center; justify-content:space-around;">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#FAF8F5;"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#FAF8F5;">Home</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#6B6560;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#6B6560;">Programa</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#6B6560;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#6B6560;">Progreso</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#6B6560;"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#6B6560;">Perfil</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phone-col">
+    <div class="phone-label">REST TIMER</div>
+    <div class="phone">
+      <div class="phone-screen" style="background:#0C0B09; display:flex; flex-direction:column;">
+        <div class="notch" style="background:#0C0B09;"><div class="notch-pill"></div></div>
+        <div style="flex:1; padding:20px; display:flex; flex-direction:column; justify-content:center; opacity:0.3;">
+          <div style="background:#181715; border-radius:12px; padding:16px; border:1px solid #2A2722;">
+            <p style="font-family:'DM Mono',monospace; font-size:8px; color:#6B6560; text-transform:uppercase; letter-spacing:2px;">SET 3 / 4</p>
+            <p style="font-family:'Inter',sans-serif; font-weight:700; font-size:14px; color:#FAF8F5; margin-top:4px;">Bench Press</p>
+          </div>
+        </div>
+        <div style="background:#181715; border-radius:16px 16px 0 0; padding:16px 24px 32px; box-shadow:0 -8px 32px rgba(0,0,0,0.5);">
+          <div style="width:40px; height:3px; border-radius:2px; background:rgba(107,101,96,0.3); margin:0 auto 16px;"></div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-family:'DM Sans'; font-size:12px; color:#6B6560;">Saltar</span>
+            <span style="font-family:'DM Sans'; font-size:12px; color:#6B6560;">Descanso</span>
+            <span style="font-family:'DM Sans'; font-size:12px; font-weight:500; color:#C75B39;">+15s</span>
+          </div>
+          <p style="text-align:center; font-family:'DM Mono',monospace; font-weight:700; font-size:44px; letter-spacing:-0.02em; color:#FAF8F5; margin-top:8px; line-height:1;">01:23</p>
+          <div style="margin-top:12px; height:3px; background:#2A2722; border-radius:2px; overflow:hidden;"><div style="width:62%; height:100%; background:#C75B39; border-radius:2px; box-shadow:0 0 6px rgba(199,91,57,0.4);"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phone-col">
+    <div class="phone-label">PROGRESS</div>
+    <div class="phone">
+      <div class="phone-screen" style="background:#0C0B09;">
+        <div class="notch" style="background:#0C0B09;"><div class="notch-pill"></div></div>
+        <div style="padding:0 20px 80px;">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="width:52px; height:52px; border-radius:50%; background:#2A2722; display:flex; align-items:center; justify-content:center; font-family:'Inter',sans-serif; font-weight:700; font-size:20px; color:#C75B39;">A</div>
+            <div>
+              <h1 style="font-family:'Inter',sans-serif; font-weight:700; font-size:18px; color:#FAF8F5; letter-spacing:-0.03em;">Andoni</h1>
+              <p style="font-family:'DM Sans'; font-size:11px; color:#6B6560; font-weight:300;">Nivel: Intermedio · Consistencia: 85%</p>
+              <div style="margin-top:6px; height:5px; width:120px; background:#2A2722; border-radius:3px; overflow:hidden;"><div style="width:85%; height:100%; background:#C75B39; border-radius:3px; box-shadow:0 0 6px rgba(199,91,57,0.3);"></div></div>
+            </div>
+          </div>
+          <div style="margin-top:24px;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;"><div style="width:20px; height:1px; background:#C75B39;"></div><span style="font-family:'DM Mono',monospace; font-size:8px; letter-spacing:0.25em; text-transform:uppercase; color:#C75B39;">RECORDS PERSONALES</span></div>
+            <div style="background:#181715; border-radius:12px; padding:16px; border-left:3px solid #C9A96E; display:flex; align-items:center; gap:12px;">
+              <div style="width:36px; height:36px; border-radius:10px; background:rgba(201,169,110,0.1); display:flex; align-items:center; justify-content:center;"><span style="color:#C9A96E; font-size:16px;">&#127942;</span></div>
+              <div style="flex:1;"><p style="font-family:'Inter',sans-serif; font-weight:700; font-size:13px; color:#FAF8F5;">Bench Press</p><p style="font-family:'DM Sans'; font-size:10px; color:#6B6560;">hoy</p></div>
+              <div style="text-align:right;"><p style="font-family:'DM Mono',monospace; font-weight:500; font-size:24px; color:#FAF8F5; letter-spacing:0.05em; line-height:1;">100</p><p style="font-family:'DM Mono',monospace; font-size:9px; color:#6B6560; letter-spacing:0.15em;">KG x5</p></div>
+            </div>
+          </div>
+          <div style="margin-top:20px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div style="background:#181715; border-radius:12px; padding:16px;"><span style="font-size:14px; color:#C75B39;">&#127947;&#65039;</span><p style="font-family:'DM Mono',monospace; font-size:24px; font-weight:500; color:#FAF8F5; letter-spacing:0.05em; line-height:1; margin-top:8px;">14</p><p style="font-family:'DM Mono',monospace; font-size:8px; color:#6B6560; letter-spacing:0.15em; text-transform:uppercase; margin-top:4px;">TOTAL WORKOUTS</p></div>
+            <div style="background:#181715; border-radius:12px; padding:16px;"><span style="font-size:14px; color:#C75B39;">&#128293;</span><p style="font-family:'DM Mono',monospace; font-size:24px; font-weight:500; color:#FAF8F5; letter-spacing:0.05em; line-height:1; margin-top:8px;">5</p><p style="font-family:'DM Mono',monospace; font-size:8px; color:#6B6560; letter-spacing:0.15em; text-transform:uppercase; margin-top:4px;">DIAS RACHA ACTUAL</p></div>
+          </div>
+        </div>
+        <div style="position:sticky; bottom:0; height:52px; background:#0C0B09; border-top:1px solid #2A2722; display:flex; align-items:center; justify-content:space-around;">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#6B6560;"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#6B6560;">Home</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#6B6560;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#6B6560;">Programa</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#C75B39;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#C75B39;">Progreso</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#6B6560;"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#6B6560;">Perfil</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════ HYBRID ══════════ -->
+<div class="page-break"></div>
+<div class="brand-section hybrid-section">
+  <div class="section-eyebrow">DIRECTION 04</div>
+  <div class="section-title" style="color:#FFFFFF;">HYBRID</div>
+  <div class="section-desc">Lo mejor de TERRA + logo blanco. El wordmark LIFTORY se libera del color y se vuelve iconico en blanco puro. El terracotta y gold siguen como accents funcionales.</div>
+  <div class="type-preview" style="margin-top:32px;">
+    <div class="type-logo" style="font-family:'Syne',sans-serif; color:#FFFFFF;">LIFTORY</div>
+    <div class="type-heading" style="font-family:'Inter',sans-serif; font-weight:700; color:#FAF8F5;">Heading en Inter Bold</div>
+    <div class="type-body">Mismo sistema que TERRA, logo blanco</div>
+  </div>
+  <div class="palette">
+    <div class="swatch"><div class="swatch-circle" style="background:#0C0B09"></div><div class="swatch-label">BG</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#181715"></div><div class="swatch-label">CARD</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#FFFFFF; border-color:rgba(255,255,255,0.3);"></div><div class="swatch-label">LOGO</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#C75B39"></div><div class="swatch-label">TERRACOTTA</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#C9A96E"></div><div class="swatch-label">GOLD</div></div>
+    <div class="swatch"><div class="swatch-circle" style="background:#6B6560"></div><div class="swatch-label">MUTED</div></div>
+  </div>
+</div>
+
+<div class="phone-grid hybrid-section">
+  <div class="phone-col">
+    <div class="phone-label">HOME</div>
+    <div class="phone">
+      <div class="phone-screen" style="background:#0C0B09;">
+        <div class="notch" style="background:#0C0B09;"><div class="notch-pill"></div></div>
+        <div style="padding:0 20px 80px;">
+          <h1 style="font-family:'Inter',sans-serif; font-weight:700; font-size:20px; color:#FAF8F5; letter-spacing:-0.03em;">Hola, Andoni</h1>
+          <p style="font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:#C75B39; margin-top:4px;">LIFTORY ESSENTIALS</p>
+          <div style="margin-top:24px; background:#181715; border-radius:16px; border:1px solid #2A2722; overflow:hidden;">
+            <div style="padding:20px; display:flex; align-items:center; gap:16px;">
+              <div style="position:relative; width:64px; height:64px; flex-shrink:0;">
+                <svg width="64" height="64" style="transform:rotate(-90deg);"><circle cx="32" cy="32" r="28" fill="none" stroke="#2A2722" stroke-width="4.5"/><circle cx="32" cy="32" r="28" fill="none" stroke="#C75B39" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="175.93" stroke-dashoffset="117.29"/></svg>
+                <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;"><span style="font-family:'Inter',sans-serif; font-weight:700; font-size:18px; color:#FAF8F5; line-height:1;">2</span><span style="font-family:'DM Mono',monospace; font-size:7px; text-transform:uppercase; letter-spacing:1.5px; color:#6B6560;">de 5</span></div>
+              </div>
+              <div style="flex:1;">
+                <p style="font-family:'DM Mono',monospace; font-size:8px; text-transform:uppercase; letter-spacing:2px; color:#6B6560; margin-bottom:3px;">ESTA SEMANA</p>
+                <h2 style="font-family:'Inter',sans-serif; font-weight:700; font-size:16px; color:#FAF8F5; letter-spacing:-0.02em;">PULL DAY A</h2>
+                <p style="font-family:'DM Sans'; font-size:11px; color:#6B6560; margin-top:2px;">miercoles · ~55 min · 24 sets</p>
+                <div style="display:flex; gap:3px; margin-top:10px;">
+                  <div style="width:16px; height:3px; border-radius:2px; background:#C75B39;"></div>
+                  <div style="width:16px; height:3px; border-radius:2px; background:#C75B39;"></div>
+                  <div style="width:16px; height:3px; border-radius:2px; background:rgba(199,91,57,0.2); border:1px solid rgba(199,91,57,0.35);"></div>
+                  <div style="width:16px; height:3px; border-radius:2px; background:#2A2722;"></div>
+                  <div style="width:16px; height:3px; border-radius:2px; background:#2A2722;"></div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:0 20px 20px;"><button style="width:100%; padding:13px 0; border-radius:12px; background:#C75B39; color:#FAF8F5; font-family:'Syne',sans-serif; font-weight:700; font-size:13px; border:none;">EMPEZAR SESION &#8250;</button></div>
+          </div>
+          <!-- HYBRID unique: loading screen with white logo -->
+          <div style="margin-top:24px; background:#181715; border-radius:16px; border:1px solid #2A2722; padding:28px 20px; text-align:center;">
+            <p style="font-family:'DM Mono',monospace; font-size:8px; letter-spacing:0.25em; text-transform:uppercase; color:#6B6560; margin-bottom:12px;">LOADING SCREEN</p>
+            <p style="font-family:'Syne',sans-serif; font-weight:800; font-size:18px; color:#FFFFFF; letter-spacing:-0.04em;">LIFTORY</p>
+            <p style="font-family:'DM Sans'; font-size:10px; color:#6B6560; margin-top:8px;">El logo blanco gana presencia universal</p>
+          </div>
+          <div style="display:flex; gap:8px; margin-top:24px;">
+            <div style="flex:1; background:#181715; border:1px solid #2A2722; border-radius:16px; padding:10px; display:flex; flex-direction:column; align-items:center; gap:4px;"><span style="color:#C75B39; font-size:12px;">&#128293;</span><span style="font-family:'DM Mono',monospace; font-size:9px; color:#6B6560; text-align:center;">5 dias streak</span></div>
+            <div style="flex:1; background:#181715; border:1px solid #2A2722; border-radius:16px; padding:10px; display:flex; flex-direction:column; align-items:center; gap:4px;"><span style="color:#C75B39; font-size:12px;">&#127947;&#65039;</span><span style="font-family:'DM Mono',monospace; font-size:9px; color:#6B6560; text-align:center;">14 workouts</span></div>
+            <div style="flex:1; background:#181715; border:1px solid #2A2722; border-radius:16px; padding:10px; display:flex; flex-direction:column; align-items:center; gap:4px;"><span style="color:#C9A96E; font-size:12px;">&#127942;</span><span style="font-family:'DM Mono',monospace; font-size:9px; color:#6B6560; text-align:center;">3 PRs este mes</span></div>
+          </div>
+        </div>
+        <div style="position:sticky; bottom:0; height:52px; background:#0C0B09; border-top:1px solid #2A2722; display:flex; align-items:center; justify-content:space-around;">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#FAF8F5;"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#FAF8F5;">Home</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#6B6560;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#6B6560;">Programa</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#6B6560;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#6B6560;">Progreso</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#6B6560;"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#6B6560;">Perfil</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phone-col">
+    <div class="phone-label">REST TIMER</div>
+    <div class="phone">
+      <div class="phone-screen" style="background:#0C0B09; display:flex; flex-direction:column;">
+        <div class="notch" style="background:#0C0B09;"><div class="notch-pill"></div></div>
+        <div style="flex:1; padding:20px; display:flex; flex-direction:column; justify-content:center; opacity:0.3;">
+          <div style="background:#181715; border-radius:12px; padding:16px; border:1px solid #2A2722;">
+            <p style="font-family:'DM Mono',monospace; font-size:8px; color:#6B6560; text-transform:uppercase; letter-spacing:2px;">SET 3 / 4</p>
+            <p style="font-family:'Inter',sans-serif; font-weight:700; font-size:14px; color:#FAF8F5; margin-top:4px;">Bench Press</p>
+          </div>
+        </div>
+        <div style="background:#181715; border-radius:16px 16px 0 0; padding:16px 24px 32px; box-shadow:0 -8px 32px rgba(0,0,0,0.5);">
+          <div style="width:40px; height:3px; border-radius:2px; background:rgba(107,101,96,0.3); margin:0 auto 16px;"></div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-family:'DM Sans'; font-size:12px; color:#6B6560;">Saltar</span>
+            <span style="font-family:'DM Sans'; font-size:12px; color:#6B6560;">Descanso</span>
+            <span style="font-family:'DM Sans'; font-size:12px; font-weight:500; color:#C75B39;">+15s</span>
+          </div>
+          <p style="text-align:center; font-family:'DM Mono',monospace; font-weight:700; font-size:44px; letter-spacing:-0.02em; color:#FAF8F5; margin-top:8px; line-height:1;">01:23</p>
+          <div style="margin-top:12px; height:3px; background:#2A2722; border-radius:2px; overflow:hidden;"><div style="width:62%; height:100%; background:#C75B39; border-radius:2px; box-shadow:0 0 6px rgba(199,91,57,0.4);"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phone-col">
+    <div class="phone-label">PROGRESS</div>
+    <div class="phone">
+      <div class="phone-screen" style="background:#0C0B09;">
+        <div class="notch" style="background:#0C0B09;"><div class="notch-pill"></div></div>
+        <div style="padding:0 20px 80px;">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="width:52px; height:52px; border-radius:50%; background:#2A2722; display:flex; align-items:center; justify-content:center; font-family:'Inter',sans-serif; font-weight:700; font-size:20px; color:#C75B39;">A</div>
+            <div>
+              <h1 style="font-family:'Inter',sans-serif; font-weight:700; font-size:18px; color:#FAF8F5; letter-spacing:-0.03em;">Andoni</h1>
+              <p style="font-family:'DM Sans'; font-size:11px; color:#6B6560; font-weight:300;">Nivel: Intermedio · Consistencia: 85%</p>
+              <div style="margin-top:6px; height:5px; width:120px; background:#2A2722; border-radius:3px; overflow:hidden;"><div style="width:85%; height:100%; background:#C75B39; border-radius:3px; box-shadow:0 0 6px rgba(199,91,57,0.3);"></div></div>
+            </div>
+          </div>
+          <div style="margin-top:24px;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;"><div style="width:20px; height:1px; background:#C75B39;"></div><span style="font-family:'DM Mono',monospace; font-size:8px; letter-spacing:0.25em; text-transform:uppercase; color:#C75B39;">RECORDS PERSONALES</span></div>
+            <div style="background:#181715; border-radius:12px; padding:16px; border-left:3px solid #C9A96E; display:flex; align-items:center; gap:12px;">
+              <div style="width:36px; height:36px; border-radius:10px; background:rgba(201,169,110,0.1); display:flex; align-items:center; justify-content:center;"><span style="color:#C9A96E; font-size:16px;">&#127942;</span></div>
+              <div style="flex:1;"><p style="font-family:'Inter',sans-serif; font-weight:700; font-size:13px; color:#FAF8F5;">Bench Press</p><p style="font-family:'DM Sans'; font-size:10px; color:#6B6560;">hoy</p></div>
+              <div style="text-align:right;"><p style="font-family:'DM Mono',monospace; font-weight:500; font-size:24px; color:#FAF8F5; letter-spacing:0.05em; line-height:1;">100</p><p style="font-family:'DM Mono',monospace; font-size:9px; color:#6B6560; letter-spacing:0.15em;">KG x5</p></div>
+            </div>
+          </div>
+          <div style="margin-top:20px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div style="background:#181715; border-radius:12px; padding:16px;"><span style="font-size:14px; color:#C75B39;">&#127947;&#65039;</span><p style="font-family:'DM Mono',monospace; font-size:24px; font-weight:500; color:#FAF8F5; letter-spacing:0.05em; line-height:1; margin-top:8px;">14</p><p style="font-family:'DM Mono',monospace; font-size:8px; color:#6B6560; letter-spacing:0.15em; text-transform:uppercase; margin-top:4px;">TOTAL WORKOUTS</p></div>
+            <div style="background:#181715; border-radius:12px; padding:16px;"><span style="font-size:14px; color:#C75B39;">&#128293;</span><p style="font-family:'DM Mono',monospace; font-size:24px; font-weight:500; color:#FAF8F5; letter-spacing:0.05em; line-height:1; margin-top:8px;">5</p><p style="font-family:'DM Mono',monospace; font-size:8px; color:#6B6560; letter-spacing:0.15em; text-transform:uppercase; margin-top:4px;">DIAS RACHA ACTUAL</p></div>
+          </div>
+        </div>
+        <div style="position:sticky; bottom:0; height:52px; background:#0C0B09; border-top:1px solid #2A2722; display:flex; align-items:center; justify-content:space-around;">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#6B6560;"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#6B6560;">Home</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#6B6560;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#6B6560;">Programa</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#C75B39;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#C75B39;">Progreso</span></div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:1px;"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" style="color:#6B6560;"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span style="font-family:'DM Sans'; font-size:8px; color:#6B6560;">Perfil</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════ CLOSING ══════════ -->
+<div class="page-break"></div>
+<div class="cover" style="min-height:60vh;">
+  <div class="cover-pre">RECOMENDACION</div>
+  <div class="cover-title" style="font-size:36px; max-width:600px;">
+    TERRA o HYBRID<br>
+    <span style="font-weight:400; font-size:20px; color:#6B6560;">son la evolucion natural</span>
+  </div>
+  <div class="cover-sub" style="max-width:520px;">
+    Conservan el ADN de LIFTORY (terracotta + gold + DM Mono eyebrows) pero ganan la presencia premium del dark mode. FORGED es radical y polarizante. ATELIER es elegante pero se aleja del tono atletico. TERRA y HYBRID son el sweet spot: se siente como LIFTORY, pero elevado.
+  </div>
+  <div style="display:flex; gap:40px; margin-top:48px; position:relative;">
+    <div style="text-align:center;">
+      <div style="font-family:'Syne',sans-serif; font-weight:800; font-size:24px; color:#C75B39; letter-spacing:-0.04em;">LIFTORY</div>
+      <div style="font-family:'DM Mono',monospace; font-size:9px; color:#6B6560; margin-top:6px; letter-spacing:0.2em;">TERRA</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-family:'Syne',sans-serif; font-weight:800; font-size:24px; color:#FFFFFF; letter-spacing:-0.04em;">LIFTORY</div>
+      <div style="font-family:'DM Mono',monospace; font-size:9px; color:#6B6560; margin-top:6px; letter-spacing:0.2em;">HYBRID</div>
+    </div>
+  </div>
+  <div class="cover-date" style="margin-top:60px;">FIN DE LA PRESENTACION</div>
+</div>
+
+</body>
+</html>

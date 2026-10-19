@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFTORY — Champagne & Gold Ultra Premium</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0A0A0A;
+    color: #E8E8E8;
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Hero */
+  .hero { text-align: center; padding: 60px 40px 48px; border-bottom: 1px solid #1A1A1A; }
+  .hero-label { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #666; margin-bottom: 20px; }
+  .hero h1 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 38px; letter-spacing: -0.03em; margin-bottom: 10px; }
+  .hero p { font-size: 15px; color: #666; font-weight: 300; }
+
+  /* Swatches */
+  .swatches { padding: 48px 40px; border-bottom: 1px solid #1A1A1A; }
+  .swatches h3 { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #666; margin-bottom: 32px; text-align: center; }
+  .sw-row { display: flex; justify-content: center; gap: 60px; flex-wrap: wrap; }
+  .sw-group { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .sw-group-title { font-size: 14px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
+  .sw-colors { display: flex; gap: 12px; }
+  .sw { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .sw-box { width: 64px; height: 64px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.06); }
+  .sw-lbl { font-size: 9px; color: #666; text-transform: uppercase; letter-spacing: 0.08em; }
+  .sw-hex { font-size: 10px; color: #888; font-family: 'SF Mono', 'Fira Code', monospace; }
+  .sw-desc { font-size: 11px; color: #555; max-width: 200px; text-align: center; line-height: 1.5; font-style: italic; }
+
+  /* Sections */
+  .sec-hdr { padding: 56px 20px 16px; text-align: center; border-top: 1px solid #1A1A1A; }
+  .sec-hdr h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 24px; letter-spacing: -0.02em; margin-bottom: 6px; }
+  .sec-hdr p { font-size: 13px; color: #555; margin-bottom: 36px; }
+  .sec-hdr .tag { display: inline-block; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; padding: 4px 12px; border-radius: 6px; margin-bottom: 12px; font-weight: 700; }
+  .sec-hdr .tag.dk { background: rgba(255,255,255,0.06); color: #999; }
+  .sec-hdr .tag.lt { background: rgba(250,248,245,0.12); color: #C9B99A; }
+
+  /* Grid */
+  .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; max-width: 720px; margin: 0 auto; padding: 0 20px 60px; }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .col-label { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+  .col-sub { font-size: 10px; color: #666; margin-top: -6px; }
+
+  /* Phone */
+  .phone { width: 300px; border-radius: 34px; border: 2px solid #1E1E1E; overflow: hidden; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  .phone::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 110px; height: 26px; border-radius: 0 0 14px 14px; z-index: 10; }
+  .pc { width: 100%; overflow-y: auto; padding: 42px 18px 22px; scrollbar-width: none; }
+  .pc::-webkit-scrollbar { display: none; }
+
+  /* DARK */
+  .dk { background: #0A0A0A; }
+  .dk::before { background: #111; }
+  .dk .g { font-size: 21px; font-weight: 700; color: #E8E8E8; margin-bottom: 2px; }
+  .dk .cd { background: #131313; border: 1px solid #1C1C1C; border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+  .dk .ct { font-size: 15px; font-weight: 700; color: #E8E8E8; margin-bottom: 2px; letter-spacing: 0.02em; }
+  .dk .cs { font-size: 10px; color: #666; }
+  .dk .wk { display: flex; gap: 5px; margin: 12px 0; }
+  .dk .dy { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 600; color: #666; flex-shrink: 0; }
+  .dk .sts { display: flex; gap: 6px; }
+  .dk .st { flex: 1; border-radius: 8px; padding: 9px 6px; text-align: center; }
+  .dk .sv { font-size: 15px; font-weight: 700; margin-bottom: 1px; }
+  .dk .sl { font-size: 8px; color: #666; text-transform: uppercase; letter-spacing: 0.06em; }
+  .dk .btn { border: none; border-radius: 11px; padding: 13px 0; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; width: 100%; text-align: center; font-family: 'Inter'; margin-top: 14px; color: #0A0A0A; cursor: pointer; }
+  .dk .bl { background: #131313; border: 1px solid #1C1C1C; border-radius: 10px; padding: 12px; margin-bottom: 8px; }
+  .dk .bn { font-size: 11px; font-weight: 700; color: #E8E8E8; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 2px; }
+  .dk .bi { font-size: 10px; color: #666; }
+  .dk .bs { font-size: 9px; font-weight: 600; margin-top: 4px; }
+  .dk .exc { background: #131313; border: 1px solid #1C1C1C; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+  .dk .en { font-size: 13px; font-weight: 700; color: #E8E8E8; margin-bottom: 3px; }
+  .dk .et { font-size: 10px; margin-bottom: 10px; }
+  .dk .tbl { width: 100%; border-collapse: collapse; }
+  .dk .tbl th { font-size: 8px; color: #444; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 0 6px; text-align: center; font-weight: 600; }
+  .dk .tbl td { padding: 5px 0; text-align: center; font-size: 12px; color: #E8E8E8; border-top: 1px solid #1C1C1C; }
+  .dk .inp { border: 1px solid #1C1C1C; border-radius: 5px; color: #E8E8E8; width: 40px; padding: 3px; text-align: center; font-size: 12px; font-family: 'Inter'; display: inline-block; }
+  .dk .chk { width: 20px; height: 20px; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; }
+  .dk .chk.on::after { content: ''; width: 5px; height: 9px; border: solid #0A0A0A; border-width: 0 2px 2px 0; transform: rotate(45deg); margin-top: -1px; }
+  .dk .av { width: 58px; height: 58px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 23px; font-weight: 800; font-family: 'Syne'; margin: 0 auto 10px; }
+  .dk .pn { text-align: center; font-size: 17px; font-weight: 700; color: #E8E8E8; margin-bottom: 3px; }
+  .dk .ph { text-align: center; font-size: 11px; color: #666; margin-bottom: 20px; }
+  .dk .scd { background: #131313; border: 1px solid #1C1C1C; border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+  .dk .sr { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 1px solid #1C1C1C; }
+  .dk .sr:last-child { border-bottom: none; }
+  .dk .srl { font-size: 12px; color: #E8E8E8; }
+  .dk .srv { font-size: 11px; }
+  .dk .tg { display: flex; border-radius: 7px; overflow: hidden; }
+  .dk .tgo { padding: 5px 12px; font-size: 10px; font-weight: 600; color: #666; }
+  .dk .tgo.on { border-radius: 7px; color: #0A0A0A; }
+  .dk .splash-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 500px; text-align: center; }
+  .dk .wm { font-family: 'Syne'; font-weight: 800; font-size: 40px; letter-spacing: -0.03em; margin-bottom: 12px; }
+  .dk .tl { font-size: 12px; font-weight: 300; line-height: 1.6; margin-bottom: 40px; letter-spacing: 0.02em; }
+
+  /* LIGHT */
+  .lt { background: #FAF8F5; border-color: #E0D8CE; }
+  .lt::before { background: #F0ECE6; }
+  .lt .g { font-size: 21px; font-weight: 700; color: #1A1A1A; margin-bottom: 2px; }
+  .lt .cd { background: #FFF; border: 1px solid #E5DDD3; border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+  .lt .ct { font-size: 15px; font-weight: 700; color: #1A1A1A; margin-bottom: 2px; letter-spacing: 0.02em; }
+  .lt .cs { font-size: 10px; color: #8A8A8A; }
+  .lt .wk { display: flex; gap: 5px; margin: 12px 0; }
+  .lt .dy { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 600; color: #8A8A8A; background: #F0EAE2; flex-shrink: 0; }
+  .lt .sts { display: flex; gap: 6px; }
+  .lt .st { flex: 1; background: #F0EAE2; border-radius: 8px; padding: 9px 6px; text-align: center; }
+  .lt .sv { font-size: 15px; font-weight: 700; margin-bottom: 1px; }
+  .lt .sl { font-size: 8px; color: #8A8A8A; text-transform: uppercase; letter-spacing: 0.06em; }
+  .lt .btn { color: #FFF; border: none; border-radius: 11px; padding: 13px 0; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; width: 100%; text-align: center; font-family: 'Inter'; margin-top: 14px; cursor: pointer; }
+  .lt .bl { background: #FFF; border: 1px solid #E5DDD3; border-radius: 10px; padding: 12px; margin-bottom: 8px; }
+  .lt .bn { font-size: 11px; font-weight: 700; color: #1A1A1A; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 2px; }
+  .lt .bi { font-size: 10px; color: #8A8A8A; }
+  .lt .bs { font-size: 9px; font-weight: 600; margin-top: 4px; }
+  .lt .exc { background: #FFF; border: 1px solid #E5DDD3; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+  .lt .en { font-size: 13px; font-weight: 700; color: #1A1A1A; margin-bottom: 3px; }
+  .lt .et { font-size: 10px; margin-bottom: 10px; }
+  .lt .tbl { width: 100%; border-collapse: collapse; }
+  .lt .tbl th { font-size: 8px; color: #8A8A8A; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 0 6px; text-align: center; font-weight: 600; }
+  .lt .tbl td { padding: 5px 0; text-align: center; font-size: 12px; color: #1A1A1A; border-top: 1px solid #E5DDD3; }
+  .lt .inp { background: #F0EAE2; border: 1px solid #E5DDD3; border-radius: 5px; color: #1A1A1A; width: 40px; padding: 3px; text-align: center; font-size: 12px; font-family: 'Inter'; display: inline-block; }
+  .lt .chk { width: 20px; height: 20px; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; }
+  .lt .chk.on::after { content: ''; width: 5px; height: 9px; border: solid #FFF; border-width: 0 2px 2px 0; transform: rotate(45deg); margin-top: -1px; }
+  .lt .av { width: 58px; height: 58px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 23px; font-weight: 800; font-family: 'Syne'; margin: 0 auto 10px; }
+  .lt .pn { text-align: center; font-size: 17px; font-weight: 700; color: #1A1A1A; margin-bottom: 3px; }
+  .lt .ph { text-align: center; font-size: 11px; color: #8A8A8A; margin-bottom: 20px; }
+  .lt .scd { background: #FFF; border: 1px solid #E5DDD3; border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+  .lt .sr { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 1px solid #E5DDD3; }
+  .lt .sr:last-child { border-bottom: none; }
+  .lt .srl { font-size: 12px; color: #1A1A1A; }
+  .lt .srv { font-size: 11px; }
+  .lt .tg { display: flex; background: #F0EAE2; border-radius: 7px; overflow: hidden; }
+  .lt .tgo { padding: 5px 12px; font-size: 10px; font-weight: 600; color: #8A8A8A; }
+  .lt .tgo.on { border-radius: 7px; color: #FFF; }
+  .lt .splash-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 500px; text-align: center; }
+  .lt .wm { font-family: 'Syne'; font-weight: 800; font-size: 40px; letter-spacing: -0.03em; color: #1A1A1A; margin-bottom: 12px; }
+  .lt .tl { font-size: 12px; color: #8A8A8A; font-weight: 300; line-height: 1.6; margin-bottom: 40px; letter-spacing: 0.02em; }
+
+  .footer { text-align: center; padding: 40px; border-top: 1px solid #1A1A1A; font-size: 12px; color: #444; margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="hero-label">Ultra Premium Direction / April 2026</div>
+  <h1 style="font-family:'Syne';">Champagne & Gold</h1>
+  <p>Luxury tones — unisex, timeless, premium</p>
+</section>
+
+<!-- SWATCHES -->
+<section class="swatches">
+  <h3>Two Ultra Premium Palettes</h3>
+  <div class="sw-row">
+
+    <div class="sw-group">
+      <div class="sw-group-title" style="color:#C9B899;">Champagne</div>
+      <div class="sw-colors">
+        <div class="sw">
+          <div class="sw-box" style="background:#C9B899;"></div>
+          <div class="sw-lbl">Dark Accent</div>
+          <div class="sw-hex">#C9B899</div>
+        </div>
+        <div class="sw">
+          <div class="sw-box" style="background:#8E7E5E;"></div>
+          <div class="sw-lbl">Light Accent</div>
+          <div class="sw-hex">#8E7E5E</div>
+        </div>
+        <div class="sw">
+          <div class="sw-box" style="background:rgba(201,184,153,0.12);border:1px solid rgba(201,184,153,0.2);"></div>
+          <div class="sw-lbl">Subtle</div>
+          <div class="sw-hex">12%</div>
+        </div>
+      </div>
+      <div class="sw-desc">Dom Perignon meets cashmere. Warm silk with a whisper of gold. Effortlessly elegant.</div>
+    </div>
+
+    <div class="sw-group">
+      <div class="sw-group-title" style="color:#C4A24E;">Gold</div>
+      <div class="sw-colors">
+        <div class="sw">
+          <div class="sw-box" style="background:#C4A24E;"></div>
+          <div class="sw-lbl">Dark Accent</div>
+          <div class="sw-hex">#C4A24E</div>
+        </div>
+        <div class="sw">
+          <div class="sw-box" style="background:#8A6E28;"></div>
+          <div class="sw-lbl">Light Accent</div>
+          <div class="sw-hex">#8A6E28</div>
+        </div>
+        <div class="sw">
+          <div class="sw-box" style="background:rgba(196,162,78,0.12);border:1px solid rgba(196,162,78,0.2);"></div>
+          <div class="sw-lbl">Subtle</div>
+          <div class="sw-hex">12%</div>
+        </div>
+      </div>
+      <div class="sw-desc">Patek Philippe dial on black. Confident, rich, unmistakable. Statement without screaming.</div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+const T = {
+  champagne: { c: '#C9B899', bg10: 'rgba(201,184,153,0.10)', bg18: 'rgba(201,184,153,0.18)', dk: '#8E7E5E', name: 'Champagne' },
+  gold:      { c: '#C4A24E', bg10: 'rgba(196,162,78,0.10)',  bg18: 'rgba(196,162,78,0.18)',  dk: '#8A6E28', name: 'Gold' },
+};
+
+function mkPhone(tone, mode, screen) {
+  const t = T[tone];
+  const isDk = mode === 'dark';
+  const cls = isDk ? 'dk' : 'lt';
+  const accent = isDk ? t.c : t.dk;
+  const accentFaded = isDk ? (t.c + '99') : (t.dk + '99');
+  const btnTextColor = isDk ? '#0A0A0A' : '#FFF';
+  const bg10 = isDk ? t.bg10 : '#F0EAE2';
+  const mutedText = isDk ? '#666' : '#8A8A8A';
+  let inner = '';
+
+  if (screen === 'splash') {
+    inner = `<div class="splash-inner">
+      <div class="wm" ${isDk ? `style="color:${t.c};"` : ''}>LIFTORY</div>
+      <div class="tl" ${isDk ? `style="color:${t.c}99;"` : ''}>Move Better. Lift Stronger.<br>Live Longer.</div>
+      <button class="btn" style="background:${accent};${isDk ? '' : 'color:#FFF;'}width:70%;">Comenzar</button>
+    </div>`;
+  }
+
+  if (screen === 'home') {
+    const dayActive = isDk ? `background:${t.c};color:#0A0A0A;` : `background:${t.dk};color:#FFF;`;
+    const dayToday = isDk ? `border:1.5px solid ${t.c};color:${t.c};background:transparent;` : `border:1.5px solid ${t.dk};color:${t.dk};background:transparent;`;
+    const dayInactive = isDk ? `background:${t.bg10};` : '';
+    inner = `
+      <div class="g">Hola, Andoni</div>
+      <div style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:${accent};font-weight:700;margin-bottom:16px;">BUILD HIM ELITE</div>
+      <div class="cd">
+        <div class="ct">UPPER PULL</div>
+        <div class="cs">Dia 3 de 5 / Semana 4</div>
+        <div class="wk">
+          <div class="dy" style="${dayActive}">L</div>
+          <div class="dy" style="${dayActive}">M</div>
+          <div class="dy" style="${dayToday}">M</div>
+          <div class="dy" style="${dayInactive}">J</div>
+          <div class="dy" style="${dayInactive}">V</div>
+          <div class="dy" style="${dayInactive}">S</div>
+          <div class="dy" style="${dayInactive}">D</div>
+        </div>
+        <div class="sts">
+          <div class="st" ${isDk ? `style="background:${t.bg10};"` : ''}><div class="sv" style="color:${accent};">3</div><div class="sl">Streak</div></div>
+          <div class="st" ${isDk ? `style="background:${t.bg10};"` : ''}><div class="sv" style="color:${accent};">5</div><div class="sl">Workouts</div></div>
+          <div class="st" ${isDk ? `style="background:${t.bg10};"` : ''}><div class="sv" style="color:${accent};">5</div><div class="sl">PRs</div></div>
+        </div>
+      </div>
+      <button class="btn" style="background:${accent};color:${btnTextColor};">Iniciar Sesion</button>`;
+  }
+
+  if (screen === 'block') {
+    const inpBg = isDk ? `background:${t.bg10};` : '';
+    inner = `
+      <div style="font-size:9px;color:${accentFaded};letter-spacing:0.12em;text-transform:uppercase;margin-bottom:3px;">Bloque 2 de 3</div>
+      <div style="font-family:'Syne';font-weight:800;font-size:17px;color:${isDk ? '#E8E8E8' : '#1A1A1A'};letter-spacing:-0.02em;margin-bottom:3px;">HEAVY BLOCK — A</div>
+      <div style="font-size:10px;color:${mutedText};margin-bottom:14px;">Fuerza principal</div>
+      <div class="exc">
+        <div class="en">DB Military Press</div>
+        <div class="et" style="color:${accentFaded};">3 sets / RPE 8 / Hombro anterior</div>
+        <table class="tbl"><thead><tr><th>SET</th><th>RPE</th><th>KG</th><th>REPS</th><th></th></tr></thead><tbody>
+          <tr><td style="color:${accent};font-weight:700;">1</td><td style="color:${mutedText};">8</td><td><span class="inp" style="${inpBg}">22.5</span></td><td><span class="inp" style="${inpBg}">10</span></td><td><span class="chk on" style="background:${accent};border:1.5px solid ${accent};"></span></td></tr>
+          <tr><td style="color:${accent};font-weight:700;">2</td><td style="color:${mutedText};">8</td><td><span class="inp" style="${inpBg}">22.5</span></td><td><span class="inp" style="${inpBg}">9</span></td><td><span class="chk on" style="background:${accent};border:1.5px solid ${accent};"></span></td></tr>
+          <tr><td style="color:${accent};font-weight:700;">3</td><td style="color:${mutedText};">8</td><td><span class="inp" style="${inpBg}color:${mutedText};">—</span></td><td><span class="inp" style="${inpBg}color:${mutedText};">—</span></td><td><span class="chk" style="border:1.5px solid ${accent};"></span></td></tr>
+        </tbody></table>
+      </div>
+      <div class="exc" style="opacity:0.45;"><div class="en">Lateral Raise — Cable</div><div class="et" style="color:${accentFaded};">3 sets / RPE 9 / Deltoides lateral</div></div>
+      <div class="exc" style="opacity:0.3;"><div class="en">Face Pull — Rope</div><div class="et" style="color:${accentFaded};">3 sets / RPE 8 / Deltoides posterior</div></div>
+      <button class="btn" style="background:${accent};color:${btnTextColor};">Siguiente: HEAVY BLOCK — B</button>`;
+  }
+
+  if (screen === 'overview') {
+    inner = `
+      <div style="font-size:9px;color:${accentFaded};letter-spacing:0.12em;text-transform:uppercase;margin-bottom:3px;">Dia 3 / Semana 4</div>
+      <div style="font-family:'Syne';font-weight:800;font-size:18px;color:${isDk ? '#E8E8E8' : '#1A1A1A'};letter-spacing:-0.02em;margin-bottom:3px;">SHOULDER + ARMS</div>
+      <div style="font-size:10px;color:${mutedText};margin-bottom:16px;">3 bloques / ~55 min estimado</div>
+      <div class="bl" style="border-left:3px solid ${accent};">
+        <div class="bn">PRIME BLOCK</div><div class="bi">2 ejercicios / Calentamiento</div><div class="bs" style="color:${accent};">Completado</div>
+      </div>
+      <div class="bl" style="border-left:3px solid ${accent};">
+        <div class="bn">HEAVY BLOCK — A</div><div class="bi">3 ejercicios / Fuerza principal</div><div class="bs" style="color:${accent};">En progreso</div>
+      </div>
+      <div class="bl" style="border-left:3px solid ${isDk ? t.bg10 : '#E5DDD3'};">
+        <div class="bn">HEAVY BLOCK — B</div><div class="bi">3 ejercicios / Volumen accesorio</div><div class="bs" style="color:${mutedText};">Pendiente</div>
+      </div>
+      <div class="bl" style="border-left:3px solid ${isDk ? t.bg10 : '#E5DDD3'};">
+        <div class="bn">FINISHER</div><div class="bi">1 ejercicio / Core y cardio</div><div class="bs" style="color:${mutedText};">Pendiente</div>
+      </div>
+      <button class="btn" style="background:${accent};color:${btnTextColor};margin-top:8px;">TERMINAR SESION</button>`;
+  }
+
+  if (screen === 'profile') {
+    const avBg = isDk ? t.bg18 : '#F0EAE2';
+    const avBorder = isDk ? '' : `border:2px solid ${t.c};`;
+    inner = `
+      <div class="av" style="background:${avBg};${avBorder}color:${accent};">A</div>
+      <div class="pn">Andoni Diaz</div>
+      <div class="ph">@andoni</div>
+      <div class="scd">
+        <div class="sr"><span class="srl">Apariencia</span>
+          <div class="tg" ${isDk ? `style="background:${t.bg10};"` : ''}>
+            <div class="tgo on" style="background:${accent};">${isDk ? 'Alta' : 'Dia'}</div>
+            <div class="tgo">${isDk ? 'Baja' : 'Noche'}</div>
+          </div>
+        </div>
+        <div class="sr"><span class="srl">Sonido</span>
+          <div style="width:40px;height:22px;border-radius:11px;background:${accent};position:relative;">
+            <div style="width:16px;height:16px;border-radius:50%;background:${isDk ? '#0A0A0A' : '#FFF'};position:absolute;top:3px;right:3px;"></div>
+          </div>
+        </div>
+        <div class="sr"><span class="srl">Unidades</span><span class="srv" style="color:${accentFaded};">KG</span></div>
+      </div>
+      <div class="scd">
+        <div class="sr"><span class="srl">Programa</span><span class="srv" style="color:${accent};">BUILD HIM ELITE</span></div>
+        <div class="sr"><span class="srl">Semana</span><span class="srv" style="color:${accentFaded};">4 de 12</span></div>
+        <div class="sr"><span class="srl">Dias entrenados</span><span class="srv" style="color:${accentFaded};">18</span></div>
+        <div class="sr"><span class="srl">PRs totales</span><span class="srv" style="color:${accent};">12</span></div>
+      </div>
+      <button class="btn" style="background:transparent;border:1.5px solid ${accent};color:${accent};margin-top:6px;">Cerrar Sesion</button>`;
+  }
+
+  return `<div class="phone ${cls}"><div class="pc">${inner}</div></div>`;
+}
+
+const tones = ['champagne', 'gold'];
+const screens = [
+  { id: 'splash', name: 'Splash' },
+  { id: 'home', name: 'Home' },
+  { id: 'overview', name: 'Workout Overview' },
+  { id: 'block', name: 'Block Detail' },
+  { id: 'profile', name: 'Profile' },
+];
+
+let html = '';
+
+// DARK MODE
+screens.forEach(scr => {
+  html += `<div class="sec-hdr"><div class="tag dk">DARK MODE</div><h2>${scr.name}</h2><p>Champagne vs Gold sobre negro</p></div><div class="grid2">`;
+  tones.forEach(tone => {
+    html += `<div class="col"><div class="col-label" style="color:${T[tone].c};">${T[tone].name}</div><div class="col-sub">${T[tone].c}</div>${mkPhone(tone, 'dark', scr.id)}</div>`;
+  });
+  html += '</div>';
+});
+
+// LIGHT MODE
+screens.forEach(scr => {
+  html += `<div class="sec-hdr"><div class="tag lt">LIGHT MODE</div><h2>${scr.name}</h2><p>Champagne vs Gold sobre cream</p></div><div class="grid2">`;
+  tones.forEach(tone => {
+    html += `<div class="col"><div class="col-label" style="color:${T[tone].c};">${T[tone].name}</div><div class="col-sub">${T[tone].dk}</div>${mkPhone(tone, 'light', scr.id)}</div>`;
+  });
+  html += '</div>';
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const c = document.createElement('div');
+  c.innerHTML = html;
+  document.querySelector('.footer').before(c);
+});
+</script>
+
+<div class="footer">
+  LIFTORY Ultra Premium Direction / Champagne & Gold / 5 Screens x 2 Tones x 2 Modes / April 2026
+</div>
+
+</body>
+</html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFTORY — VOLT Direction</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0A0A0A;
+    color: #E8E8E8;
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .hero { text-align: center; padding: 60px 40px 48px; border-bottom: 1px solid #1A1A1A; }
+  .hero-label { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #71717A; margin-bottom: 20px; }
+  .hero h1 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 44px; letter-spacing: -0.03em; margin-bottom: 10px; }
+  .hero h1 span { color: #E63946; }
+  .hero p { font-size: 15px; color: #71717A; font-weight: 300; }
+
+  .swatches { padding: 48px 40px; border-bottom: 1px solid #1A1A1A; }
+  .swatches h3 { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #71717A; margin-bottom: 32px; text-align: center; }
+  .sw-row { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+  .sw { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .sw-box { width: 64px; height: 64px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.06); }
+  .sw-lbl { font-size: 9px; color: #71717A; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+  .sw-hex { font-size: 10px; color: #71717A; font-family: monospace; }
+
+  .sec-hdr { padding: 56px 20px 16px; text-align: center; border-top: 1px solid #1A1A1A; }
+  .sec-hdr h2 { font-family: 'Syne'; font-weight: 800; font-size: 24px; letter-spacing: -0.02em; margin-bottom: 6px; }
+  .sec-hdr p { font-size: 13px; color: #71717A; margin-bottom: 36px; }
+  .sec-hdr .tag { display: inline-block; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; padding: 4px 12px; border-radius: 6px; margin-bottom: 12px; font-weight: 700; }
+  .sec-hdr .tag.dk { background: rgba(230,57,70,0.10); color: #E63946; }
+  .sec-hdr .tag.lt { background: rgba(192,49,60,0.08); color: #C0313C; }
+
+  .grid1 { display: flex; justify-content: center; gap: 32px; flex-wrap: wrap; max-width: 1400px; margin: 0 auto; padding: 0 20px 60px; }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .col-label { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  .phone { width: 300px; border-radius: 34px; border: 2px solid #1E1E1E; overflow: hidden; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  .phone::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 110px; height: 26px; border-radius: 0 0 14px 14px; z-index: 10; }
+  .pc { width: 100%; overflow-y: auto; padding: 42px 18px 22px; scrollbar-width: none; }
+  .pc::-webkit-scrollbar { display: none; }
+
+  .vdk { background: #0D0D0F; }
+  .vdk::before { background: #111; }
+  .vlt { background: #FAFAFA; border-color: #E4E4E7; }
+  .vlt::before { background: #F4F4F5; }
+
+  .footer { text-align: center; padding: 40px; border-top: 1px solid #1A1A1A; font-size: 12px; color: #71717A; margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="hero-label">Volt Direction / April 2026</div>
+  <h1>LIFTORY — <span>VOLT</span></h1>
+  <p>Misma app, misma tipografia, paleta Volt aplicada</p>
+</section>
+
+<section class="swatches">
+  <h3>Volt Palette</h3>
+  <div class="sw-row">
+    <div class="sw"><div class="sw-box" style="background:#0D0D0F;"></div><div class="sw-lbl">Pitch</div><div class="sw-hex">#0D0D0F</div></div>
+    <div class="sw"><div class="sw-box" style="background:#1A1A1D;"></div><div class="sw-lbl">Graphite</div><div class="sw-hex">#1A1A1D</div></div>
+    <div class="sw"><div class="sw-box" style="background:#E63946;"></div><div class="sw-lbl">Ignite</div><div class="sw-hex">#E63946</div></div>
+    <div class="sw"><div class="sw-box" style="background:#FAFAFA;"></div><div class="sw-lbl">Clean</div><div class="sw-hex">#FAFAFA</div></div>
+    <div class="sw"><div class="sw-box" style="background:#71717A;"></div><div class="sw-lbl">Zinc</div><div class="sw-hex">#71717A</div></div>
+    <div class="sw"><div class="sw-box" style="background:#C0313C;"></div><div class="sw-lbl">Ignite Light</div><div class="sw-hex">#C0313C</div></div>
+  </div>
+</section>
+
+<script>
+const V = {
+  dk: { bg:'#0D0D0F', card:'#1A1A1D', border:'#27272A', accent:'#E63946', text:'#FAFAFA', muted:'#71717A',
+        accentBg:'rgba(230,57,70,0.10)', accentBg2:'rgba(230,57,70,0.18)' },
+  lt: { bg:'#FAFAFA', card:'#FFFFFF', border:'#E4E4E7', accent:'#C0313C', text:'#18181B', muted:'#71717A',
+        accentBg:'rgba(192,49,60,0.08)', accentBg2:'rgba(192,49,60,0.14)' }
+};
+
+function voltPhone(mode, screen) {
+  const t = V[mode];
+  const isDk = mode === 'dk';
+  const cls = isDk ? 'vdk' : 'vlt';
+  let inner = '';
+
+  if (screen === 'splash') {
+    inner = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:500px;text-align:center;">
+      <div style="font-family:'Syne';font-weight:800;font-size:42px;letter-spacing:-0.03em;color:${isDk ? t.accent : '#18181B'};margin-bottom:14px;">LIFTORY</div>
+      <div style="font-size:13px;color:${t.muted};font-weight:300;line-height:1.6;margin-bottom:48px;">Move Better. Lift Stronger.<br>Live Longer.</div>
+      <button style="background:${t.accent};color:#FFF;border:none;border-radius:12px;padding:14px 0;font-size:14px;font-weight:700;width:75%;font-family:'Inter';letter-spacing:0.04em;">Comenzar</button>
+    </div>`;
+  }
+
+  if (screen === 'home') {
+    const dayA = `background:${t.accent};color:#FFF;`;
+    const dayT = `border:1.5px solid ${t.accent};color:${t.accent};background:transparent;`;
+    const dayI = isDk ? `background:${t.accentBg};` : `background:#F4F4F5;`;
+    const pillBg = isDk ? t.accentBg : '#F4F4F5';
+    inner = `
+      <div style="font-size:22px;font-weight:700;color:${t.text};margin-bottom:4px;">Hola, Andoni</div>
+      <div style="font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:${t.accent};font-weight:700;margin-bottom:16px;">BUILD HIM ELITE</div>
+      <div style="background:${t.card};border:1px solid ${t.border};border-radius:16px;padding:20px;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div>
+            <div style="font-size:16px;font-weight:700;color:${t.text};letter-spacing:0.02em;">UPPER PULL</div>
+            <div style="font-size:11px;color:${t.muted};margin-top:2px;">Dia 3 de 5 / Semana 4</div>
+          </div>
+          <div style="width:44px;height:44px;position:relative;">
+            <svg width="44" height="44" viewBox="0 0 44 44" style="transform:rotate(-90deg);">
+              <circle cx="22" cy="22" r="18" fill="none" stroke="${t.border}" stroke-width="3"/>
+              <circle cx="22" cy="22" r="18" fill="none" stroke="${t.accent}" stroke-width="3" stroke-dasharray="113" stroke-dashoffset="34" stroke-linecap="round"/>
+            </svg>
+            <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:11px;font-weight:700;color:${t.accent};">70%</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:16px;">
+          <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;${dayA}">L</div>
+          <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;${dayA}">M</div>
+          <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;${dayT}">M</div>
+          <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:${t.muted};${dayI}">J</div>
+          <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:${t.muted};${dayI}">V</div>
+          <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:${t.muted};${dayI}">S</div>
+          <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:${t.muted};${dayI}">D</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <div style="flex:1;background:${pillBg};border-radius:10px;padding:10px 8px;text-align:center;">
+            <div style="font-size:16px;font-weight:700;color:${t.accent};margin-bottom:2px;">3</div>
+            <div style="font-size:9px;color:${t.muted};text-transform:uppercase;letter-spacing:0.08em;">Dias streak</div>
+          </div>
+          <div style="flex:1;background:${pillBg};border-radius:10px;padding:10px 8px;text-align:center;">
+            <div style="font-size:16px;font-weight:700;color:${t.accent};margin-bottom:2px;">5</div>
+            <div style="font-size:9px;color:${t.muted};text-transform:uppercase;letter-spacing:0.08em;">Workouts</div>
+          </div>
+          <div style="flex:1;background:${pillBg};border-radius:10px;padding:10px 8px;text-align:center;">
+            <div style="font-size:16px;font-weight:700;color:${t.accent};margin-bottom:2px;">5</div>
+            <div style="font-size:9px;color:${t.muted};text-transform:uppercase;letter-spacing:0.08em;">PRs</div>
+          </div>
+        </div>
+      </div>
+      <button style="background:${t.accent};color:#FFF;border:none;border-radius:12px;padding:14px 0;font-size:14px;font-weight:700;letter-spacing:0.04em;width:100%;font-family:'Inter';margin-top:4px;">Iniciar Sesion</button>`;
+  }
+
+  if (screen === 'overview') {
+    const blkA = `border-left:3px solid ${t.accent};`;
+    const blkP = `border-left:3px solid ${isDk ? t.accentBg : t.border};`;
+    inner = `
+      <div style="font-size:11px;color:${t.muted};margin-bottom:4px;">Dia 3 / Semana 4</div>
+      <div style="font-family:'Syne';font-weight:800;font-size:20px;color:${t.text};letter-spacing:-0.02em;margin-bottom:4px;">SHOULDER + ARMS</div>
+      <div style="font-size:11px;color:${t.muted};margin-bottom:20px;">3 bloques / ~55 min estimado</div>
+      <div style="background:${t.card};border:1px solid ${t.border};${blkA}border-radius:12px;padding:16px;margin-bottom:12px;">
+        <div style="font-size:12px;font-weight:700;color:${t.text};letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px;">PRIME BLOCK</div>
+        <div style="font-size:11px;color:${t.muted};">2 ejercicios / Calentamiento y activacion</div>
+        <div style="font-size:10px;color:${t.accent};margin-top:6px;font-weight:600;">Completado</div>
+      </div>
+      <div style="background:${t.card};border:1px solid ${t.border};${blkA}border-radius:12px;padding:16px;margin-bottom:12px;">
+        <div style="font-size:12px;font-weight:700;color:${t.text};letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px;">HEAVY BLOCK — A</div>
+        <div style="font-size:11px;color:${t.muted};">3 ejercicios / Fuerza principal</div>
+        <div style="font-size:10px;color:${t.accent};margin-top:6px;font-weight:600;">En progreso</div>
+      </div>
+      <div style="background:${t.card};border:1px solid ${t.border};${blkP}border-radius:12px;padding:16px;margin-bottom:12px;">
+        <div style="font-size:12px;font-weight:700;color:${t.text};letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px;">HEAVY BLOCK — B</div>
+        <div style="font-size:11px;color:${t.muted};">3 ejercicios / Volumen accesorio</div>
+        <div style="font-size:10px;color:${t.muted};margin-top:6px;font-weight:600;">Pendiente</div>
+      </div>
+      <div style="background:${t.card};border:1px solid ${t.border};${blkP}border-radius:12px;padding:16px;margin-bottom:12px;">
+        <div style="font-size:12px;font-weight:700;color:${t.text};letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px;">FINISHER</div>
+        <div style="font-size:11px;color:${t.muted};">1 ejercicio / Core y cardio</div>
+        <div style="font-size:10px;color:${t.muted};margin-top:6px;font-weight:600;">Pendiente</div>
+      </div>
+      <button style="background:${t.accent};color:#FFF;border:none;border-radius:12px;padding:14px 0;font-size:14px;font-weight:700;letter-spacing:0.04em;width:100%;font-family:'Inter';margin-top:8px;">TERMINAR SESION</button>`;
+  }
+
+  if (screen === 'block') {
+    const inpBg = isDk ? t.accentBg : '#F4F4F5';
+    inner = `
+      <div style="font-size:10px;color:${t.muted};letter-spacing:0.12em;text-transform:uppercase;margin-bottom:4px;">Bloque 2 de 3</div>
+      <div style="font-family:'Syne';font-weight:800;font-size:18px;color:${t.text};letter-spacing:-0.02em;margin-bottom:4px;">HEAVY BLOCK — A</div>
+      <div style="font-size:11px;color:${t.muted};margin-bottom:16px;">Fuerza principal</div>
+      <div style="background:${t.card};border:1px solid ${t.border};border-radius:14px;padding:16px;margin-bottom:12px;">
+        <div style="font-size:14px;font-weight:700;color:${t.text};margin-bottom:4px;">DB Military Press</div>
+        <div style="font-size:11px;color:${t.muted};margin-bottom:12px;">3 sets / RPE 8 / Hombro anterior</div>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr>
+            <th style="font-size:9px;color:${t.muted};text-transform:uppercase;letter-spacing:0.1em;padding:4px 0 8px;text-align:center;font-weight:600;">SET</th>
+            <th style="font-size:9px;color:${t.muted};text-transform:uppercase;letter-spacing:0.1em;padding:4px 0 8px;text-align:center;font-weight:600;">RPE</th>
+            <th style="font-size:9px;color:${t.muted};text-transform:uppercase;letter-spacing:0.1em;padding:4px 0 8px;text-align:center;font-weight:600;">KG</th>
+            <th style="font-size:9px;color:${t.muted};text-transform:uppercase;letter-spacing:0.1em;padding:4px 0 8px;text-align:center;font-weight:600;">REPS</th>
+            <th style="padding:4px 0 8px;"></th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td style="padding:6px 0;text-align:center;font-size:13px;color:${t.accent};font-weight:700;border-top:1px solid ${t.border};">1</td>
+              <td style="padding:6px 0;text-align:center;font-size:13px;color:${t.muted};border-top:1px solid ${t.border};">8</td>
+              <td style="padding:6px 0;text-align:center;border-top:1px solid ${t.border};"><span style="display:inline-block;background:${inpBg};border:1px solid ${t.border};border-radius:6px;color:${t.text};width:42px;padding:4px;text-align:center;font-size:13px;">22.5</span></td>
+              <td style="padding:6px 0;text-align:center;border-top:1px solid ${t.border};"><span style="display:inline-block;background:${inpBg};border:1px solid ${t.border};border-radius:6px;color:${t.text};width:42px;padding:4px;text-align:center;font-size:13px;">10</span></td>
+              <td style="padding:6px 0;text-align:center;border-top:1px solid ${t.border};"><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:${t.accent};border:1.5px solid ${t.accent};"><span style="display:block;width:6px;height:10px;border:solid #FFF;border-width:0 2px 2px 0;transform:rotate(45deg);margin-top:-2px;"></span></span></td>
+            </tr>
+            <tr>
+              <td style="padding:6px 0;text-align:center;font-size:13px;color:${t.accent};font-weight:700;border-top:1px solid ${t.border};">2</td>
+              <td style="padding:6px 0;text-align:center;font-size:13px;color:${t.muted};border-top:1px solid ${t.border};">8</td>
+              <td style="padding:6px 0;text-align:center;border-top:1px solid ${t.border};"><span style="display:inline-block;background:${inpBg};border:1px solid ${t.border};border-radius:6px;color:${t.text};width:42px;padding:4px;text-align:center;font-size:13px;">22.5</span></td>
+              <td style="padding:6px 0;text-align:center;border-top:1px solid ${t.border};"><span style="display:inline-block;background:${inpBg};border:1px solid ${t.border};border-radius:6px;color:${t.text};width:42px;padding:4px;text-align:center;font-size:13px;">9</span></td>
+              <td style="padding:6px 0;text-align:center;border-top:1px solid ${t.border};"><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:${t.accent};border:1.5px solid ${t.accent};"><span style="display:block;width:6px;height:10px;border:solid #FFF;border-width:0 2px 2px 0;transform:rotate(45deg);margin-top:-2px;"></span></span></td>
+            </tr>
+            <tr>
+              <td style="padding:6px 0;text-align:center;font-size:13px;color:${t.accent};font-weight:700;border-top:1px solid ${t.border};">3</td>
+              <td style="padding:6px 0;text-align:center;font-size:13px;color:${t.muted};border-top:1px solid ${t.border};">8</td>
+              <td style="padding:6px 0;text-align:center;border-top:1px solid ${t.border};"><span style="display:inline-block;background:${inpBg};border:1px solid ${t.border};border-radius:6px;color:${t.muted};width:42px;padding:4px;text-align:center;font-size:13px;">—</span></td>
+              <td style="padding:6px 0;text-align:center;border-top:1px solid ${t.border};"><span style="display:inline-block;background:${inpBg};border:1px solid ${t.border};border-radius:6px;color:${t.muted};width:42px;padding:4px;text-align:center;font-size:13px;">—</span></td>
+              <td style="padding:6px 0;text-align:center;border-top:1px solid ${t.border};"><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;border:1.5px solid ${t.accent};"></span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="background:${t.card};border:1px solid ${t.border};border-radius:14px;padding:16px;margin-bottom:12px;opacity:0.5;">
+        <div style="font-size:14px;font-weight:700;color:${t.text};margin-bottom:4px;">Lateral Raise — Cable</div>
+        <div style="font-size:11px;color:${t.muted};">3 sets / RPE 9 / Deltoides lateral</div>
+      </div>
+      <div style="background:${t.card};border:1px solid ${t.border};border-radius:14px;padding:16px;margin-bottom:12px;opacity:0.3;">
+        <div style="font-size:14px;font-weight:700;color:${t.text};margin-bottom:4px;">Face Pull — Rope</div>
+        <div style="font-size:11px;color:${t.muted};">3 sets / RPE 8 / Deltoides posterior</div>
+      </div>
+      <button style="background:${t.accent};color:#FFF;border:none;border-radius:12px;padding:14px 0;font-size:14px;font-weight:700;letter-spacing:0.04em;width:100%;font-family:'Inter';margin-top:4px;">Siguiente: HEAVY BLOCK — B</button>`;
+  }
+
+  if (screen === 'profile') {
+    const avBg = isDk ? t.accentBg2 : 'rgba(230,57,70,0.08)';
+    const toggleBg = isDk ? t.accentBg : '#F4F4F5';
+    inner = `
+      <div style="width:64px;height:64px;border-radius:50%;background:${avBg};display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:${t.accent};font-family:'Syne';margin:0 auto 12px;">A</div>
+      <div style="text-align:center;font-size:18px;font-weight:700;color:${t.text};margin-bottom:4px;">Andoni Diaz</div>
+      <div style="text-align:center;font-size:12px;color:${t.muted};margin-bottom:24px;">@andoni</div>
+      <div style="background:${t.card};border:1px solid ${t.border};border-radius:12px;margin-bottom:12px;overflow:hidden;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid ${t.border};">
+          <span style="font-size:13px;color:${t.text};">Apariencia</span>
+          <div style="display:flex;background:${toggleBg};border-radius:8px;overflow:hidden;">
+            <div style="padding:6px 14px;font-size:11px;font-weight:600;background:${t.accent};color:#FFF;border-radius:8px;">${isDk ? 'Alta' : 'Dia'}</div>
+            <div style="padding:6px 14px;font-size:11px;font-weight:600;color:${t.muted};">${isDk ? 'Baja' : 'Noche'}</div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid ${t.border};">
+          <span style="font-size:13px;color:${t.text};">Notificaciones</span>
+          <div style="width:44px;height:24px;border-radius:12px;background:${t.accent};position:relative;">
+            <div style="width:18px;height:18px;border-radius:50%;background:${isDk ? '#0D0D0F' : '#FFF'};position:absolute;top:3px;right:3px;"></div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;">
+          <span style="font-size:13px;color:${t.text};">Unidades</span>
+          <span style="font-size:12px;color:${t.muted};">KG</span>
+        </div>
+      </div>
+      <div style="background:${t.card};border:1px solid ${t.border};border-radius:12px;margin-bottom:12px;overflow:hidden;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid ${t.border};">
+          <span style="font-size:13px;color:${t.text};">Programa actual</span>
+          <span style="font-size:12px;color:${t.accent};font-weight:600;">BUILD HIM ELITE</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid ${t.border};">
+          <span style="font-size:13px;color:${t.text};">Semana</span>
+          <span style="font-size:12px;color:${t.muted};">4 de 12</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid ${t.border};">
+          <span style="font-size:13px;color:${t.text};">Dias entrenados</span>
+          <span style="font-size:12px;color:${t.muted};">18</span>
+        </div>
+      </div>
+      <div style="background:${t.card};border:1px solid ${t.border};border-radius:12px;margin-bottom:12px;overflow:hidden;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid ${t.border};">
+          <span style="font-size:13px;color:${t.text};">Exportar datos</span>
+          <span style="font-size:12px;color:${t.accent};">CSV</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;">
+          <span style="font-size:13px;color:${t.text};">Version</span>
+          <span style="font-size:12px;color:${t.muted};">1.4.0</span>
+        </div>
+      </div>
+      <button style="background:transparent;border:1.5px solid ${t.accent};color:${t.accent};border-radius:12px;padding:12px 0;font-size:13px;font-weight:600;width:100%;font-family:'Inter';margin-top:8px;">Cerrar Sesion</button>`;
+  }
+
+  return '<div class="phone ' + cls + '"><div class="pc">' + inner + '</div></div>';
+}
+
+const screens = [
+  { id: 'splash', name: 'Splash' },
+  { id: 'home', name: 'Home' },
+  { id: 'overview', name: 'Workout Overview' },
+  { id: 'block', name: 'Block Detail' },
+  { id: 'profile', name: 'Profile' },
+];
+
+let html = '';
+
+screens.forEach(scr => {
+  html += '<div class="sec-hdr"><div class="tag dk">DARK MODE</div><h2>' + scr.name + '</h2><p>Ignite #E63946 sobre Pitch #0D0D0F</p></div>';
+  html += '<div class="grid1"><div class="col"><div class="col-label" style="color:#E63946;">Volt Dark</div>' + voltPhone('dk', scr.id) + '</div></div>';
+});
+
+screens.forEach(scr => {
+  html += '<div class="sec-hdr"><div class="tag lt">LIGHT MODE</div><h2>' + scr.name + '</h2><p>Ignite #C0313C sobre Clean #FAFAFA</p></div>';
+  html += '<div class="grid1"><div class="col"><div class="col-label" style="color:#C0313C;">Volt Light</div>' + voltPhone('lt', scr.id) + '</div></div>';
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const c = document.createElement('div');
+  c.innerHTML = html;
+  document.querySelector('.footer').before(c);
+});
+</script>
+
+<div class="footer">
+  LIFTORY Volt Direction / 5 Screens x 2 Modes / April 2026
+</div>
+
+</body>
+</html>

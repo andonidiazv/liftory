@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LIFTORY · VIP Welcome — César</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0B0D;
+    --card: #15151A;
+    --card-hi: #1A1A20;
+    --border: #26262E;
+    --text: #FAFAF7;
+    --muted: #8E8E96;
+    --gold: #C4A24E;
+    --gold-soft: rgba(196, 162, 78, 0.12);
+    --gold-strong: rgba(196, 162, 78, 0.28);
+    --sage: #7A8B5C;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #050507; color: var(--text); font-family: 'DM Sans', sans-serif; }
+  body { padding: 32px 16px; min-height: 100vh; }
+
+  .legend { padding: 16px 24px; color: var(--muted); font-size: 11px; font-family: 'DM Mono', monospace; letter-spacing: 1.5px; text-transform: uppercase; text-align: center; max-width: 540px; margin: 0 auto 8px; line-height: 1.6; }
+
+  /* ====== Frame ====== */
+  .frame {
+    max-width: 420px; margin: 0 auto;
+    background:
+      radial-gradient(ellipse 120% 60% at 50% 0%, rgba(196,162,78,0.16) 0%, transparent 65%),
+      radial-gradient(ellipse 80% 50% at 50% 100%, rgba(196,162,78,0.06) 0%, transparent 70%),
+      var(--bg);
+    border-radius: 28px; overflow: hidden;
+    box-shadow: 0 30px 90px rgba(0,0,0,0.6);
+    border: 1px solid #1c1c22;
+    position: relative;
+  }
+  .frame::before {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.014) 1px, transparent 1px),
+      radial-gradient(circle at 78% 76%, rgba(196,162,78,0.05) 1px, transparent 1px);
+    background-size: 90px 90px, 130px 130px;
+    pointer-events: none;
+  }
+  .scroll {
+    overflow-y: auto; max-height: 92vh;
+    padding: 36px 28px 28px;
+    display: flex; flex-direction: column; min-height: 800px;
+    position: relative; z-index: 1;
+  }
+
+  /* ====== Brand header ====== */
+  .brand-header {
+    display: flex; justify-content: center; align-items: center;
+    padding-bottom: 14px; margin-bottom: 14px;
+    border-bottom: 1px solid #1c1c22;
+    position: relative;
+  }
+  .brand-header .wordmark {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: 14px; letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .brand-header .wordmark .dot { color: var(--gold); }
+  .brand-header .close-abs {
+    position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+    width: 32px; height: 32px; border-radius: 10px; background: var(--card);
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--border); cursor: pointer;
+  }
+  .brand-header .close-abs svg { width: 12px; height: 12px; stroke: var(--muted); fill: none; stroke-width: 2; }
+
+  /* ====== Top bar ====== */
+  .top-bar {
+    display: flex; justify-content: center; align-items: center;
+    margin-bottom: 18px;
+  }
+  .top-bar .vip-tag {
+    font-family: 'DM Mono', monospace; font-size: 9px;
+    color: var(--gold); letter-spacing: 2.5px; text-transform: uppercase;
+    padding: 5px 11px; border: 1px solid var(--gold-strong);
+    border-radius: 999px;
+  }
+
+  /* ====== Crown halo ====== */
+  .crown-wrap {
+    display: flex; flex-direction: column; align-items: center;
+    margin-bottom: 18px;
+    animation: fadeUp 600ms ease 100ms both;
+  }
+  .crown {
+    width: 76px; height: 76px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 25%, rgba(196,162,78,0.40), rgba(196,162,78,0.05) 70%);
+    border: 1.5px solid var(--gold-strong);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 60px rgba(196,162,78,0.25);
+    position: relative;
+  }
+  .crown::after {
+    content: ""; position: absolute; inset: -8px;
+    border-radius: 50%; border: 1px dashed rgba(196,162,78,0.18);
+  }
+  .crown svg { width: 32px; height: 32px; stroke: var(--gold); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ====== Personal greeting ====== */
+  .greeting {
+    text-align: center;
+    animation: fadeUp 600ms ease 300ms both;
+  }
+  .greeting .label {
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    color: var(--gold); letter-spacing: 2.5px; text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .greeting .hi {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 32px;
+    letter-spacing: -0.035em; line-height: 1.05;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+  .greeting .hi .name { color: var(--gold); }
+  .greeting .social {
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-size: 15px; color: var(--muted); line-height: 1.4;
+  }
+
+  /* ====== M2 transition divider ====== */
+  .divider {
+    margin: 28px 0 20px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .divider::before, .divider::after {
+    content: ""; flex: 1; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+  }
+  .divider .lbl {
+    font-family: 'DM Mono', monospace; font-size: 9px;
+    color: var(--muted); letter-spacing: 2px; text-transform: uppercase;
+  }
+
+  /* ====== M2 mark ====== */
+  .meso-tag { display: flex; flex-direction: column; align-items: center; margin-bottom: 12px; }
+  .meso-id {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 56px; letter-spacing: -0.05em;
+    line-height: 1; color: var(--gold);
+    text-shadow: 0 0 60px rgba(196,162,78,0.28);
+    animation: fadeUpGlow 900ms cubic-bezier(0.2, 0.8, 0.2, 1) 500ms both;
+  }
+  .meso-dates {
+    margin-top: 6px;
+    font-family: 'DM Mono', monospace; font-size: 9px;
+    color: var(--muted); letter-spacing: 1.4px; text-transform: uppercase;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeUpGlow {
+    0%   { opacity: 0; transform: translateY(20px) scale(0.95); text-shadow: 0 0 0 rgba(196,162,78,0); }
+    60%  { opacity: 1; transform: translateY(0) scale(1.02); text-shadow: 0 0 80px rgba(196,162,78,0.5); }
+    100% { opacity: 1; transform: translateY(0) scale(1); text-shadow: 0 0 60px rgba(196,162,78,0.28); }
+  }
+
+  /* ====== Hero copy (joiner-specific) ====== */
+  .hero {
+    text-align: center; margin: 8px 0 18px;
+  }
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 24px; line-height: 1.1;
+    letter-spacing: -0.03em; color: var(--text);
+  }
+  .hero .quote {
+    margin-top: 10px;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic; font-size: 14px; line-height: 1.4;
+    color: var(--muted); padding: 0 8px;
+  }
+
+  /* ====== W1-W6 journey ====== */
+  .journey {
+    margin: 6px 0 20px;
+    padding: 12px 4px 8px;
+    border-top: 1px solid #1c1c22;
+    border-bottom: 1px solid #1c1c22;
+  }
+  .journey-track {
+    display: grid; grid-template-columns: repeat(6, 1fr);
+    gap: 4px; align-items: center;
+    position: relative;
+  }
+  .journey-track::before {
+    content: ""; position: absolute;
+    left: calc(8.33% - 4px); right: calc(8.33% - 4px);
+    top: 5px; height: 1px;
+    background: linear-gradient(90deg, var(--gold) 0%, var(--gold) 16.67%, var(--border) 16.67%, var(--border) 100%);
+  }
+  .journey-cell { display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; z-index: 1; }
+  .journey-dot {
+    width: 11px; height: 11px; border-radius: 50%;
+    background: var(--card); border: 1.5px solid var(--border);
+  }
+  .journey-cell.now .journey-dot {
+    background: var(--gold); border-color: var(--gold);
+    box-shadow: 0 0 0 4px rgba(196,162,78,0.18);
+  }
+  .journey-cell.peak .journey-dot { border-color: var(--gold); background: var(--gold-soft); }
+  .journey-cell.deload .journey-dot { border-color: var(--sage); background: rgba(122,139,92,0.15); }
+  .journey-wk { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--muted); letter-spacing: 0.5px; }
+  .journey-cell.now .journey-wk { color: var(--gold); font-weight: 500; }
+  .journey-cell.peak .journey-wk { color: var(--gold); }
+  .journey-cell.deload .journey-wk { color: var(--sage); }
+  .journey-tag {
+    font-family: 'DM Mono', monospace; font-size: 7.5px;
+    letter-spacing: 1px; text-transform: uppercase;
+    margin-top: 1px; height: 8px;
+  }
+  .journey-cell.now .journey-tag { color: var(--gold); }
+  .journey-cell.peak .journey-tag { color: var(--gold); }
+  .journey-cell.deload .journey-tag { color: var(--sage); }
+
+  /* ====== Formats ====== */
+  .formats-section { margin-bottom: 18px; }
+  .section-label {
+    font-family: 'DM Mono', monospace; font-size: 9px;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 12px;
+    text-align: center;
+  }
+  .formats {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .fmt {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 11px 13px;
+    display: flex; align-items: center; gap: 9px;
+  }
+  .fmt .icon {
+    width: 26px; height: 26px; border-radius: 7px;
+    background: var(--gold-soft); border: 1px solid var(--gold-strong);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .fmt .icon svg { width: 13px; height: 13px; stroke: var(--gold); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .fmt .name {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.1;
+  }
+  .fmt .micro {
+    font-family: 'DM Mono', monospace; font-size: 8px;
+    color: var(--muted); margin-top: 1px; letter-spacing: 0.3px;
+  }
+
+  /* ====== CTA + password hint ====== */
+  .cta-area { margin-top: auto; padding-top: 18px; }
+  .cta-primary {
+    width: 100%; padding: 16px; border-radius: 14px;
+    background: var(--gold); color: #1A1408;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 15px; letter-spacing: -0.01em;
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-bottom: 12px;
+  }
+  .password-hint {
+    background: rgba(196,162,78,0.05);
+    border: 1px dashed rgba(196,162,78,0.25);
+    border-radius: 10px;
+    padding: 11px 14px;
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .password-hint .key-icon {
+    width: 24px; height: 24px;
+    background: var(--gold-soft); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .password-hint .key-icon svg { width: 12px; height: 12px; stroke: var(--gold); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .password-hint .text {
+    font-family: 'DM Sans', sans-serif; font-size: 11px; color: var(--muted);
+    line-height: 1.4;
+  }
+  .password-hint .text strong { color: var(--gold); font-weight: 500; }
+
+  .footer-badge {
+    text-align: center; padding-top: 16px;
+    border-top: 1px solid #1c1c22;
+    font-family: 'DM Mono', monospace; font-size: 8.5px;
+    color: var(--muted); letter-spacing: 2.5px; text-transform: uppercase;
+  }
+
+  /* ====== Below mockup ====== */
+  .doc-footer {
+    text-align: left; padding: 32px 28px;
+    color: var(--muted); font-size: 13px; line-height: 1.6;
+    max-width: 600px; margin: 32px auto 0;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px;
+  }
+  .doc-footer h3 {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 14px; letter-spacing: -0.01em; color: var(--gold);
+    margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;
+  }
+  .doc-footer h3:not(:first-child) { margin-top: 22px; }
+  .doc-footer code {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    background: var(--bg); padding: 2px 6px; border-radius: 4px;
+    color: var(--gold); border: 1px solid var(--border);
+  }
+  .doc-footer ol, .doc-footer ul { padding-left: 20px; margin-top: 8px; }
+  .doc-footer li { margin-bottom: 6px; }
+  .doc-footer .sql {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px;
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    color: var(--text); margin-top: 10px; overflow-x: auto;
+    white-space: pre; line-height: 1.5;
+  }
+
+  /* ====== Screen system ====== */
+  .screen { display: none; flex-direction: column; flex: 1; min-height: 0; }
+  .screen.active { display: flex; animation: screenFade 500ms ease both; }
+  @keyframes screenFade {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Screen 1 — greeting only */
+  .greeting-screen {
+    align-items: center; justify-content: center;
+    text-align: center; padding: 12px 0;
+  }
+  .greeting-screen .crown-wrap { margin-top: 12px; margin-bottom: 22px; }
+  .greeting-screen .greeting { margin-bottom: 28px; }
+  .greeting-screen .greeting .hi { font-size: 38px; }
+  .greeting-screen .greeting .social { font-size: 16px; padding: 0 8px; }
+
+  .continue-cta {
+    margin-top: 20px;
+    padding: 14px 32px; border-radius: 999px;
+    background: var(--gold); color: #1A1408;
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 14px; letter-spacing: 0.02em;
+    border: none; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    animation: fadeUp 600ms ease 700ms both;
+  }
+  .continue-cta:hover { transform: translateY(-1px); transition: transform 200ms ease; }
+
+  /* Step indicator */
+  .step-pip {
+    display: flex; justify-content: center; gap: 6px;
+    margin-top: 24px; padding-bottom: 4px;
+  }
+  .step-pip .pip {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--border);
+  }
+  .step-pip .pip.active {
+    background: var(--gold);
+    box-shadow: 0 0 0 3px rgba(196,162,78,0.18);
+  }
+
+  /* ====== Screen 3: Manual pointer + wish ====== */
+  .manual-card {
+    margin: 4px 0 18px;
+    padding: 18px 16px;
+    background: linear-gradient(180deg, rgba(196,162,78,0.06), rgba(196,162,78,0.02));
+    border: 1px solid var(--gold-strong);
+    border-radius: 14px;
+  }
+  .manual-card .head {
+    display: flex; align-items: center; gap: 11px;
+    margin-bottom: 10px;
+  }
+  .manual-card .head .icon-wrap {
+    width: 34px; height: 34px; border-radius: 9px;
+    background: var(--gold-soft); border: 1px solid var(--gold-strong);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .manual-card .head .icon-wrap svg { width: 16px; height: 16px; stroke: var(--gold); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .manual-card .head .label {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 14px; letter-spacing: -0.01em; color: var(--text);
+  }
+  .manual-card .body {
+    font-family: 'DM Sans', sans-serif; font-size: 12.5px;
+    color: var(--muted); line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .manual-card .breadcrumb {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 11px; border-radius: 8px;
+    background: var(--bg); border: 1px dashed var(--gold-strong);
+    font-family: 'DM Mono', monospace; font-size: 9.5px;
+    color: var(--gold); letter-spacing: 1.4px; text-transform: uppercase;
+  }
+  .manual-card .breadcrumb svg { width: 9px; height: 9px; stroke: var(--gold); fill: none; stroke-width: 2; }
+
+  .wish {
+    text-align: center;
+    margin: 18px 0 22px;
+    padding: 16px 12px;
+  }
+  .wish .lead {
+    font-family: 'DM Mono', monospace; font-size: 9px;
+    color: var(--gold); letter-spacing: 2.5px; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .wish h2 {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 22px; line-height: 1.18;
+    letter-spacing: -0.025em; color: var(--text);
+    margin-bottom: 12px;
+  }
+  .wish .signature {
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-size: 14px; color: var(--muted); line-height: 1.4;
+  }
+  .wish .signature .who { color: var(--gold); }
+
+  /* Back link on screen 2 */
+  .back-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .back-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: 'DM Mono', monospace; font-size: 9.5px;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--muted); background: none; border: none;
+    cursor: pointer; padding: 4px 0;
+  }
+  .back-link svg { width: 11px; height: 11px; stroke: var(--muted); fill: none; stroke-width: 2; }
+  .back-link:hover { color: var(--gold); }
+  .back-link:hover svg { stroke: var(--gold); }
+
+  .step-tag {
+    font-family: 'DM Mono', monospace; font-size: 9px;
+    letter-spacing: 2px; color: var(--muted); text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<div class="legend">VIP WELCOME · CÉSAR · M2 JOINER (mockup)</div>
+
+<div class="frame">
+  <div class="scroll">
+
+    <!-- Brand header (siempre visible) -->
+    <div class="brand-header">
+      <span class="wordmark">LIFTORY<span class="dot">.</span></span>
+      <button class="close-abs" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <!-- ════════════ SCREEN 1: GREETING ════════════ -->
+    <div class="screen greeting-screen active" id="screen1">
+
+      <!-- VIP tag -->
+      <div class="top-bar">
+        <span class="vip-tag">⌬ Acceso VIP · Founding</span>
+      </div>
+
+      <!-- Crown badge -->
+      <div class="crown-wrap">
+        <div class="crown">
+          <svg viewBox="0 0 24 24">
+            <path d="M2 7l4 8h12l4-8-6 4-4-7-4 7-6-4z"/>
+            <line x1="2" y1="20" x2="22" y2="20"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Personal greeting -->
+      <div class="greeting">
+        <div class="label">Bienvenido</div>
+        <div class="hi"><span class="name">César.</span></div>
+        <div class="social">Te subes con Andoni y Víctor.<br/>Mismo mesociclo, misma fase, misma energía.</div>
+      </div>
+
+      <!-- Continuar CTA -->
+      <button class="continue-cta" onclick="goScreen(2)">
+        Continuar
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+
+      <!-- Step indicator -->
+      <div class="step-pip">
+        <span class="pip active"></span>
+        <span class="pip"></span>
+        <span class="pip"></span>
+      </div>
+    </div>
+
+    <!-- ════════════ SCREEN 2: PROGRAM ════════════ -->
+    <div class="screen" id="screen2">
+
+      <!-- Back link + step tag -->
+      <div class="back-bar">
+        <button class="back-link" onclick="goScreen(1)">
+          <svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+          Atrás
+        </button>
+        <span class="step-tag">2 de 3</span>
+      </div>
+
+      <div class="divider"><span class="lbl">Tu programa</span></div>
+
+      <!-- M2 mark -->
+      <div class="meso-tag">
+        <span class="meso-id">M2</span>
+        <span class="meso-dates">27 abr — 7 jun · 6 semanas</span>
+      </div>
+
+      <!-- Hero copy (joiner-specific, NO "construiste la base") -->
+      <div class="hero">
+        <h1>Te subes en marcha.</h1>
+        <p class="quote">El grupo arranca M2. Aprendes los formatos en orden.</p>
+      </div>
+
+    <!-- W1-W6 journey -->
+    <div class="journey">
+      <div class="journey-track">
+        <div class="journey-cell now">
+          <div class="journey-dot"></div>
+          <div class="journey-wk">W1</div>
+          <div class="journey-tag">ESTÁS AQUÍ</div>
+        </div>
+        <div class="journey-cell">
+          <div class="journey-dot"></div>
+          <div class="journey-wk">W2</div>
+          <div class="journey-tag"></div>
+        </div>
+        <div class="journey-cell">
+          <div class="journey-dot"></div>
+          <div class="journey-wk">W3</div>
+          <div class="journey-tag"></div>
+        </div>
+        <div class="journey-cell">
+          <div class="journey-dot"></div>
+          <div class="journey-wk">W4</div>
+          <div class="journey-tag"></div>
+        </div>
+        <div class="journey-cell peak">
+          <div class="journey-dot"></div>
+          <div class="journey-wk">W5</div>
+          <div class="journey-tag">PEAK</div>
+        </div>
+        <div class="journey-cell deload">
+          <div class="journey-dot"></div>
+          <div class="journey-wk">W6</div>
+          <div class="journey-tag">DELOAD</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formats -->
+    <div class="formats-section">
+      <div class="section-label">Lo que aprende tu cuerpo aquí</div>
+      <div class="formats">
+        <div class="fmt">
+          <div class="icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h7l-1 8 11-12h-7l1-8z"/></svg></div>
+          <div>
+            <div class="name">Clusters</div>
+            <div class="micro">Mover más con técnica</div>
+          </div>
+        </div>
+        <div class="fmt">
+          <div class="icon"><svg viewBox="0 0 24 24"><path d="M2 12c2-3 4-3 6 0s4 3 6 0 4-3 6 0 4 3 6 0"/></svg></div>
+          <div>
+            <div class="name">Wave Loading</div>
+            <div class="micro">Tu PR del día</div>
+          </div>
+        </div>
+        <div class="fmt">
+          <div class="icon"><svg viewBox="0 0 24 24"><path d="M12 3C8 3 5 6 5 10c0 2 1 3.5 2 4.5V17a1 1 0 0 0 1 1h1v2h2v-2h2v2h2v-2h1a1 1 0 0 0 1-1v-2.5c1-1 2-2.5 2-4.5 0-4-3-7-7-7z"/><circle cx="9" cy="10.5" r="1.5" fill="currentColor"/><circle cx="15" cy="10.5" r="1.5" fill="currentColor"/></svg></div>
+          <div>
+            <div class="name">Death By</div>
+            <div class="micro">Hasta donde llegues</div>
+          </div>
+        </div>
+        <div class="fmt">
+          <div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+          <div>
+            <div class="name">For Time</div>
+            <div class="micro">Score = tu tiempo</div>
+          </div>
+        </div>
+        <div class="fmt">
+          <div class="icon"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M9 9v6M15 9v6"/></svg></div>
+          <div>
+            <div class="name">Tabata</div>
+            <div class="micro">20 on / 10 off</div>
+          </div>
+        </div>
+        <div class="fmt">
+          <div class="icon"><svg viewBox="0 0 24 24"><path d="M3 12h2l2-7 4 14 4-14 2 7h4"/></svg></div>
+          <div>
+            <div class="name">Complex</div>
+            <div class="micro">Sin soltar la barra</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-area">
+      <button class="continue-cta" style="margin: 12px auto 0; display: flex;" onclick="goScreen(3)">
+        Continuar
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </div>
+
+    </div> <!-- /screen2 -->
+
+    <!-- ════════════ SCREEN 3: MANUAL + WISH ════════════ -->
+    <div class="screen" id="screen3">
+
+      <!-- Back link + step tag -->
+      <div class="back-bar">
+        <button class="back-link" onclick="goScreen(2)">
+          <svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+          Atrás
+        </button>
+        <span class="step-tag">3 de 3</span>
+      </div>
+
+      <!-- Manual pointer card -->
+      <div class="manual-card">
+        <div class="head">
+          <div class="icon-wrap">
+            <svg viewBox="0 0 24 24"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22.5V4.5z"/><path d="M4 4.5A2.5 2.5 0 0 0 6.5 7H20"/></svg>
+          </div>
+          <span class="label">El Manual de M2</span>
+        </div>
+        <p class="body">
+          Cada formato (Clusters, Wave Loading, Death By, For Time, Tabata, Complex) está explicado a fondo con ejemplos, FAQ y por qué los usamos. Cuando tengas dudas, ahí lo encuentras todo.
+        </p>
+        <div class="breadcrumb">
+          Programa
+          <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+          Manual de M2
+        </div>
+      </div>
+
+      <!-- Wish -->
+      <div class="wish">
+        <div class="lead">Coach Note</div>
+        <h2>Que tengas un<br/>excelente primer entreno.</h2>
+        <p class="signature">Te espero en M2.<br/><span class="who">— Andoni</span></p>
+      </div>
+
+      <!-- Password hint + CTA -->
+      <div class="cta-area">
+        <div class="password-hint">
+          <div class="key-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          </div>
+          <div class="text">
+            Tu contraseña actual es temporal. <strong>Cámbiala en Perfil cuando quieras.</strong>
+          </div>
+        </div>
+
+        <button class="cta-primary">
+          Empezar M2 →
+        </button>
+
+        <div class="footer-badge">VIP Beta · Founding member</div>
+      </div>
+
+    </div> <!-- /screen3 -->
+
+  </div>
+</div>
+
+<script>
+  function goScreen(n) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen' + n).classList.add('active');
+    // scroll the inner frame to top
+    const scroll = document.querySelector('.scroll');
+    if (scroll) scroll.scrollTop = 0;
+  }
+</script>
+
+<!-- ============================ Implementation notes ============================ -->
+<div class="doc-footer">
+
+<h3>Cómo crear el acceso de César — 3 pasos · ~3 min</h3>
+<p>Lo más rápido es hacerlo manual desde Supabase Dashboard (sin deploys, sin esperar build de Vercel).</p>
+
+<ol>
+<li>
+  <strong>Crear el usuario en Auth.</strong><br/>
+  Supabase Dashboard → Authentication → Users → <strong>Add user → Create new user</strong>.<br/>
+  · Email: <code>cesar.acerosaranda@gmail.com</code> (su correo real)<br/>
+  · Password: <code>liftory123</code> (temporal, él lo cambia después)<br/>
+  · Marca <code>Auto Confirm User</code> (skip email confirmation).
+</li>
+<li>
+  <strong>Correr este SQL en SQL Editor</strong> para asignarle programa, completar onboarding y agregar a VIP. Reemplaza <code>'cesar.acerosaranda@gmail.com'</code> y <code>'César'</code>:
+  <div class="sql">DO $$
+DECLARE
+  v_user_id uuid;
+  v_template_program_id uuid;
+  v_mesocycle_id uuid;
+BEGIN
+  -- 1. Find user by email
+  SELECT id INTO v_user_id FROM auth.users WHERE email = 'cesar.acerosaranda@gmail.com';
+
+  -- 2. Find live M2 mesocycle of BUILD HIM ELITE
+  SELECT m.id, m.template_program_id INTO v_mesocycle_id, v_template_program_id
+  FROM mesocycles m
+  JOIN programs p ON p.id = m.template_program_id
+  WHERE p.name = 'BUILD HIM ELITE'
+    AND m.status = 'live'
+    AND m.cycle_number = 2;
+
+  -- 3. Create / update user_profile (mark onboarding complete)
+  INSERT INTO user_profiles (user_id, full_name, gender, experience_level, onboarding_completed)
+  VALUES (v_user_id, 'César', 'male', 'intermediate', true)
+  ON CONFLICT (user_id) DO UPDATE
+  SET full_name = EXCLUDED.full_name,
+      onboarding_completed = true;
+
+  -- 4. Activate VIP subscription (free annual)
+  UPDATE user_profiles
+  SET subscription_status = 'active',
+      subscription_tier = 'annual',
+      current_period_end = (now() + interval '1 year')
+  WHERE user_id = v_user_id;
+
+  -- 5. Assign BUILD HIM ELITE M2 program
+  INSERT INTO programs (user_id, name, total_weeks, current_week, current_block, is_active, mesocycle_id)
+  SELECT v_user_id, name, total_weeks, 1, 'accumulation', true, v_mesocycle_id
+  FROM programs WHERE id = v_template_program_id;
+
+  -- 6. Workouts get propagated automatically by the propagate_template_sets() trigger.
+END $$;</div>
+</li>
+<li>
+  <strong>Agregar su email a VIP_EMAILS en código</strong> (1 archivo, 1 línea — luego push):
+  <div class="sql">// src/pages/Onboarding.tsx (línea 43)
+const VIP_EMAILS = new Set([
+  "victor.vega.0495@gmail.com",
+  "cesar.acerosaranda@gmail.com",   // ← añadir
+]);
+
+// supabase/functions/activate-vip/index.ts (línea 11)
+const VIP_EMAILS = new Set([
+  "victor.vega.0495@gmail.com",
+  "cesar.acerosaranda@gmail.com",   // ← añadir
+]);</div>
+  Es opcional para César porque su subscription ya queda activa por SQL — pero si hace logout y vuelve, el VIP_EMAILS list le da el feel de "founding".
+</li>
+</ol>
+
+<h3>Cómo se conecta esta WelcomeCard al flow real</h3>
+<p>Esta card NO es el Step 11 de Onboarding (porque César skipea Onboarding). Necesita un trigger nuevo en <code>Home.tsx</code>:</p>
+<ul>
+<li>Cuando César hace login por primera vez → Home detecta que es VIP-joiner-no-Onboarding (flag o check de localStorage <code>vip_welcome_seen_M2_&lt;userId&gt;</code> + check VIP_EMAILS).</li>
+<li>Reusa el componente <code>MesocycleWelcomeCard</code> con un nuevo prop <code>variant: "vip-joiner"</code>.</li>
+<li>El password hint solo aparece en variant <code>vip-joiner</code>.</li>
+</ul>
+<p>Implementación = 1 prop nuevo + el copy variant. ~30 min de codeo + commit + push.</p>
+
+<h3>Próximo paso</h3>
+<p>Cuando me confirmes que te late este diseño:<br/>
+1) Agrego el variant al componente real.<br/>
+2) Te paso el SQL final con el email correcto.<br/>
+3) Te aviso cuando esté pusheado.<br/>
+4) Tú creas a César en Supabase, le mandas el email + temp password, y entra directo a esta card.</p>
+
+</div>
+
+</body>
+</html>

@@ -330,15 +330,23 @@ export default function Workout() {
       let supersetGroup: SupersetGroup | undefined;
 
       if (hasSuperset) {
-        formatBadge = groups.length >= 3 ? 'TRISERIE' : 'SUPERSET';
+        // Only cluster groups whose sets share set_type='superset' — this separates
+        // the megaset (KB × 6) from an "afterset" exercise (Elevated Pike Push-up,
+        // set_type='working') that lives in the same block_label as a visual finisher.
+        const supersetOnlyGroups = groups.filter(g => g.sets[0]?.set_type === 'superset');
+        const clusterSize = supersetOnlyGroups.length;
+        const superType = clusterSize >= 4 ? 'megaset' : clusterSize >= 3 ? 'triset' : 'superset';
+        formatBadge = superType === 'megaset' ? 'MEGASERIE' : superType === 'triset' ? 'TRISERIE' : 'SUPERSET';
         supersetGroup = {
-          type: groups.length >= 3 ? 'triset' : 'superset',
+          type: superType,
           label: formatBadge,
-          groups,
+          groups: supersetOnlyGroups,
         };
       }
       if (blockSets[0]?.set_type === 'emom') formatBadge = 'EMOM';
       if (blockSets[0]?.set_type === 'amrap') formatBadge = 'AMRAP';
+      // Tabata: 2+ groups with set_type='interval' → single-timer alternating block
+      if (blockSets[0]?.set_type === 'interval' && groups.length >= 2) formatBadge = 'TABATA';
 
       // Detect FOR TIME / DEATH BY badges by the same heuristic that
       // handleBlockSelect uses to route to the timer view — keep them aligned

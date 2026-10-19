@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PR Celebration Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .phone-frame {
+    width: 375px;
+    height: 720px;
+    background: #1C1C1E;
+    border-radius: 40px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Blurred background (simulates workout screen behind) */
+  .backdrop {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(160deg, #1C1C1E 0%, #2A2520 50%, #1C1C1E 100%);
+    filter: blur(0px);
+    opacity: 0.95;
+  }
+
+  .card {
+    position: relative;
+    z-index: 2;
+    width: 330px;
+    background: #FAF8F5;
+    border-radius: 24px;
+    padding: 40px 28px 32px;
+    text-align: center;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+  }
+
+  /* PR Icon */
+  .pr-icon-wrap {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(199,91,57,0.08);
+    margin: 0 auto 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pr-icon-wrap svg {
+    width: 36px;
+    height: 36px;
+    color: #C75B39;
+  }
+
+  /* Badge */
+  .pr-badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #C75B39;
+    background: rgba(199,91,57,0.08);
+    padding: 4px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(199,91,57,0.15);
+    margin-bottom: 20px;
+  }
+
+  /* Exercise name */
+  .exercise-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    color: #1C1C1E;
+    line-height: 1.2;
+    margin-bottom: 24px;
+  }
+
+  /* Weight display */
+  .weight-display {
+    margin-bottom: 8px;
+  }
+  .weight-number {
+    font-family: 'DM Mono', monospace;
+    font-weight: 700;
+    font-size: 56px;
+    color: #1C1C1E;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .weight-unit {
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    font-size: 20px;
+    color: #6B6560;
+    margin-left: 4px;
+  }
+  .weight-reps {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: #6B6560;
+    margin-top: 4px;
+  }
+
+  /* Improvement */
+  .improvement {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 20px;
+    padding: 8px 18px;
+    background: rgba(199,91,57,0.08);
+    border-radius: 24px;
+    border: 1px solid rgba(199,91,57,0.12);
+  }
+  .improvement-arrow {
+    color: #C75B39;
+    font-size: 14px;
+  }
+  .improvement-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: #C75B39;
+  }
+
+  /* Divider */
+  .divider {
+    width: 40px;
+    height: 2px;
+    background: #C9A96E;
+    margin: 24px auto;
+    border-radius: 1px;
+  }
+
+  /* Branding */
+  .branding {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 11px;
+    letter-spacing: -0.03em;
+    color: rgba(28,28,30,0.25);
+  }
+
+  /* CTA */
+  .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+    padding: 14px 48px;
+    background: #1C1C1E;
+    color: #FAF8F5;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-radius: 100px;
+    border: none;
+    cursor: pointer;
+  }
+
+  /* ====== OPTION B: Dark version ====== */
+  .phone-frame-dark {
+    width: 375px;
+    height: 720px;
+    background: #1C1C1E;
+    border-radius: 40px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .card-dark {
+    position: relative;
+    z-index: 2;
+    width: 330px;
+    background: #1C1C1E;
+    border-radius: 24px;
+    border: 1px solid rgba(250,248,245,0.08);
+    padding: 40px 28px 32px;
+    text-align: center;
+    box-shadow: 0 0 60px rgba(199,91,57,0.08);
+  }
+
+  .card-dark .pr-icon-wrap {
+    background: rgba(199,91,57,0.12);
+  }
+
+  .card-dark .exercise-name {
+    color: #FAF8F5;
+  }
+
+  .card-dark .weight-number {
+    color: #FAF8F5;
+  }
+
+  .card-dark .weight-unit {
+    color: #9A9590;
+  }
+
+  .card-dark .weight-reps {
+    color: #9A9590;
+  }
+
+  .card-dark .improvement {
+    background: rgba(199,91,57,0.12);
+    border-color: rgba(199,91,57,0.2);
+  }
+
+  .card-dark .branding {
+    color: rgba(250,248,245,0.2);
+  }
+
+  .card-dark .cta-btn {
+    background: #FAF8F5;
+    color: #1C1C1E;
+  }
+
+  .card-dark .divider {
+    background: #C9A96E;
+    opacity: 0.5;
+  }
+
+  /* Layout */
+  .options {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 40px;
+  }
+
+  .option-label {
+    text-align: center;
+    color: #999;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="options">
+
+  <!-- OPTION A: Light card -->
+  <div>
+    <div class="option-label">Opcion A — Light</div>
+    <div class="phone-frame">
+      <div class="backdrop"></div>
+      <div class="card">
+        <div class="pr-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 19V5"/>
+            <path d="M5 12l7-7 7 7"/>
+          </svg>
+        </div>
+
+        <div class="pr-badge">Nuevo PR</div>
+
+        <div class="exercise-name">Heel Elevated<br/>Front Squat</div>
+
+        <div class="weight-display">
+          <span class="weight-number">85</span>
+          <span class="weight-unit">kg</span>
+        </div>
+        <div class="weight-reps">5 reps @ RPE 8</div>
+
+        <div class="improvement">
+          <span class="improvement-arrow">&uarr;</span>
+          <span class="improvement-text">+5 kg vs anterior</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="branding">LIFTORY</div>
+
+        <button class="cta-btn">SEGUIR</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPTION B: Dark card -->
+  <div>
+    <div class="option-label">Opcion B — Dark</div>
+    <div class="phone-frame-dark">
+      <div class="backdrop"></div>
+      <div class="card-dark">
+        <div class="pr-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:#C75B39">
+            <path d="M12 19V5"/>
+            <path d="M5 12l7-7 7 7"/>
+          </svg>
+        </div>
+
+        <div class="pr-badge">Nuevo PR</div>
+
+        <div class="exercise-name">Heel Elevated<br/>Front Squat</div>
+
+        <div class="weight-display">
+          <span class="weight-number">85</span>
+          <span class="weight-unit">kg</span>
+        </div>
+        <div class="weight-reps">5 reps @ RPE 8</div>
+
+        <div class="improvement">
+          <span class="improvement-arrow">&uarr;</span>
+          <span class="improvement-text">+5 kg vs anterior</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="branding">LIFTORY</div>
+
+        <button class="cta-btn">SEGUIR</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

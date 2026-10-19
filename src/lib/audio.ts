@@ -132,6 +132,29 @@ export function playBeep(freq: number = 800, durationMs: number = 100): void {
   });
 }
 
+/** Speak a short announcement (e.g. "última ronda") using the browser's built-in
+ *  speech synthesis. Prefers a Spanish voice; falls back to any available voice.
+ *  Lower pitch + calmer rate than the default to match the brand's atelier tone.
+ *  Silent no-op if speech synthesis unavailable (e.g. some in-app browsers). */
+export function speakLuxury(text: string, lang: string = "es-MX"): void {
+  try {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = lang;
+    utter.rate = 0.85;  // slightly slower — deliberate pace
+    utter.pitch = 0.9;  // slightly lower — warmer
+    utter.volume = 0.9;
+    // Pick a Spanish voice if available
+    const voices = window.speechSynthesis.getVoices();
+    const spanishVoice = voices.find(v => v.lang.toLowerCase().startsWith("es"));
+    if (spanishVoice) utter.voice = spanishVoice;
+    window.speechSynthesis.cancel(); // clear any queued
+    window.speechSynthesis.speak(utter);
+  } catch {
+    // Speech synthesis unavailable — silent fail
+  }
+}
+
 /** Double finish beep — same 1046.5Hz as EMOM */
 export function playFinishBeep(): void {
   playWhenRunning((ctx, now) => {

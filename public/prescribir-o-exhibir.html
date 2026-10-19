@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prescribir o Exhibir</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Documento de decisión · dark comprometido (marca LIFTORY) · columna de lectura
+   con bloques de datos a sangre. Gold en un solo rol: lo que hay que decidir. */
+:root{
+  --pitch:#0D0D0F; --graphite:#16161A; --slate:#1F1F24; --hairline:#2A2A30;
+  --clean:#FAFAFA; --ash:#A1A1AA; --zinc:#71717A;
+  --gold:#C4A24E; --gold-dim:#8A7236;
+  --sage:#7A8B5C; --brick:#C0392B; --amber:#B8862B;
+  --display:"Syne",system-ui,sans-serif;
+  --body:"DM Sans",system-ui,sans-serif;
+  --mono:"DM Mono","SF Mono",ui-monospace,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--pitch);color:var(--clean);font-family:var(--body);
+  font-size:16px;line-height:1.65;font-weight:300;margin:0;-webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding-inline:20px;padding-block:0 96px}
+
+h1,h2,h3,h4{font-family:var(--display);font-weight:800;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.1rem,6.5vw,3.6rem);line-height:1.02;letter-spacing:-.02em;text-transform:uppercase}
+h2{font-size:clamp(1.28rem,3.5vw,1.7rem);line-height:1.13;letter-spacing:-.01em;text-transform:uppercase}
+h3{font-size:1.04rem;font-weight:700;line-height:1.3;margin-block:0 .4em}
+p{margin:0 0 1.05em}
+.lede{font-size:1.1rem;line-height:1.6;color:var(--ash);font-weight:300}
+strong{font-weight:600;color:var(--clean)}
+em{font-style:italic;color:var(--ash)}
+a{color:var(--gold);text-decoration:none;border-bottom:1px solid var(--gold-dim)}
+a:hover{border-bottom-color:var(--gold)}
+a:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+
+/* partes del documento */
+.part{font-family:var(--mono);font-size:.68rem;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--gold);padding-block:clamp(44px,9vw,72px) 0;margin-bottom:-20px;
+  display:flex;align-items:center;gap:14px}
+.part::after{content:"";flex:1;height:1px;background:var(--gold-dim);opacity:.4}
+
+header.hero{padding-block:clamp(48px,11vw,92px) 0;border-bottom:1px solid var(--hairline)}
+.kicker{font-family:var(--mono);font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin:0 0 1.6em}
+.hero-meta{display:flex;flex-wrap:wrap;gap:8px 22px;font-family:var(--mono);font-size:.7rem;
+  color:var(--zinc);letter-spacing:.06em;margin:2.4em 0 clamp(32px,6vw,48px)}
+
+section{margin-block:clamp(48px,9vw,76px)}
+section>p,section>ul,section>ol,section>.lede{max-width:68ch}
+.rule{height:1px;background:var(--hairline);border:0;margin-block:clamp(48px,9vw,76px)}
+.secnum{display:flex;align-items:baseline;gap:14px;margin-bottom:1.4em}
+.secnum span{font-family:var(--mono);font-size:.72rem;color:var(--gold-dim);letter-spacing:.14em;
+  padding-top:.42em;flex:none;font-variant-numeric:tabular-nums}
+
+/* veredicto */
+.verdict{background:linear-gradient(170deg,var(--slate),var(--graphite));
+  border:1px solid var(--hairline);border-top:2px solid var(--gold);border-radius:3px;
+  padding:clamp(26px,5.5vw,42px);margin-top:clamp(40px,8vw,60px)}
+.verdict h2{color:var(--gold);font-size:clamp(1.12rem,3vw,1.4rem);margin-bottom:.6em}
+.verdict .big{font-family:var(--display);font-weight:700;font-size:clamp(1.2rem,3.4vw,1.6rem);
+  line-height:1.3;color:var(--clean);margin:0 0 1.3em;text-wrap:balance}
+.vlist{list-style:none;padding:0;margin:0;display:grid;gap:17px}
+.vlist li{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;font-size:.96rem;color:var(--ash)}
+.vlist .mk{font-family:var(--mono);font-size:.7rem;color:var(--gold);letter-spacing:.1em;padding-top:.3em}
+.vlist strong{display:block;color:var(--clean);font-weight:600;margin-bottom:.15em}
+
+/* tablas */
+.tscroll{overflow-x:auto;margin:1.7em 0;border:1px solid var(--hairline);border-radius:3px}
+table{width:100%;border-collapse:collapse;font-size:.87rem;min-width:540px}
+caption{text-align:left;font-family:var(--mono);font-size:.67rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--zinc);padding:14px 16px 0}
+th,td{padding:11px 16px;text-align:left;border-bottom:1px solid var(--hairline);vertical-align:top}
+thead th{font-family:var(--mono);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--zinc);font-weight:400;background:var(--graphite)}
+tbody tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+tbody tr:hover{background:#ffffff06}
+.hl{color:var(--gold);font-weight:500}
+.bad{color:var(--brick)}
+.good{color:var(--sage)}
+.sm{color:var(--zinc);font-size:.86em}
+
+/* figuras */
+figure{margin:2.1em 0;background:var(--graphite);border:1px solid var(--hairline);
+  border-radius:3px;padding:clamp(18px,4vw,28px)}
+figcaption{font-size:.82rem;color:var(--zinc);line-height:1.55;margin-top:1.3em;
+  padding-top:1.1em;border-top:1px solid var(--hairline)}
+figcaption b{color:var(--ash);font-weight:500}
+.figtitle{font-family:var(--display);font-weight:700;font-size:1rem;margin:0 0 .3em;color:var(--clean)}
+.figsub{font-family:var(--mono);font-size:.67rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--zinc);margin:0 0 1.5em}
+svg{display:block;max-width:100%;height:auto;overflow:visible}
+
+/* escalera */
+.ladder{display:grid;gap:3px}
+.rung,.youare{display:grid;grid-template-columns:minmax(118px,1.1fr) 2.4fr auto;gap:14px;
+  align-items:center;padding:10px 0}
+.rung .who,.youare .who{font-size:.83rem;color:var(--ash);line-height:1.3}
+.rung .who b,.youare .who b{display:block;color:var(--clean);font-weight:600;font-size:.88rem}
+.bar{height:22px;border-radius:0 3px 3px 0;background:var(--gold-dim);min-width:2px}
+.rung .price,.youare .price{font-family:var(--mono);font-size:.85rem;color:var(--clean);
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.rung.peak .bar{background:var(--gold)}
+.rung.peak .price{color:var(--gold);font-weight:500}
+.rung.zero .bar{background:var(--hairline)}
+.youare{margin-top:6px;border-top:1px dashed var(--gold-dim)}
+.youare .who b{color:var(--gold)}
+.youare .bar{background:repeating-linear-gradient(135deg,var(--gold) 0 5px,transparent 5px 10px);
+  border:1px solid var(--gold-dim)}
+.youare .price{color:var(--gold);font-weight:500}
+
+blockquote{margin:1.7em 0;padding:0 0 0 20px;border-left:2px solid var(--gold-dim);max-width:64ch}
+blockquote p{font-size:.99rem;line-height:1.55;color:var(--clean);font-style:italic;margin-bottom:.5em}
+blockquote cite{font-family:var(--mono);font-size:.67rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--zinc);font-style:normal;display:block}
+
+.box{border:1px solid var(--hairline);border-radius:3px;padding:clamp(18px,4vw,26px);
+  margin:1.7em 0;background:var(--graphite)}
+.box.warn{border-left:2px solid var(--amber)}
+.box.crit{border-left:2px solid var(--brick)}
+.box.ok{border-left:2px solid var(--sage)}
+.box.gold{border-left:2px solid var(--gold)}
+.box p:last-child{margin-bottom:0}
+.box .tag{display:block;font-family:var(--mono);font-size:.63rem;letter-spacing:.14em;
+  text-transform:uppercase;margin-bottom:.9em}
+.box.warn .tag{color:var(--amber)} .box.crit .tag{color:var(--brick)}
+.box.ok .tag{color:var(--sage)} .box.gold .tag{color:var(--gold)}
+
+/* capas del modelo */
+.model{display:grid;gap:13px;margin:2em 0}
+.layer{border:1px solid var(--hairline);border-radius:3px;background:var(--graphite);
+  padding:18px 20px;display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:start}
+.layer .lnum{font-family:var(--mono);font-size:.67rem;color:var(--gold);letter-spacing:.12em;
+  padding-top:.35em;white-space:nowrap}
+.layer h3{font-size:.97rem;margin-bottom:.35em}
+.layer p{font-size:.89rem;color:var(--ash);margin:0;line-height:1.55}
+.layer.primary{border-color:var(--gold-dim);border-left:2px solid var(--gold);background:var(--slate)}
+.layer .why{display:block;font-family:var(--mono);font-size:.67rem;color:var(--zinc);
+  letter-spacing:.03em;margin-top:.7em;line-height:1.55}
+
+.phases{display:grid;gap:2px;margin:2em 0;border:1px solid var(--hairline);border-radius:3px;overflow:hidden}
+.phase{background:var(--graphite);padding:20px;display:grid;grid-template-columns:auto 1fr;gap:18px}
+.phase .pn{font-family:var(--display);font-weight:800;font-size:1.5rem;color:var(--gold-dim);
+  line-height:1;font-variant-numeric:tabular-nums}
+.phase .when{font-family:var(--mono);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:.5em}
+.phase ul{margin:.6em 0 0;padding-left:1.1em;font-size:.88rem;color:var(--ash)}
+.phase li{margin-bottom:.35em}
+.phase li::marker{color:var(--gold-dim)}
+
+ul.clean{list-style:none;padding:0;margin:1.3em 0}
+ul.clean li{padding-left:20px;position:relative;margin-bottom:.8em;font-size:.95rem;color:var(--ash)}
+ul.clean li::before{content:"";position:absolute;left:0;top:.62em;width:7px;height:1px;background:var(--gold)}
+ul.clean li strong{color:var(--clean)}
+
+.srcs{font-family:var(--mono);font-size:.67rem;line-height:1.9;color:var(--zinc);word-break:break-word}
+.srcs a{color:var(--zinc);border-bottom-color:var(--hairline)}
+.srcs a:hover{color:var(--gold)}
+.srcs b{color:var(--ash)}
+footer{border-top:1px solid var(--hairline);margin-top:clamp(48px,9vw,76px);padding-top:28px;
+  font-family:var(--mono);font-size:.67rem;color:var(--zinc);letter-spacing:.06em;line-height:1.85}
+
+@media (max-width:620px){
+  .rung,.youare{grid-template-columns:1fr auto;gap:8px 12px}
+  .rung .bar,.youare .bar{grid-column:1/-1;order:3}
+  .layer,.phase{grid-template-columns:1fr;gap:8px}
+  blockquote{padding-left:14px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <p class="kicker">Dirección de producto · LIFTORY · 4 octubre 2026</p>
+  <h1>Prescribir<br>o exhibir</h1>
+  <p class="lede">La pregunta es si LIFTORY debe asignarle al usuario qué entrenar hoy, o abrirle un menú para que navegue y elija. Revisé 26 apps, los reportes a la SEC de BODi y Peloton, y la literatura científica de adherencia al ejercicio. La evidencia apunta en una dirección — y el argumento más fuerte no es el que uno esperaría.</p>
+  <div class="hero-meta">
+    <span>26 apps analizadas</span>
+    <span>SEC · App Store · PubMed</span>
+    <span>Diagnóstico sobre tu DB</span>
+  </div>
+</header>
+
+<section class="verdict">
+  <h2>El veredicto</h2>
+  <p class="big">Sigue prescriptivo. No por miedo a que el usuario se abrume eligiendo — ese argumento está desmentido — sino porque la prescripción es lo que sostiene tu precio y lo que construye la sensación de volverse capaz.</p>
+  <ul class="vlist">
+    <li><span class="mk">01</span><div><strong>El precio escala con la prescripción, no con el catálogo.</strong> El catálogo más grande del mundo en fuerza (14,136 programas) es gratis. Las apps que te dicen exactamente qué hacer hoy cobran $35–50 USD/mes. A tu precio no vendes una app: vendes coaching.</div></li>
+    <li><span class="mk">02</span><div><strong>En la teoría que usan todos para hablar de autonomía, autonomía no significa "más opciones".</strong> Significa querer hacer lo que haces. Y la necesidad con mejor evidencia en ejercicio no es la autonomía: es sentirse competente — exactamente lo que la estructura construye.</div></li>
+    <li><span class="mk">03</span><div><strong>Hay un hueco que ninguna app grande ocupa</strong>, y es donde ya estás: sesión diaria prescrita, con carga registrada y progresión real de mesociclo. Ninguna de las cuatro apps de fitness más grandes del mundo lo hace. Pero ocuparlo exige una cosa: <strong>Coach Adonis necesita tu cara, tu voz y tu nombre</strong> — solo 10% de la gente quiere entrenamiento generado por IA, y Future acaba de matar su producto de IA para volver a coaches humanos.</div></li>
+    <li><span class="mk">04</span><div><strong>Pero tu decisión de mayor apalancamiento no es esta.</strong> La razón número uno de abandono de apps de salud, medida en 427 personas que abandonaron, es <strong>que capturar datos toma demasiado tiempo</strong> — 44.5%, por encima de perder el interés. Con 3 usuarios, catálogo-vs-prescriptivo es prematuro; los taps que toma registrar una serie, no.</div></li>
+  </ul>
+</section>
+
+<!-- ═════════════ PARTE 1 ═════════════ -->
+<p class="part">Parte 1 · El reframe</p>
+
+<section>
+  <div class="secnum"><span>01</span><h2>Autonomía no es lo que crees</h2></div>
+
+  <p class="lede">Empiezo por aquí porque cambia cómo se plantea toda la decisión. Pedí una revisión de la literatura científica de adherencia al ejercicio esperando que dijera "dale libertad al usuario". Dice algo bastante distinto.</p>
+
+  <p>El marco que todo el mundo cita para hablar de motivación es la Teoría de la Autodeterminación. Su hallazgo conceptual más replicado al respecto es incómodo para la intuición de producto:</p>
+
+  <div class="box gold">
+    <span class="tag">Reeve, Nix &amp; Hamm · Journal of Educational Psychology, 2003</span>
+    <p>La <strong>elección percibida no es un indicador válido de autodeterminación</strong>. Lo que sí lo es: el sentir que la acción es propia y querida. El paper se subtitula, literalmente, "el enigma de la elección".</p>
+    <p>Traducido a tu app: <strong>se puede sentir plena voluntad siguiendo un programa que escribió alguien más, y cero voluntad frente a una pantalla vacía con 459 ejercicios.</strong></p>
+  </div>
+
+  <p>Y hay un segundo hallazgo que pesa más todavía. En la revisión de referencia de la literatura — Teixeira y colegas, 66 estudios, cerca de 2,850 citas — la necesidad psicológica que predice participación en ejercicio de forma más consistente <strong>no es la autonomía. Es la competencia</strong>: sentirse capaz, ver que progresas, no andar a ciegas. La autonomía salió mixta: positiva en algunos estudios, no significativa en otros.</p>
+
+  <p>Eso importa porque la competencia es precisamente la necesidad que <strong>la estructura y la prescripción sirven de forma directa</strong>. Tu W1→W6 con RPE ascendente y deload no es una restricción de la libertad del usuario: es la maquinaria que le hace sentir que se está volviendo fuerte.</p>
+
+  <p>Un experimento de 2026 lo pone a prueba de forma limpia: manipularon por separado la estructura y la posibilidad de elegir. <strong>La elección tuvo efecto casi nulo sin la estructura, y efecto moderado con ella.</strong> Los autores concluyen que establecer las condiciones estructurales puede <em>preceder</em>, no solo complementar, el apoyo a la autonomía.</p>
+
+  <div class="box ok">
+    <span class="tag">Dónde sí poner la autonomía</span>
+    <p>El mejor resultado experimental que encontré en adherencia (Teixeira et al., 2024) es un programa <strong>profesionalmente prescrito</strong> al que le agregaron una sola cosa: una <strong>banda de auto-regulación de intensidad</strong> — el usuario ajusta el esfuerzo para mantenerlo tolerable — más chequeos de cómo se sintió la sesión.</p>
+    <p>Resultado: <strong>77% más asistencia</strong>, 14.35 contra 8.13 sesiones. El participante nunca eligió el programa.</p>
+    <p>Esa banda es exactamente lo que ya es tu prescripción por RPE en vez de peso fijo. Ya la tienes construida. Lo que falta es nombrarla y explicarla.</p>
+  </div>
+
+  <p>Un matiz más, del meta-análisis de Patall y colegas (41 estudios): la elección <em>sí</em> mejora la motivación, pero el efecto es más fuerte con <strong>dos a cuatro elecciones pequeñas y consecutivas</strong>, y más fuerte en decisiones intrascendentes que en decisiones sobre la actividad misma. Muchas elecciones chicas y sin consecuencia funcionan mejor que pocas elecciones grandes. Dejar que alguien cambie un ejercicio hoy se parece al manipulador que funciona. Dejarlo diseñar su propio mesociclo, no.</p>
+</section>
+
+<hr class="rule">
+
+<section>
+  <div class="secnum"><span>02</span><h2>Lo que la evidencia NO sostiene</h2></div>
+
+  <p class="lede">Te debo esto aunque debilite el argumento fácil. Dos cosas que suenan muy convincentes y que no aguantan escrutinio.</p>
+
+  <div class="box warn">
+    <span class="tag">No uses este argumento · 1</span>
+    <h3>"Demasiadas opciones paralizan al usuario"</h3>
+    <p>El meta-análisis de Scheibehenne, Greifeneder y Todd (2010, <em>Journal of Consumer Research</em>) revisó <strong>63 condiciones de 50 experimentos, N = 5,036</strong>. Efecto medio: <strong>D = 0.02</strong>, intervalo de confianza [−0.09, 0.12]. Recortando extremos: D = 0.001. En sus palabras, un tamaño de efecto virtualmente cero. Su propia réplica del famoso estudio de las mermeladas falló.</p>
+    <p>El moderador que <em>sí</em> sobrevive es útil y va en otra dirección: <strong>más opciones ayudan a quien ya tiene preferencias definidas, y estorban a quien no conoce el dominio.</strong> Eso es una condición sobre el usuario, no sobre el producto — y apunta a segmentar por nivel, no a cerrar la app.</p>
+  </div>
+
+  <div class="box warn">
+    <span class="tag">No uses este argumento · 2</span>
+    <h3>"Dejar elegir mejora el aprendizaje motor"</h3>
+    <p>Esta literatura se cita mucho en fitness. McKay y colegas (2022) la metieron a corrección por sesgo de publicación: el efecto ingenuo de <strong>g = 0.44 cae a g = 0.107</strong>, y los estudios no publicados dan <strong>g = 0.003</strong>. El poder estadístico promedio de los estudios incluidos era de <strong>7%</strong>. Conclusión de los autores: el beneficio de la práctica autocontrolada es pequeño y <em>"actualmente no distinguible de cero"</em>.</p>
+  </div>
+
+  <p>Y hay dos cifras muy citadas en la industria que conviene que no uses, porque no aguantan:</p>
+
+  <ul class="clean">
+    <li><strong>"26% de las apps se usan una sola vez."</strong> Rastreada al origen: un post de blog de Localytics de <strong>enero de 2011</strong>, sobre <em>todas</em> las categorías de apps, basado en una muestra de conveniencia de sus propios clientes de analítica, con el último trimestre explícitamente incompleto. Nada que ver con fitness, y tiene 16 años.</li>
+    <li><strong>"La retención a día 30 en fitness es 2.8%."</strong> Aparece citada incluso dentro de papers revisados por pares, lo que la hace ver sólida. Su fuente es un gráfico de Statista que republica el benchmark de un proveedor sin nombre: <strong>no se divulga la cohorte, el conjunto de apps, ni qué cuenta como "retenido"</strong>. Inverificable.</li>
+  </ul>
+
+  <div class="box ok">
+    <span class="tag">El argumento correcto</span>
+    <p>Prescribe porque <strong>la estructura construye competencia</strong>, porque es lo único que sostiene tu precio, y porque los novatos sin anclaje eligen cargas insuficientes. No porque elegir abrume.</p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section>
+  <div class="secnum"><span>02b</span><h2>Por qué abandonan de verdad</h2></div>
+
+  <p class="lede">La mejor encuesta que existe con razones rankeadas y cuantificadas: 1,604 usuarios, de los cuales 427 habían abandonado apps de salud. El resultado no se parece a lo que uno supondría.</p>
+
+  <figure>
+    <p class="figtitle">Razones de abandono de apps de salud</p>
+    <p class="figsub">n = 427 que abandonaron · Krebs &amp; Duncan, JMIR mHealth · respuesta múltiple</p>
+    <svg viewBox="0 0 680 252" role="img" aria-labelledby="t4 d4">
+      <title id="t4">Razones de abandono: capturar datos toma demasiado tiempo 44.5 por ciento, perdí el interés 40.5, costos ocultos 36.1, app confusa 32.8, compartía mis datos 29</title>
+      <desc id="d4">La fricción de capturar datos es la razón número uno de abandono, por encima de la pérdida de interés.</desc>
+      <g stroke="#2A2A30" stroke-width="1">
+        <line x1="258" y1="8" x2="258" y2="212"/>
+        <line x1="352" y1="8" x2="352" y2="212" stroke-dasharray="2 4"/>
+        <line x1="446" y1="8" x2="446" y2="212" stroke-dasharray="2 4"/>
+        <line x1="540" y1="8" x2="540" y2="212" stroke-dasharray="2 4"/>
+        <line x1="634" y1="8" x2="634" y2="212" stroke-dasharray="2 4"/>
+      </g>
+      <!-- escala: 50% = 376px desde x=258 -->
+      <g font-family="DM Sans, sans-serif" font-size="12" fill="#A1A1AA" text-anchor="end">
+        <text x="248" y="29">Capturar datos tarda</text>
+        <text x="248" y="68">Perdí el interés</text>
+        <text x="248" y="107">Costos ocultos</text>
+        <text x="248" y="146">App confusa de usar</text>
+        <text x="248" y="185">Compartía mis datos</text>
+      </g>
+      <g>
+        <rect x="258" y="13" width="335" height="22" rx="4" fill="#C4A24E"/>
+        <text x="603" y="29" font-family="DM Mono, monospace" font-size="12" fill="#C4A24E" font-weight="500">44.5%</text>
+        <rect x="258" y="52" width="305" height="22" rx="4" fill="#A98B42"/>
+        <text x="573" y="68" font-family="DM Mono, monospace" font-size="12" fill="#A1A1AA">40.5%</text>
+        <rect x="258" y="91" width="271" height="22" rx="4" fill="#8A7236"/>
+        <text x="539" y="107" font-family="DM Mono, monospace" font-size="12" fill="#A1A1AA">36.1%</text>
+        <rect x="258" y="130" width="247" height="22" rx="4" fill="#8A7236"/>
+        <text x="515" y="146" font-family="DM Mono, monospace" font-size="12" fill="#A1A1AA">32.8%</text>
+        <rect x="258" y="169" width="218" height="22" rx="4" fill="#3A3A42"/>
+        <text x="486" y="185" font-family="DM Mono, monospace" font-size="12" fill="#A1A1AA">29.0%</text>
+      </g>
+      <g font-family="DM Mono, monospace" font-size="10" fill="#71717A" text-anchor="middle">
+        <text x="258" y="230">0%</text><text x="352" y="230">12.5%</text><text x="446" y="230">25%</text>
+        <text x="540" y="230">37.5%</text><text x="634" y="230">50%</text>
+      </g>
+    </svg>
+    <figcaption>Conclusión textual del paper: <em>"la razón principal por la que los respondientes dejaron de usar apps fue la naturaleza demandante de la captura de datos."</em> <b>La fricción de registrar le gana a la motivación.</b> Y fíjate en lo que <b>no</b> está: "me aburrí", "no vi resultados" y "se me complicó la vida" <b>no fueron ni ofrecidos como opción de respuesta</b> — ni en este instrumento ni en ningún otro grande. No es que la evidencia los descarte: es que nadie los ha medido. Si alguien te cita porcentajes de abandono por aburrimiento, los está inventando.</figcaption>
+  </figure>
+
+  <p>Para LIFTORY esto es directamente accionable, y apunta a un lugar inesperado: <strong>el tiempo que le toma al usuario registrar una serie es la variable de abandono mejor evidenciada que existe.</strong> No el catálogo, no la variedad. Cuántos taps hay entre terminar un set y tenerlo registrado.</p>
+
+  <div class="box gold">
+    <span class="tag">Y el hallazgo que cambia cómo pensar el churn</span>
+    <h3>Más del 75% de los que se van, vuelven</h3>
+    <p>Un estudio de 115 millones de actividades, más de un millón de usuarios y 31 meses encontró que <strong>más del 75% de los usuarios regresan después de periodos prolongados de inactividad — sin importar cuánto duró la inactividad</strong>. Y cuando vuelven, el patrón se parece al <em>inicio de un periodo nuevo</em>, no a la continuación del anterior. Los autores lo modelan como "vidas múltiples".</p>
+    <p>Pero el hallazgo que de verdad importa para ti es el otro: <strong>los usuarios eran más propensos a parar justo después de lograr su objetivo</strong>, y a volver cuando ese objetivo resurgía. Dicho sin rodeos: <strong>el éxito es un evento de churn.</strong></p>
+    <p>Eso significa que "no vio resultados" como causa de abandono está parcialmente al revés. El usuario que termina M1 sintiéndose logrado es <em>exactamente</em> el que está en riesgo — y es el tema de la sección 10.</p>
+  </div>
+</section>
+
+<!-- ═════════════ PARTE 2 ═════════════ -->
+<p class="part">Parte 2 · La evidencia de mercado</p>
+
+<section>
+  <div class="secnum"><span>03</span><h2>El hueco que nadie ocupa</h2></div>
+
+  <p>Las cuatro apps de fitness más grandes del mundo tratan la <strong>novedad</strong> como su activo de retención, y dejan vacante la periodización de carga.</p>
+
+  <div class="tscroll">
+    <table>
+      <caption>Lo que las cuatro grandes no hacen</caption>
+      <thead><tr><th>App</th><th class="n">Preguntas<br>de onboarding</th><th>¿Registra carga?</th><th>Progresión</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Apple Fitness+</strong><br><span class="sm">$9.99/mes · 2.87★</span></td>
+            <td class="n bad">1 pantalla<br><span class="sm">y es saltable</span></td>
+            <td class="bad">No</td>
+            <td>Solo <strong>duración</strong>. Su plan "Push Further" alarga el mismo tipo de actividad. No existe periodización de carga.</td></tr>
+        <tr><td><strong>Nike Training Club</strong><br><span class="sm">Gratis · 4.85★</span></td>
+            <td class="n">3</td>
+            <td class="bad">No</td>
+            <td>Programas por etapas, sin calendario. Puedes ir más rápido o más lento sin consecuencia.</td></tr>
+        <tr><td><strong>Centr</strong> (Hemsworth)<br><span class="sm">$29.99/mes · 4.75★</span></td>
+            <td class="n">6 áreas</td>
+            <td class="good">Sí</td>
+            <td>Existe, pero solo <strong>dentro</strong> de un programa. Nada conecta un programa con el siguiente.</td></tr>
+        <tr><td><strong>Peloton</strong><br><span class="sm">$15.99/mes · 4.92★</span></td>
+            <td class="n">—</td>
+            <td>Sí, en <strong>otra app</strong></td>
+            <td>Quitó la prescripción diaria en 2025. El progressive overload real vive en Strength+, aparte, y lo bueno está tras <strong>hardware</strong>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Dos datos que subrayan el punto. Peloton <strong>relanzó sus Programas en junio de 2025 quitándoles la prescripción</strong>: ahora "ya no dictan qué hacer en días específicos". Y Apple recortó personal de Fitness+ en septiembre de 2026 — Bloomberg lo describe como uno de los productos de suscripción más débiles de Apple, "con alto churn e ingresos limitados".</p>
+
+  <blockquote>
+    <p>La app más básica imaginable. Simplemente registras que hiciste "entrenamiento de fuerza por 1 hora". ¿Más detalle? ¿Notas? ¿Registros? ¿Día de pierna? ¿Splits? ¿Cuánto peso? ¿Un PR?</p>
+    <cite>Review de 1 estrella · Apple Fitness+ · App Store, octubre 2026</cite>
+  </blockquote>
+
+  <div class="box gold">
+    <span class="tag">El posicionamiento</span>
+    <h3>Sesión diaria prescrita, con carga registrada y progresión de mesociclo</h3>
+    <p>Esa superficie no la posee ninguna de las cuatro. Y tú ya tienes las tres piezas: W1 base → W2–W3 acumulación → W4 intensificación → W5 peak → W6 deload, prescripción por RPE, y bloques con rol propio — PRIME, HEAVY, BUILD, ENGINE, RECOVERY. No es una feature pendiente: es tu activo, y está construido.</p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section>
+  <div class="secnum"><span>04</span><h2>El precio sigue a la prescripción</h2></div>
+
+  <p class="lede">Verifiqué el precio de 12 apps de fuerza estructurada. La correlación no está con el tamaño del catálogo. Está con cuánta decisión le quitas al usuario.</p>
+
+  <figure>
+    <p class="figtitle">Precio mensual por grado de prescripción</p>
+    <p class="figsub">12 apps de fuerza · precios verificados octubre 2026 · USD</p>
+    <div class="ladder">
+      <div class="rung zero">
+        <div class="who"><b>Catálogo puro</b>Boostcamp · 14,136 programas</div>
+        <div class="bar" style="width:1%"></div><div class="price">$0</div>
+      </div>
+      <div class="rung">
+        <div class="who"><b>Pizarra en blanco</b>Hevy · Strong · Liftin'</div>
+        <div class="bar" style="width:6%"></div><div class="price">$3–5</div>
+      </div>
+      <div class="rung">
+        <div class="who"><b>Generador</b>Alpha Progression · Fitbod</div>
+        <div class="bar" style="width:26%"></div><div class="price">$13</div>
+      </div>
+      <div class="rung peak">
+        <div class="who"><b>Prescripción completa</b>JuggernautAI · RP · Dr. Muscle</div>
+        <div class="bar" style="width:100%"></div><div class="price">$35–50</div>
+      </div>
+      <div class="youare">
+        <div class="who"><b>LIFTORY hoy</b>$499 MXN/mes</div>
+        <div class="bar" style="width:50%"></div><div class="price">~$25</div>
+      </div>
+    </div>
+    <figcaption><b>Mismo eje para todos; la barra rayada es LIFTORY.</b> JuggernautAI cobra $34.99 <b>sin catálogo alguno</b> — 40% más que tú, con onboarding de 22 pasos y cero biblioteca de plantillas. Boostcamp, con el catálogo más grande del segmento, <b>regala la librería entera</b> y monetiza analítica.</figcaption>
+  </figure>
+
+  <p>Un catálogo de 14,000 programas está comoditizado hacia cero. Un plan que te dice qué hacer hoy sostiene $35 al mes. Y hay un detalle que te favorece: <strong>el polo caro sangra exactamente donde tú ya eres fuerte.</strong> RP Hypertrophy cobra $34.99 y sus reviews se queman en que la app <em>no</em> te dice qué ejercicios hacer — "ofrece ayuda mínima, si acaso, para elegir ejercicios". RP te hace construir el mesociclo a mano. Eso es lo que Coach Adonis ya resolvió.</p>
+
+  <p>Nota de escala, para calibrar expectativas: Hevy tiene 96,000 calificaciones a $2.99; RP tiene cerca de 200 a $34.99. <strong>El prescriptivo caro no es un negocio de volumen. Es un nicho de alta intención.</strong></p>
+</section>
+
+<hr class="rule">
+
+<section>
+  <div class="secnum"><span>05</span><h2>El churn que nadie quiere publicar</h2></div>
+
+  <p class="lede">Peloton es la única empresa de la categoría que reportó churn separado de su tier solo-app. Es el número más revelador del research, y dejaron de publicarlo.</p>
+
+  <figure>
+    <p class="figtitle">Churn mensual promedio · Peloton</p>
+    <p class="figsub">Cartas a accionistas · SEC · FY2024 – FY2026</p>
+    <svg viewBox="0 0 680 262" role="img" aria-labelledby="t1 d1">
+      <title id="t1">Churn mensual de suscriptores solo-app contra suscriptores con hardware en Peloton</title>
+      <desc id="d1">Los suscriptores solo-app rotan al 8.5 por ciento mensual en 2024 y 6.4 por ciento en 2025, mientras los suscriptores con hardware se mantienen entre 1.8 y 2.2 por ciento. En 2026 Peloton dejó de reportar el dato de solo-app.</desc>
+      <g stroke="#2A2A30" stroke-width="1">
+        <line x1="96" y1="200" x2="662" y2="200"/>
+        <line x1="96" y1="155" x2="662" y2="155" stroke-dasharray="2 4"/>
+        <line x1="96" y1="110" x2="662" y2="110" stroke-dasharray="2 4"/>
+        <line x1="96" y1="65" x2="662" y2="65" stroke-dasharray="2 4"/>
+        <line x1="96" y1="20" x2="662" y2="20" stroke-dasharray="2 4"/>
+      </g>
+      <g font-family="DM Mono, monospace" font-size="10" fill="#71717A" text-anchor="end">
+        <text x="86" y="204">0%</text><text x="86" y="159">2.5%</text><text x="86" y="114">5%</text>
+        <text x="86" y="69">7.5%</text><text x="86" y="24">10%</text>
+      </g>
+      <g>
+        <rect x="128" y="47" width="52" height="153" rx="4" fill="#C4A24E"/>
+        <rect x="188" y="166" width="52" height="34" rx="4" fill="#2A2A30"/>
+        <text x="154" y="38" font-family="DM Mono, monospace" font-size="13" fill="#C4A24E" text-anchor="middle" font-weight="500">8.5%</text>
+        <text x="214" y="157" font-family="DM Mono, monospace" font-size="11" fill="#A1A1AA" text-anchor="middle">1.9%</text>
+        <text x="184" y="224" font-family="DM Mono, monospace" font-size="10" fill="#71717A" text-anchor="middle">FY2024</text>
+      </g>
+      <g>
+        <rect x="288" y="85" width="52" height="115" rx="4" fill="#C4A24E"/>
+        <rect x="348" y="168" width="52" height="32" rx="4" fill="#2A2A30"/>
+        <text x="314" y="76" font-family="DM Mono, monospace" font-size="13" fill="#C4A24E" text-anchor="middle" font-weight="500">6.4%</text>
+        <text x="374" y="159" font-family="DM Mono, monospace" font-size="11" fill="#A1A1AA" text-anchor="middle">1.8%</text>
+        <text x="344" y="224" font-family="DM Mono, monospace" font-size="10" fill="#71717A" text-anchor="middle">FY2025</text>
+      </g>
+      <g>
+        <rect x="448" y="60" width="52" height="140" rx="4" fill="none" stroke="#8A7236" stroke-width="1" stroke-dasharray="4 4"/>
+        <rect x="508" y="160" width="52" height="40" rx="4" fill="#2A2A30"/>
+        <text x="474" y="126" font-family="DM Mono, monospace" font-size="9" fill="#8A7236" text-anchor="middle">dejaron de</text>
+        <text x="474" y="138" font-family="DM Mono, monospace" font-size="9" fill="#8A7236" text-anchor="middle">reportarlo</text>
+        <text x="534" y="151" font-family="DM Mono, monospace" font-size="11" fill="#A1A1AA" text-anchor="middle">2.2%</text>
+        <text x="504" y="224" font-family="DM Mono, monospace" font-size="10" fill="#71717A" text-anchor="middle">FY2026</text>
+      </g>
+      <g font-family="DM Sans, sans-serif" font-size="11">
+        <rect x="128" y="242" width="10" height="10" rx="2" fill="#C4A24E"/>
+        <text x="145" y="251" fill="#A1A1AA">Suscriptores solo-app</text>
+        <rect x="300" y="242" width="10" height="10" rx="2" fill="#2A2A30"/>
+        <text x="317" y="251" fill="#A1A1AA">Suscriptores con hardware</text>
+      </g>
+    </svg>
+    <figcaption><b>El suscriptor solo-app rota entre 4 y 6 veces más rápido que quien compró la bici.</b> El rango reportado llegó a 9.0% en un trimestre. 6.4% mensual equivale a ~54% anual; 9.0%, a ~68%. La base de app cayó de 828 mil a 503 mil — <b>39% desde su pico</b>, trece trimestres consecutivos de caída. En su reporte FY2026 Peloton escribió: "a partir del año fiscal 2026, ya no reportamos el churn mensual promedio de suscripciones de app pagadas".</figcaption>
+  </figure>
+
+  <p>El contraste importa más que el número. El suscriptor con hardware no rota porque tiene $2,000 USD inmovilizados en la sala. <strong>El ancla de retención es el objeto, no el contenido.</strong> Para una app sin hardware, el candidato obvio a ocupar ese lugar es el <strong>historial de progresión</strong> — porque es lo que hace costoso irse.</p>
+
+  <p>Y fíjate en por qué cancelan, en sus propias palabras. No es "ya vi todo":</p>
+
+  <blockquote>
+    <p>Quitaron los filtros… Siento que el update creó un algoritmo y ahora estoy atorado y algo aburrido con lo que la app me "muestra". Es muy difícil variar.</p>
+    <cite>Review de 2 estrellas · Peloton · App Store</cite>
+  </blockquote>
+
+  <p>Aburrimiento causado por <strong>mala recuperación de contenido</strong>, en una app con decenas de miles de clases. Lo mismo en Centr, que tiene 180+ programas: <em>"Me estoy aburriendo. Todo está enfocado en Hyrox ahora… No hay programas nuevos a menos que entrenes para Hyrox."</em> <strong>El volumen de contenido no es el foso. La capacidad de encontrar lo tuyo, sí.</strong></p>
+</section>
+
+<hr class="rule">
+
+<section>
+  <div class="secnum"><span>06</span><h2>El catálogo más grande del mundo perdió 71% de sus suscriptores</h2></div>
+
+  <p class="lede">BODi es el experimento natural que esta decisión necesitaba. Y pivoteó hacia tu metodología.</p>
+
+  <figure>
+    <p class="figtitle">Suscriptores digitales · BODi / Beachbody</p>
+    <p class="figsub">Cierre de ejercicio fiscal · reportes 10-K ante la SEC</p>
+    <svg viewBox="0 0 680 250" role="img" aria-labelledby="t2 d2">
+      <title id="t2">Caída de suscriptores digitales de BODi de 2.6 millones en 2021 a 760 mil en 2026</title>
+      <desc id="d2">Los suscriptores caen año tras año: 2.6 millones en 2021, 2.0 en 2022, 1.3 en 2023, 1.1 en 2024, 0.9 en 2025 y 760 mil en el segundo trimestre de 2026. El lanzamiento de BODi Blocks en marzo de 2023 no detuvo la caída.</desc>
+      <defs><linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#C4A24E" stop-opacity=".26"/>
+        <stop offset="100%" stop-color="#C4A24E" stop-opacity="0"/>
+      </linearGradient></defs>
+      <g stroke="#2A2A30" stroke-width="1">
+        <line x1="58" y1="186" x2="662" y2="186"/>
+        <line x1="58" y1="135" x2="662" y2="135" stroke-dasharray="2 4"/>
+        <line x1="58" y1="84" x2="662" y2="84" stroke-dasharray="2 4"/>
+        <line x1="58" y1="33" x2="662" y2="33" stroke-dasharray="2 4"/>
+      </g>
+      <g font-family="DM Mono, monospace" font-size="10" fill="#71717A" text-anchor="end">
+        <text x="48" y="190">0</text><text x="48" y="139">1M</text>
+        <text x="48" y="88">2M</text><text x="48" y="37">3M</text>
+      </g>
+      <path d="M90,53 L198,84 L306,120 L414,130 L522,140 L630,147 L630,186 L90,186 Z" fill="url(#fade)"/>
+      <path d="M90,53 L198,84 L306,120 L414,130 L522,140 L630,147" fill="none" stroke="#C4A24E" stroke-width="2" stroke-linejoin="round"/>
+      <line x1="306" y1="22" x2="306" y2="186" stroke="#C0392B" stroke-width="1" stroke-dasharray="3 3"/>
+      <text x="314" y="30" font-family="DM Mono, monospace" font-size="9" fill="#C0392B">MAR 2023</text>
+      <text x="314" y="42" font-family="DM Mono, monospace" font-size="9" fill="#C0392B">lanzan BODi Blocks</text>
+      <g fill="#C4A24E" stroke="#0D0D0F" stroke-width="2">
+        <circle cx="90" cy="53" r="4.5"/><circle cx="198" cy="84" r="4.5"/><circle cx="306" cy="120" r="4.5"/>
+        <circle cx="414" cy="130" r="4.5"/><circle cx="522" cy="140" r="4.5"/><circle cx="630" cy="147" r="5.5"/>
+      </g>
+      <text x="90" y="42" font-family="DM Mono, monospace" font-size="12" fill="#C4A24E" text-anchor="middle" font-weight="500">2.6M</text>
+      <text x="630" y="136" font-family="DM Mono, monospace" font-size="12" fill="#C4A24E" text-anchor="end" font-weight="500">760K</text>
+      <g font-family="DM Mono, monospace" font-size="10" fill="#71717A" text-anchor="middle">
+        <text x="90" y="206">2021</text><text x="198" y="206">2022</text><text x="306" y="206">2023</text>
+        <text x="414" y="206">2024</text><text x="522" y="206">2025</text><text x="630" y="206">Q2 26</text>
+      </g>
+    </svg>
+    <figcaption><b>140 programas y más de 11,000 videos no detuvieron la caída.</b> Ingresos de $873M a $252M: −79%. Su retención mensual reportada era <b>96.9%</b> — excelente hasta que se eleva a la doceava potencia: 0.969<sup>12</sup> = 68.8% anual, o ~31% de churn al año. Nunca pudieron adquirir más rápido de lo que perdían.</figcaption>
+  </figure>
+
+  <p>Lo que hicieron para arreglarlo es lo que vuelve el caso directamente relevante. En marzo de 2023 lanzaron "BODi Blocks", descritos así en su propio 10-K:</p>
+
+  <blockquote>
+    <p>un "mesociclo" de cuatro semanas: tres semanas de ejercicio progresivo (cinco entrenamientos por semana), seguidas de una semana de recuperación funcional</p>
+    <cite>BODi · 10-K FY2022 · SEC</cite>
+  </blockquote>
+
+  <p>El propósito declarado: "que el cliente esté siempre retado pero no sobreentrenado". <strong>Pivotearon hacia donde tú ya estás.</strong></p>
+
+  <div class="box crit">
+    <span class="tag">Por qué no les funcionó</span>
+    <h3>Shipearon la estructura y conservaron la elección</h3>
+    <p>Los Blocks se <strong>eligen de un menú</strong>. El usuario sigue cargando la decisión de cuál empezar y cuándo. Después del lanzamiento los suscriptores siguieron cayendo: 1.3M → 760K.</p>
+    <p>La lección es específica: la periodización no es el diferenciador por sí sola. <strong>La periodización asignada lo es.</strong> Si construyes M1–M5 impecables y los pones en una pantalla de selección, reproduces el error de BODi con mejor metodología.</p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section>
+  <div class="secnum"><span>07</span><h2>Los dos polos se movieron al centro</h2></div>
+
+  <p class="lede">Esta es la evidencia más confiable del research, porque no son opiniones: es lo que estas empresas hicieron con su dinero de producto.</p>
+
+  <div class="tscroll">
+    <table>
+      <caption>Qué añadió cada polo, y en qué dirección</caption>
+      <thead><tr><th>App</th><th>De dónde viene</th><th>Qué añadió</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Boostcamp</strong></td>
+            <td>Catálogo puro<br><span class="sm">14,136 programas gratis</span></td>
+            <td class="hl">Un "Program Finder" de 5 preguntas en 30 segundos, un quiz de onboarding de ~30 pasos con paywall al final, y un generador</td></tr>
+        <tr><td><strong>Hevy</strong></td>
+            <td>Pizarra en blanco<br><span class="sm">17M usuarios · $2.99/mes</span></td>
+            <td class="hl">26 programas en Explore mostrando solo el top 3 por defecto, y "Hevy Trainer": 11 preguntas → programa autogenerado, solo para Pro</td></tr>
+        <tr><td><strong>RP Hypertrophy</strong></td>
+            <td>Prescriptivo caro<br><span class="sm">$34.99/mes, sin trial</span></td>
+            <td class="hl">Meso Builder, y recrear un mesociclo completo "en dos clics" para bajar la fricción de setup</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p><strong>El vector es idéntico en los tres, viniendo de direcciones opuestas: reducir la distancia entre registrarse y tener un plan activo.</strong> Ninguna app seria del segmento deja al usuario navegando el catálogo como experiencia principal recurrente.</p>
+
+  <ul class="clean">
+    <li><strong>Hevy no se vende como lo que añadió.</strong> Su descripción en el App Store —3,434 caracteres— no contiene ni una vez las palabras "Trainer", "program", "library" ni "Explore". Sigue vendiéndose como tracker. Y lo que cobra no es el catálogo, que es gratis: cobra <strong>guardar tus planes y automatizar la programación</strong>.</li>
+    <li><strong>StrongLifts, la app de fuerza para principiantes más conocida del mundo, ofrece 9 programas.</strong> No 11,000. Nueve, etiquetados por nivel, con pesos y progresión planeados por la app.</li>
+    <li><strong>TrainHeroic, el marketplace puro, terminó vendido a Garmin</strong> en julio de 2026. Una de sus reviews: "interfaz horrible, hace imposible buscar y comprar programas".</li>
+    <li><strong>Strong, la pizarra en blanco por doctrina</strong>, responde oficialmente a "¿qué entreno?" con: "recomendamos encontrar un entrenador o un amigo de confianza". Una de sus reviews: <em>"llevo más de una hora configurando una rutina en lugar de entrenar"</em>.</li>
+  </ul>
+
+  <p>Y el elogio de cinco estrellas más revelador del research está en Boostcamp — la app-catálogo — y describe una experiencia prescriptiva: <em>"le quita todo el adivinar al gym… solo le das start al día que sigue"</em>.</p>
+</section>
+
+<hr class="rule">
+
+<section>
+  <div class="secnum"><span>07b</span><h2>Los dos que cobran más caro no tienen catálogo</h2></div>
+
+  <p class="lede">Ladder y Future son los casos más instructivos del segmento premium, y van en contra de la intuición: son los más caros y los más restrictivos al mismo tiempo.</p>
+
+  <p><strong>Ladder</strong> es tu comparable más cercano — precio de $30–50 USD, ciclos de <strong>6 semanas</strong>, igual que tú. Y es <strong>prescriptivo puro, sin catálogo</strong>: todos los workouts de la semana vienen preprogramados, y la regla es explícita — "solo puedes estar en un track a la vez". Creció 3× en un año hasta 150,000 suscriptores pagos, levantó $117M, y tiene 5.0 estrellas con 204,000 calificaciones.</p>
+
+  <p>Lo valioso es <strong>exactamente qué sí permite</strong>, porque es el diseño del híbrido resuelto:</p>
+
+  <ul class="clean">
+    <li><strong>Mover días</strong> — reordenar la semana sin tocar el plan</li>
+    <li><strong>Sustituir un ejercicio</strong> dentro de la sesión (un usuario lo describe como "extremadamente fácil" cuando viaja)</li>
+    <li><strong>Cambiar de track o coach</strong> — y aquí está lo interesante: <strong>lo monetizan</strong>. Plan mensual, hasta 2 cambios al mes; plan anual, ilimitados.</li>
+  </ul>
+
+  <p>Ninguna de las tres te deja elegir el workout de hoy. Eso define el eje con precisión, y es la frase que mejor resume todo este documento:</p>
+
+  <div class="box gold">
+    <span class="tag">El eje, en una línea</span>
+    <p class="big" style="font-family:var(--display);font-weight:700;font-size:1.15rem;line-height:1.35;margin:0">Prescripción en el eje "¿qué entreno hoy?". Autonomía en el eje "¿cómo cabe esto en mi semana y en mi cuerpo?".</p>
+  </div>
+
+  <p><strong>Future</strong> está en el extremo: $129–399 USD al mes, cero autonomía de contenido — "los usuarios no pueden elegir sus propios workouts" — y sin biblioteca. Su onboarding es el más largo que apareció, y casi todo es sobre <em>preferencias de relación</em>, no de entrenamiento: género del coach, tipo de personalidad, nivel de intensidad. ¿Sargento o te lleva de la mano?</p>
+
+  <div class="box crit">
+    <span class="tag">El hallazgo que define cómo debe existir Coach Adonis</span>
+    <h3>Future tuvo la oportunidad de automatizar y la rechazó en público</h3>
+    <p>En febrero de 2026 Future lanzó un beta gratuito con entrenamiento generado por IA, junto a su producto de coach humano. En <strong>junio de 2026 mataron el producto de IA</strong> y le dijeron a su lista de espera que iban a "doblar la apuesta en lo que hacemos mejor: ayudar a la gente a progresar de verdad con el apoyo de coaches de clase mundial".</p>
+    <p>Una empresa con un incentivo de márgenes enorme para automatizar eligió no hacerlo. Y el dato externo lo respalda: el <strong>Les Mills 2026 Global Fitness Report</strong>, con más de 10,000 encuestados en cinco continentes, encontró que solo <strong>10% prefiere workouts generados por IA</strong> contra <strong>52% que prefiere un entrenador humano</strong>. Y la resistencia es <em>mayor</em> entre los jóvenes: 11% de los de 16–27 años aceptan IA, contra 13% de los mayores de 55.</p>
+  </div>
+
+  <p>La implicación para ti es concreta y la quiero decir sin rodeos: <strong>Coach Adonis no puede ser una abstracción de marca ni sonar a algoritmo.</strong> Necesita tu cara, tu voz y tu nombre. Ladder hace que <em>el coach que escribió el workout grabe personalmente los cues de audio de ese workout</em>. Eso es lo que convierte "un programa" en "el programa de alguien" — y es la diferencia entre $5 y $35 al mes.</p>
+
+  <p>Un dato de Ladder que vale para tu estrategia de mercado: <strong>80% de sus usuarios nunca habían usado una app de fitness, y 50% nunca lo habían intentado.</strong> No están robándole usuarios a Hevy. Están creando categoría — que es exactamente la posición de LIFTORY en LATAM, donde la penetración de gimnasios es de 3.2%.</p>
+</section>
+
+<!-- ═════════════ PARTE 3 ═════════════ -->
+<p class="part">Parte 3 · Qué retiene de verdad</p>
+
+<section>
+  <div class="secnum"><span>08</span><h2>Los primeros 28 días, y el nivel de quien entra</h2></div>
+
+  <p class="lede">El estudio más aplicable a LIFTORY que apareció: 389,481 usuarios de una app de fuerza, seguidos 12 meses desde su primer entrenamiento registrado.</p>
+
+  <figure>
+    <p class="figtitle">Adherencia a 12 meses por nivel de experiencia</p>
+    <p class="figsub">389,481 usuarios de app de fuerza · Frontiers in Sports and Active Living, 2026</p>
+    <svg viewBox="0 0 680 212" role="img" aria-labelledby="t3 d3">
+      <title id="t3">Adherencia a 12 meses: principiantes 10.1 por ciento, intermedios 18.3, avanzados 25.8</title>
+      <desc id="d3">Los usuarios avanzados retienen 2.6 veces más que los principiantes a los doce meses.</desc>
+      <g stroke="#2A2A30" stroke-width="1">
+        <line x1="112" y1="160" x2="662" y2="160"/>
+        <line x1="112" y1="112" x2="662" y2="112" stroke-dasharray="2 4"/>
+        <line x1="112" y1="64" x2="662" y2="64" stroke-dasharray="2 4"/>
+        <line x1="112" y1="16" x2="662" y2="16" stroke-dasharray="2 4"/>
+      </g>
+      <g font-family="DM Mono, monospace" font-size="10" fill="#71717A" text-anchor="end">
+        <text x="102" y="164">0%</text><text x="102" y="116">10%</text>
+        <text x="102" y="68">20%</text><text x="102" y="20">30%</text>
+      </g>
+      <!-- escala: 30% = 144px -->
+      <g>
+        <rect x="150" y="111" width="86" height="49" rx="4" fill="#8A7236"/>
+        <text x="193" y="102" font-family="DM Mono, monospace" font-size="14" fill="#A1A1AA" text-anchor="middle" font-weight="500">10.1%</text>
+        <text x="193" y="182" font-family="DM Sans, sans-serif" font-size="12" fill="#A1A1AA" text-anchor="middle">Principiante</text>
+        <text x="193" y="198" font-family="DM Mono, monospace" font-size="9" fill="#71717A" text-anchor="middle">&lt;1 año</text>
+      </g>
+      <g>
+        <rect x="344" y="72" width="86" height="88" rx="4" fill="#A98B42"/>
+        <text x="387" y="63" font-family="DM Mono, monospace" font-size="14" fill="#A1A1AA" text-anchor="middle" font-weight="500">18.3%</text>
+        <text x="387" y="182" font-family="DM Sans, sans-serif" font-size="12" fill="#A1A1AA" text-anchor="middle">Intermedio</text>
+        <text x="387" y="198" font-family="DM Mono, monospace" font-size="9" fill="#71717A" text-anchor="middle">1–4 años</text>
+      </g>
+      <g>
+        <rect x="538" y="36" width="86" height="124" rx="4" fill="#C4A24E"/>
+        <text x="581" y="27" font-family="DM Mono, monospace" font-size="14" fill="#C4A24E" text-anchor="middle" font-weight="500">25.8%</text>
+        <text x="581" y="182" font-family="DM Sans, sans-serif" font-size="12" fill="#FAFAFA" text-anchor="middle">Avanzado</text>
+        <text x="581" y="198" font-family="DM Mono, monospace" font-size="9" fill="#71717A" text-anchor="middle">4+ años</text>
+      </g>
+    </svg>
+    <figcaption><b>El avanzado retiene 2.6 veces más que el principiante.</b> La mediana de abandono del principiante es de 19 semanas. Pero el hallazgo accionable es otro: <b>el predictor más fuerte de adherencia fue la consistencia en los primeros 28 días</b> — cada desviación estándar más de días activos bajó el riesgo de abandono 27% en la semana 11. Ojo: es observacional, y la causalidad puede correr al revés — quien persiste se vuelve avanzado.</figcaption>
+  </figure>
+
+  <p>Lee eso junto con el dato de supervisión, que es el hallazgo más contraintuitivo del research: <strong>la supervisión no mejora la asistencia. Mejora la intensidad.</strong> En el estudio de Mazzetti, asistencia 100% en ambos grupos — supervisados y no — pero los supervisados usaron más carga y ganaron más fuerza (+33% vs +25% en squat). Gentil y Bottaro, con 124 novatos, encontraron lo mismo: más ganancia con supervisión, <strong>sin diferencia en asistencia</strong>.</p>
+
+  <p>Y el complemento: <strong>los novatos sin anclaje eligen cargas demasiado ligeras</strong> — entre 42% y 57% de su 1RM, por debajo del umbral para ganar fuerza. Pero no por no percibir el esfuerzo: un estudio de 2026 encontró que novatos y experimentados estiman su RIR con la misma precisión, y otro mostró que esa precisión es <strong>entrenable</strong> — el error baja hasta 2.3 reps entre la sesión 1 y la 6.</p>
+
+  <div class="box gold">
+    <span class="tag">La síntesis que importa</span>
+    <p>El principiante no necesita que le quites la decisión porque no sepa sentir el esfuerzo. <strong>Necesita un ancla de carga porque, suelto, se va ligero.</strong> Eso es exactamente lo que hace tu prescripción por RPE con un objetivo definido: le das el ancla y la banda donde puede moverse.</p>
+    <p>Y enseñarle a leer su RIR no es un extra: es construir competencia, que es la necesidad con mejor evidencia de todas.</p>
+  </div>
+
+  <p>Tres calibraciones de expectativa, para que no te vendan humo — ni yo:</p>
+
+  <ul class="clean">
+    <li><strong>La gamificación funciona mientras corre, y se desinfla cuando la quitas.</strong> Meta-análisis de 16 ensayos controlados, 2,407 participantes: el efecto sobre actividad física durante la intervención es <strong>g = 0.42</strong>; medido en seguimiento unas 14 semanas después de terminar, cae a <strong>g = 0.15</strong>. Pierde dos tercios. Sirve como estructura permanente, no como campaña.</li>
+    <li><strong>El techo de toda la literatura de intervenciones motivacionales es d ≈ 0.2</strong>, y dos ensayos bien poderados en ejercicio (347 y 502 participantes) no lograron mover la actividad física en absoluto. En uno ni siquiera se movió el apoyo a la autonomía que intentaban manipular. No apuestes el roadmap a framing motivacional.</li>
+    <li><strong>La duración del programa erosiona la adherencia más de lo que la supervisión la mejora:</strong> programas de 3 meses, 85.3% de adherencia; de 12 meses, 63%.</li>
+  </ul>
+
+  <p>Dicho eso, sí hay dos mecanismos con evidencia seria. Y uno de ellos tienes tres usuarios que ya se conocen entre sí, lo cual lo vuelve inmediato.</p>
+
+  <div class="box ok">
+    <span class="tag">Mecanismo 1 · la conexión social recíproca</span>
+    <p>El mejor estudio causal del tema: 791 millones de acciones, 6 millones de usuarios, 5 años, con diferencias-en-diferencias y controles emparejados. Crear una conexión social nueva aumentó la actividad en la app <strong>30%</strong>, la <strong>retención a un año 17%</strong> (28.0% contra 24.0% en absoluto), y la actividad física real <strong>7%</strong> — unos 400 pasos diarios.</p>
+    <p>El detalle que importa para el diseño: <strong>los lazos de amistad recíprocos fueron entre 117% y 224% más poderosos que los de seguidor unidireccional.</strong> Seguir a alguien no sirve; conocerse mutuamente sí. Honestidad: el efecto de engagement decae con el tiempo —duró unos 4 meses— y cada conexión adicional aporta menos que la anterior.</p>
+  </div>
+
+  <div class="box ok">
+    <span class="tag">Mecanismo 2 · la racha, bien hecha</span>
+    <p>Duolingo es el único caso con números auditados a largo plazo, y están en su 10-K. A diciembre de 2025: <strong>43 millones de usuarios activos diarios con racha de 7 días o más, y 15 millones con racha de 365 días o más.</strong> Eso es 82% de todos sus DAU con racha de una semana, y <strong>28% de sus DAU usando la app todos los días por más de un año</strong>.</p>
+    <p>Lo revelador es la trayectoria: en su S-1 de 2021 reportaron <strong>cerca de 1 millón</strong> con racha de 365+. Pasaron de 1M a 15M en cuatro años y medio. <strong>El mecanismo compuso en vez de decaer.</strong></p>
+    <p>Y el dato más accionable de todo el research: en junio de 2026 corrieron un evento de <strong>Streak Revival</strong> — completas tres lecciones y recuperas tu racha más larga histórica. <strong>15.4 millones de personas revivieron su racha, incluyendo casi 8 millones que no tenían ninguna racha activa.</strong> Una racha no es solo retención: es un mecanismo de <em>resurrección</em>. Y acabamos de ver que el 75% de los que se van, vuelven.</p>
+  </div>
+
+  <div class="box warn">
+    <span class="tag">Pero la racha tiene que perdonar</span>
+    <p>El paper original del famoso "66 días para formar un hábito" encontró en realidad un rango de <strong>18 a 254 días</strong> — y, más importante para ti, que <strong>"perder una oportunidad de ejecutar el comportamiento no afectó materialmente el proceso de formación del hábito"</strong>.</p>
+    <p>Una racha punitiva de todo-o-nada <strong>no está respaldada por la literatura de hábitos</strong>. Duolingo lo resolvió con "streak freeze", y duplicar los congeladores disponibles no hizo que la gente tomara más días libres. Si construyes la escalera de estatus, construye con ella el perdón — y tus días de descanso programados y la semana de deload deberían contar como entrenados, no romper nada.</p>
+  </div>
+</section>
+
+<!-- ═════════════ PARTE 4 ═════════════ -->
+<p class="part">Parte 4 · LIFTORY hoy</p>
+
+<section>
+  <div class="secnum"><span>09</span><h2>Dónde estás parado</h2></div>
+
+  <p class="lede">Medido sobre tu base de datos y tu código, no sobre impresiones.</p>
+
+  <div class="tscroll">
+    <table>
+      <caption>Estado real · 4 octubre 2026</caption>
+      <thead><tr><th>Dimensión</th><th>Estado</th><th class="n">Dato</th></tr></thead>
+      <tbody>
+        <tr><td>Modelo de descubrimiento</td><td>Prescriptivo puro. Onboarding pregunta género y nivel, y asigna programa fijo.</td><td class="n good">Alineado</td></tr>
+        <tr><td>Navegación</td><td>Home · Programa · Progreso · Perfil</td><td class="n">4 tabs</td></tr>
+        <tr><td>Mesociclos construidos</td><td>M1–M5, pero solo en BUILD HIM ELITE</td><td class="n">4 de 20</td></tr>
+        <tr><td>Catálogo de ejercicios</td><td>Construido, con buscador y filtros por músculo y nivel — <strong>enterrado en Perfil</strong>, fuera de la navegación</td><td class="n">459</td></tr>
+        <tr><td>Ejercicios con video</td><td>El cuello de botella si algún día abres catálogo</td><td class="n bad">28%</td></tr>
+        <tr><td>Ejercicios con coaching cue</td><td>Tu densidad de instrucción es alta</td><td class="n good">74%</td></tr>
+        <tr><td>Sets ya registrados</td><td>Tienes datos reales de ejecución, no estás a ciegas</td><td class="n">5,522</td></tr>
+        <tr><td>Cobertura de niveles</td><td>Solo 48 sustituciones registradas para 459 ejercicios</td><td class="n bad">19 bloqueantes</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ul class="clean">
+    <li><strong>Ya estás en el modelo correcto.</strong> No hay pivote que hacer. La decisión no es cambiar de modelo: es cerrar los huecos del que ya tienes.</li>
+    <li><strong>El catálogo enterrado está bien donde está.</strong> `Exercises.tsx` tiene buscador y filtros, y se llega desde Perfil. Esa jerarquía es exactamente la del mercado: biblioteca visible pero secundaria, nunca pantalla principal. No lo subas a la navegación.</li>
+    <li><strong>28% de video es el argumento definitivo contra abrir catálogo ahora.</strong> Un menú de 459 ejercicios donde 7 de cada 10 no tienen cómo mostrar la ejecución exhibe tu hueco, no tu método. Serían ~330 videos de trabajo antes de ser creíble.</li>
+  </ul>
+</section>
+
+<hr class="rule">
+
+<section>
+  <div class="secnum"><span>10</span><h2>El riesgo real: semana 7 y semana 31</h2></div>
+
+  <p class="lede">Si el modelo ya es correcto, tu problema de retención está en otro lado: en dos momentos específicos del calendario.</p>
+
+  <p>Con M1 a M5 tienes unas <strong>30 semanas de camino</strong>. Eso define dos puntos de fuga, y el primero es estructural de tu propia metodología.</p>
+
+  <div class="model">
+    <div class="layer primary">
+      <span class="lnum">SEM 7</span>
+      <div>
+        <h3>El final del primer mesociclo</h3>
+        <p>El usuario termina M1 sintiéndose logrado. Y eso es precisamente el peligro: el estudio de 115 millones de actividades encontró que <strong>los usuarios son más propensos a irse justo después de alcanzar su objetivo</strong>. El éxito es un evento de churn. Un producto de mesociclos de 6 semanas tiene una <strong>fecha de salida natural incorporada cada 6 semanas</strong> — es un riesgo de tu metodología, no del catálogo.</p>
+        <span class="why">Tu activo aquí: MesocycleClosingCard, getMesocycleStats y MesocycleShareAsset ya están escritos y sin terminar de cablear. RP invirtió producto específicamente en que recrear un meso tome dos clics.</span>
+      </div>
+    </div>
+    <div class="layer primary">
+      <span class="lnum">SEM 31</span>
+      <div>
+        <h3>El final del contenido</h3>
+        <p>Haz la cuenta: 5 mesociclos × 6 semanas = <strong>~30 semanas sin repetir nada</strong>. A 4–5 sesiones por semana, el usuario no ve un workout dos veces en <strong>siete meses</strong>. Eso es mejor de lo que probablemente creías — tu riesgo no está en el mes 2, está en el <strong>mes 7 a 9</strong>, cuando empieza la segunda vuelta. Y ahí no hay salida de producto: o hay M6, o hay una razón explícita para repetir M1 con más carga, o se va.</p>
+        <span class="why">Siete meses cae justo donde el churn de app-only de Peloton ya se comió a la mitad de la cohorte. Es decisión de contenido, no de UX, y define si LIFTORY es una app de un año o de varios.</span>
+      </div>
+    </div>
+  </div>
+
+  <p>Lo que el mercado usa contra esto <strong>no es más biblioteca</strong>. En las apps premium que revisé, el mecanismo durable es siempre uno de dos: un <strong>evento recurrente con fecha y cohorte</strong> — Sweat corre un reto de 6 semanas dos veces al año más mini-retos todo el año, gratis, con foro por cohorte — o un <strong>escalón de estatus</strong>, como Club Peloton, que va de Bronze a Legend por puntos: 2 por día entrenado, puntos por racha, 2 por semana de programa completado.</p>
+
+  <p>Tú ya tienes badges y detección de PRs en la base. Esa es la materia prima del segundo.</p>
+</section>
+
+<!-- ═════════════ PARTE 5 ═════════════ -->
+<p class="part">Parte 5 · El modelo</p>
+
+<section>
+  <div class="secnum"><span>11</span><h2>Qué construir</h2></div>
+
+  <p class="lede">Prescriptivo en el centro, con la autonomía puesta donde la evidencia dice que sirve. Es la forma a la que convergieron las 26 apps, calibrada con lo que la literatura sostiene.</p>
+
+  <div class="model">
+    <div class="layer primary">
+      <span class="lnum">CAPA 1</span>
+      <div>
+        <h3>La app asigna, y la pantalla principal es "hoy"</h3>
+        <p>Home sigue siendo la sesión de hoy, prescrita, sin elección. Esto es lo que sostiene $499 MXN y lo que ninguna de las cuatro grandes ofrece con carga registrada.</p>
+        <span class="why">Ya lo tienes. No tocar.</span>
+      </div>
+    </div>
+    <div class="layer primary">
+      <span class="lnum">CAPA 2</span>
+      <div>
+        <h3>Nombrar la banda de RPE como lo que es</h3>
+        <p>Tu prescripción por RPE en vez de peso fijo <strong>ya es</strong> la banda de auto-regulación que produjo 77% más asistencia en el único RCT con un efecto grande. Pero el usuario no lo sabe. Hazlo explícito: este es tu objetivo, este es el margen donde puedes ajustar, así se siente correcto.</p>
+        <span class="why">Y enseña a leer el RIR. La precisión es entrenable — baja hasta 2.3 reps de error entre la sesión 1 y la 6 — y aprender a leerlo es construir competencia, la necesidad con mejor evidencia en adherencia.</span>
+      </div>
+    </div>
+    <div class="layer primary">
+      <span class="lnum">CAPA 3</span>
+      <div>
+        <h3>Explicar el porqué en el momento de la fricción</h3>
+        <p>Freeletics documenta su propio modo de falla en su foro oficial. Un usuario se quejó de ejercicios "totalmente random, 4-5 días seguidos de squats", y canceló dentro de los 14 días. La respuesta de un moderador nombra el problema: <em>"mucha gente no conoce la lógica y se desmotiva antes de que el Coach se adapte"</em>.</p>
+        <span class="why">Aplicado a ti: W6 — deload, RIR 4-5, mitad del volumen — es el momento de máximo riesgo de cancelación del mesociclo. El usuario entrena ligero y cree que la app se rompió. Ahí necesita una pantalla que explique por qué el deload es lo que lo hace fuerte, no una nota de bloque.</span>
+      </div>
+    </div>
+    <div class="layer">
+      <span class="lnum">CAPA 4</span>
+      <div>
+        <h3>Las tres válvulas de Ladder, no un menú</h3>
+        <p>Copia el set exacto que usa el competidor más cercano a tu precio: <strong>mover días</strong> de la semana, <strong>sustituir un ejercicio</strong> (con sustitutos curados por Adonis, no una biblioteca abierta), y <strong>cambiar de mesociclo</strong> con un límite. Ninguna te deja elegir el workout de hoy.</p>
+        <span class="why">Ladder monetiza la tercera: 2 cambios de track al mes en el plan mensual, ilimitados en el anual. Es una palanca de upgrade al anual que además no requiere construir nada nuevo. Y el meta-análisis de Patall respalda la forma: el efecto más fuerte está en 2–4 elecciones pequeñas, no en decisiones sobre la actividad misma. Sweat agrega un truco útil: un workout tomado de otro programa cuenta para tus metas de la semana — eso evita la decisión binaria de "me cambio o me voy".</span>
+      </div>
+    </div>
+    <div class="layer">
+      <span class="lnum">CAPA 5</span>
+      <div>
+        <h3>Niveles dentro del mesociclo, no mesociclos por nivel</h3>
+        <p>No construyas tres programas paralelos. Construye un mesociclo con tres variantes de cada ejercicio.</p>
+        <span class="why">Precedente verificado: el programa "Unleashed" de Centr son 6 semanas con variantes Beginner/Intermediate/Advanced que difieren en relación trabajo:descanso, con la estructura cambiando cada 2 semanas en 3 fases. Y es lo que ya dice tu REGLA #1 de Coach Adonis: cada movimiento debe tener regresión y progresión obvias para que Beg/Int/Adv salgan naturales del mismo patrón.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="box gold">
+    <span class="tag">En la práctica</span>
+    <p>No hay pivote. Hay huecos que cerrar sobre el modelo que ya tienes — y el de los niveles se vuelve mucho más chico de lo que parecía: <strong>19 cadenas de progresión que definir, no 16 mesociclos que construir.</strong></p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section>
+  <div class="secnum"><span>12</span><h2>Por dónde entrarle</h2></div>
+
+  <p class="lede">Ordenado como la evidencia lo ordena, no como se siente más urgente. Las fases 1 y 2 te desatoran de lo que viniste a hacer hoy.</p>
+
+  <div class="phases">
+    <div class="phase">
+      <span class="pn">01</span>
+      <div>
+        <p class="when">Primero · desbloquea los niveles</p>
+        <h3>Las 19 cadenas de progresión</h3>
+        <p>Son los ejercicios avanzados que hoy no tienen ruta de escape: un principiante los ve, toca swap y no hay nada. M3 tiene 8 de 8 bloqueados; M5, 5 de 7.</p>
+        <ul>
+          <li>Dragon Flag, Pistol Squat, KB Pistol Squat, Muscle Up Burpee, Handstand Strict Press, Ice Cream Maker, Commando Pull-up, Anderson Back Squat, Devil Press, los complexes de KB y ocho más</li>
+          <li>Muchas ya tienen el ejercicio destino creado entre los 190 beginner y 181 intermediate del catálogo — falta el registro que los une</li>
+          <li>Resuelve los tres niveles sin construir un solo mesociclo nuevo</li>
+        </ul>
+      </div>
+    </div>
+    <div class="phase">
+      <span class="pn">02</span>
+      <div>
+        <p class="when">Antes de escalar a nadie más</p>
+        <h3>La deuda que encontré en la auditoría</h3>
+        <ul>
+          <li><strong>BUILD HIM FOUNDATION está calibrado al revés</strong> — un intermedio entrena más volumen y RPE plano en 8.0, mientras el avanzado tiene progresión 7.4→8.2 y sesiones más cortas entre semana. Clonar M2–M5 encima propaga el error.</li>
+          <li><strong>M5 no existe en el template</strong>, solo en ustedes tres. Un avanzado nuevo recibiría M1–M4 y se quedaría sin M5.</li>
+          <li><strong>M2 de ELITE tiene 36 fechas duplicadas</strong> (78 workouts en 42 días). Limpiarlo antes de usarlo como fuente.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="phase">
+      <span class="pn">03</span>
+      <div>
+        <p class="when">Lo que la evidencia pone por encima de todo</p>
+        <h3>Los primeros 28 días y la fricción de registrar</h3>
+        <ul>
+          <li><strong>Cuenta los taps entre terminar un set y tenerlo registrado.</strong> "Capturar datos toma demasiado tiempo" es la razón de abandono número uno con 44.5%, por encima de perder el interés. Es la variable mejor evidenciada de todo el documento y es puramente de ingeniería.</li>
+          <li>La consistencia del primer mes es el predictor más fuerte de adherencia a 12 meses en 389,481 usuarios. Nada más compite.</li>
+          <li><strong>El objetivo operativo: que complete 3 sesiones en sus primeros 14 días.</strong> Por debajo de eso, el churn se multiplica. Optimiza el onboarding para llegar a esa cifra, no para recolectar preferencias.</li>
+          <li>Instrumentarlo: ¿cuántos días activos tuvo cada usuario en su mes 1? Hoy no lo mides, y es el único número que la literatura señala con claridad.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="phase">
+      <span class="pn">04</span>
+      <div>
+        <p class="when">El parche a la semana 7</p>
+        <h3>Cablear la transición entre mesociclos</h3>
+        <ul>
+          <li>MesocycleClosingCard, getMesocycleStats y MesocycleShareAsset ya están escritos sin terminar de conectar</li>
+          <li>Más la pantalla que explica W6, el momento de máxima fricción del ciclo</li>
+        </ul>
+      </div>
+    </div>
+    <div class="phase">
+      <span class="pn">05</span>
+      <div>
+        <p class="when">El parche a la semana 31</p>
+        <h3>Un evento recurrente, y una puerta de regreso</h3>
+        <ul>
+          <li>Un reto con fecha de inicio y cohorte, al estilo del de Sweat, para que el calendario siempre tenga un siguiente</li>
+          <li>El escalón de estatus sobre los badges y PRs que ya detectas — <strong>perdonador</strong>: tus días de descanso y la semana de deload cuentan, no rompen nada</li>
+          <li><strong>Y una mecánica de resurrección.</strong> El 75% de los que se van vuelven, y Duolingo reactivó 8 millones de usuarios completamente inactivos ofreciéndoles recuperar su racha histórica. Para ti: "retomas donde te quedaste en M3, con tus PRs intactos" vale más que cualquier campaña de reconquista.</li>
+          <li>Entre ustedes tres ya existe el lazo recíproco que vale +17% de retención a un año. Eso es una feature por construir, no un dato de color.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="phase">
+      <span class="pn">06</span>
+      <div>
+        <p class="when">Deliberadamente al final</p>
+        <h3>Nada de menú a la carta</h3>
+        <ul>
+          <li>No subas la biblioteca a la navegación. Déjala en Perfil.</li>
+          <li>Si algún día lo abres, serán ~330 videos de trabajo primero — y hazlo para el usuario avanzado, que es a quien el catálogo sí ayuda</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ PARTE 6 ═════════════ -->
+<p class="part">Parte 6 · Lo incómodo</p>
+
+<section>
+  <div class="secnum"><span>13</span><h2>El precio, y la palanca que no estás usando</h2></div>
+
+  <p class="lede">No lo preguntaste, pero salió tan consistente en las tres investigaciones que sería deshonesto omitirlo.</p>
+
+  <div class="tscroll">
+    <table>
+      <caption>Dónde cae $499 MXN en el mercado mexicano</caption>
+      <thead><tr><th>Comparable</th><th class="n">MXN/mes</th><th>Qué incluye</th></tr></thead>
+      <tbody>
+        <tr><td>Apple Fitness+ México</td><td class="n">$149</td><td class="sm">Catálogo de clases, sin progresión de carga</td></tr>
+        <tr><td>Wellhub Basic</td><td class="n">$155</td><td class="sm">Acceso a gimnasios de nivel básico</td></tr>
+        <tr><td>Smart Fit · plan Fit</td><td class="n">$299</td><td class="sm">Gimnasio físico, contrato 12 meses</td></tr>
+        <tr><td>Wellhub Basic+</td><td class="n">$320</td><td class="sm">1,790 gimnasios físicos + 53 apps</td></tr>
+        <tr><td>Smart Fit · plan Smart</td><td class="n">$399</td><td class="sm">Gimnasio físico</td></tr>
+        <tr><td class="hl"><strong>LIFTORY propuesto</strong></td><td class="n hl"><strong>$499</strong></td><td class="sm hl">Programación prescrita + progresión</td></tr>
+        <tr><td>Wellhub Silver</td><td class="n">$550</td><td class="sm">Red amplia de gimnasios</td></tr>
+        <tr><td>Smart Fit · plan Black</td><td class="n">$599</td><td class="sm">Global + extras</td></tr>
+        <tr><td>Asesoría online con humano</td><td class="n">$800–1,600</td><td class="sm">Coach real, 3–8 sesiones</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Como app genérica, $499 es caro: <strong>3.3 veces Apple Fitness+ en México</strong>, y por encima de Wellhub Basic+ que incluye acceso físico a 1,790 gimnasios. Como sustituto de asesoría humana, es barato — entre 31% y 62% del costo. <strong>Hay un solo posicionamiento viable: más barato que un coach, más caro que cualquier app, porque es un coach.</strong></p>
+
+  <p>Y eso refuerza la recomendación en lugar de contradecirla: si vendes coaching, la experiencia tiene que <strong>sentirse como un coach asignándote el trabajo</strong>. Un catálogo navegable a precio de coach es incoherente — y la incoherencia percibida es justo el eje de las quejas en todo el research.</p>
+
+  <div class="box crit">
+    <span class="tag">El número que más debería preocuparte</span>
+    <p>El <strong>LTV mediano a 12 meses de un suscriptor mexicano es de $17.60 USD</strong>. Tu precio mensual es ~$25. Dicho de otro modo: la mediana del mercado mexicano no llega a pagar <em>un mes</em> de LIFTORY en todo un año.</p>
+    <p>En la categoría Health &amp; Fitness, el LTV realizado del año 1 por pagador es <strong>$35.64 USD</strong> — a tu precio, 1.4 meses. Para cobrar doce necesitas retención de decil superior, no de mediana. Y solo <strong>5–7% de las apps de fitness</strong> alcanzan $10,000 USD acumulados en sus primeros dos años.</p>
+  </div>
+
+  <div class="box gold">
+    <span class="tag">La palanca mejor documentada, y no la estás usando</span>
+    <h3>Vender anual</h3>
+    <p>Retención a 12 meses por tipo de plan: <strong>anual 44.1%, mensual 17.0%</strong>. Mensual de precio alto — tu caso exacto — <strong>12.2%</strong>. El plan anual retiene 2.6 veces más.</p>
+    <p>En Health &amp; Fitness, <strong>68% de los suscriptores adopta plan anual</strong>: el porcentaje más alto de todas las categorías de apps. Y presentar el anual anclado a su equivalente mensual subió los inicios de prueba <strong>30%</strong> en partes de LATAM.</p>
+    <p>Es una decisión de precio, no de producto. Ventaja tuya: siendo PWA no pagas 15–30% de comisión de tienda ni estás atado a los escalones de precio de Apple.</p>
+  </div>
+
+  <div class="box warn">
+    <span class="tag">La tensión honesta en ese consejo</span>
+    <p>Hay un contrapunto clásico que debes conocer. El estudio de DellaVigna y Malmendier en <em>American Economic Review</em> siguió a 7,752 miembros de gimnasios durante tres años. Encontró que quienes pagaban <strong>mes a mes resultaron 17% más propensos a seguir inscritos al año</strong> que quienes se comprometieron por doce meses. Y que los de cuota plana asistían 4.3 veces al mes, pagando más de $17 USD por visita real.</p>
+    <p>No se contradicen, miden cosas distintas: el anual retiene mejor la <strong>suscripción</strong>; el mensual parece retener mejor el <strong>comportamiento</strong>. Pagar no produce asistir. Si vendes anual, el riesgo es cobrar doce meses a alguien que dejó de entrenar en el tres — y eso no construye el negocio que quieres, aunque mejore la métrica.</p>
+  </div>
+
+  <div class="box warn">
+    <span class="tag">Y algo que no es glamoroso pero puede ser un tercio de tu churn</span>
+    <h3>El pago fallido</h3>
+    <p>Los benchmarks del sector sitúan el <strong>pago fallido entre 30% y 50% del churn total</strong> en apps de fitness. En México, con tarjetas locales, probablemente sea peor que ese rango. Es churn que no tiene nada que ver con tu producto: gente que quería seguir y cuya tarjeta rebotó.</p>
+    <p>Reintentos inteligentes, aviso previo de renovación y recuperación por correo son trabajo de un par de días. <em>Salvedad honesta: esta cifra viene de agregadores del sector, no de una fuente primaria auditada — trátala como orden de magnitud, no como dato exacto.</em></p>
+  </div>
+
+  <p>Un dato de contexto que juega a favor: la penetración de gimnasios en México es de <strong>3.2%</strong> de la población, contra 18.5% en Estados Unidos. Y LATAM tiene el mayor crecimiento mediano de ingreso recurrente del mundo: 17.2%. Ladder encontró que <strong>80% de sus usuarios nunca habían usado una app de fitness</strong> — ese es el tamaño del mercado que no está peleado.</p>
+</section>
+
+<hr class="rule">
+
+<section>
+  <div class="secnum"><span>14</span><h2>Qué no pude verificar</h2></div>
+
+  <p class="lede">Para que sepas dónde el piso es firme y dónde no.</p>
+
+  <ul class="clean">
+    <li><strong>No existe ningún estudio que compare retención de apps prescriptivas contra catálogo abierto.</strong> Quiero ser explícito: nadie ha corrido ese experimento. La divergencia de precio ($0 contra $35) es el único proxy que encontré, y es inferencia. Si alguien te da una respuesta categórica citando evidencia directa, está inventando.</li>
+    <li><strong>Reddit quedó inaccesible</strong> en las cuatro investigaciones — el dominio está bloqueado. Cero citas de r/weightroom, r/fitness o r/naturalbodybuilding. Era la fuente más rica de crítica honesta y es el hueco más grande.</li>
+    <li><strong>La literatura de autodeterminación en ejercicio es mayoritariamente correlacional</strong> — 42 de 66 estudios son transversales, y el propio Teixeira lo admite. No puede sostener "dale autonomía y retendrás más", ni lo contrario.</li>
+    <li><strong>Tonal, Whoop, Centr y NTC no publican churn.</strong> El de Peloton es el único número duro de la categoría — y ya viste que dejaron de reportarlo.</li>
+    <li><strong>Las métricas D1/D7/D30 de fitness que circulan no son confiables:</strong> toda fuente revisada rastrea a contenido SEO sin dato primario, con rangos de 3× entre ellas. No las usé y te recomiendo no citarlas.</li>
+    <li>Las cifras muy repetidas de Netflix ("80% del consumo viene de recomendaciones") y de Strava no se pudieron confirmar en fuente primaria. No construyas sobre ellas.</li>
+  </ul>
+
+  <div class="box warn">
+    <span class="tag">Y la advertencia más importante</span>
+    <p>Con 3 usuarios reales, ninguna de estas medianas te aplica todavía, y <strong>la decisión catálogo-vs-prescriptivo no es tu variable de mayor apalancamiento</strong>. Si estás eligiendo entre A, B y C para maximizar retención a años, estás optimizando algo que la evidencia sugiere secundario frente a la estructura de precio y plan, y frente a lo que pasa en las primeras cuatro semanas.</p>
+    <p>La buena noticia es que la respuesta a tu pregunta es "sigue como vas". Eso libera el tiempo para lo que sí mueve la aguja.</p>
+  </div>
+
+  <p class="sm" style="max-width:68ch">Lo que sí es firme: todos los números de BODi y Peloton vienen de reportes ante la SEC que se leyeron directo. Los precios se verificaron en App Store y sitios oficiales en octubre de 2026. Los estudios científicos están citados con DOI. El diagnóstico de LIFTORY se midió sobre tu base de datos y tu código.</p>
+</section>
+
+<hr class="rule">
+
+<section>
+  <div class="secnum"><span>—</span><h2>Fuentes</h2></div>
+  <p class="srcs">
+    <b>Reportes a la SEC</b><br>
+    BODi / Beachbody 10-K FY2022, FY2023, FY2024, FY2025 · CIK 0001826889<br>
+    Peloton cartas a accionistas Q4 FY2024, Q1/Q3/Q4 FY2025, comunicado Q4 FY2026, 10-Q · CIK 0001639825<br><br>
+
+    <b>Evidencia científica</b><br>
+    Reeve, Nix &amp; Hamm (2003), <em>J Educ Psychol</em> — elección percibida ≠ autodeterminación · <a href="https://doi.org/10.1037/0022-0663.95.2.375">10.1037/0022-0663.95.2.375</a><br>
+    Teixeira, Carraça, Markland, Silva &amp; Ryan (2012), <em>IJBNPA</em> — 66 estudios, SDT y ejercicio · <a href="https://doi.org/10.1186/1479-5868-9-78">10.1186/1479-5868-9-78</a><br>
+    Teixeira et al. (2024), <em>IJBNPA</em> — banda de auto-regulación, +77% asistencia · <a href="https://doi.org/10.1186/s12966-024-01636-0">10.1186/s12966-024-01636-0</a><br>
+    Conti, Marzagão, Galpin &amp; Schoenfeld (2026), <em>Front Sports Act Living</em> — 389,481 usuarios · <a href="https://doi.org/10.3389/fspor.2026.1855668">10.3389/fspor.2026.1855668</a><br>
+    Lim et al. (2024), <em>JMIR</em> — 18 estudios, 525,824 participantes, abandono · <a href="https://doi.org/10.2196/56897">10.2196/56897</a><br>
+    Krebs &amp; Duncan (2015), <em>JMIR mHealth</em> — razones de abandono rankeadas, n=1,604 · <a href="https://mhealth.jmir.org/2015/4/e101">mhealth.jmir.org</a><br>
+    Lin, Althoff &amp; Leskovec (2018), <em>WWW</em> — "I'll Be Back", 75% regresa; el éxito como churn · <a href="https://doi.org/10.1145/3178876.3186062">10.1145/3178876.3186062</a><br>
+    Althoff, Jindal &amp; Leskovec (2017), <em>WSDM</em> — conexión social, +17% retención a 1 año · <a href="https://arxiv.org/abs/1612.03053">arXiv:1612.03053</a><br>
+    Mazéas, Duclos, Pereira &amp; Chalabaev (2022), <em>JMIR</em> — gamificación, g=0.42 → 0.15 · <a href="https://www.jmir.org/2022/1/e26779/">jmir.org</a><br>
+    Lally, van Jaarsveld, Potts &amp; Wardle (2010), <em>Eur J Soc Psychol</em> — hábitos, 18–254 días · <a href="https://doi.org/10.1002/ejsp.674">10.1002/ejsp.674</a><br>
+    DellaVigna &amp; Malmendier (2006), <em>Am Econ Review</em> — "Paying Not to Go to the Gym", n=7,752 · <a href="https://www.aeaweb.org/articles/pdf/doi/10.1257/aer.96.3.694">aeaweb.org</a><br>
+    Scheibehenne, Greifeneder &amp; Todd (2010), <em>JCR</em> — meta-análisis de sobrecarga de elección · <a href="https://www.scheibehenne.de/ScheibehenneGreifenederTodd2010.pdf">PDF</a><br>
+    McKay et al. (2022), <em>Meta-Psychology</em> — práctica autocontrolada, corrección de sesgo · <a href="https://doi.org/10.15626/MP.2021.2803">10.15626/MP.2021.2803</a><br>
+    Patall, Cooper &amp; Robinson (2008), <em>Psych Bulletin</em> — 41 estudios sobre elección · <a href="https://doi.org/10.1037/0033-2909.134.2.270">10.1037/0033-2909.134.2.270</a><br>
+    Hickmott et al. (2022), <em>Sports Med Open</em> — autorregulación vs porcentaje · <a href="https://doi.org/10.1186/s40798-021-00404-9">10.1186/s40798-021-00404-9</a><br>
+    Gentil &amp; Bottaro (2010), <em>JSCR</em> — supervisión en 124 novatos · <a href="https://doi.org/10.1519/JSC.0b013e3181ad3373">10.1519/JSC.0b013e3181ad3373</a><br>
+    Glass &amp; Stanton (2004), <em>JSCR</em> — novatos autoseleccionan 42–57% 1RM · <a href="https://doi.org/10.1519/R-12482.1">10.1519/R-12482.1</a><br>
+    Droguett et al. (2026), <em>J Human Kinetics</em> — precisión de RIR por experiencia · <a href="https://doi.org/10.5114/jhk/205218">10.5114/jhk/205218</a><br>
+    Sheeran et al. (2020), <em>J Consult Clin Psychol</em> — meta-análisis de RCTs, d = 0.23 · <a href="https://doi.org/10.1037/ccp0000501">10.1037/ccp0000501</a><br><br>
+
+    <b>Mercado y suscripción</b><br>
+    RevenueCat, <em>State of Subscription Apps</em> 2024 / 2025 / 2026 · <a href="https://www.revenuecat.com/state-of-subscription-apps">revenuecat.com</a><br>
+    Adapty, <em>State of In-App Subscriptions</em> 2026 · <a href="https://adapty.io/blog/fastest-growing-app-markets-2026/">adapty.io</a><br>
+    Precios México: Apple Fitness+, Wellhub, Smart Fit, Cronoshare · penetración de gimnasios IHRSA<br><br>
+
+    <b>Producto</b><br>
+    Ladder (joinladder.com, App Store, Garage Gym Reviews, BusinessWire) · Future (garagegymreviews, Athletech sobre el cierre de su producto de IA) · Les Mills 2026 Global Fitness Report, n&gt;10,000 · Centr help center y programa "Unleashed" · Sweat support · Freeletics foro oficial · Hevy help center · Boostcamp (programs, intermediates) · RP Hypertrophy · JuggernautAI · Club Peloton · Peloton IQ y Strength+ · Apple Fitness+ support · Nike NTC · StrongLifts · TrainHeroic · Strong help center · StrongFirst y Barbell Medicine sobre program hopping · reviews leídas directo de App Store RSS y Trustpilot
+  </p>
+</section>
+
+<footer>
+  LIFTORY · Documento de dirección de producto · 4 octubre 2026<br>
+  26 apps revisadas · 4 investigaciones paralelas · diagnóstico medido sobre Supabase y repo al 2026-10-04<br>
+  Preparado por Coach Adonis para Andoni Díaz
+</footer>
+
+</div>
+</body>
+</html>

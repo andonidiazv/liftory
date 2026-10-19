@@ -4,6 +4,7 @@ import ExerciseThumbnail from "./ExerciseThumbnail";
 import type { WorkoutSetData, ExerciseGroup } from "@/hooks/useWorkoutData";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
+import SwapButton from "./SwapButton";
 
 interface IntervalTimerBlockProps {
   group: ExerciseGroup;
@@ -11,6 +12,9 @@ interface IntervalTimerBlockProps {
   onCompleteSet: (set: WorkoutSetData) => Promise<void>;
   onUncompleteSet: (setId: string) => Promise<void>;
   onOpenVideo: (v: { name: string; videoUrl: string | null; coachingCue: string | null }) => void;
+  workoutId?: string;
+  userId?: string;
+  onSwapExercise?: () => void;
 }
 
 type Phase = "idle" | "work" | "rest" | "done";
@@ -21,6 +25,9 @@ export default function IntervalTimerBlock({
   onCompleteSet,
   onUncompleteSet,
   onOpenVideo,
+  workoutId,
+  userId,
+  onSwapExercise,
 }: IntervalTimerBlockProps) {
   const { isDark } = useDarkMode();
   const t = isDark ? noche : dia;
@@ -286,7 +293,18 @@ export default function IntervalTimerBlock({
           />
         </button>
         <div className="flex-1 min-w-0">
-          <p className="font-body text-[15px] font-semibold text-foreground">{ex.name}</p>
+          <div className="flex items-start gap-1.5">
+            <p className="font-body text-[15px] font-semibold text-foreground flex-1 min-w-0">{ex.name}</p>
+            <SwapButton
+              exerciseId={ex.id}
+              exerciseName={ex.name}
+              blockLabel={sets[0]?.block_label || ""}
+              workoutId={workoutId}
+              userId={userId}
+              onSwapComplete={onSwapExercise}
+              size={20}
+            />
+          </div>
           <span className="font-mono text-[10px] text-muted-foreground">
             {totalRounds} x {workSeconds}s
             {restSeconds > 0 ? ` / ${restSeconds}s descanso` : ""}

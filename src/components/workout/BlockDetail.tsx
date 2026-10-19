@@ -5,6 +5,7 @@ import { useDarkMode } from "@/hooks/useDarkMode";
 import { dia, noche } from "@/lib/colors";
 import ExerciseThumbnail from "./ExerciseThumbnail";
 import SwapBottomSheet from "./SwapBottomSheet";
+import SwapButton from "./SwapButton";
 import WeightPickerSheet, { BODYWEIGHT_SENTINEL } from "./WeightPickerSheet";
 import RepsPickerSheet from "./RepsPickerSheet";
 import ExpandableNote from "./ExpandableNote";
@@ -18,6 +19,7 @@ import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import IntervalTimerBlock from "./IntervalTimerBlock";
 import EmomTimerBlock from "./EmomTimerBlock";
+import TabataTimerBlock from "./TabataTimerBlock";
 import { TimerErrorBoundary } from "./TimerErrorBoundary";
 import { playSetClick, playBeep } from "@/lib/audio";
 import { useWakeLock } from "@/hooks/useWakeLock";
@@ -32,7 +34,7 @@ const MOBILITY_BLOCKS = ['PRIME BLOCK', 'RESET & BREATHE', 'SPINE & HIPS', 'DYNA
 // wrong for a single timed cardio set.
 const COOLDOWN_BLOCKS = ['RECOVERY BLOCK', 'OPCIONAL · Z2'];
 
-type BlockMode = 'strength' | 'mobility' | 'cooldown' | 'cardio' | 'emom';
+type BlockMode = 'strength' | 'mobility' | 'cooldown' | 'cardio' | 'emom' | 'tabata';
 
 /**
  * Strip the sub-block suffix ("PRIME BLOCK — A" → "PRIME BLOCK") so block-mode
@@ -53,10 +55,14 @@ function getBlockMode(block: WorkoutBlock): BlockMode {
   // Check if EMOM — render as instruction block
   if (block.groups.some(g => g.sets.some(s => s.set_type === 'emom'))) return 'emom';
   if (CARDIO_BLOCKS.includes(base)) return 'cardio';
-  // Tabata-style intervals (set_type='interval' with work + rest durations)
-  // render as cardio → IntervalTimerBlock per group, regardless of block name.
-  // This enables Tabata in METCON BLOCK or FINISHER BLOCK without affecting M1.
-  if (block.groups.some(g => g.sets.some(s => s.set_type === 'interval'))) return 'cardio';
+  // Tabata-style intervals (set_type='interval' with work + rest durations).
+  // Single-exercise interval blocks (Sprint, Z2 walk) render as cardio →
+  // IntervalTimerBlock per group. Multi-exercise interval blocks (Tabata
+  // alternating between 2+ exercises) render as tabata → single TabataTimerBlock
+  // that runs one timer alternating through all groups' sets in set_order.
+  const hasInterval = block.groups.some(g => g.sets.some(s => s.set_type === 'interval'));
+  if (hasInterval && block.groups.length >= 2) return 'tabata';
+  if (hasInterval) return 'cardio';
   if (COOLDOWN_BLOCKS.includes(base)) return 'cooldown';
 
   // ATHLETIC INTEGRATION: dual-purpose block.
@@ -535,6 +541,12 @@ export default function BlockDetail({
               {blockMode === 'cooldown' && <>{block.groups.length} estiramientos</>}
               {blockMode === 'cardio' && <>Cardio</>}
               {blockMode === 'emom' && <>EMOM</>}
+              {blockMode === 'tabata' && (() => {
+                const s = block.groups[0]?.sets[0];
+                const w = s?.planned_duration_seconds ?? 20;
+                const r = s?.planned_rest_seconds ?? 10;
+                return <>TABATA · {block.totalSets} rondas · {w}s / {r}s</>;
+              })()}
             </p>
           </div>
           <div className="shrink-0" style={{ width: 36 }} />
@@ -576,7 +588,35 @@ export default function BlockDetail({
             }}
             getSuggestedWeight={getSuggestedWeight}
             onOpenVideo={(v) => setVideoOverlay(v)}
+            workoutId={workoutId}
+            userId={user?.id}
+            onSwapExercise={onSwapExercise}
           />
+          </TimerErrorBoundary>
+        ) : blockMode === 'tabata' ? (
+          <TimerErrorBoundary blockName="TABATA">
+            <TabataTimerBlock
+              groups={block.groups}
+              weightUnit={weightUnit}
+              isCompleted={isCompleted}
+              onCompleteSet={async (set) => {
+                setOptimisticCompleted((prev) => new Set(prev).add(set.id));
+                // Preserve any weight the user just typed for this set's exercise
+                const existingWeight = set.actual_weight ?? 0;
+                await onCompleteSet(set, { actual_weight: existingWeight, actual_reps: 1 });
+              }}
+              onUncompleteSet={async (setId) => {
+                setOptimisticCompleted((prev) => { const n = new Set(prev); n.delete(setId); return n; });
+                await onUncompleteSet(setId);
+              }}
+              onUpdateSetWeight={async (setId, weightKg) => {
+                await onUpdateSetField(setId, "actual_weight", weightKg);
+              }}
+              onOpenVideo={(v) => setVideoOverlay(v)}
+              workoutId={workoutId}
+              userId={user?.id}
+              onSwapExercise={onSwapExercise}
+            />
           </TimerErrorBoundary>
         ) : blockMode === 'cardio' ? (
           <div className="flex flex-col gap-4">
@@ -598,6 +638,9 @@ export default function BlockDetail({
                       await onUncompleteSet(setId);
                     }}
                     onOpenVideo={(v) => setVideoOverlay(v)}
+                    workoutId={workoutId}
+                    userId={user?.id}
+                    onSwapExercise={onSwapExercise}
                   />
                   </TimerErrorBoundary>
                 );
@@ -650,6 +693,9 @@ export default function BlockDetail({
               }
             }}
             onOpenVideo={(v) => setVideoOverlay(v)}
+            workoutId={workoutId}
+            userId={user?.id}
+            onSwapExercise={onSwapExercise}
           />
         ) : blockMode === 'cooldown' ? (
           <div className="flex flex-col gap-2">
@@ -673,6 +719,9 @@ export default function BlockDetail({
                   }
                 }}
                 onOpenVideo={(v) => setVideoOverlay(v)}
+                workoutId={workoutId}
+                userId={user?.id}
+                onSwapExercise={onSwapExercise}
               />
             ))}
           </div>
@@ -850,6 +899,17 @@ function SupersetContent({
   exerciseDeltas?: Record<string, ExerciseDelta>;
 }) {
   const label = block.supersetGroup?.label || "SUPERSET";
+  const isMegaset = block.supersetGroup?.type === "megaset";
+  // The cluster groups (megaset/triset/superset) come from supersetGroup.groups.
+  // Any block.groups outside the cluster are "afterset" exercises rendered below
+  // with a divider — e.g. the Elevated Pike Push-up finisher after a KB megaserie.
+  const clusterGroups = block.supersetGroup?.groups ?? block.groups;
+  const clusterIds = new Set(clusterGroups.map(g => g.exercise.id));
+  const afterGroups = block.groups.filter(g => !clusterIds.has(g.exercise.id));
+  // For megasets, promote the first exercise's cue to a permanent header block
+  // instead of hiding it behind a collapsed pill.
+  const megasetExplanation = isMegaset ? clusterGroups[0]?.sets[0]?.coaching_cue_override ?? null : null;
+
   return (
     <div className="flex gap-4">
       <div className="flex flex-col items-center pt-8 pb-4">
@@ -874,7 +934,30 @@ function SupersetContent({
         >
           {label}
         </span>
-        {block.groups.map((group, gi) => (
+        {megasetExplanation && (
+          <div
+            className="mb-4 rounded-md"
+            style={{
+              padding: "10px 12px",
+              background: "rgba(196,162,78,0.06)",
+              border: "1px solid rgba(196,162,78,0.20)",
+            }}
+          >
+            <p
+              className="font-body italic"
+              style={{
+                fontSize: 12,
+                fontWeight: 300,
+                color: "hsl(var(--foreground))",
+                lineHeight: 1.55,
+                margin: 0,
+              }}
+            >
+              {megasetExplanation}
+            </p>
+          </div>
+        )}
+        {clusterGroups.map((group, gi) => (
           <ExerciseCard
             key={group.exercise.id}
             group={group}
@@ -882,7 +965,7 @@ function SupersetContent({
             saving={saving}
             getInputs={getInputs}
             updateInput={updateInput}
-            onToggle={(set) => handleToggle(set, gi, gi === block.groups.length - 1)}
+            onToggle={(set) => handleToggle(set, gi, gi === clusterGroups.length - 1 && afterGroups.length === 0)}
             updateCompletedWeight={updateCompletedWeight}
             updateCompletedReps={updateCompletedReps}
             getSuggestedWeight={getSuggestedWeight}
@@ -897,8 +980,67 @@ function SupersetContent({
             onToggleUnit={onToggleUnit}
             delta={exerciseDeltas?.[group.exercise.id]}
             hideRest
+            // Cue for the first megaset exercise is already shown as permanent
+            // header above — hide the individual toggle to avoid duplication.
+            hideCue={isMegaset && gi === 0}
           />
         ))}
+        {afterGroups.length > 0 && (
+          <>
+            <div
+              className="my-4 flex items-center gap-2"
+              style={{ color: "rgba(196,162,78,0.55)" }}
+            >
+              <div
+                className="flex-1"
+                style={{ height: 1, background: "rgba(196,162,78,0.25)" }}
+              />
+              <span
+                className="font-mono uppercase"
+                style={{
+                  fontSize: 8.5,
+                  letterSpacing: "2px",
+                  color: "#C4A24E",
+                  fontWeight: 600,
+                }}
+              >
+                AFTER EVERY ROUND
+              </span>
+              <div
+                className="flex-1"
+                style={{ height: 1, background: "rgba(196,162,78,0.25)" }}
+              />
+            </div>
+            {afterGroups.map((group, ai) => {
+              const gi = clusterGroups.length + ai;
+              return (
+                <ExerciseCard
+                  key={group.exercise.id}
+                  group={group}
+                  weightUnit={weightUnit}
+                  saving={saving}
+                  getInputs={getInputs}
+                  updateInput={updateInput}
+                  onToggle={(set) => handleToggle(set, gi, ai === afterGroups.length - 1)}
+                  updateCompletedWeight={updateCompletedWeight}
+                  updateCompletedReps={updateCompletedReps}
+                  getSuggestedWeight={getSuggestedWeight}
+                  prFlash={prFlash}
+                  justCompleted={justCompleted}
+                  isCompleted={isCompleted}
+                  onOpenVideo={onOpenVideo}
+                  workoutId={workoutId}
+                  userId={userId}
+                  onSwapExercise={onSwapExercise}
+                  localUnit={localUnit}
+                  onToggleUnit={onToggleUnit}
+                  delta={exerciseDeltas?.[group.exercise.id]}
+                  hideRest
+                />
+              );
+            })}
+          </>
+        )}
       </div>
     </div>
   );
@@ -912,8 +1054,8 @@ function SupersetContent({
  * the pill expands the italic note and rotates the chevron. Same pattern
  * as Notas del coach in the workout overview.
  */
-function ExerciseCueToggle({ cue }: { cue: string }) {
-  const [open, setOpen] = useState(false);
+function ExerciseCueToggle({ cue, defaultOpen = false }: { cue: string; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="mt-3">
       <button
@@ -965,7 +1107,7 @@ function ExerciseCueToggle({ cue }: { cue: string }) {
 function ExerciseCard({
   group, weightUnit, saving, getInputs, updateInput, onToggle,
   updateCompletedWeight, updateCompletedReps, getSuggestedWeight, prFlash, justCompleted, isCompleted, onOpenVideo,
-  workoutId, userId, onSwapExercise, localUnit, onToggleUnit, hideRest = false, delta,
+  workoutId, userId, onSwapExercise, localUnit, onToggleUnit, hideRest = false, delta, hideCue = false,
 }: {
   group: ExerciseGroup; weightUnit: string; saving: boolean;
   getInputs: (s: WorkoutSetData) => SetInputs;
@@ -984,6 +1126,7 @@ function ExerciseCard({
   onToggleUnit: () => void;
   hideRest?: boolean;
   delta?: ExerciseDelta;
+  hideCue?: boolean;
 }) {
   const { isDark } = useDarkMode();
   const tc = isDark ? noche : dia;
@@ -1033,19 +1176,10 @@ function ExerciseCard({
     if (!workoutId || !userId) return;
 
     const check = async () => {
-      // 1. Check if the CURRENT exercise has subs directly
-      const { count: directCount } = await supabase
-        .from("exercise_substitutions")
-        .select("id", { count: "exact", head: true })
-        .eq("exercise_id", ex.id);
-
-      if ((directCount ?? 0) > 0) {
-        setHasSubs(true);
-        setOriginalExerciseId(null); // current IS the original
-        return;
-      }
-
-      // 2. Check if this exercise is a REPLACEMENT (user already swapped)
+      // A swap record must win over direct subs. If the athlete already swapped
+      // down and the replacement happens to carry its own regressions, checking
+      // direct subs first would strand them on the easier exercise with no way
+      // back up to the original.
       const { data: swapRecord } = await supabase
         .from("workout_exercise_swaps")
         .select("original_exercise_id")
@@ -1056,20 +1190,17 @@ function ExerciseCard({
         .maybeSingle();
 
       if (swapRecord) {
-        // The original has subs — verify
-        const { count: origCount } = await supabase
-          .from("exercise_substitutions")
-          .select("id", { count: "exact", head: true })
-          .eq("exercise_id", swapRecord.original_exercise_id);
-
-        if ((origCount ?? 0) > 0) {
-          setHasSubs(true);
-          setOriginalExerciseId(swapRecord.original_exercise_id);
-          return;
-        }
+        setHasSubs(true);
+        setOriginalExerciseId(swapRecord.original_exercise_id);
+        return;
       }
 
-      setHasSubs(false);
+      const { count: directCount } = await supabase
+        .from("exercise_substitutions")
+        .select("id", { count: "exact", head: true })
+        .eq("exercise_id", ex.id);
+
+      setHasSubs((directCount ?? 0) > 0);
       setOriginalExerciseId(null);
     };
 
@@ -1158,7 +1289,7 @@ function ExerciseCard({
         />
       )}
 
-      {cueOverride && <ExerciseCueToggle cue={cueOverride} />}
+      {cueOverride && !hideCue && <ExerciseCueToggle cue={cueOverride} />}
 
       {/* Weight Picker */}
       <WeightPickerSheet
@@ -1375,8 +1506,11 @@ function ExerciseCard({
 
 /* ═══════ MOBILITY CONTENT with sub-groups ═══════ */
 function MobilityContent({
-  block, saving, isCompleted, onToggle, onOpenVideo,
+  block, saving, isCompleted, onToggle, onOpenVideo, workoutId, userId, onSwapExercise,
 }: {
+  workoutId?: string;
+  userId?: string;
+  onSwapExercise?: () => void;
   block: WorkoutBlock; saving: boolean;
   isCompleted: (s: WorkoutSetData) => boolean;
   onToggle: (s: WorkoutSetData) => void;
@@ -1463,19 +1597,30 @@ function MobilityContent({
 
             {/* Name + meta + optional verbose cue */}
             <div className="flex-1 min-w-0">
-              <p
-                className="font-display"
-                style={{
-                  fontSize: 15,
-                  fontWeight: 600,
-                  letterSpacing: "-0.01em",
-                  color: "hsl(var(--foreground))",
-                  lineHeight: 1.2,
-                  wordBreak: "break-word",
-                }}
-              >
-                {ex.name}
-              </p>
+              <div className="flex items-start gap-1.5">
+                <p
+                  className="font-display flex-1 min-w-0"
+                  style={{
+                    fontSize: 15,
+                    fontWeight: 600,
+                    letterSpacing: "-0.01em",
+                    color: "hsl(var(--foreground))",
+                    lineHeight: 1.2,
+                    wordBreak: "break-word",
+                  }}
+                >
+                  {ex.name}
+                </p>
+                <SwapButton
+                  exerciseId={ex.id}
+                  exerciseName={ex.name}
+                  blockLabel={group.sets[0]?.block_label || ""}
+                  workoutId={workoutId}
+                  userId={userId}
+                  onSwapComplete={onSwapExercise}
+                  size={20}
+                />
+              </div>
               {/* Rep/duration label.
                   Short cue → "5 reps · cue" inline.
                   Verbose cue → show reps as its own eyebrow line UNLESS
@@ -1553,8 +1698,11 @@ function MobilityContent({
 
 /* ═══════ COOLDOWN CARD ═══════ */
 function CooldownCard({
-  group, saving, isCompleted, onToggle, onOpenVideo,
+  group, saving, isCompleted, onToggle, onOpenVideo, workoutId, userId, onSwapExercise,
 }: {
+  workoutId?: string;
+  userId?: string;
+  onSwapExercise?: () => void;
   group: ExerciseGroup; saving: boolean;
   isCompleted: (s: WorkoutSetData) => boolean;
   onToggle: (s: WorkoutSetData) => void;
@@ -1618,14 +1766,25 @@ function CooldownCard({
           >
             {ex.name}
           </p>
-          {(durLabel || cueIsShort) && (
-            <span
-              className="font-mono uppercase shrink-0"
-              style={{ fontSize: 9, letterSpacing: "1.5px", color: "hsl(var(--muted-foreground))" }}
-            >
-              {cueIsShort ? cueText : durLabel}
-            </span>
-          )}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {(durLabel || cueIsShort) && (
+              <span
+                className="font-mono uppercase"
+                style={{ fontSize: 9, letterSpacing: "1.5px", color: "hsl(var(--muted-foreground))" }}
+              >
+                {cueIsShort ? cueText : durLabel}
+              </span>
+            )}
+            <SwapButton
+              exerciseId={ex.id}
+              exerciseName={ex.name}
+              blockLabel={group.sets[0]?.block_label || ""}
+              workoutId={workoutId}
+              userId={userId}
+              onSwapComplete={onSwapExercise}
+              size={20}
+            />
+          </div>
         </div>
         {cueText && !cueIsShort && (
           <p

@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFTORY — UX Audit Report · April 2026</title>
+<style>
+  :root {
+    --bg: #1C1C1E;
+    --text: #FAF8F5;
+    --accent: #C75B39;
+    --gold: #C9A96E;
+    --success: #7A8B5C;
+    --danger: #D45555;
+    --muted: #8A8580;
+    --card: #2C2C2E;
+    --border: #3C3C3E;
+    --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; font-size: 16px; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── NAV ── */
+  .top-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(28,28,30,.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 1.5rem;
+  }
+  .top-nav-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    height: 56px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .top-nav-inner::-webkit-scrollbar { display: none; }
+  .nav-logo {
+    font-weight: 800;
+    font-size: 1.05rem;
+    letter-spacing: .12em;
+    color: var(--gold);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .nav-links { display: flex; gap: .15rem; flex-shrink: 0; }
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    padding: .35rem .6rem;
+    border-radius: 6px;
+    white-space: nowrap;
+    transition: color .2s, background .2s;
+  }
+  .nav-links a:hover { color: var(--text); background: var(--card); }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 900px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+
+  /* ── HERO ── */
+  .hero {
+    text-align: center;
+    padding: 4rem 0 3rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 3rem;
+  }
+  .hero-brand {
+    font-size: 2.8rem;
+    font-weight: 900;
+    letter-spacing: .18em;
+    color: var(--gold);
+    margin-bottom: .25rem;
+  }
+  .hero h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    color: var(--text);
+    margin-bottom: .5rem;
+  }
+  .hero h2 {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--muted);
+    letter-spacing: .06em;
+  }
+  .hero .subtitle {
+    display: inline-block;
+    margin-top: 1rem;
+    font-size: .8rem;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    border: 1px solid var(--accent);
+    padding: .3rem 1rem;
+    border-radius: 100px;
+  }
+
+  /* ── SECTIONS ── */
+  section { margin-bottom: 3.5rem; }
+  .section-num {
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .15em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: .4rem;
+  }
+  section > h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: .04em;
+    margin-bottom: .3rem;
+    position: relative;
+    display: inline-block;
+  }
+  section > h2::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 3px;
+    background: var(--gold);
+    border-radius: 2px;
+    margin-top: .4rem;
+  }
+  section > .section-intro {
+    color: var(--muted);
+    font-size: .92rem;
+    margin-bottom: 1.5rem;
+    margin-top: .5rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 2rem 0 .8rem;
+    color: var(--gold);
+  }
+
+  p { margin-bottom: 1rem; font-size: .95rem; }
+  strong { color: var(--text); }
+
+  ul, ol { padding-left: 1.4rem; margin-bottom: 1rem; }
+  li { margin-bottom: .4rem; font-size: .93rem; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  /* ── SCORE CARDS ── */
+  .score-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  .score-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    text-align: center;
+  }
+  .score-card .label {
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: .6rem;
+  }
+  .score-card .score {
+    font-size: 2.2rem;
+    font-weight: 900;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    margin-bottom: .5rem;
+  }
+  .score-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    overflow: hidden;
+  }
+  .score-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width .8s cubic-bezier(.22,1,.36,1);
+  }
+
+  /* ── TABLES ── */
+  .table-wrap { overflow-x: auto; margin: 1.5rem 0; border-radius: 12px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  thead th {
+    background: #232325;
+    color: var(--gold);
+    font-weight: 700;
+    font-size: .72rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: .85rem 1rem;
+    text-align: left;
+    white-space: nowrap;
+    border-bottom: 2px solid var(--border);
+  }
+  tbody td {
+    padding: .75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:nth-child(even) { background: rgba(44,44,46,.45); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* ── BADGES ── */
+  .badge {
+    display: inline-block;
+    padding: .2rem .65rem;
+    border-radius: 100px;
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .badge-critico { background: rgba(212,85,85,.18); color: var(--danger); border: 1px solid rgba(212,85,85,.35); }
+  .badge-alto { background: rgba(199,91,57,.18); color: var(--accent); border: 1px solid rgba(199,91,57,.35); }
+  .badge-medio { background: rgba(201,169,110,.15); color: var(--gold); border: 1px solid rgba(201,169,110,.3); }
+  .badge-bajo { background: rgba(138,133,128,.12); color: var(--muted); border: 1px solid rgba(138,133,128,.25); }
+
+  /* ── PHONE MOCKUP ── */
+  .phone-frame {
+    max-width: 360px;
+    margin: 2rem auto;
+    background: #000;
+    border-radius: 40px;
+    padding: 16px;
+    box-shadow: 0 25px 80px rgba(0,0,0,.5), 0 0 0 2px #444;
+  }
+  .phone-screen {
+    background: var(--bg);
+    border-radius: 28px;
+    overflow: hidden;
+    padding: 2rem 1.25rem 1.5rem;
+    font-size: .82rem;
+    line-height: 1.55;
+  }
+  .phone-screen .ps-greeting { color: var(--muted); font-size: .78rem; margin-bottom:.1rem; }
+  .phone-screen .ps-program { font-weight:800; font-size:.95rem; letter-spacing:.06em; margin-bottom:.15rem; }
+  .phone-screen .ps-phase { color:var(--gold); font-size:.72rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; margin-bottom:1rem; }
+  .phone-screen .ps-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    margin-bottom: .8rem;
+  }
+  .phone-screen .ps-card-title { font-weight:800; font-size:.9rem; color:var(--accent); margin-bottom:.15rem; }
+  .phone-screen .ps-card-meta { font-size:.72rem; color:var(--muted); margin-bottom:.6rem; }
+  .phone-screen .ps-card-note {
+    font-size:.78rem; color:var(--text); font-style:italic;
+    border-left:2px solid var(--gold); padding-left:.6rem; margin-bottom:.8rem;
+  }
+  .phone-screen .ps-btn {
+    display:block; text-align:center; padding:.65rem; border-radius:10px;
+    font-weight:700; font-size:.82rem; letter-spacing:.04em; margin-bottom:.5rem;
+  }
+  .phone-screen .ps-btn-primary { background:var(--accent); color:#fff; }
+  .phone-screen .ps-btn-secondary { background:transparent; border:1px solid var(--border); color:var(--muted); }
+  .phone-screen .ps-days {
+    display:flex; justify-content:space-between; margin:1rem 0 .3rem;
+    font-size:.72rem; font-weight:600; color:var(--muted);
+  }
+  .phone-screen .ps-days span { width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:50%; }
+  .phone-screen .ps-days .done { background:var(--success); color:#fff; }
+  .phone-screen .ps-days .today { background:var(--accent); color:#fff; }
+  .phone-screen .ps-sub { font-size:.68rem; color:var(--muted); text-align:center; margin-bottom:.8rem; }
+  .phone-screen .ps-week-bar {
+    display:flex; align-items:center; gap:.6rem; font-size:.78rem; margin-bottom:.5rem;
+  }
+  .phone-screen .ps-week-bar .bar { flex:1; height:6px; background:var(--border); border-radius:3px; overflow:hidden; }
+  .phone-screen .ps-week-bar .bar-fill { height:100%; width:40%; background:var(--success); border-radius:3px; }
+  .phone-screen .ps-progress-card {
+    background:var(--card); border:1px solid var(--border); border-radius:12px; padding:.8rem 1rem;
+  }
+  .phone-screen .ps-progress-card .title { font-size:.72rem; font-weight:700; letter-spacing:.06em; color:var(--gold); text-transform:uppercase; margin-bottom:.4rem; }
+  .phone-screen .ps-progress-card .stat { font-size:.78rem; margin-bottom:.2rem; }
+  .phone-screen .ps-progress-card .stat span { color:var(--success); font-weight:700; }
+
+  /* ── PROGRESS BARS (VEREDICTO) ── */
+  .verdict-bars { margin: 1.5rem 0; }
+  .verdict-bar-item { margin-bottom: 1rem; }
+  .verdict-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: .82rem;
+    font-weight: 600;
+    margin-bottom: .35rem;
+  }
+  .verdict-bar-label span:last-child {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    color: var(--gold);
+  }
+  .verdict-bar {
+    height: 10px;
+    background: var(--border);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .verdict-bar-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 1s cubic-bezier(.22,1,.36,1);
+  }
+
+  /* ── BLOCKQUOTES ── */
+  blockquote {
+    border-left: 3px solid var(--gold);
+    padding: .8rem 1.2rem;
+    margin: 1rem 0;
+    background: rgba(201,169,110,.06);
+    border-radius: 0 10px 10px 0;
+    font-style: italic;
+    color: var(--text);
+    font-size: .92rem;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 3rem 1.5rem 2rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: .78rem;
+    letter-spacing: .04em;
+  }
+  footer .ft-brand { color: var(--gold); font-weight: 700; letter-spacing: .1em; }
+
+  /* ── ANIMATIONS ── */
+  .fade-section {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1);
+  }
+  .fade-section.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── CHECKLIST ── */
+  .checklist { list-style: none; padding-left: 0; }
+  .checklist li { padding-left: 1.6rem; position: relative; margin-bottom: .5rem; }
+  .checklist li::before { position: absolute; left: 0; }
+  .checklist .yes::before { content: '✅'; }
+  .checklist .no::before { content: '❌'; }
+  .checklist .partial::before { content: '⚠️'; }
+
+  /* ── NUMBER LIST WITH ACCENT ── */
+  .numbered-list { counter-reset: item; list-style: none; padding-left: 0; }
+  .numbered-list li {
+    counter-increment: item;
+    padding-left: 2.2rem;
+    position: relative;
+    margin-bottom: .75rem;
+  }
+  .numbered-list li::before {
+    content: counter(item);
+    position: absolute;
+    left: 0;
+    top: .05rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    background: var(--accent);
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 800;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── WINS/LOSSES ── */
+  .wins-losses { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.5rem 0; }
+  .wl-card { border-radius: 14px; padding: 1.25rem; }
+  .wl-card.wins { background: rgba(122,139,92,.1); border: 1px solid rgba(122,139,92,.3); }
+  .wl-card.losses { background: rgba(212,85,85,.08); border: 1px solid rgba(212,85,85,.25); }
+  .wl-card h4 { font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: .8rem; }
+  .wl-card.wins h4 { color: var(--success); }
+  .wl-card.losses h4 { color: var(--danger); }
+  .wl-card ul { padding-left: 1.2rem; }
+  .wl-card li { font-size: .85rem; margin-bottom: .4rem; }
+
+  /* ── TIMELINE ── */
+  .feel-timeline { margin: 1.5rem 0; }
+  .feel-item {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+    align-items: flex-start;
+  }
+  .feel-item .dot {
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+    background: var(--gold);
+    border-radius: 50%;
+    margin-top: .45rem;
+    position: relative;
+  }
+  .feel-item:not(:last-child) .dot::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 14px;
+    width: 1px;
+    height: 36px;
+    background: var(--border);
+    transform: translateX(-50%);
+  }
+  .feel-item .feel-label {
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--gold);
+    margin-bottom: .15rem;
+  }
+  .feel-item .feel-text { font-size: .88rem; color: var(--text); }
+
+  /* ── PRINT ── */
+  @media print {
+    body { background: #fff; color: #111; }
+    .top-nav { display: none; }
+    .card, .score-card, .phone-frame { box-shadow: none; border: 1px solid #ccc; }
+    .fade-section { opacity: 1 !important; transform: none !important; }
+    .hero-brand, .nav-logo { color: #333; }
+    section > h2::after { background: #C9A96E; }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    .hero-brand { font-size: 1.8rem; }
+    .hero h1 { font-size: 1.2rem; }
+    .score-grid { grid-template-columns: 1fr 1fr; }
+    .wins-losses { grid-template-columns: 1fr; }
+    .nav-links a { font-size: .65rem; padding: .3rem .45rem; }
+    .container { padding: 2rem 1rem 4rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════ TOP NAV ════════ -->
+<nav class="top-nav">
+  <div class="top-nav-inner">
+    <div class="nav-logo">LIFTORY</div>
+    <div class="nav-links">
+      <a href="#s1">UX General</a>
+      <a href="#s2">First Impression</a>
+      <a href="#s3">Navegaci&oacute;n</a>
+      <a href="#s4">Entrenamiento</a>
+      <a href="#s5">Engagement</a>
+      <a href="#s6">Personalizaci&oacute;n</a>
+      <a href="#s7">Benchmark</a>
+      <a href="#s8">Errores</a>
+      <a href="#s9">Mejoras</a>
+      <a href="#s10">Redise&ntilde;o</a>
+      <a href="#veredicto">Veredicto</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+
+<!-- ════════ HERO ════════ -->
+<header class="hero fade-section">
+  <div class="hero-brand">LIFTORY</div>
+  <h1>UX AUDIT REPORT</h1>
+  <h2>Athlete View Deep Analysis</h2>
+  <div class="subtitle">April 2026</div>
+</header>
+
+<!-- ════════ S1: EVALUACION UX GENERAL ════════ -->
+<section id="s1" class="fade-section">
+  <div class="section-num">Section 1</div>
+  <h2>Evaluaci&oacute;n UX General</h2>
+
+  <div class="card" style="margin-top:1.5rem;">
+    <p><strong>&iquest;Premium o gen&eacute;rica?</strong> Se siente semi-premium. El sistema de colores (cream/charcoal/gold) es elegante y diferenciado. La tipograf&iacute;a monospace para m&eacute;tricas es un buen toque. Pero la falta de im&aacute;genes hero, la ausencia de video coaching in-workout, y los empty states gen&eacute;ricos la bajan. Se siente m&aacute;s como una &ldquo;spreadsheet bonita&rdquo; que como una experiencia de coaching.</p>
+  </div>
+
+  <div class="card">
+    <p><strong>&iquest;Clara en los primeros 10 segundos?</strong> 6/10. El Home muestra el workout del d&iacute;a correctamente, pero hay mucha informaci&oacute;n compitiendo: greeting, workout card, week selector, 7 circles, 3 stat cards, mesocycle tracker &mdash; todo en una pantalla. No hay jerarqu&iacute;a visual clara de &ldquo;ESTO es lo que haces hoy&rdquo;.</p>
+  </div>
+
+  <div class="card">
+    <p><strong>&iquest;Intuitiva?</strong> 7/10. La navegaci&oacute;n de 4 tabs es est&aacute;ndar y funcional. El flujo workout &rarr; sets &rarr; complete es l&oacute;gico. Pero el week navigator con c&iacute;rculos + flechas + calendario es denso. Un usuario nuevo necesita 2-3 sesiones para entender todo.</p>
+  </div>
+
+  <div class="card">
+    <p><strong>&iquest;Sticky o olvidable?</strong> 5/10. El streak y el PRIME Score son buenos hooks, pero est&aacute;n enterrados. No hay push notifications, no hay social proof, no hay retos semanales, no hay comunidad. Un usuario que no abre la app un d&iacute;a no tiene raz&oacute;n para volver.</p>
+  </div>
+
+  <div class="score-grid">
+    <div class="score-card">
+      <div class="label">Premium Feel</div>
+      <div class="score" style="color:var(--gold);">Semi</div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:65%;background:var(--gold);"></div></div>
+    </div>
+    <div class="score-card">
+      <div class="label">Claridad 10s</div>
+      <div class="score" style="color:var(--accent);">6<span style="font-size:1rem;color:var(--muted);">/10</span></div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:60%;background:var(--accent);"></div></div>
+    </div>
+    <div class="score-card">
+      <div class="label">Intuitividad</div>
+      <div class="score" style="color:var(--gold);">7<span style="font-size:1rem;color:var(--muted);">/10</span></div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:70%;background:var(--gold);"></div></div>
+    </div>
+    <div class="score-card">
+      <div class="label">Stickiness</div>
+      <div class="score" style="color:var(--danger);">5<span style="font-size:1rem;color:var(--muted);">/10</span></div>
+      <div class="score-bar"><div class="score-bar-fill" style="width:50%;background:var(--danger);"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ S2: FIRST IMPRESSION ════════ -->
+<section id="s2" class="fade-section">
+  <div class="section-num">Section 2</div>
+  <h2>First Impression</h2>
+
+  <h3>&iquest;Qu&eacute; siente un usuario nuevo?</h3>
+  <p>El onboarding de 11 pasos es s&oacute;lido &mdash; nombre, g&eacute;nero, experiencia, objetivo, Live vs S1. Pero al llegar al Home por primera vez:</p>
+  <ul>
+    <li>Ve un greeting gen&eacute;rico</li>
+    <li>Ve un workout card que dice &ldquo;UPPER PULL&rdquo; &mdash; &iquest;qu&eacute; es eso?</li>
+    <li>Ve 7 c&iacute;rculos sin contexto</li>
+    <li>Ve stats en 0/0/0</li>
+    <li>No hay tutorial, no hay tooltip, no hay &ldquo;Welcome to your first week&rdquo;</li>
+  </ul>
+
+  <h3>Fricci&oacute;n inicial</h3>
+  <p>El usuario no sabe que tiene que scrollear para ver el mesocycle tracker. No entiende qu&eacute; significa &ldquo;S1&rdquo; ni &ldquo;Acumulaci&oacute;n&rdquo;. La coach_note est&aacute; dentro del workout, no en el Home.</p>
+
+  <h3>Lo que falta</h3>
+  <div class="card">
+    <p>Un <strong>First Day Experience</strong> &mdash; una pantalla o modal que diga: &ldquo;Hoy es tu primer d&iacute;a. Tu programa tiene 6 semanas. Cada semana tiene un enfoque diferente. Hoy empiezas con [WORKOUT NAME]. &iquest;Listo?&rdquo;</p>
+  </div>
+</section>
+
+<!-- ════════ S3: NAVEGACION ════════ -->
+<section id="s3" class="fade-section">
+  <div class="section-num">Section 3</div>
+  <h2>Navegaci&oacute;n y Estructura</h2>
+
+  <h3>Tabs actuales: Home | Programa | Ejercicios | Perfil</h3>
+
+  <p><strong>Problemas:</strong></p>
+  <ul>
+    <li><strong>No hay tab de Progreso.</strong> Est&aacute; enterrado &mdash; el usuario tiene que saber que existe y navegar a /progress. Es una de las pantallas m&aacute;s valiosas para retenci&oacute;n y est&aacute; invisible.</li>
+    <li><strong>Tab &ldquo;Ejercicios&rdquo;</strong> es una library de referencia. &iquest;Cu&aacute;ntas veces al d&iacute;a la usa un atleta? Casi nunca. Est&aacute; ocupando un spot premium en el tab bar.</li>
+    <li><strong>Tab &ldquo;Programa&rdquo;</strong> muestra un grid de semanas que es &uacute;til pero no accionable &mdash; no puedes empezar un workout desde ah&iacute;.</li>
+  </ul>
+
+  <h3>Estructura ideal sugerida</h3>
+  <div class="score-grid" style="grid-template-columns:repeat(4,1fr);">
+    <div class="score-card">
+      <div class="score" style="font-size:1.4rem;color:var(--accent);">1</div>
+      <div class="label">Home</div>
+      <p style="font-size:.78rem;color:var(--muted);margin:0;">Hoy + workout del d&iacute;a</p>
+    </div>
+    <div class="score-card">
+      <div class="score" style="font-size:1.4rem;color:var(--success);">2</div>
+      <div class="label">Progreso</div>
+      <p style="font-size:.78rem;color:var(--muted);margin:0;">Stats, PRs, volumen, streaks</p>
+    </div>
+    <div class="score-card">
+      <div class="score" style="font-size:1.4rem;color:var(--gold);">3</div>
+      <div class="label">Programa</div>
+      <p style="font-size:.78rem;color:var(--muted);margin:0;">Calendario + semanas</p>
+    </div>
+    <div class="score-card">
+      <div class="score" style="font-size:1.4rem;color:var(--muted);">4</div>
+      <div class="label">Perfil</div>
+      <p style="font-size:.78rem;color:var(--muted);margin:0;">Settings + ejercicios sub-link</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ S4: EXPERIENCIA DE ENTRENAMIENTO ════════ -->
+<section id="s4" class="fade-section">
+  <div class="section-num">Section 4</div>
+  <h2>Experiencia de Entrenamiento</h2>
+
+  <h3>Flujo para empezar</h3>
+  <p>Home &rarr; tap workout card &rarr; WorkoutOverview &rarr; tap block &rarr; BlockDetail &rarr; log sets. Son <strong>3-4 taps</strong> para llegar al primer set. Apps como Peloton: <strong>1 tap</strong> (&ldquo;Start Workout&rdquo;).</p>
+
+  <h3>&iquest;Acompa&ntilde;ado o solo?</h3>
+  <p>Solo. La coach_note aparece en el workout card (Home), pero dentro del workout no hay gu&iacute;a paso a paso. No hay:</p>
+  <ul>
+    <li>Coaching cues prominentes durante ejecuci&oacute;n</li>
+    <li>Progresi&oacute;n visual (&ldquo;set 3 de 4, casi terminas&rdquo;)</li>
+    <li>Motivaci&oacute;n contextual (&ldquo;Esta es tu semana peak, empuja&rdquo;)</li>
+    <li>Video autoplay del ejercicio actual</li>
+  </ul>
+
+  <h3>Lo bueno</h3>
+  <div class="card" style="border-left:3px solid var(--success);">
+    <p>El <strong>RestTimerSheet</strong> con vibraci&oacute;n + sonido es excelente. El <strong>weight suggestion</strong> basado en historial es premium. La <strong>detecci&oacute;n de PR</strong> es un gran hook de dopamina.</p>
+  </div>
+
+  <h3>Lo que falta</h3>
+  <ul>
+    <li><strong>Block-level guidance:</strong> Al abrir un bloque, deber&iacute;a haber una mini-intro</li>
+    <li><strong>Between-set motivation:</strong> Despu&eacute;s de completar un set pesado, un &ldquo;Good lift&rdquo; o &ldquo;PR pace&rdquo;</li>
+    <li><strong>Workout progress bar:</strong> Un indicador global de cu&aacute;nto llevas del workout total</li>
+  </ul>
+</section>
+
+<!-- ════════ S5: ENGAGEMENT ════════ -->
+<section id="s5" class="fade-section">
+  <div class="section-num">Section 5</div>
+  <h2>Engagement y Retenci&oacute;n</h2>
+
+  <div class="wins-losses">
+    <div class="wl-card wins">
+      <h4>Current Dopamine Loops</h4>
+      <ul class="checklist">
+        <li class="yes">Streak counter (bueno pero no prominente)</li>
+        <li class="yes">PR detection + badge (excelente)</li>
+        <li class="yes">PRIME Score dominical (muy bueno conceptualmente)</li>
+        <li class="yes">Mesocycle progress ring (buen visual)</li>
+        <li class="yes">Workout completion checkmarks</li>
+      </ul>
+    </div>
+    <div class="wl-card losses">
+      <h4>Missing (Critical for Retention)</h4>
+      <ul class="checklist">
+        <li class="no">Push notifications</li>
+        <li class="no">Weekly challenge/goal</li>
+        <li class="no">Social proof</li>
+        <li class="no">Milestone celebrations</li>
+        <li class="no">Coach messages in Home</li>
+        <li class="no">Streak protection</li>
+        <li class="no">Comparison to last week</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ S6: PERSONALIZACION ════════ -->
+<section id="s6" class="fade-section">
+  <div class="section-num">Section 6</div>
+  <h2>Personalizaci&oacute;n</h2>
+
+  <div class="wins-losses">
+    <div class="wl-card wins">
+      <h4>What Exists</h4>
+      <ul class="checklist">
+        <li class="yes">Onboarding inteligente (g&eacute;nero &rarr; programa autom&aacute;tico)</li>
+        <li class="yes">Live vs S1 choice</li>
+        <li class="yes">Exercise swap</li>
+        <li class="yes">Weight unit preference (kg/lb)</li>
+        <li class="yes">Coach notes que var&iacute;an por semana</li>
+      </ul>
+    </div>
+    <div class="wl-card losses">
+      <h4>What&rsquo;s Missing</h4>
+      <ul class="checklist">
+        <li class="no">Adaptaci&oacute;n por rendimiento</li>
+        <li class="no">Short on time mode (data exists but no UI button)</li>
+        <li class="no">Dark/light mode toggle in settings</li>
+        <li class="no">Post-workout adaptation (feedback not used)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ S7: BENCHMARK ════════ -->
+<section id="s7" class="fade-section">
+  <div class="section-num">Section 7</div>
+  <h2>Benchmark vs Best-in-Class</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>LIFTORY</th>
+          <th>Apple Fitness+</th>
+          <th>Peloton</th>
+          <th>Nike TC</th>
+          <th>silBe</th>
+          <th>WE Rise</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Video guiado en workout</td><td>❌ Solo demo</td><td>✅ Full</td><td>✅ Full</td><td>✅ Full</td><td>✅ Full</td><td>✅ Full</td></tr>
+        <tr><td>Coach en tiempo real</td><td>❌</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>❌</td></tr>
+        <tr><td>Set/rep logging</td><td>✅ Excelente</td><td>❌</td><td>❌</td><td>❌</td><td>✅</td><td>✅</td></tr>
+        <tr><td>PR tracking</td><td>✅ Excelente</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td><td>✅</td></tr>
+        <tr><td>Periodizaci&oacute;n real</td><td>✅ Excelente</td><td>❌</td><td>❌</td><td>❌</td><td>✅</td><td>✅</td></tr>
+        <tr><td>Weight suggestions</td><td>✅ &Uacute;nico</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td></tr>
+        <tr><td>Push notifications</td><td>❌</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>Community/social</td><td>❌</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>Streaks/gamification</td><td>⚠️ B&aacute;sico</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>⚠️</td></tr>
+        <tr><td>Onboarding personalizado</td><td>✅ Bueno</td><td>⚠️</td><td>⚠️</td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>Dark mode</td><td>⚠️ Parcial</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>M&uacute;sica integrada</td><td>❌</td><td>✅</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="wins-losses">
+    <div class="wl-card wins">
+      <h4>Where LIFTORY Wins</h4>
+      <ul>
+        <li><strong>Periodizaci&oacute;n real con progresi&oacute;n autom&aacute;tica</strong> &mdash; Ninguna app masiva hace esto bien</li>
+        <li><strong>Weight suggestions basadas en historial</strong> &mdash; Feature diferenciador &uacute;nico</li>
+        <li><strong>PR detection autom&aacute;tica</strong> &mdash; Mejor que la mayor&iacute;a</li>
+        <li><strong>Coach notes que cambian por fase</strong></li>
+      </ul>
+    </div>
+    <div class="wl-card losses">
+      <h4>Where LIFTORY Loses</h4>
+      <ul>
+        <li><strong>Sin video coaching en workout</strong> &mdash; table stakes en 2026</li>
+        <li><strong>Sin push notifications</strong> &mdash; kills D7/D30 retention</li>
+        <li><strong>Sin comunidad</strong> &mdash; no leaderboard, feed, or group challenges</li>
+        <li><strong>Sin m&uacute;sica integrada</strong></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ S8: ERRORES CRITICOS ════════ -->
+<section id="s8" class="fade-section">
+  <div class="section-num">Section 8</div>
+  <h2>Errores Cr&iacute;ticos de UX</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>#</th><th>Error</th><th>Impacto</th><th>Severidad</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>No hay Progress en el tab bar &mdash; pantalla m&aacute;s valiosa oculta</td>
+          <td>Usuarios nunca ven progreso &rarr; no sienten avance &rarr; churan</td>
+          <td><span class="badge badge-critico">CR&Iacute;TICO</span></td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>3-4 taps para empezar a entrenar</td>
+          <td>Fricci&oacute;n diaria que reduce engagement</td>
+          <td><span class="badge badge-alto">ALTO</span></td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td>Sin push notifications</td>
+          <td>D7 retention cae dram&aacute;ticamente sin re-engagement</td>
+          <td><span class="badge badge-critico">CR&Iacute;TICO</span></td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>short_on_time_note existe pero no es activable &mdash; dato en DB sin UI</td>
+          <td>Feature valiosa desperdiciada, atleta se salta workout entero</td>
+          <td><span class="badge badge-alto">ALTO</span></td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td>Empty states gen&eacute;ricos sin call-to-action</td>
+          <td>Usuarios nuevos no saben qu&eacute; hacer</td>
+          <td><span class="badge badge-medio">MEDIO</span></td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td>Sin workout progress bar global</td>
+          <td>Sensaci&oacute;n de &ldquo;&iquest;cu&aacute;nto falta?&rdquo; sin respuesta</td>
+          <td><span class="badge badge-medio">MEDIO</span></td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td>Feedback de WorkoutComplete no se usa</td>
+          <td>Atleta siente que su feedback es ignorado</td>
+          <td><span class="badge badge-medio">MEDIO</span></td>
+        </tr>
+        <tr>
+          <td>8</td>
+          <td>Fase del mesociclo no visible en Home</td>
+          <td>Atleta no entiende el &ldquo;por qu&eacute;&rdquo; de esta semana</td>
+          <td><span class="badge badge-alto">ALTO</span></td>
+        </tr>
+        <tr>
+          <td>9</td>
+          <td>Sin dark/light mode toggle en settings</td>
+          <td>UX inconsistente</td>
+          <td><span class="badge badge-bajo">BAJO</span></td>
+        </tr>
+        <tr>
+          <td>10</td>
+          <td>Tab &ldquo;Ejercicios&rdquo; ocupa spot premium</td>
+          <td>Desperdicio de real estate de navegaci&oacute;n</td>
+          <td><span class="badge badge-medio">MEDIO</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ════════ S9: PROPUESTAS ════════ -->
+<section id="s9" class="fade-section">
+  <div class="section-num">Section 9</div>
+  <h2>Propuestas de Mejora</h2>
+
+  <h3 style="color:var(--success);">Quick Wins (1-2 semanas)</h3>
+  <ol class="numbered-list">
+    <li><strong>Mover Progress al tab bar,</strong> sacar Ejercicios (mover a sub-link en Perfil o Programa)</li>
+    <li><strong>Agregar fase del mesociclo al Home header</strong> &mdash; debajo del nombre: &ldquo;SEMANA 3 &middot; ACUMULACI&Oacute;N&rdquo;</li>
+    <li><strong>Bot&oacute;n &ldquo;Short on Time&rdquo; en el workout</strong> &mdash; Toggle que muestra la versi&oacute;n corta</li>
+    <li><strong>Reducir taps para entrenar</strong> &mdash; &ldquo;EMPEZAR SESI&Oacute;N&rdquo; directo al primer bloque</li>
+    <li><strong>Empty states con CTA</strong> &mdash; &ldquo;A&uacute;n no hay PRs &rarr; Completa tu primer workout para empezar&rdquo;</li>
+    <li><strong>Dark mode toggle</strong> en Profile/Settings</li>
+  </ol>
+
+  <h3 style="color:var(--gold);">Impacto Medio (1-2 meses)</h3>
+  <ol class="numbered-list" style="counter-reset:item 6;">
+    <li><strong>Workout progress bar</strong> &mdash; Barra horizontal arriba del workout con % sets completados</li>
+    <li><strong>Block intro cards</strong> &mdash; Al abrir bloque: &ldquo;HEAVY BLOCK &mdash; Objetivo: fuerza. 4 ejercicios, ~15 min&rdquo;</li>
+    <li><strong>Weekly goal card en Home</strong> &mdash; &ldquo;Esta semana: 3/5 workouts&rdquo; con progress bar</li>
+    <li><strong>Milestone celebrations</strong> &mdash; Modal/animaci&oacute;n en 10, 25, 50, 100 workouts o primer PR</li>
+    <li><strong>Push notifications</strong> (service worker o wrapper nativo)</li>
+    <li><strong>Coach message semanal en Home</strong> &mdash; Card personalizada basada en fase actual</li>
+  </ol>
+
+  <h3 style="color:var(--accent);">Cambios Estructurales (nivel producto)</h3>
+  <ol class="numbered-list" style="counter-reset:item 12;">
+    <li><strong>Video coaching integrado</strong> &mdash; Videos 15-30s autoplay al iniciar ejercicio</li>
+    <li><strong>Adaptive programming</strong> &mdash; Usar feedback + RPE logs para sugerir ajustes</li>
+    <li><strong>Community features</strong> &mdash; Feed de actividad, leaderboard por PRIME Score, challenges</li>
+    <li><strong>Music integration</strong> &mdash; Spotify/Apple Music playlists por tipo de workout</li>
+    <li><strong>PWA push notifications</strong> &mdash; Service worker para re-engagement</li>
+  </ol>
+</section>
+
+<!-- ════════ S10: REDISENO ════════ -->
+<section id="s10" class="fade-section">
+  <div class="section-num">Section 10</div>
+  <h2>Redise&ntilde;o Ideal (Visi&oacute;n)</h2>
+
+  <div class="phone-frame">
+    <div class="phone-screen">
+      <div class="ps-greeting">Hola, Andoni</div>
+      <div class="ps-program">BUILD HIM ELITE</div>
+      <div class="ps-phase">SEMANA 3 &middot; ACUMULACI&Oacute;N</div>
+
+      <div class="ps-card">
+        <div class="ps-card-title">&#128293; HOY: UPPER PUSH</div>
+        <div class="ps-card-meta">~70 min &middot; 27 sets</div>
+        <div class="ps-card-note">&ldquo;Subimos volumen. Si el tempo sigue limpio, sube peso.&rdquo;</div>
+        <div class="ps-btn ps-btn-primary">EMPEZAR SESI&Oacute;N &rarr;</div>
+        <div class="ps-btn ps-btn-secondary">&#9201; Tengo poco tiempo</div>
+      </div>
+
+      <div class="ps-days">
+        <span class="done">L</span>
+        <span class="done">M</span>
+        <span class="today">M</span>
+        <span>J</span>
+        <span>V</span>
+        <span style="color:var(--success);">S</span>
+        <span>&middot;</span>
+      </div>
+      <div class="ps-sub">Semana 3 de 6</div>
+
+      <div class="ps-week-bar">
+        <span>Esta semana: 2/5</span>
+        <div class="bar"><div class="bar-fill"></div></div>
+      </div>
+      <div class="ps-week-bar" style="margin-bottom:1rem;">
+        <span>Streak: &#128293; 14 d&iacute;as</span>
+      </div>
+
+      <div class="ps-progress-card">
+        <div class="title">&#128202; Tu progreso</div>
+        <div class="stat">Volumen: <span>+12% vs S2</span></div>
+        <div class="stat">PRs este mes: <span>3 &#127942;</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Flujo Ideal para Entrenar</h3>
+  <ol class="numbered-list">
+    <li>Home &rarr; Tap &ldquo;EMPEZAR SESI&Oacute;N&rdquo; <strong>(1 tap)</strong></li>
+    <li>&rarr; Primer bloque con block intro card (2 seg auto-dismiss)</li>
+    <li>&rarr; Video autoplay 10s &rarr; set logging</li>
+    <li>&rarr; Completar set &rarr; Rest timer auto &rarr; Siguiente set</li>
+    <li>&rarr; Bloque completado &rarr; Siguiente bloque auto-scroll</li>
+    <li>&rarr; WorkoutComplete con celebraci&oacute;n + stats + PRIME Score</li>
+  </ol>
+
+  <h3>C&oacute;mo deber&iacute;a SENTIRSE</h3>
+  <div class="feel-timeline">
+    <div class="feel-item">
+      <div class="dot"></div>
+      <div>
+        <div class="feel-label">D&iacute;a 1</div>
+        <div class="feel-text">&ldquo;Wow, esto est&aacute; hecho para m&iacute;. Me dice exactamente qu&eacute; hacer, cu&aacute;nto peso poner, y por qu&eacute;.&rdquo;</div>
+      </div>
+    </div>
+    <div class="feel-item">
+      <div class="dot"></div>
+      <div>
+        <div class="feel-label">Semana 2</div>
+        <div class="feel-text">&ldquo;Ya le agarr&eacute; el ritmo. Me gusta ver mis checks verdes y mi streak subiendo.&rdquo;</div>
+      </div>
+    </div>
+    <div class="feel-item">
+      <div class="dot"></div>
+      <div>
+        <div class="feel-label">Semana 4</div>
+        <div class="feel-text">&ldquo;Estoy m&aacute;s fuerte. Los pesos que me sugiere son m&aacute;s altos que antes. Rompo un PR.&rdquo;</div>
+      </div>
+    </div>
+    <div class="feel-item">
+      <div class="dot"></div>
+      <div>
+        <div class="feel-label">Semana 6</div>
+        <div class="feel-text">&ldquo;Deload. La app me dice que descanse. Me siento cuidado, no abandonado.&rdquo;</div>
+      </div>
+    </div>
+    <div class="feel-item">
+      <div class="dot"></div>
+      <div>
+        <div class="feel-label">Ciclo 2</div>
+        <div class="feel-text">&ldquo;Nuevo ciclo disponible. Mis datos del anterior est&aacute;n guardados. Sigo progresando.&rdquo;</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ VEREDICTO FINAL ════════ -->
+<section id="veredicto" class="fade-section">
+  <div class="section-num">Veredicto Final</div>
+  <h2>&iquest;Listo para escalar?</h2>
+
+  <div class="card" style="border-left:3px solid var(--gold);">
+    <p>Necesita mejoras focalizadas antes de escalar, pero <strong>NO un redise&ntilde;o completo</strong>. La arquitectura es s&oacute;lida. La periodizaci&oacute;n real, el weight suggestion, y el PR tracking son diferenciadores genuinos.</p>
+  </div>
+
+  <h3>Lo que mata la retenci&oacute;n hoy son 5 cosas:</h3>
+  <ol class="numbered-list">
+    <li><strong>Sin push notifications</strong> (matador de D7/D30)</li>
+    <li><strong>Progress escondido</strong></li>
+    <li><strong>Demasiados taps para entrenar</strong></li>
+    <li><strong>Sin short-on-time mode activable</strong></li>
+    <li><strong>Sin weekly goal visible</strong></li>
+  </ol>
+
+  <h3>&iquest;Qu&eacute; tan lejos de world-class?</h3>
+
+  <div class="score-grid" style="grid-template-columns:1fr;">
+    <div class="score-card">
+      <div class="score" style="color:var(--gold);font-size:3rem;">60-65<span style="font-size:1.2rem;">%</span></div>
+      <div class="label" style="margin-top:.4rem;">Del camino a world-class</div>
+    </div>
+  </div>
+
+  <div class="verdict-bars">
+    <div class="verdict-bar-item">
+      <div class="verdict-bar-label"><span>Core / Programming</span><span>90%</span></div>
+      <div class="verdict-bar"><div class="verdict-bar-fill" data-width="90" style="width:0%;background:var(--success);"></div></div>
+    </div>
+    <div class="verdict-bar-item">
+      <div class="verdict-bar-label"><span>UX / Experience</span><span>55%</span></div>
+      <div class="verdict-bar"><div class="verdict-bar-fill" data-width="55" style="width:0%;background:var(--gold);"></div></div>
+    </div>
+    <div class="verdict-bar-item">
+      <div class="verdict-bar-label"><span>Engagement / Retention</span><span>40%</span></div>
+      <div class="verdict-bar"><div class="verdict-bar-fill" data-width="40" style="width:0%;background:var(--accent);"></div></div>
+    </div>
+    <div class="verdict-bar-item">
+      <div class="verdict-bar-label"><span>Social / Community</span><span>0%</span></div>
+      <div class="verdict-bar"><div class="verdict-bar-fill" data-width="0" style="width:0%;background:var(--danger);"></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <p><strong>Para llegar al 80%:</strong> Quick wins + impacto medio (2-3 meses).</p>
+    <p><strong>Para llegar al 95%:</strong> Video coaching + community + push + adaptive (6-12 meses).</p>
+  </div>
+
+  <blockquote>
+    La buena noticia: tu diferenciador (periodizaci&oacute;n real + weight suggestions + coach notes por fase) es algo que las apps de $1B no tienen. No necesitas competir en producci&oacute;n de video &mdash; necesitas competir en inteligencia de coaching. Ah&iacute; ya est&aacute;s ganando.
+  </blockquote>
+</section>
+
+</div><!-- .container -->
+
+<!-- ════════ FOOTER ════════ -->
+<footer>
+  <div class="ft-brand">LIFTORY</div>
+  <p style="margin-top:.5rem;">Generated by LIFTORY AI &middot; April 2026</p>
+</footer>
+
+<!-- ════════ JS: Fade-in on scroll + animated bars ════════ -->
+<script>
+(function(){
+  const io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        e.target.classList.add('visible');
+        // animate verdict bars inside this section
+        e.target.querySelectorAll('.verdict-bar-fill[data-width]').forEach(function(bar){
+          setTimeout(function(){ bar.style.width = bar.dataset.width + '%'; }, 200);
+        });
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.fade-section').forEach(function(s){ io.observe(s); });
+})();
+</script>
+
+</body>
+</html>

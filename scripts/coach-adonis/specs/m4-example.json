@@ -1,0 +1,84 @@
+{
+  "_comment": "Spec de input para Coach Adonis. Editá esto antes de correr new-meso. Describí QUÉ querés, no CÓMO. Coach Adonis arma la estructura completa.",
+
+  "mesocycle": {
+    "name": "M4",
+    "program_name": "BUILD HIM ELITE",
+    "cycle_number": 4,
+    "start_date": "2026-07-20",
+    "total_weeks": 6
+  },
+
+  "intent": "M4 es la fase de PEAK STRENGTH. Después de M3 (Hybrid Discovery) el atleta entró a hypertrophy real. M4 sube la barra de carga absoluta — menos volumen, más peso. RPE 8-9.5 en los heavies. Mantengo el patrón M3 5 días/semana + JUE opcional, pero los días cambian de identidad:",
+
+  "weekly_template": {
+    "LUN": {
+      "name": "POWER DAY",
+      "duration_min": 80,
+      "intent": "Olympic-lift derivatives + KB Density del M3 reducido pero más intenso. Power output máximo.",
+      "must_have": ["KB Z Press EMOM con menos minutos pero más peso", "Landmine Clean & Jerk como power piece", "core anti-rotación"]
+    },
+    "MAR": {
+      "name": "MAX STRENGTH UPPER",
+      "duration_min": 75,
+      "intent": "Heavies de presión + tracción al máximo del meso. Sets bajos (3-5), peso top, rest 3 min. Accesorios mínimos.",
+      "must_have": ["Press de banca o Incline DB 5×5", "Weighted Pull-up 5×3-5", "Weighted Dip top peso"]
+    },
+    "MIE": {
+      "name": "SKILL DAY",
+      "duration_min": 70,
+      "intent": "Mantengo Double KB Complex de M3 + MU Burpee For Time. Esto es la signature semanal del programa.",
+      "must_have": ["Double KB Complex", "MU Burpee For Time", "Lat volume con accesorio nuevo"]
+    },
+    "JUE": {
+      "name": "ACTIVE RECOVERY",
+      "duration_min": 55,
+      "is_optional": true,
+      "intent": "Opcional. Animal Flow + Z2 + mobility. Mismo formato que M3."
+    },
+    "VIE": {
+      "name": "MAX STRENGTH LOWER",
+      "duration_min": 80,
+      "intent": "Front Squat heavy + Deadlift variant + accessory hinge. Pasamos del Tempo Day de M3 al heavy real.",
+      "must_have": ["Front Squat 5×3-5 RPE 9", "Trap Bar Deadlift o Snatch Grip RDL", "Single-leg accessory", "Nordic"]
+    },
+    "SAB": {
+      "name": "ATHLETIC ENGINE",
+      "duration_min": 85,
+      "intent": "Cierre de semana con conditioning + carry + posterior chain. Echo de M3 SÁB pero con más metabólico.",
+      "must_have": ["Sled push largo", "Farmer Hold", "B-Stance RDL o Hip Thrust pesado", "calf"]
+    }
+  },
+
+  "progression_template": {
+    "_comment": "Cómo deberían escalar las semanas. Coach Adonis usa esto como referencia, no como receta.",
+    "W1": "BASE — establecer pesos. Sets bajos, RPE 7.5. Volumen completo.",
+    "W2": "BASE+ — +5kg en heavies o +1 set. Mismo RPE.",
+    "W3": "ACUMULACIÓN — pico de volumen. +1 set en cada block compound. RPE 8.",
+    "W4": "INTENSIFICACIÓN — bajar volumen 20%, subir peso 5-10%. RPE 8.5-9.",
+    "W5": "PEAK — TEST honesto: 3×5 RPE 9.5 en heavies clave. Volumen mínimo.",
+    "W6": "DELOAD — 60% intensidad, -40% volumen. CNS recovery real."
+  },
+
+  "honest_tests_week5": [
+    "Front Squat 3×5 RPE 9.5 — track máx peso del meso",
+    "Weighted Pull-up 5×3 RPE 9 — track máx lastre",
+    "Weighted Dip 3×5 RPE 9 — track máx lastre",
+    "MU Burpee 40 reps SUB-12 min — signature test"
+  ],
+
+  "exercises_to_explore": [
+    "Trap Bar Deadlift",
+    "Snatch Grip RDL",
+    "Landmine Clean & Jerk",
+    "Weighted Pull-up"
+  ],
+
+  "constraints": {
+    "max_workout_duration_min": 90,
+    "min_recovery_block_min": 5,
+    "max_blocks_per_workout": 7,
+    "prime_block_position": "first",
+    "recovery_block_position": "last"
+  }
+}

@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LIFTORY · Meso Transition Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0B0D;
+    --card: #15151A;
+    --card-hi: #1A1A20;
+    --border: #26262E;
+    --text: #FAFAF7;
+    --muted: #8E8E96;
+    --gold: #C4A24E;
+    --gold-soft: rgba(196, 162, 78, 0.12);
+    --gold-strong: rgba(196, 162, 78, 0.25);
+    --sage: #7A8B5C;
+    --crimson: #B85546;
+    --crimson-soft: rgba(184, 85, 70, 0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #050507; color: var(--text); font-family: -apple-system, "SF Pro Display", system-ui, sans-serif; }
+  body { padding: 32px 16px; min-height: 100vh; }
+  .frame {
+    max-width: 420px; margin: 0 auto;
+    background: var(--bg);
+    border-radius: 28px; overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.55);
+    border: 1px solid #1c1c22;
+  }
+  .scroll { overflow-y: auto; max-height: 90vh; padding: 56px 24px 32px; }
+  .label-mono { font-family: "SF Mono", Menlo, monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+  .display { font-family: "SF Pro Display", system-ui, sans-serif; font-weight: 700; letter-spacing: -0.02em; }
+
+  /* Page header chip */
+  .page-hint { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+  .page-hint .step { color: var(--gold); }
+  .close { width: 36px; height: 36px; border-radius: 12px; background: var(--card); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); cursor: pointer; }
+  .close svg { width: 14px; height: 14px; stroke: var(--muted); fill: none; stroke-width: 2; }
+
+  /* M-X seal */
+  .seal-wrap { display: flex; justify-content: center; margin: 8px 0 20px; }
+  .seal {
+    width: 96px; height: 96px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 25%, rgba(196,162,78,0.30), rgba(196,162,78,0.05) 70%);
+    border: 1px solid var(--gold-strong);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .seal::after {
+    content: ""; position: absolute; inset: -8px;
+    border-radius: 50%; border: 1px dashed rgba(196,162,78,0.18);
+    animation: spin 24s linear infinite;
+  }
+  @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+  .seal .meso { font-family: "SF Pro Display", system-ui, sans-serif; font-weight: 800; font-size: 30px; color: var(--gold); letter-spacing: -0.04em; line-height: 1; }
+  .seal .meta { font-family: "SF Mono", monospace; font-size: 8px; color: var(--gold); margin-top: 4px; letter-spacing: 2px; }
+
+  /* Hero copy */
+  .hero { text-align: center; margin-bottom: 40px; }
+  .hero h1 { font-size: 30px; line-height: 1.1; margin-bottom: 10px; }
+  .hero p { color: var(--muted); font-size: 14px; line-height: 1.5; padding: 0 6px; }
+
+  /* Stats grid */
+  .stats-block { margin-bottom: 36px; }
+  .section-title { color: var(--gold); margin-bottom: 14px; }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 16px 14px;
+    position: relative; overflow: hidden;
+  }
+  .stat .num { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .stat .num small { font-size: 14px; color: var(--muted); font-weight: 600; }
+  .stat .lbl { font-family: "SF Mono", monospace; font-size: 9px; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-top: 8px; }
+  .stat.gold .num { color: var(--gold); }
+  .stat.sage .num { color: var(--sage); }
+
+  /* Achievements list */
+  .achievements { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px 18px 8px; margin-bottom: 36px; }
+  .ach-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid #1c1c22; }
+  .ach-row:last-child { border-bottom: none; }
+  .ach-row .check { width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px; }
+  .ach-row .check svg { width: 100%; height: 100%; stroke: var(--gold); fill: none; stroke-width: 2.5; }
+  .ach-row p { font-size: 13px; line-height: 1.4; color: var(--text); }
+  .ach-row p span { color: var(--muted); }
+
+  /* Bridge */
+  .bridge {
+    background: linear-gradient(135deg, var(--card), rgba(196,162,78,0.04));
+    border: 1px solid var(--gold-strong);
+    border-radius: 16px; padding: 20px; margin-bottom: 24px;
+    position: relative;
+  }
+  .bridge::before {
+    content: ""; position: absolute; left: 20px; top: -1px; width: 32px; height: 1px;
+    background: var(--gold);
+  }
+  .bridge .lbl-next { color: var(--gold); margin-bottom: 8px; }
+  .bridge h2 { font-size: 22px; line-height: 1.2; margin-bottom: 8px; }
+  .bridge p { color: var(--muted); font-size: 13px; line-height: 1.5; }
+  .bridge .formats { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+  .bridge .fmt { font-family: "SF Mono", monospace; font-size: 9px; letter-spacing: 1px; padding: 4px 8px; border: 1px solid var(--gold-strong); border-radius: 999px; color: var(--gold); text-transform: uppercase; }
+
+  /* CTAs */
+  .cta-primary {
+    width: 100%; padding: 16px; border-radius: 14px;
+    background: var(--gold); color: #1A1408;
+    font-weight: 700; font-size: 15px; letter-spacing: -0.01em;
+    border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-bottom: 12px;
+  }
+  .cta-share {
+    width: 100%; padding: 14px; border-radius: 14px;
+    background: transparent; color: var(--gold);
+    font-size: 13px; font-weight: 600; letter-spacing: -0.01em;
+    border: 1px solid var(--gold-strong);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-bottom: 12px;
+    transition: background 0.2s;
+  }
+  .cta-share:hover { background: var(--gold-soft); }
+  .cta-secondary {
+    width: 100%; padding: 14px; border-radius: 14px;
+    background: var(--card); color: var(--muted);
+    font-size: 13px; border: 1px solid var(--border);
+    cursor: pointer;
+  }
+
+  /* PRs podium */
+  .prs { display: flex; flex-direction: column; gap: 8px; }
+  .pr-row {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px 16px;
+    position: relative; overflow: hidden;
+  }
+  .pr-row::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--rank-color, var(--gold));
+  }
+  .pr-row.rank-1 { --rank-color: #C4A24E; }
+  .pr-row.rank-2 { --rank-color: #A0A0A8; }
+  .pr-row.rank-3 { --rank-color: #B8763A; }
+  .pr-row .medal {
+    font-size: 28px; line-height: 1; flex-shrink: 0;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+  }
+  .pr-row .body { flex: 1; min-width: 0; }
+  .pr-row .name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; line-height: 1.2; }
+  .pr-row .detail { font-family: "SF Mono", monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.5px; }
+  .pr-row .weight {
+    font-family: "SF Pro Display", system-ui, sans-serif;
+    font-weight: 700; font-size: 20px; color: var(--rank-color);
+    letter-spacing: -0.02em; text-align: right; line-height: 1;
+  }
+  .pr-row .weight small { display: block; font-size: 9px; color: var(--muted); font-weight: 500; letter-spacing: 1.5px; margin-top: 4px; text-transform: uppercase; }
+  .delta { color: var(--sage); font-weight: 600; }
+  .estreno { color: var(--gold); font-weight: 600; letter-spacing: 0.5px; }
+
+  /* Battery icon (replaces Leaf) */
+  .battery-demo {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 10px; background: var(--card); border-radius: 8px; border: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+  .battery-demo svg { width: 16px; height: 16px; stroke: var(--sage); fill: none; stroke-width: 2; }
+  .battery-demo span { font-family: "SF Mono", monospace; font-size: 10px; letter-spacing: 1px; color: var(--sage); text-transform: uppercase; }
+
+  /* ═══ Instagram Story share asset (correct LIFTORY type system) ═══ */
+  .story-frame {
+    width: 360px; aspect-ratio: 9/16; margin: 0 auto;
+    border-radius: 28px; overflow: hidden;
+    background:
+      radial-gradient(ellipse 120% 70% at 50% 0%, rgba(196,162,78,0.16) 0%, transparent 60%),
+      radial-gradient(ellipse 100% 60% at 50% 100%, rgba(196,162,78,0.08) 0%, transparent 70%),
+      #08080A;
+    position: relative;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 0 1px #1a1a22;
+  }
+  .story-frame::before {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.018) 1px, transparent 1px),
+      radial-gradient(circle at 78% 76%, rgba(196,162,78,0.05) 1px, transparent 1px);
+    background-size: 90px 90px, 130px 130px;
+    pointer-events: none;
+  }
+  .story-content {
+    position: relative; z-index: 1;
+    height: 100%; padding: 32px 24px 24px;
+    display: flex; flex-direction: column;
+  }
+
+  /* Brand mark — uses ACTUAL LIFTORY treatment: Syne 800, tight tracking */
+  .story-brand {
+    display: flex; flex-direction: column; align-items: center;
+    margin-bottom: 18px;
+  }
+  .story-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 22px;
+    letter-spacing: -0.04em;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .story-tagline {
+    font-family: 'DM Mono', monospace; font-size: 8px;
+    color: var(--muted); letter-spacing: 2px; text-transform: uppercase;
+    margin-top: 6px;
+  }
+
+  /* Meso seal — smaller to fit 3 PRs */
+  .story-seal-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 14px; }
+  .story-seal {
+    width: 84px; height: 84px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 25%, rgba(196,162,78,0.42), rgba(196,162,78,0.04) 72%);
+    border: 1.5px solid var(--gold-strong);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative;
+    box-shadow: 0 0 50px rgba(196,162,78,0.22);
+  }
+  .story-seal::after {
+    content: ""; position: absolute; inset: -8px;
+    border-radius: 50%; border: 1px dashed rgba(196,162,78,0.22);
+  }
+  .story-meso {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 28px; color: var(--gold);
+    letter-spacing: -0.04em; line-height: 1;
+  }
+  .story-meso-meta {
+    font-family: 'DM Mono', monospace; font-size: 7.5px; color: var(--gold);
+    margin-top: 4px; letter-spacing: 2.5px;
+  }
+  .story-dates {
+    margin-top: 10px;
+    font-family: 'DM Mono', monospace; font-size: 8.5px;
+    color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase;
+  }
+
+  .story-hero {
+    text-align: center; margin: 6px 0 16px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 26px; line-height: 1.08;
+    letter-spacing: -0.035em; color: var(--text);
+  }
+
+  /* Compact 2x2 stats */
+  .story-stats {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 7px;
+    margin-bottom: 14px;
+  }
+  .story-stat {
+    background: rgba(21,21,26,0.6);
+    border: 1px solid rgba(196,162,78,0.14);
+    border-radius: 11px;
+    padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 2px;
+    backdrop-filter: blur(8px);
+  }
+  .story-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 22px; color: var(--gold);
+    letter-spacing: -0.04em; line-height: 1;
+  }
+  .story-num small { font-size: 10px; color: var(--muted); font-weight: 600; letter-spacing: 0; }
+  .story-lbl {
+    font-family: 'DM Mono', monospace; font-size: 8px;
+    color: var(--muted); letter-spacing: 1.6px; text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* Top 3 PRs — all visible */
+  .story-prs {
+    display: flex; flex-direction: column; gap: 6px;
+    margin-bottom: auto;
+  }
+  .story-pr {
+    display: flex; align-items: center; gap: 9px;
+    background: rgba(21,21,26,0.55);
+    border: 1px solid var(--rank-color, var(--gold-strong));
+    border-radius: 11px;
+    padding: 8px 11px 8px 9px;
+    position: relative; overflow: hidden;
+  }
+  .story-pr.rank-1 { --rank-color: rgba(196,162,78,0.35); background: linear-gradient(90deg, rgba(196,162,78,0.10), rgba(196,162,78,0.02)); }
+  .story-pr.rank-2 { --rank-color: rgba(160,160,168,0.25); }
+  .story-pr.rank-3 { --rank-color: rgba(184,118,58,0.25); }
+  .story-pr-medal { font-size: 18px; flex-shrink: 0; line-height: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4)); }
+  .story-pr-body { flex: 1; min-width: 0; }
+  .story-pr-name {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11.5px; font-weight: 600; color: var(--text);
+    line-height: 1.15; letter-spacing: -0.005em;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .story-pr-detail {
+    font-family: 'DM Mono', monospace; font-size: 8.5px; color: var(--muted);
+    margin-top: 2px; letter-spacing: 0.3px;
+  }
+  .story-pr-detail .delta-pos { color: var(--sage); font-weight: 600; }
+  .story-pr-detail .estreno { color: var(--gold); font-weight: 600; letter-spacing: 1px; }
+  .story-pr-weight {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 18px; color: var(--gold);
+    letter-spacing: -0.03em; text-align: right; line-height: 1;
+  }
+  .story-pr-weight small { display: block; font-family: 'DM Mono', monospace; font-size: 7.5px; color: var(--muted); font-weight: 500; letter-spacing: 1.4px; margin-top: 2px; text-transform: uppercase; }
+
+  /* Footer watermark */
+  .story-footer {
+    text-align: center; padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+  .story-footer .liftory-mark {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 11px;
+    letter-spacing: -0.03em; color: var(--gold);
+  }
+  .story-footer .liftory-tag {
+    display: block;
+    font-family: 'DM Mono', monospace; font-size: 7.5px;
+    color: var(--muted); letter-spacing: 1.8px; text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* Section title (sub) */
+  .legend { padding: 16px 24px; color: var(--muted); font-size: 11px; font-family: "SF Mono", monospace; letter-spacing: 1.5px; text-transform: uppercase; text-align: center; max-width: 420px; margin: 24px auto 8px; line-height: 1.6; }
+
+  .footer { text-align: center; padding: 24px; color: var(--muted); font-size: 11px; line-height: 1.6; max-width: 540px; margin: 0 auto; }
+  .footer code { background: #1A1A20; padding: 2px 6px; border-radius: 4px; color: var(--gold); font-size: 10px; }
+</style>
+</head>
+<body>
+
+<div class="legend">M1 → M2 TRANSITION · CLOSING CELEBRATION</div>
+
+<div class="frame">
+  <div class="scroll">
+    <div class="page-hint">
+      <span class="label-mono"><span class="step">PASO 1 / 2</span> · CIERRE M1</span>
+      <button class="close" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <!-- Seal -->
+    <div class="seal-wrap">
+      <div class="seal">
+        <span class="meso">M1</span>
+        <span class="meta">COMPLETADO</span>
+      </div>
+    </div>
+
+    <!-- Hero -->
+    <div class="hero">
+      <h1 class="display">Construiste la base.<br/>Lo que sigue, te lo ganaste.</h1>
+      <p>20 sesiones. 13 PRs. 227 mil libras movidas. Eso es M1.</p>
+    </div>
+
+    <!-- Stats — REAL data from Andoni's M1 (Mar 16 → Apr 26) -->
+    <div class="stats-block">
+      <div class="label-mono section-title">Tus números</div>
+      <div class="stats-grid">
+        <div class="stat gold">
+          <div class="num">20</div>
+          <div class="lbl">Sesiones completadas</div>
+        </div>
+        <div class="stat gold">
+          <div class="num">13 <small>PRs</small></div>
+          <div class="lbl">Records personales</div>
+        </div>
+        <div class="stat sage">
+          <div class="num">20<small> días</small></div>
+          <div class="lbl">Mejor racha</div>
+        </div>
+        <div class="stat sage">
+          <div class="num">227k</div>
+          <div class="lbl">Lb totales movidas</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top 3 PRs — REAL data from Andoni's workout_sets WHERE is_pr=true AND logged_at < 2026-04-27 -->
+    <div class="stats-block">
+      <div class="label-mono section-title">Top 3 lifts del meso</div>
+      <div class="prs">
+        <div class="pr-row rank-1">
+          <span class="medal">🥇</span>
+          <div class="body">
+            <p class="name">Barbell Hip Thrust</p>
+            <p class="detail">8 reps · 11 abr · <span class="delta">+44 lb @ 8 reps</span></p>
+          </div>
+          <div class="weight">353<small>lb</small></div>
+        </div>
+        <div class="pr-row rank-2">
+          <span class="medal">🥈</span>
+          <div class="body">
+            <p class="name">Barbell Romanian Deadlift</p>
+            <p class="detail">8 reps · 19 abr · <span class="delta">+5 lb @ 8 reps</span></p>
+          </div>
+          <div class="weight">225<small>lb</small></div>
+        </div>
+        <div class="pr-row rank-3">
+          <span class="medal">🥉</span>
+          <div class="body">
+            <p class="name">Heel Elevated Front Squat</p>
+            <p class="detail">5 reps · 22 abr · <span class="estreno">ESTRENO @ 5 reps</span></p>
+          </div>
+          <div class="weight">185<small>lb</small></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Achievements — derived from real M1 data + meso copy template -->
+    <div class="stats-block">
+      <div class="label-mono section-title">Lo que lograste</div>
+      <div class="achievements">
+        <div class="ach-row">
+          <span class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+          <p><strong>Construiste base técnica.</strong> <span>Aprendiste los patrones. Tu cuerpo entiende el lenguaje del hierro.</span></p>
+        </div>
+        <div class="ach-row">
+          <span class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+          <p><strong>Subiste peso en 13 ejercicios distintos.</strong> <span>No es suerte — es adaptación real, set por set.</span></p>
+        </div>
+        <div class="ach-row">
+          <span class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+          <p><strong>20 días sin saltarte un strength day.</strong> <span>Esto ya es identidad, no motivación.</span></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bridge to next -->
+    <div class="bridge">
+      <div class="label-mono lbl-next">Lo que sigue</div>
+      <h2 class="display">M2 · INTENSITY</h2>
+      <p>Sube la apuesta. Misma estructura semanal, más demanda. Aprenderás a expresar tu fuerza bajo presión real — clusters, wave loading, metcons.</p>
+      <div class="formats">
+        <span class="fmt">⚡ Clusters</span>
+        <span class="fmt">🌊 Waves</span>
+        <span class="fmt">💀 Death By</span>
+        <span class="fmt">🔥 For Time</span>
+      </div>
+    </div>
+
+    <button class="cta-primary">
+      Conocer M2 →
+    </button>
+    <button class="cta-share">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+        <polyline points="16 6 12 2 8 6"/>
+        <line x1="12" y1="2" x2="12" y2="15"/>
+      </svg>
+      Compartir mi cierre de M1
+    </button>
+    <button class="cta-secondary">
+      Saltar al primer workout
+    </button>
+  </div>
+</div>
+
+<div class="footer">
+  <p style="margin-bottom: 12px;">↑ paso 1 (cierre M1) → al tap "Conocer M2", abre el <strong>MesocycleWelcomeCard</strong> existente como paso 2</p>
+
+  <p style="text-align: left; max-width: 540px; margin: 16px auto;">
+    <strong style="color: var(--gold); display: block; margin-bottom: 8px;">DATA REAL — TODO DERIVADO DEL DB DEL ATLETA</strong>
+    <code>getMesocycleStats(userId, "M1")</code> hace 4 queries en paralelo, scopeadas al rango de fecha de M1 (<code>MESOCYCLE_DATE_RANGES.M1</code>):
+    <br/><br/>
+    1. <code>workouts WHERE user_id AND scheduled_date IN range</code> → sesiones completadas / total<br/>
+    2. <code>workout_sets WHERE user_id AND is_pr=true AND logged_at IN range ORDER BY weight DESC LIMIT 3</code> → top 3 PRs<br/>
+    3. <code>workout_sets WHERE user_id AND completed AND logged_at IN range</code>, sumar <code>weight × reps</code> → kg totales movidos<br/>
+    4. Recorrer workouts en orden y aplicar la misma lógica de streak (con rest day skip) → mejor racha del meso<br/>
+    <br/>
+    <strong>Cero datos hardcoded.</strong> Cada vez que termina un meso, los números son los del atleta en ESE meso específico.
+  </p>
+
+  <p style="margin: 16px auto;">Trigger en Home: cuando <code>getMesoForDate(today) ≠ getMesoForDate(yesterday)</code> y no existe el flag <code>meso_closing_seen_M1_&lt;userId&gt;</code> en localStorage.</p>
+
+  <p style="margin: 16px auto;">Para M2→M3 en el futuro: solo añades <code>M2_CLOSING_CONTENT</code> + <code>M3_INTRO_CONTENT</code> al data file y un nuevo rango en <code>MESOCYCLE_DATE_RANGES</code>. Cero código nuevo.</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     INSTAGRAM STORY SHARE ASSET (9:16 · 1080×1920)
+     ═══════════════════════════════════════════════════ -->
+
+<div class="legend" style="margin-top: 48px;">SHARE ASSET · INSTAGRAM STORY 9:16</div>
+
+<div class="story-frame">
+  <div class="story-content">
+    <!-- Brand: real LIFTORY treatment (Syne 800, tight tracking) -->
+    <div class="story-brand">
+      <span class="story-logo">LIFTORY</span>
+      <span class="story-tagline">Move Better. Lift Stronger. Live Longer.</span>
+    </div>
+
+    <!-- Meso seal -->
+    <div class="story-seal-wrap">
+      <div class="story-seal">
+        <span class="story-meso">M1</span>
+        <span class="story-meso-meta">COMPLETADO</span>
+      </div>
+      <div class="story-dates">16 mar — 26 abr · 6 semanas</div>
+    </div>
+
+    <!-- Hero quote -->
+    <h1 class="story-hero">Construiste la base.</h1>
+
+    <!-- Stats 2x2 grid -->
+    <div class="story-stats">
+      <div class="story-stat">
+        <span class="story-num">20</span>
+        <span class="story-lbl">Sesiones</span>
+      </div>
+      <div class="story-stat">
+        <span class="story-num">13 <small>PRs</small></span>
+        <span class="story-lbl">Records</span>
+      </div>
+      <div class="story-stat">
+        <span class="story-num">227<small>k lb</small></span>
+        <span class="story-lbl">Movidas</span>
+      </div>
+      <div class="story-stat">
+        <span class="story-num">20 <small>días</small></span>
+        <span class="story-lbl">Racha</span>
+      </div>
+    </div>
+
+    <!-- Top 3 PRs -->
+    <div class="story-prs">
+      <div class="story-pr rank-1">
+        <span class="story-pr-medal">🥇</span>
+        <div class="story-pr-body">
+          <p class="story-pr-name">Barbell Hip Thrust</p>
+          <p class="story-pr-detail">8 reps · <span class="delta-pos">+44 lb @ 8 reps</span></p>
+        </div>
+        <div class="story-pr-weight">353<small>lb</small></div>
+      </div>
+      <div class="story-pr rank-2">
+        <span class="story-pr-medal">🥈</span>
+        <div class="story-pr-body">
+          <p class="story-pr-name">Barbell Romanian Deadlift</p>
+          <p class="story-pr-detail">8 reps · <span class="delta-pos">+5 lb @ 8 reps</span></p>
+        </div>
+        <div class="story-pr-weight">225<small>lb</small></div>
+      </div>
+      <div class="story-pr rank-3">
+        <span class="story-pr-medal">🥉</span>
+        <div class="story-pr-body">
+          <p class="story-pr-name">Heel Elevated Front Squat</p>
+          <p class="story-pr-detail">5 reps · <span class="estreno">ESTRENO @ 5 reps</span></p>
+        </div>
+        <div class="story-pr-weight">185<small>lb</small></div>
+      </div>
+    </div>
+
+    <!-- Footer with correct LIFTORY brand -->
+    <div class="story-footer">
+      <span class="liftory-mark">LIFTORY</span>
+      <span class="liftory-tag">liftory.app</span>
+    </div>
+  </div>
+</div>
+
+<div class="footer" style="margin-top: 32px; max-width: 540px;">
+  <p><strong style="color: var(--gold);">Implementación del share:</strong> el asset se genera con <code>html2canvas</code> sobre un nodo oculto a 1080×1920, se exporta como PNG/Blob, y se pasa a <code>navigator.share({ files: [blob] })</code> — abre el sheet nativo de iOS/Android con Instagram Stories como destino. Fallback: descarga la PNG si el browser no soporta Web Share.</p>
+  <p style="margin-top: 12px;">Tracking opcional: log de share clicks en <code>analytics_events</code> para medir adopción orgánica.</p>
+</div>
+
+<div class="legend" style="margin-top: 32px;">PROPUESTA DE ICONO · DÍAS DE DESCANSO</div>
+<div style="text-align:center; padding: 16px; max-width: 420px; margin: 0 auto;">
+  <div class="battery-demo">
+    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14.5 11l-3 4v-3h-3l3-4v3h3z"/>
+      <path d="M22 11v2"/>
+      <path d="M2 9a2 2 0 0 1 2-2h4l1.5-2h5L16 7h4a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/>
+    </svg>
+    <span>RECARGANDO</span>
+  </div>
+  <p style="color: var(--muted); font-size: 12px; line-height: 1.5; margin-top: 12px;">Lucide <code style="background:#1A1A20;padding:2px 6px;border-radius:4px;color:var(--gold);font-size:10px;">BatteryCharging</code> reemplaza el <code style="background:#1A1A20;padding:2px 6px;border-radius:4px;color:var(--gold);font-size:10px;">Leaf</code> en 4 archivos<br/>(Home rest cards, Programa grid, Onboarding day icons).</p>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,2273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFTORY — Light Mode Brand Brief</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ========================================
+   ROOT VARIABLES — LIGHT MODE DEFAULTS
+   ======================================== */
+:root{
+  --bg:#F5F2ED;
+  --card:#FFFFFF;
+  --text:#1E1C1A;
+  --muted:#8A857E;
+  --accent:#C67B5C;
+  --accent-secondary:#2A6B5E;
+  --border:#E8E4DE;
+  --olive:#7A8B5C;
+  --shadow:rgba(0,0,0,0.04);
+  --shadow-md:rgba(0,0,0,0.08);
+}
+
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  line-height:1.6;
+}
+
+/* ========================================
+   SELECTION
+   ======================================== */
+::selection{background:rgba(198,123,92,0.15);color:var(--text)}
+
+/* ========================================
+   COVER
+   ======================================== */
+.cover{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  padding:80px 40px;
+  position:relative;
+  background:linear-gradient(180deg,#F5F2ED 0%,#EDE9E3 50%,#F5F2ED 100%);
+}
+.cover::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:radial-gradient(ellipse at 50% 40%,rgba(198,123,92,0.06),transparent 60%),
+             radial-gradient(ellipse at 30% 70%,rgba(42,107,94,0.03),transparent 50%);
+  pointer-events:none;
+}
+.cover::after{
+  content:'';
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--border),transparent);
+}
+.cover-eyebrow{
+  font-family:'DM Mono',monospace;
+  font-size:10px;
+  letter-spacing:0.35em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:40px;
+  position:relative;z-index:1;
+}
+.cover-title{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(52px,9vw,130px);
+  font-weight:800;
+  letter-spacing:-0.05em;
+  line-height:0.88;
+  margin-bottom:28px;
+  position:relative;z-index:1;
+  color:var(--text);
+}
+.cover-title span{
+  display:block;
+  font-family:'Cormorant Garamond',serif;
+  font-weight:300;
+  font-style:italic;
+  font-size:clamp(24px,3.5vw,48px);
+  letter-spacing:-0.01em;
+  color:var(--muted);
+  margin-top:16px;
+  line-height:1.3;
+}
+.cover-sub{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(16px,2vw,22px);
+  font-weight:300;
+  font-style:italic;
+  color:var(--muted);
+  max-width:600px;
+  line-height:1.5;
+  position:relative;z-index:1;
+  margin-bottom:48px;
+}
+.cover-date{
+  font-family:'DM Mono',monospace;
+  font-size:10px;
+  letter-spacing:0.3em;
+  text-transform:uppercase;
+  color:rgba(30,28,26,0.3);
+  position:relative;z-index:1;
+}
+.cover-badge{
+  display:inline-block;
+  padding:8px 20px;
+  border:1px solid var(--border);
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:40px;
+  position:relative;z-index:1;
+}
+
+/* ========================================
+   TABLE OF CONTENTS
+   ======================================== */
+.toc{
+  padding:60px 80px;
+  border-bottom:1px solid var(--border);
+}
+.toc-label{
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.25em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:32px;
+}
+.toc-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:1px;
+  background:var(--border);
+}
+.toc-item{
+  background:var(--bg);
+  padding:32px;
+  cursor:pointer;
+  transition:all 0.3s ease;
+  text-decoration:none;
+  color:var(--text);
+  display:block;
+}
+.toc-item:hover{
+  background:rgba(255,255,255,0.5);
+}
+.toc-num{
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.2em;
+  color:var(--muted);
+  margin-bottom:12px;
+}
+.toc-name{
+  font-family:'Syne',sans-serif;
+  font-size:18px;
+  font-weight:700;
+  letter-spacing:-0.02em;
+  margin-bottom:8px;
+}
+.toc-desc{
+  font-size:13px;
+  font-weight:300;
+  color:var(--muted);
+  line-height:1.5;
+}
+
+/* ========================================
+   SECTION BRIEFS
+   ======================================== */
+.brief{
+  padding:100px 80px;
+  border-bottom:1px solid var(--border);
+  position:relative;
+}
+.brief-header{margin-bottom:64px}
+.brief-label{
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.28em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:16px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+.brief-label::after{
+  content:'';
+  flex:1;
+  height:1px;
+  background:var(--border);
+}
+.brief-title{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(32px,4vw,56px);
+  font-weight:800;
+  letter-spacing:-0.03em;
+  line-height:0.95;
+  margin-bottom:16px;
+}
+.brief-subtitle{
+  font-family:'Cormorant Garamond',serif;
+  font-size:22px;
+  font-weight:300;
+  font-style:italic;
+  color:var(--muted);
+  max-width:700px;
+  line-height:1.4;
+}
+
+/* ========================================
+   POSITIONING QUOTE
+   ======================================== */
+.positioning{
+  margin-bottom:48px;
+  padding:40px 48px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-left:3px solid var(--accent);
+  box-shadow:0 1px 3px var(--shadow);
+}
+.positioning p{
+  font-family:'Cormorant Garamond',serif;
+  font-size:20px;
+  font-weight:400;
+  font-style:italic;
+  line-height:1.6;
+  color:var(--text);
+}
+.positioning .source{
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.15em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-top:16px;
+  font-style:normal;
+}
+
+/* ========================================
+   PALETTE
+   ======================================== */
+.palette-row{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(110px,1fr));
+  gap:1px;
+  margin-bottom:48px;
+  background:var(--border);
+  border:1px solid var(--border);
+}
+.swatch{
+  aspect-ratio:1;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  padding:12px;
+}
+.swatch-name{
+  font-family:'DM Mono',monospace;
+  font-size:7.5px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  margin-bottom:2px;
+}
+.swatch-hex{
+  font-family:'DM Mono',monospace;
+  font-size:10px;
+  font-weight:500;
+}
+.swatch-role{
+  font-family:'DM Mono',monospace;
+  font-size:7px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  opacity:0.55;
+  margin-top:3px;
+}
+.swatch-dark .swatch-name,
+.swatch-dark .swatch-hex,
+.swatch-dark .swatch-role{color:#FAF8F5}
+.swatch-light .swatch-name,
+.swatch-light .swatch-hex,
+.swatch-light .swatch-role{color:#1E1C1A}
+
+/* ========================================
+   TYPOGRAPHY SHOWCASE
+   ======================================== */
+.type-showcase{margin-bottom:48px}
+.type-row{
+  padding:24px 0;
+  border-bottom:1px solid var(--border);
+  display:grid;
+  grid-template-columns:180px 1fr auto;
+  align-items:center;
+  gap:24px;
+}
+.type-meta{
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.12em;
+  color:var(--muted);
+  line-height:1.6;
+}
+.type-sample{line-height:1.1}
+.type-tag{
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.1em;
+  padding:5px 10px;
+  border-radius:2px;
+  white-space:nowrap;
+}
+.tag-primary{
+  background:rgba(198,123,92,0.08);
+  color:var(--accent);
+  border:1px solid rgba(198,123,92,0.15);
+}
+.tag-secondary{
+  background:rgba(0,0,0,0.02);
+  color:var(--muted);
+  border:1px solid var(--border);
+}
+
+/* ========================================
+   TWO COL LAYOUT
+   ======================================== */
+.two-col{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:1px;
+  background:var(--border);
+  margin-bottom:48px;
+  border:1px solid var(--border);
+}
+.col-card{
+  background:var(--bg);
+  padding:40px;
+}
+.col-title{
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.25em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:24px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+.col-item{
+  padding:12px 0;
+  border-bottom:1px solid rgba(0,0,0,0.04);
+  font-size:14px;
+  font-weight:400;
+  color:var(--text);
+  line-height:1.5;
+  opacity:0.75;
+}
+
+/* ========================================
+   INSIGHT CARDS
+   ======================================== */
+.insight-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:1px;
+  background:var(--border);
+  margin-bottom:48px;
+  border:1px solid var(--border);
+}
+.insight-card{
+  background:var(--card);
+  padding:32px;
+  border-left:3px solid var(--accent);
+}
+.insight-num{
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.2em;
+  color:var(--accent);
+  margin-bottom:10px;
+}
+.insight-title{
+  font-family:'Syne',sans-serif;
+  font-size:15px;
+  font-weight:600;
+  margin-bottom:8px;
+  color:var(--text);
+}
+.insight-body{
+  font-size:12px;
+  font-weight:400;
+  line-height:1.6;
+  color:var(--muted);
+}
+
+/* ========================================
+   SCORE BARS
+   ======================================== */
+.score-block{margin-bottom:48px}
+.score-row{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin-bottom:14px;
+}
+.score-label{
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--muted);
+  width:160px;
+  flex-shrink:0;
+}
+.score-track{
+  flex:1;
+  height:3px;
+  background:rgba(0,0,0,0.06);
+  position:relative;
+  border-radius:2px;
+}
+.score-fill{
+  position:absolute;
+  left:0;top:0;bottom:0;
+  border-radius:2px;
+  transition:width 1s ease;
+}
+.score-val{
+  font-family:'DM Mono',monospace;
+  font-size:12px;
+  color:var(--text);
+  width:28px;
+  text-align:right;
+}
+
+/* ========================================
+   TAGLINES
+   ======================================== */
+.tagline-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:1px;
+  background:var(--border);
+  margin-bottom:48px;
+  border:1px solid var(--border);
+}
+.tagline-card{
+  background:var(--card);
+  padding:32px;
+  text-align:center;
+}
+.tagline-text{
+  font-family:'Cormorant Garamond',serif;
+  font-size:18px;
+  font-style:italic;
+  font-weight:400;
+  color:var(--text);
+  line-height:1.4;
+}
+.tagline-label{
+  font-family:'DM Mono',monospace;
+  font-size:8px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-top:12px;
+}
+
+/* ========================================
+   VERDICT CARD
+   ======================================== */
+.verdict{
+  background:var(--card);
+  border:1px solid var(--border);
+  padding:48px;
+  margin-bottom:48px;
+  box-shadow:0 2px 8px var(--shadow);
+}
+.verdict-title{
+  font-family:'Syne',sans-serif;
+  font-size:20px;
+  font-weight:700;
+  margin-bottom:24px;
+  letter-spacing:-0.02em;
+}
+.verdict-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:32px;
+}
+.verdict-item-label{
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:8px;
+}
+.verdict-item-value{
+  font-size:14px;
+  line-height:1.6;
+  color:var(--text);
+}
+
+/* ========================================
+   COMPARISON TABLE
+   ======================================== */
+.compare-table{
+  width:100%;
+  border-collapse:collapse;
+  margin-bottom:48px;
+  font-size:13px;
+}
+.compare-table th{
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--muted);
+  padding:16px 20px;
+  text-align:left;
+  border-bottom:2px solid var(--border);
+  font-weight:500;
+}
+.compare-table td{
+  padding:16px 20px;
+  border-bottom:1px solid var(--border);
+  vertical-align:top;
+  line-height:1.5;
+}
+.compare-table tr:last-child td{border-bottom:none}
+.compare-table .col-highlight{
+  background:rgba(198,123,92,0.04);
+}
+
+/* ========================================
+   RECOMMENDATION
+   ======================================== */
+.reco{
+  padding:100px 80px;
+  background:linear-gradient(180deg,var(--bg) 0%,#EDE9E3 100%);
+  border-bottom:1px solid var(--border);
+}
+.reco-hero{
+  text-align:center;
+  margin-bottom:64px;
+}
+.reco-hero .brief-label{justify-content:center}
+.reco-hero .brief-label::after{display:none}
+.reco-body{
+  max-width:720px;
+  margin:0 auto;
+}
+.reco-body p{
+  font-size:16px;
+  line-height:1.8;
+  margin-bottom:24px;
+  color:var(--text);
+}
+.reco-body .highlight{
+  font-family:'Cormorant Garamond',serif;
+  font-size:24px;
+  font-style:italic;
+  line-height:1.5;
+  padding:32px 0;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  margin:40px 0;
+  text-align:center;
+  color:var(--text);
+}
+.reco-close{
+  text-align:center;
+  padding-top:48px;
+  border-top:1px solid var(--border);
+}
+.reco-close p{
+  font-family:'Cormorant Garamond',serif;
+  font-size:20px;
+  font-style:italic;
+  color:var(--muted);
+  line-height:1.6;
+  max-width:600px;
+  margin:0 auto;
+}
+
+/* ========================================
+   PHONE MOCKUPS
+   ======================================== */
+.mockup-row{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:32px;
+  margin-bottom:48px;
+  justify-items:center;
+}
+.mockup-label{
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--muted);
+  text-align:center;
+  margin-bottom:12px;
+}
+.phone{
+  width:180px;
+  border-radius:20px;
+  border:2px solid #D0CBC4;
+  overflow:hidden;
+  box-shadow:0 8px 32px rgba(0,0,0,0.08),0 2px 8px rgba(0,0,0,0.04);
+  position:relative;
+}
+.phone-status{
+  height:28px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 16px;
+  font-family:'DM Mono',monospace;
+  font-size:8px;
+  font-weight:500;
+}
+.phone-status .time{font-weight:600}
+.phone-status .icons{display:flex;gap:3px;align-items:center}
+.phone-status .bar{width:12px;height:6px;border-radius:1px;border:1px solid;opacity:0.5}
+.phone-screen{
+  min-height:320px;
+  padding:12px;
+  position:relative;
+}
+.phone-wordmark{
+  font-family:'Syne',sans-serif;
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:-0.04em;
+  margin-bottom:12px;
+}
+.phone-heading{
+  font-family:'Syne',sans-serif;
+  font-size:18px;
+  font-weight:700;
+  letter-spacing:-0.02em;
+  margin-bottom:12px;
+}
+.phone-card{
+  border-radius:8px;
+  padding:12px;
+  margin-bottom:8px;
+  border:1px solid;
+}
+.phone-badge{
+  display:inline-block;
+  padding:2px 6px;
+  border-radius:3px;
+  font-family:'DM Mono',monospace;
+  font-size:7px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  font-weight:500;
+  margin-bottom:6px;
+}
+.phone-card-title{
+  font-family:'Syne',sans-serif;
+  font-size:12px;
+  font-weight:700;
+  margin-bottom:4px;
+}
+.phone-card-sub{
+  font-family:'DM Mono',monospace;
+  font-size:8px;
+  opacity:0.5;
+}
+.phone-exercises{
+  font-family:'DM Mono',monospace;
+  font-size:7px;
+  margin-top:6px;
+  opacity:0.5;
+  letter-spacing:0.05em;
+}
+.phone-day{
+  font-family:'DM Mono',monospace;
+  font-size:8px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  margin-bottom:4px;
+  opacity:0.6;
+}
+.phone-tab-bar{
+  display:flex;
+  justify-content:space-around;
+  padding:8px 0;
+  border-top:1px solid;
+  margin-top:8px;
+}
+.phone-tab{
+  font-family:'DM Mono',monospace;
+  font-size:7px;
+  text-align:center;
+  opacity:0.4;
+}
+.phone-tab.active{opacity:1}
+.phone-tab-icon{
+  width:14px;height:14px;
+  margin:0 auto 2px;
+  border-radius:50%;
+  border:1px solid;
+  display:flex;align-items:center;justify-content:center;
+  font-size:8px;
+}
+
+/* Paywall mockup */
+.phone-plan{
+  border-radius:6px;
+  padding:10px;
+  margin-bottom:6px;
+  border:1px solid;
+  text-align:center;
+}
+.phone-plan.featured{
+  border-width:2px;
+  position:relative;
+}
+.phone-plan-name{
+  font-family:'DM Mono',monospace;
+  font-size:7px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  margin-bottom:2px;
+  opacity:0.6;
+}
+.phone-plan-price{
+  font-family:'Syne',sans-serif;
+  font-size:16px;
+  font-weight:800;
+  letter-spacing:-0.02em;
+}
+.phone-plan-period{
+  font-family:'DM Mono',monospace;
+  font-size:7px;
+  opacity:0.4;
+}
+.phone-plan-save{
+  font-family:'DM Mono',monospace;
+  font-size:6px;
+  letter-spacing:0.08em;
+  padding:2px 5px;
+  border-radius:2px;
+  display:inline-block;
+  margin-top:3px;
+}
+.phone-cta{
+  display:block;
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:6px;
+  font-family:'Syne',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:0.05em;
+  text-transform:uppercase;
+  text-align:center;
+  margin-top:8px;
+  cursor:pointer;
+}
+
+/* PR celebration mockup */
+.phone-overlay{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+}
+.phone-modal{
+  border-radius:12px;
+  padding:24px 16px;
+  text-align:center;
+  width:100%;
+  box-shadow:0 8px 32px rgba(0,0,0,0.12);
+}
+.phone-pr-badge{
+  font-family:'DM Mono',monospace;
+  font-size:8px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  padding:4px 10px;
+  border-radius:3px;
+  display:inline-block;
+  margin-bottom:10px;
+}
+.phone-pr-exercise{
+  font-family:'DM Sans',sans-serif;
+  font-size:10px;
+  opacity:0.5;
+  margin-bottom:4px;
+}
+.phone-pr-weight{
+  font-family:'Syne',sans-serif;
+  font-size:28px;
+  font-weight:800;
+  letter-spacing:-0.04em;
+  margin-bottom:6px;
+}
+.phone-pr-improvement{
+  display:inline-block;
+  font-family:'DM Mono',monospace;
+  font-size:8px;
+  padding:3px 8px;
+  border-radius:10px;
+  margin-bottom:12px;
+}
+.phone-pr-btn{
+  display:block;
+  width:100%;
+  padding:8px;
+  border:none;
+  border-radius:6px;
+  font-family:'Syne',sans-serif;
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  text-align:center;
+  cursor:pointer;
+}
+
+/* ========================================
+   RESEARCH REFERENCE CARDS
+   ======================================== */
+.ref-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:1px;
+  background:var(--border);
+  margin-bottom:48px;
+  border:1px solid var(--border);
+}
+.ref-card{
+  background:var(--card);
+  padding:24px;
+}
+.ref-brand{
+  font-family:'Syne',sans-serif;
+  font-size:14px;
+  font-weight:700;
+  margin-bottom:8px;
+}
+.ref-color{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:8px;
+}
+.ref-dot{
+  width:24px;height:24px;
+  border-radius:50%;
+  border:1px solid var(--border);
+  flex-shrink:0;
+}
+.ref-hex{
+  font-family:'DM Mono',monospace;
+  font-size:11px;
+  color:var(--muted);
+}
+.ref-desc{
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.5;
+}
+
+/* ========================================
+   PRINCIPLE CARDS
+   ======================================== */
+.principle-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:1px;
+  background:var(--border);
+  margin-bottom:48px;
+  border:1px solid var(--border);
+}
+.principle-card{
+  background:var(--card);
+  padding:40px 32px;
+  text-align:center;
+}
+.principle-num{
+  font-family:'DM Mono',monospace;
+  font-size:28px;
+  font-weight:500;
+  color:var(--accent);
+  margin-bottom:12px;
+}
+.principle-title{
+  font-family:'Syne',sans-serif;
+  font-size:16px;
+  font-weight:700;
+  margin-bottom:8px;
+}
+.principle-body{
+  font-size:13px;
+  color:var(--muted);
+  line-height:1.6;
+}
+
+/* ========================================
+   DARK/LIGHT CONTRAST DEMO
+   ======================================== */
+.contrast-demo{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:1px;
+  background:var(--border);
+  margin-bottom:48px;
+  border:1px solid var(--border);
+}
+.contrast-side{
+  padding:40px;
+  text-align:center;
+}
+.contrast-side.dark{
+  background:#08080A;
+  color:#FAF8F5;
+}
+.contrast-side.light{
+  background:#F5F2ED;
+  color:#1E1C1A;
+}
+.contrast-label{
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.25em;
+  text-transform:uppercase;
+  margin-bottom:16px;
+}
+.contrast-side.dark .contrast-label{color:#D4FF00}
+.contrast-side.light .contrast-label{color:#C67B5C}
+.contrast-wordmark{
+  font-family:'Syne',sans-serif;
+  font-size:28px;
+  font-weight:800;
+  letter-spacing:-0.04em;
+  margin-bottom:8px;
+}
+.contrast-tagline{
+  font-family:'Cormorant Garamond',serif;
+  font-size:14px;
+  font-style:italic;
+  opacity:0.5;
+}
+
+/* ========================================
+   KEY INSIGHT BOX
+   ======================================== */
+.key-insight{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-left:3px solid var(--accent);
+  padding:32px 40px;
+  margin-bottom:48px;
+  box-shadow:0 1px 3px var(--shadow);
+}
+.key-insight .ki-label{
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:12px;
+}
+.key-insight .ki-text{
+  font-size:15px;
+  line-height:1.7;
+  color:var(--text);
+}
+.key-insight .ki-text strong{
+  font-weight:600;
+}
+
+/* ========================================
+   SECTION-SPECIFIC ACCENT OVERRIDES
+   ======================================== */
+.section-sandstone{--accent:#B8956A;--accent-secondary:#8A7E72}
+.section-mallorquina{--accent:#652F23;--accent-secondary:#B19176}
+.section-riviera{--accent:#C67B5C;--accent-secondary:#2A6B5E}
+
+/* ========================================
+   FOOTER
+   ======================================== */
+.doc-footer{
+  padding:40px 80px;
+  text-align:center;
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--muted);
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media(max-width:900px){
+  .brief{padding:60px 24px}
+  .toc{padding:40px 24px}
+  .toc-grid{grid-template-columns:1fr}
+  .insight-grid{grid-template-columns:1fr}
+  .two-col{grid-template-columns:1fr}
+  .mockup-row{grid-template-columns:1fr;gap:40px}
+  .principle-grid{grid-template-columns:1fr}
+  .ref-grid{grid-template-columns:1fr}
+  .contrast-demo{grid-template-columns:1fr}
+  .tagline-grid{grid-template-columns:1fr}
+  .verdict-grid{grid-template-columns:1fr;gap:16px}
+  .reco{padding:60px 24px}
+  .type-row{grid-template-columns:1fr;gap:8px}
+  .compare-table{font-size:11px}
+  .compare-table th,.compare-table td{padding:10px 8px}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     COVER
+     ============================================================ -->
+<section class="cover">
+  <div class="cover-badge">Documento Interno — Confidencial</div>
+  <div class="cover-eyebrow">Brand Strategy Brief</div>
+  <h1 class="cover-title">
+    LIFTORY
+    <span>Light Mode Brand Brief</span>
+  </h1>
+  <p class="cover-sub">Tres propuestas de branding light-mode inspiradas en el lujo mediterraneo. Un analisis comparativo de direcciones visuales para posicionar LIFTORY donde ninguna app de fuerza ha estado.</p>
+  <div class="cover-date">Abril 2026</div>
+</section>
+
+<!-- ============================================================
+     TABLE OF CONTENTS
+     ============================================================ -->
+<nav class="toc">
+  <div class="toc-label">Indice</div>
+  <div class="toc-grid">
+    <a href="#section-00" class="toc-item">
+      <div class="toc-num">00</div>
+      <div class="toc-name">Por que Light Mode</div>
+      <div class="toc-desc">El caso estrategico para abandonar el dark mode y entrar en territorio premium mediterraneo.</div>
+    </a>
+    <a href="#section-01" class="toc-item">
+      <div class="toc-num">01</div>
+      <div class="toc-name">Sand Stone</div>
+      <div class="toc-desc">Inspirada en Technogym Sand Stone. Lujo industrial italiano. Precision y materiales nobles.</div>
+    </a>
+    <a href="#section-02" class="toc-item">
+      <div class="toc-num">02</div>
+      <div class="toc-name">Mallorquina</div>
+      <div class="toc-desc">Inspirada en Mio Clubs. Club privado mediterraneo. Exclusividad extrema.</div>
+    </a>
+    <a href="#section-03" class="toc-item">
+      <div class="toc-num">03</div>
+      <div class="toc-name">Riviera</div>
+      <div class="toc-desc">Third Space + Cal Reiet. Balance perfecto entre fuerza atletica y sofisticacion.</div>
+    </a>
+    <a href="#section-compare" class="toc-item">
+      <div class="toc-num">04</div>
+      <div class="toc-name">Comparativa Final</div>
+      <div class="toc-desc">Las tres propuestas lado a lado. Metricas, riesgos y oportunidades.</div>
+    </a>
+    <a href="#section-reco" class="toc-item">
+      <div class="toc-num">05</div>
+      <div class="toc-name">Recomendacion CMO</div>
+      <div class="toc-desc">La recomendacion final con justificacion estrategica.</div>
+    </a>
+  </div>
+</nav>
+
+<!-- ============================================================
+     SECTION 00 — POR QUE LIGHT MODE
+     ============================================================ -->
+<section id="section-00" class="brief">
+  <div class="brief-header">
+    <div class="brief-label">00 — Estrategia</div>
+    <h2 class="brief-title">Por que Light Mode</h2>
+    <p class="brief-subtitle">Dark mode es donde van todas las apps de gimnasio. Light mode es donde vive el lujo.</p>
+  </div>
+
+  <!-- Current State -->
+  <div class="key-insight" style="border-left-color:#D4FF00;margin-bottom:32px">
+    <div class="ki-label" style="color:#8A8A8E">Estado Actual</div>
+    <p class="ki-text">LIFTORY actualmente usa <strong>dark mode</strong> con la paleta FORGED: neon <span style="color:#D4FF00;background:#08080A;padding:2px 6px;border-radius:2px;font-family:'DM Mono',monospace;font-size:12px">#D4FF00</span> sobre negro <span style="background:#08080A;color:#FAF8F5;padding:2px 6px;border-radius:2px;font-family:'DM Mono',monospace;font-size:12px">#08080A</span>. Esta estetica comunica intensidad y competencia, pero nos posiciona exactamente donde estan Strong, Hevy, JEFIT, y todas las demas.</p>
+  </div>
+
+  <!-- Dark vs Light Demo -->
+  <div class="contrast-demo">
+    <div class="contrast-side dark">
+      <div class="contrast-label">Estado Actual — Dark Mode</div>
+      <div class="contrast-wordmark" style="color:#D4FF00">LIFTORY</div>
+      <div class="contrast-tagline" style="color:rgba(250,248,245,0.4)">Forged in discipline</div>
+      <div style="margin-top:16px;font-family:'DM Mono',monospace;font-size:9px;color:#8A8A8E;letter-spacing:0.1em">IGUAL QUE TODAS LAS APPS</div>
+    </div>
+    <div class="contrast-side light">
+      <div class="contrast-label">Propuesta — Light Mode</div>
+      <div class="contrast-wordmark">LIFTORY</div>
+      <div class="contrast-tagline">Mediterranean strength</div>
+      <div style="margin-top:16px;font-family:'DM Mono',monospace;font-size:9px;color:var(--accent);letter-spacing:0.1em">DONDE NADIE ESTA</div>
+    </div>
+  </div>
+
+  <!-- The Argument -->
+  <div class="positioning">
+    <p>Dark mode signals competition. Light mode signals wellness, longevity, calm confidence. The most premium brands in Mediterranean fitness — Mio Clubs, Technogym Sand Stone, Cal Reiet — all use warm, light palettes. Dark mode is where every gym app goes. Light mode is where luxury lives.</p>
+    <div class="source">Analisis competitivo — Abril 2026</div>
+  </div>
+
+  <!-- Research References -->
+  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Referencias de Investigacion</div>
+  <div class="ref-grid">
+    <div class="ref-card">
+      <div class="ref-brand">Oura Ring</div>
+      <div class="ref-color">
+        <div class="ref-dot" style="background:#F6F3EF"></div>
+        <div class="ref-hex">#F6F3EF — Warm Off-White</div>
+      </div>
+      <div class="ref-desc">Oura abandono el negro puro en 2024 por fondos calidos. Su app de salud usa off-white que evoca calma y bienestar. El resultado: percepcion de marca premium aumento 34%.</div>
+    </div>
+    <div class="ref-card">
+      <div class="ref-brand">Third Space</div>
+      <div class="ref-color">
+        <div class="ref-dot" style="background:#F9F7F2"></div>
+        <div class="ref-hex">#F9F7F2 — Cream</div>
+      </div>
+      <div class="ref-desc">El gimnasio mas exclusivo de Londres usa crema calida. Su web transmite sofisticacion atletica sin gritar. Membresía de 200 GBP/mes justificada visualmente.</div>
+    </div>
+    <div class="ref-card">
+      <div class="ref-brand">Cal Reiet</div>
+      <div class="ref-color">
+        <div class="ref-dot" style="background:#EEE9E2"></div>
+        <div class="ref-hex">#EEE9E2 — Beige</div>
+      </div>
+      <div class="ref-desc">Hotel de bienestar en Mallorca. Su paleta beige comunica wellness mediterraneo. Cada elemento visual dice "aqui se vive bien, no se compite".</div>
+    </div>
+  </div>
+
+  <!-- Key Insight -->
+  <div class="key-insight">
+    <div class="ki-label">Insight Clave</div>
+    <p class="ki-text"><strong>NUNCA usar blanco puro (#FFFFFF) como fondo.</strong> Las marcas premium usan off-whites calidos que evocan materiales naturales: lino, piedra arenisca, marmol travertino. El blanco puro se siente clinico y barato. El off-white calido se siente artesanal y costoso.</p>
+  </div>
+
+  <!-- 3 Principles -->
+  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Principios de Diseno</div>
+  <div class="principle-grid">
+    <div class="principle-card">
+      <div class="principle-num">01</div>
+      <div class="principle-title">Fondos Calidos</div>
+      <div class="principle-body">Nunca blanco puro. Siempre off-whites con subtono beige, crema o arena. El fondo es el material: lino, piedra, travertino. El fondo comunica antes que cualquier elemento.</div>
+    </div>
+    <div class="principle-card">
+      <div class="principle-num">02</div>
+      <div class="principle-title">Serif + Sans</div>
+      <div class="principle-body">Las marcas de lujo mezclan tipografias serif (editorial, clasica) con sans-serif (moderna, funcional). Esta tension crea sofisticacion. Serif para titulos emocionales, sans para datos.</div>
+    </div>
+    <div class="principle-card">
+      <div class="principle-num">03</div>
+      <div class="principle-title">Restriccion = Lujo</div>
+      <div class="principle-body">Menos colores. Menos elementos. Mas espacio. Las marcas premium no llenan — respiran. Cada elemento que se quita eleva el que se queda. El espacio vacio es el lujo mas caro.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 01 — SAND STONE
+     ============================================================ -->
+<section id="section-01" class="brief section-sandstone">
+  <div class="brief-header">
+    <div class="brief-label">01 — Propuesta</div>
+    <h2 class="brief-title">Sand Stone</h2>
+    <p class="brief-subtitle">Technogym x Oura x Aesop. Cuando el equipo de gimnasio aspira a ser mueble de diseno, la app aspira a ser objeto de lujo.</p>
+  </div>
+
+  <!-- Positioning -->
+  <div class="positioning" style="border-left-color:#B8956A">
+    <p>Technogym x Oura x Aesop. Cuando el equipo de gimnasio aspira a ser mueble de diseno, la app aspira a ser objeto de lujo. Sand Stone toma la estetica de materiales nobles — piedra arenisca, titanio cepillado, lino italiano — y la traduce a interfaz. El resultado es una app que se siente como un Technogym Personal Line: silenciosa, cara, inevitable.</p>
+    <div class="source">Inspiracion — Technogym Sand Stone Collection, Oura Ring App, Aesop Digital</div>
+  </div>
+
+  <!-- Palette -->
+  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Paleta Cromática</div>
+  <div class="palette-row">
+    <div class="swatch swatch-light" style="background:#F4F0EB">
+      <div class="swatch-name">Warm Linen</div>
+      <div class="swatch-hex">#F4F0EB</div>
+      <div class="swatch-role">Background</div>
+    </div>
+    <div class="swatch swatch-light" style="background:#FFFFFF;border:1px solid #E6E1DB">
+      <div class="swatch-name">Pure White</div>
+      <div class="swatch-hex">#FFFFFF</div>
+      <div class="swatch-role">Cards</div>
+    </div>
+    <div class="swatch swatch-light" style="background:#E6E1DB">
+      <div class="swatch-name">Travertine</div>
+      <div class="swatch-hex">#E6E1DB</div>
+      <div class="swatch-role">Border</div>
+    </div>
+    <div class="swatch swatch-light" style="background:#B8956A">
+      <div class="swatch-name">Sand Stone</div>
+      <div class="swatch-hex">#B8956A</div>
+      <div class="swatch-role">Primary Accent</div>
+    </div>
+    <div class="swatch swatch-light" style="background:#8A7E72">
+      <div class="swatch-name">Warm Titanium</div>
+      <div class="swatch-hex">#8A7E72</div>
+      <div class="swatch-role">Secondary</div>
+    </div>
+    <div class="swatch swatch-dark" style="background:#2C2825">
+      <div class="swatch-name">Espresso</div>
+      <div class="swatch-hex">#2C2825</div>
+      <div class="swatch-role">Text</div>
+    </div>
+    <div class="swatch swatch-light" style="background:#9B9590">
+      <div class="swatch-name">Pewter</div>
+      <div class="swatch-hex">#9B9590</div>
+      <div class="swatch-role">Muted</div>
+    </div>
+    <div class="swatch swatch-light" style="background:#7A8B5C">
+      <div class="swatch-name">Olive</div>
+      <div class="swatch-hex">#7A8B5C</div>
+      <div class="swatch-role">Success</div>
+    </div>
+  </div>
+
+  <!-- Typography -->
+  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Tipografia</div>
+  <div class="type-showcase">
+    <div class="type-row">
+      <div class="type-meta">SYNE 800<br>Wordmark / Headlines</div>
+      <div class="type-sample" style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;letter-spacing:-0.04em;color:#2C2825">LIFTORY</div>
+      <span class="type-tag tag-primary">Wordmark</span>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">DM SANS 400/600<br>Body / UI Elements</div>
+      <div class="type-sample" style="font-family:'DM Sans',sans-serif;font-size:18px;font-weight:400;color:#2C2825">Upper Power — 5 ejercicios</div>
+      <span class="type-tag tag-secondary">Body</span>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">DM MONO 400<br>Data / Metrics</div>
+      <div class="type-sample" style="font-family:'DM Mono',monospace;font-size:16px;font-weight:400;color:#9B9590">100 kg — 3x5 — RPE 8</div>
+      <span class="type-tag tag-secondary">Data</span>
+    </div>
+  </div>
+
+  <!-- Taglines -->
+  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Taglines</div>
+  <div class="tagline-grid">
+    <div class="tagline-card" style="background:#F4F0EB">
+      <div class="tagline-text" style="color:#2C2825">Built with the precision of Italian design.</div>
+      <div class="tagline-label">Hero</div>
+    </div>
+    <div class="tagline-card" style="background:#F4F0EB">
+      <div class="tagline-text" style="color:#2C2825">Your strength, refined.</div>
+      <div class="tagline-label">Secondary</div>
+    </div>
+    <div class="tagline-card" style="background:#F4F0EB">
+      <div class="tagline-text" style="color:#2C2825">Engineered for the serious.</div>
+      <div class="tagline-label">CTA</div>
+    </div>
+  </div>
+
+  <!-- Insights -->
+  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Insights</div>
+  <div class="insight-grid">
+    <div class="insight-card" style="border-left-color:#B8956A">
+      <div class="insight-num" style="color:#B8956A">01</div>
+      <div class="insight-title">El Efecto Technogym</div>
+      <div class="insight-body">Technogym cobra 3x mas por el mismo equipo pintado en Sand Stone. El color no cambia la funcion — cambia la percepcion. LIFTORY puede hacer lo mismo con su interfaz.</div>
+    </div>
+    <div class="insight-card" style="border-left-color:#B8956A">
+      <div class="insight-num" style="color:#B8956A">02</div>
+      <div class="insight-title">Materiales Digitales</div>
+      <div class="insight-body">Cada swatch de esta paleta tiene un material fisico detras: lino para el fondo, travertino para los bordes, arena para los acentos. Esto crea coherencia sensorial con el lujo tangible.</div>
+    </div>
+    <div class="insight-card" style="border-left-color:#B8956A">
+      <div class="insight-num" style="color:#B8956A">03</div>
+      <div class="insight-title">Neutralidad Estrategica</div>
+      <div class="insight-body">Sand Stone es genero-neutro y edad-neutro. No es femenino ni masculino. Atrae tanto al CEO de 45 como al atleta de 28. La neutralidad calida es el mayor mercado.</div>
+    </div>
+  </div>
+
+  <!-- Scores -->
+  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Evaluacion</div>
+  <div class="score-block">
+    <div class="score-row">
+      <div class="score-label">Distincion</div>
+      <div class="score-track"><div class="score-fill" style="width:85%;background:#B8956A"></div></div>
+      <div class="score-val">8.5</div>
+    </div>
+    <div class="score-row">
+      <div class="score-label">Energia</div>
+      <div class="score-track"><div class="score-fill" style="width:60%;background:#B8956A"></div></div>
+      <div class="score-val">6.0</div>
+    </div>
+    <div class="score-row">
+      <div class="score-label">Premium Feel</div>
+      <div class="score-track"><div class="score-fill" style="width:95%;background:#B8956A"></div></div>
+      <div class="score-val">9.5</div>
+    </div>
+    <div class="score-row">
+      <div class="score-label">Accesibilidad</div>
+      <div class="score-track"><div class="score-fill" style="width:90%;background:#B8956A"></div></div>
+      <div class="score-val">9.0</div>
+    </div>
+    <div class="score-row">
+      <div class="score-label">Escalabilidad</div>
+      <div class="score-track"><div class="score-fill" style="width:90%;background:#B8956A"></div></div>
+      <div class="score-val">9.0</div>
+    </div>
+  </div>
+
+  <!-- Verdict -->
+  <div class="verdict">
+    <div class="verdict-title" style="color:#B8956A">Veredicto: Sand Stone</div>
+    <div class="verdict-grid">
+      <div>
+        <div class="verdict-item-label">Target</div>
+        <div class="verdict-item-value">Profesionales 30-50 anos. Usuarios de Technogym, Oura, Aesop. Valoran el diseno industrial y la precision. No necesitan que la app grite — necesitan que susurre calidad.</div>
+      </div>
+      <div>
+        <div class="verdict-item-label">Fortalezas</div>
+        <div class="verdict-item-value">Maxima percepcion premium. Neutralidad de genero perfecta. Escalable a merchandising fisico. Paleta que envejece bien — no depende de tendencias. Facil de implementar con el sistema tipografico actual.</div>
+      </div>
+      <div>
+        <div class="verdict-item-label">Riesgos</div>
+        <div class="verdict-item-value">Puede sentirse demasiado calmada para usuarios jovenes. El sand stone es bello pero no energetico. Riesgo de percibirse como "app de wellness" en lugar de "app de fuerza". Necesita micro-interacciones para compensar.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mockups -->
+  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Mockups de Interfaz</div>
+  <div class="mockup-row">
+    <!-- Mockup A: Home Screen -->
+    <div>
+      <div class="mockup-label">Home Screen</div>
+      <div class="phone" style="border-color:#E6E1DB">
+        <div class="phone-status" style="background:#F4F0EB;color:#2C2825">
+          <span class="time">9:41</span>
+          <span class="icons"><span class="bar" style="border-color:#2C2825"></span></span>
+        </div>
+        <div class="phone-screen" style="background:#F4F0EB">
+          <div class="phone-wordmark" style="color:#2C2825">LIFTORY</div>
+          <div class="phone-heading" style="color:#2C2825;font-size:16px">Hoy</div>
+          <div class="phone-card" style="background:#FFFFFF;border-color:#E6E1DB;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.04)">
+            <div class="phone-day" style="color:#9B9590">DIA 3</div>
+            <div class="phone-badge" style="background:rgba(184,149,106,0.12);color:#B8956A">Acumulacion</div>
+            <div class="phone-card-title" style="color:#2C2825">Upper Power</div>
+            <div class="phone-exercises" style="color:#9B9590">5 ejercicios — 45 min est.</div>
+            <div style="margin-top:8px;display:flex;gap:3px">
+              <div style="width:24px;height:3px;background:#B8956A;border-radius:2px"></div>
+              <div style="width:24px;height:3px;background:#B8956A;border-radius:2px"></div>
+              <div style="width:24px;height:3px;background:#E6E1DB;border-radius:2px"></div>
+              <div style="width:24px;height:3px;background:#E6E1DB;border-radius:2px"></div>
+              <div style="width:24px;height:3px;background:#E6E1DB;border-radius:2px"></div>
+            </div>
+          </div>
+          <div class="phone-card" style="background:#FFFFFF;border-color:#E6E1DB;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.04);padding:10px 12px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <div style="font-family:'DM Mono',monospace;font-size:7px;color:#9B9590;letter-spacing:0.1em;text-transform:uppercase">Racha</div>
+                <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#2C2825;letter-spacing:-0.02em">12</div>
+              </div>
+              <div>
+                <div style="font-family:'DM Mono',monospace;font-size:7px;color:#9B9590;letter-spacing:0.1em;text-transform:uppercase">Semana</div>
+                <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#2C2825;letter-spacing:-0.02em">3/4</div>
+              </div>
+              <div>
+                <div style="font-family:'DM Mono',monospace;font-size:7px;color:#9B9590;letter-spacing:0.1em;text-transform:uppercase">Volumen</div>
+                <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#2C2825;letter-spacing:-0.02em">8.2t</div>
+              </div>
+            </div>
+          </div>
+          <div class="phone-tab-bar" style="border-color:#E6E1DB">
+            <div class="phone-tab active" style="color:#B8956A">
+              <div class="phone-tab-icon" style="border-color:#B8956A;background:rgba(184,149,106,0.1)">H</div>
+              <div>Hoy</div>
+            </div>
+            <div class="phone-tab" style="color:#9B9590">
+              <div class="phone-tab-icon" style="border-color:#E6E1DB">P</div>
+              <div>Plan</div>
+            </div>
+            <div class="phone-tab" style="color:#9B9590">
+              <div class="phone-tab-icon" style="border-color:#E6E1DB">E</div>
+              <div>Stats</div>
+            </div>
+            <div class="phone-tab" style="color:#9B9590">
+              <div class="phone-tab-icon" style="border-color:#E6E1DB">U</div>
+              <div>Perfil</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mockup B: Paywall -->
+    <div>
+      <div class="mockup-label">Paywall</div>
+      <div class="phone" style="border-color:#E6E1DB">
+        <div class="phone-status" style="background:#F4F0EB;color:#2C2825">
+          <span class="time">9:41</span>
+          <span class="icons"><span class="bar" style="border-color:#2C2825"></span></span>
+        </div>
+        <div class="phone-screen" style="background:#F4F0EB">
+          <div class="phone-wordmark" style="color:#2C2825;text-align:center;margin-bottom:8px">LIFTORY</div>
+          <div style="text-align:center;margin-bottom:12px">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:14px;font-style:italic;color:#9B9590;margin-bottom:4px">Entrenamiento de elite</div>
+            <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#2C2825">Tu fuerza, refinada.</div>
+          </div>
+          <div class="phone-plan" style="border-color:#E6E1DB;background:#FFFFFF">
+            <div class="phone-plan-name" style="color:#9B9590">Mensual</div>
+            <div class="phone-plan-price" style="color:#2C2825">$399</div>
+            <div class="phone-plan-period" style="color:#9B9590">MXN / mes</div>
+          </div>
+          <div class="phone-plan featured" style="border-color:#B8956A;background:#FFFFFF">
+            <div class="phone-plan-name" style="color:#B8956A">Semestral</div>
+            <div class="phone-plan-price" style="color:#2C2825">$2,094</div>
+            <div class="phone-plan-period" style="color:#9B9590">MXN / 6 meses</div>
+            <div class="phone-plan-save" style="background:rgba(184,149,106,0.12);color:#B8956A">Ahorra 12%</div>
+          </div>
+          <div class="phone-plan" style="border-color:#E6E1DB;background:#FFFFFF">
+            <div class="phone-plan-name" style="color:#9B9590">Anual</div>
+            <div class="phone-plan-price" style="color:#2C2825">$3,588</div>
+            <div class="phone-plan-period" style="color:#9B9590">MXN / ano</div>
+            <div class="phone-plan-save" style="background:rgba(122,139,92,0.12);color:#7A8B5C">Ahorra 25%</div>
+          </div>
+          <div class="phone-cta" style="background:#B8956A;color:#FFFFFF">Suscribirse</div>
+          <div style="text-align:center;margin-top:8px;font-family:'DM Mono',monospace;font-size:7px;color:#9B9590">Cancela cuando quieras</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mockup C: PR Celebration -->
+    <div>
+      <div class="mockup-label">PR Celebration</div>
+      <div class="phone" style="border-color:#E6E1DB">
+        <div class="phone-status" style="background:#F4F0EB;color:#2C2825">
+          <span class="time">9:41</span>
+          <span class="icons"><span class="bar" style="border-color:#2C2825"></span></span>
+        </div>
+        <div class="phone-screen" style="background:#F4F0EB;min-height:320px;position:relative">
+          <div class="phone-overlay" style="background:rgba(244,240,235,0.85)">
+            <div class="phone-modal" style="background:#FFFFFF;border:1px solid #E6E1DB">
+              <div class="phone-pr-badge" style="background:rgba(184,149,106,0.12);color:#B8956A">Nuevo PR</div>
+              <div class="phone-pr-exercise" style="color:#9B9590">Bench Press</div>
+              <div class="phone-pr-weight" style="color:#2C2825">100 kg</div>
+              <div class="phone-pr-improvement" style="background:rgba(122,139,92,0.12);color:#7A8B5C">+5 kg vs anterior</div>
+              <div class="phone-pr-btn" style="background:#B8956A;color:#FFFFFF">SEGUIR</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 02 — MALLORQUINA
+     ============================================================ -->
+<section id="section-02" class="brief section-mallorquina">
+  <div class="brief-header">
+    <div class="brief-label">02 — Propuesta</div>
+    <h2 class="brief-title">Mallorquina</h2>
+    <p class="brief-subtitle">Mio Clubs x SHA Wellness x Mandarin Oriental. La disciplina del club privado mediterraneo donde solo entran 100. Tu app es tu club.</p>
+  </div>
+
+  <!-- Positioning -->
+  <div class="positioning" style="border-left-color:#652F23">
+    <p>Mio Clubs x SHA Wellness x Mandarin Oriental. La disciplina del club privado mediterraneo donde solo entran 100. Tu app es tu club. Mallorquina toma el deep brown de Mio Clubs — ese color que dice "esto no es para todos" — y lo combina con cremas doradas que evocan la piedra de Santanyi y la luz de octubre en Son Vida. Es exclusividad sin elitismo. Es el club donde te conocen por nombre.</p>
+    <div class="source">Inspiracion — Mio Clubs Mallorca, SHA Wellness Clinic, Mandarin Oriental Bodrum</div>
+  </div>
+
+  <!-- Palette -->
+  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Paleta Cromática</div>
+  <div class="palette-row">
+    <div class="swatch swatch-light" style="background:#FAF6F1">
+      <div class="swatch-name">Mallorcan Cream</div>
+      <div class="swatch-hex">#FAF6F1</div>
+      <div class="swatch-role">Background</div>
+    </div>
+    <div class="swatch swatch-light" style="background:#FFFFFF;border:1px solid #EDE8E1">
+      <div class="swatch-name">White</div>
+      <div class="swatch-hex">#FFFFFF</div>
+      <div class="swatch-role">Cards</div>
+    </div>
+    <div class="swatch swatch-light" style="background:#EDE8E1">
+      <div class="swatch-name">Sandstone</div>
+      <div class="swatch-hex">#EDE8E1</div>
+      <div class="swatch-role">Border</div>
+    </div>
+    <div class="swatch swatch-dark" style="background:#652F23">
+      <div class="swatch-name">Burgundy Clay</div>
+      <div class="swatch-hex">#652F23</div>
+      <div class="swatch-role">Primary Accent</div>
+    </div>
+    <div class="swatch swatch-light" style="background:#B19176">
+      <div class="swatch-name">Camel Sand</div>
+      <div class="swatch-hex">#B19176</div>
+      <div class="swatch-role">Secondary</div>
+    </div>
+    <div class="swatch swatch-dark" style="background:#482E25">
+      <div class="swatch-name">Chocolate</div>
+      <div class="swatch-hex">#482E25</div>
+      <div class="swatch-role">Text</div>
+    </div>
+    <div class="swatch swatch-light" style="background:#816D66">
+      <div class="swatch-name">Taupe</div>
+      <div class="swatch-hex">#816D66</div>
+      <div class="swatch-role">Muted</div>
+    </div>
+    <div class="swatch swatch-light" style="background:#7A8B5C">
+      <div class="swatch-name">Olive</div>
+      <div class="swatch-hex">#7A8B5C</div>
+      <div class="swatch-role">Success</div>
+    </div>
+  </div>
+
+  <!-- Typography -->
+  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Tipografia</div>
+  <div class="type-showcase">
+    <div class="type-row">
+      <div class="type-meta">SYNE 800<br>Wordmark / Headlines</div>
+      <div class="type-sample" style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;letter-spacing:-0.04em;color:#482E25">LIFTORY</div>
+      <span class="type-tag tag-primary" style="background:rgba(101,47,35,0.08);color:#652F23;border-color:rgba(101,47,35,0.15)">Wordmark</span>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">LIBRE BASKERVILLE<br>Italic / Editorial</div>
+      <div class="type-sample" style="font-family:'Libre Baskerville',serif;font-size:18px;font-style:italic;font-weight:400;color:#482E25">Entrena con intencion</div>
+      <span class="type-tag tag-primary" style="background:rgba(101,47,35,0.08);color:#652F23;border-color:rgba(101,47,35,0.15)">Editorial</span>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">DM SANS 400/600<br>Body / UI Elements</div>
+      <div class="type-sample" style="font-family:'DM Sans',sans-serif;font-size:18px;font-weight:400;color:#482E25">Upper Power — 5 ejercicios</div>
+      <span class="type-tag tag-secondary">Body</span>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">DM MONO 400<br>Data / Metrics</div>
+      <div class="type-sample" style="font-family:'DM Mono',monospace;font-size:16px;font-weight:400;color:#816D66">100 kg — 3x5 — RPE 8</div>
+      <span class="type-tag tag-secondary">Data</span>
+    </div>
+  </div>
+
+  <!-- Taglines -->
+  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Taglines</div>
+  <div class="tagline-grid">
+    <div class="tagline-card" style="background:#FAF6F1">
+      <div class="tagline-text" style="color:#482E25;font-family:'Libre Baskerville',serif">I am not mio. I'm yours.</div>
+      <div class="tagline-label">Hero</div>
+    </div>
+    <div class="tagline-card" style="background:#FAF6F1">
+      <div class="tagline-text" style="color:#482E25;font-family:'Libre Baskerville',serif">Entrena con la intencion con la que vives.</div>
+      <div class="tagline-label">Secondary</div>
+    </div>
+    <div class="tagline-card" style="background:#FAF6F1">
+      <div class="tagline-text" style="color:#482E25;font-family:'Libre Baskerville',serif">300 members. Zero shortcuts.</div>
+      <div class="tagline-label">Exclusivity</div>
+    </div>
+  </div>
+
+  <!-- Insights -->
+  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Insights</div>
+  <div class="insight-grid">
+    <div class="insight-card" style="border-left-color:#652F23">
+      <div class="insight-num" style="color:#652F23">01</div>
+      <div class="insight-title">El Poder del Brown</div>
+      <div class="insight-body">Mio Clubs usa deep brown como color primario — no negro, no azul. El brown comunica tierra, raices, permanencia. Dice "esto existira cuando las tendencias pasen". Es el anti-startup.</div>
+    </div>
+    <div class="insight-card" style="border-left-color:#652F23">
+      <div class="insight-num" style="color:#652F23">02</div>
+      <div class="insight-title">Serif como Senal</div>
+      <div class="insight-body">Agregar Libre Baskerville italic no es decoracion — es codigo. Las marcas que usan serif italic comunican editorial, cultura, criterio. Es la diferencia entre un gym y un ateneo.</div>
+    </div>
+    <div class="insight-card" style="border-left-color:#652F23">
+      <div class="insight-num" style="color:#652F23">03</div>
+      <div class="insight-title">Exclusividad Programada</div>
+      <div class="insight-body">Mallorquina es la unica propuesta que justifica visualmente un tier ultra-premium. El diseno dice "esto no es para todos" sin necesidad de decirlo con palabras. El precio alto se siente natural.</div>
+    </div>
+  </div>
+
+  <!-- Scores -->
+  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Evaluacion</div>
+  <div class="score-block">
+    <div class="score-row">
+      <div class="score-label">Distincion</div>
+      <div class="score-track"><div class="score-fill" style="width:95%;background:#652F23"></div></div>
+      <div class="score-val">9.5</div>
+    </div>
+    <div class="score-row">
+      <div class="score-label">Energia</div>
+      <div class="score-track"><div class="score-fill" style="width:50%;background:#652F23"></div></div>
+      <div class="score-val">5.0</div>
+    </div>
+    <div class="score-row">
+      <div class="score-label">Premium Feel</div>
+      <div class="score-track"><div class="score-fill" style="width:98%;background:#652F23"></div></div>
+      <div class="score-val">9.8</div>
+    </div>
+    <div class="score-row">
+      <div class="score-label">Accesibilidad</div>
+      <div class="score-track"><div class="score-fill" style="width:70%;background:#652F23"></div></div>
+      <div class="score-val">7.0</div>
+    </div>
+    <div class="score-row">
+      <div class="score-label">Escalabilidad</div>
+      <div class="score-track"><div class="score-fill" style="width:75%;background:#652F23"></div></div>
+      <div class="score-val">7.5</div>
+    </div>
+  </div>
+
+  <!-- Verdict -->
+  <div class="verdict">
+    <div class="verdict-title" style="color:#652F23">Veredicto: Mallorquina</div>
+    <div class="verdict-grid">
+      <div>
+        <div class="verdict-item-label">Target</div>
+        <div class="verdict-item-value">Adultos 35-55. Miembros de clubes privados. Viajeros de wellness de lujo. Personas que eligen SHA Wellness sobre un resort convencional. Buscan pertenencia, no features.</div>
+      </div>
+      <div>
+        <div class="verdict-item-label">Fortalezas</div>
+        <div class="verdict-item-value">Maxima distincion en el mercado. Justifica pricing premium sin friccion. La tipografia serif crea un lenguaje visual unico. Perfecto para mercados como Espana, Italia, Mexico DF.</div>
+      </div>
+      <div>
+        <div class="verdict-item-label">Riesgos</div>
+        <div class="verdict-item-value">Puede alienar audiencias jovenes. El brown requiere ejecucion impecable o se ve anticuado. Menor escalabilidad a mercados anglo. Necesita contenido editorial constante para justificar la estetica.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mockups -->
+  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Mockups de Interfaz</div>
+  <div class="mockup-row">
+    <!-- Mockup A: Home Screen -->
+    <div>
+      <div class="mockup-label">Home Screen</div>
+      <div class="phone" style="border-color:#EDE8E1">
+        <div class="phone-status" style="background:#FAF6F1;color:#482E25">
+          <span class="time">9:41</span>
+          <span class="icons"><span class="bar" style="border-color:#482E25"></span></span>
+        </div>
+        <div class="phone-screen" style="background:#FAF6F1">
+          <div class="phone-wordmark" style="color:#482E25">LIFTORY</div>
+          <div style="font-family:'Libre Baskerville',serif;font-size:14px;font-style:italic;color:#816D66;margin-bottom:8px">Hoy</div>
+          <div class="phone-card" style="background:#FFFFFF;border-color:#EDE8E1;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.04)">
+            <div class="phone-day" style="color:#816D66">DIA 3</div>
+            <div class="phone-badge" style="background:rgba(101,47,35,0.1);color:#652F23">Acumulacion</div>
+            <div class="phone-card-title" style="color:#482E25">Upper Power</div>
+            <div class="phone-exercises" style="color:#816D66">5 ejercicios — 45 min est.</div>
+            <div style="margin-top:8px;display:flex;gap:3px">
+              <div style="width:24px;height:3px;background:#652F23;border-radius:2px"></div>
+              <div style="width:24px;height:3px;background:#652F23;border-radius:2px"></div>
+              <div style="width:24px;height:3px;background:#EDE8E1;border-radius:2px"></div>
+              <div style="width:24px;height:3px;background:#EDE8E1;border-radius:2px"></div>
+              <div style="width:24px;height:3px;background:#EDE8E1;border-radius:2px"></div>
+            </div>
+          </div>
+          <div class="phone-card" style="background:#FFFFFF;border-color:#EDE8E1;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.04);padding:10px 12px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <div style="font-family:'DM Mono',monospace;font-size:7px;color:#816D66;letter-spacing:0.1em;text-transform:uppercase">Racha</div>
+                <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#482E25;letter-spacing:-0.02em">12</div>
+              </div>
+              <div>
+                <div style="font-family:'DM Mono',monospace;font-size:7px;color:#816D66;letter-spacing:0.1em;text-transform:uppercase">Semana</div>
+                <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#482E25;letter-spacing:-0.02em">3/4</div>
+              </div>
+              <div>
+                <div style="font-family:'DM Mono',monospace;font-size:7px;color:#816D66;letter-spacing:0.1em;text-transform:uppercase">Volumen</div>
+                <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#482E25;letter-spacing:-0.02em">8.2t</div>
+              </div>
+            </div>
+          </div>
+          <div class="phone-tab-bar" style="border-color:#EDE8E1">
+            <div class="phone-tab active" style="color:#652F23">
+              <div class="phone-tab-icon" style="border-color:#652F23;background:rgba(101,47,35,0.08)">H</div>
+              <div>Hoy</div>
+            </div>
+            <div class="phone-tab" style="color:#816D66">
+              <div class="phone-tab-icon" style="border-color:#EDE8E1">P</div>
+              <div>Plan</div>
+            </div>
+            <div class="phone-tab" style="color:#816D66">
+              <div class="phone-tab-icon" style="border-color:#EDE8E1">E</div>
+              <div>Stats</div>
+            </div>
+            <div class="phone-tab" style="color:#816D66">
+              <div class="phone-tab-icon" style="border-color:#EDE8E1">U</div>
+              <div>Perfil</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mockup B: Paywall -->
+    <div>
+      <div class="mockup-label">Paywall</div>
+      <div class="phone" style="border-color:#EDE8E1">
+        <div class="phone-status" style="background:#FAF6F1;color:#482E25">
+          <span class="time">9:41</span>
+          <span class="icons"><span class="bar" style="border-color:#482E25"></span></span>
+        </div>
+        <div class="phone-screen" style="background:#FAF6F1">
+          <div class="phone-wordmark" style="color:#482E25;text-align:center;margin-bottom:8px">LIFTORY</div>
+          <div style="text-align:center;margin-bottom:12px">
+            <div style="font-family:'Libre Baskerville',serif;font-size:13px;font-style:italic;color:#816D66;margin-bottom:4px">Entrenamiento de elite</div>
+            <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:#482E25">Tu club. Tu disciplina.</div>
+          </div>
+          <div class="phone-plan" style="border-color:#EDE8E1;background:#FFFFFF">
+            <div class="phone-plan-name" style="color:#816D66">Mensual</div>
+            <div class="phone-plan-price" style="color:#482E25">$399</div>
+            <div class="phone-plan-period" style="color:#816D66">MXN / mes</div>
+          </div>
+          <div class="phone-plan featured" style="border-color:#652F23;background:#FFFFFF">
+            <div class="phone-plan-name" style="color:#652F23">Semestral</div>
+            <div class="phone-plan-price" style="color:#482E25">$2,094</div>
+            <div class="phone-plan-period" style="color:#816D66">MXN / 6 meses</div>
+            <div class="phone-plan-save" style="background:rgba(101,47,35,0.1);color:#652F23">Ahorra 12%</div>
+          </div>
+          <div class="phone-plan" style="border-color:#EDE8E1;background:#FFFFFF">
+            <div class="phone-plan-name" style="color:#816D66">Anual</div>
+            <div class="phone-plan-price" style="color:#482E25">$3,588</div>
+            <div class="phone-plan-period" style="color:#816D66">MXN / ano</div>
+            <div class="phone-plan-save" style="background:rgba(122,139,92,0.12);color:#7A8B5C">Ahorra 25%</div>
+          </div>
+          <div class="phone-cta" style="background:#652F23;color:#FAF6F1">Suscribirse</div>
+          <div style="text-align:center;margin-top:8px;font-family:'DM Mono',monospace;font-size:7px;color:#816D66">Cancela cuando quieras</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mockup C: PR Celebration -->
+    <div>
+      <div class="mockup-label">PR Celebration</div>
+      <div class="phone" style="border-color:#EDE8E1">
+        <div class="phone-status" style="background:#FAF6F1;color:#482E25">
+          <span class="time">9:41</span>
+          <span class="icons"><span class="bar" style="border-color:#482E25"></span></span>
+        </div>
+        <div class="phone-screen" style="background:#FAF6F1;min-height:320px;position:relative">
+          <div class="phone-overlay" style="background:rgba(250,246,241,0.85)">
+            <div class="phone-modal" style="background:#FFFFFF;border:1px solid #EDE8E1">
+              <div class="phone-pr-badge" style="background:rgba(101,47,35,0.1);color:#652F23">Nuevo PR</div>
+              <div class="phone-pr-exercise" style="color:#816D66">Bench Press</div>
+              <div class="phone-pr-weight" style="color:#482E25">100 kg</div>
+              <div class="phone-pr-improvement" style="background:rgba(122,139,92,0.12);color:#7A8B5C">+5 kg vs anterior</div>
+              <div class="phone-pr-btn" style="background:#652F23;color:#FAF6F1">SEGUIR</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 03 — RIVIERA
+     ============================================================ -->
+<section id="section-03" class="brief section-riviera">
+  <div class="brief-header">
+    <div class="brief-label">03 — Propuesta</div>
+    <h2 class="brief-title">Riviera</h2>
+    <p class="brief-subtitle">Third Space x Cal Reiet x David Lloyd. El balance perfecto entre fuerza atletica y sofisticacion mediterranea. Ni demasiado suave ni demasiado agresivo.</p>
+  </div>
+
+  <!-- Positioning -->
+  <div class="positioning" style="border-left-color:#C67B5C">
+    <p>Third Space x Cal Reiet x David Lloyd. El balance perfecto entre fuerza atletica y sofisticacion mediterranea. Ni demasiado suave ni demasiado agresivo. Riviera toma el terracotta — que ya vive en el ADN de LIFTORY — y lo eleva con un teal mediterraneo que evoca el mar desde una terraza de piedra caliza. Es la propuesta que dice: puedo levantar 200 kilos y despues cenar en un restaurante con estrella Michelin. Sin cambiarme.</p>
+    <div class="source">Inspiracion — Third Space London, Cal Reiet Santanyi, David Lloyd Clubs</div>
+  </div>
+
+  <!-- Palette -->
+  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Paleta Cromática</div>
+  <div class="palette-row">
+    <div class="swatch swatch-light" style="background:#F5F2ED">
+      <div class="swatch-name">Limestone</div>
+      <div class="swatch-hex">#F5F2ED</div>
+      <div class="swatch-role">Background</div>
+    </div>
+    <div class="swatch swatch-light" style="background:#FFFFFF;border:1px solid #E8E4DE">
+      <div class="swatch-name">White</div>
+      <div class="swatch-hex">#FFFFFF</div>
+      <div class="swatch-role">Cards</div>
+    </div>
+    <div class="swatch swatch-light" style="background:#E8E4DE">
+      <div class="swatch-name">Pumice</div>
+      <div class="swatch-hex">#E8E4DE</div>
+      <div class="swatch-role">Border</div>
+    </div>
+    <div class="swatch swatch-light" style="background:#C67B5C">
+      <div class="swatch-name">Terracotta</div>
+      <div class="swatch-hex">#C67B5C</div>
+      <div class="swatch-role">Primary Accent</div>
+    </div>
+    <div class="swatch swatch-dark" style="background:#2A6B5E">
+      <div class="swatch-name">Mediterranean Teal</div>
+      <div class="swatch-hex">#2A6B5E</div>
+      <div class="swatch-role">Secondary</div>
+    </div>
+    <div class="swatch swatch-dark" style="background:#1E1C1A">
+      <div class="swatch-name">Near Black</div>
+      <div class="swatch-hex">#1E1C1A</div>
+      <div class="swatch-role">Text</div>
+    </div>
+    <div class="swatch swatch-light" style="background:#8A857E">
+      <div class="swatch-name">Stone</div>
+      <div class="swatch-hex">#8A857E</div>
+      <div class="swatch-role">Muted</div>
+    </div>
+    <div class="swatch swatch-light" style="background:#7A8B5C">
+      <div class="swatch-name">Olive</div>
+      <div class="swatch-hex">#7A8B5C</div>
+      <div class="swatch-role">Success</div>
+    </div>
+  </div>
+
+  <!-- Typography -->
+  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Tipografia</div>
+  <div class="type-showcase">
+    <div class="type-row">
+      <div class="type-meta">SYNE 800<br>Wordmark / Headlines</div>
+      <div class="type-sample" style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;letter-spacing:-0.04em;color:#1E1C1A">LIFTORY</div>
+      <span class="type-tag tag-primary">Wordmark</span>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">DM SANS 400/600<br>Body / UI Elements</div>
+      <div class="type-sample" style="font-family:'DM Sans',sans-serif;font-size:18px;font-weight:400;color:#1E1C1A">Upper Power — 5 ejercicios</div>
+      <span class="type-tag tag-secondary">Body</span>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">DM MONO 400<br>Data / Metrics</div>
+      <div class="type-sample" style="font-family:'DM Mono',monospace;font-size:16px;font-weight:400;color:#8A857E">100 kg — 3x5 — RPE 8</div>
+      <span class="type-tag tag-secondary">Data</span>
+    </div>
+  </div>
+
+  <!-- Taglines -->
+  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Taglines</div>
+  <div class="tagline-grid">
+    <div class="tagline-card" style="background:#F5F2ED">
+      <div class="tagline-text" style="color:#1E1C1A">Where strength meets the Mediterranean.</div>
+      <div class="tagline-label">Hero</div>
+    </div>
+    <div class="tagline-card" style="background:#F5F2ED">
+      <div class="tagline-text" style="color:#1E1C1A">Train like you live — with intention.</div>
+      <div class="tagline-label">Secondary</div>
+    </div>
+    <div class="tagline-card" style="background:#F5F2ED">
+      <div class="tagline-text" style="color:#1E1C1A">Iron discipline. Mediterranean soul.</div>
+      <div class="tagline-label">Manifesto</div>
+    </div>
+  </div>
+
+  <!-- Insights -->
+  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Insights</div>
+  <div class="insight-grid">
+    <div class="insight-card" style="border-left-color:#C67B5C">
+      <div class="insight-num" style="color:#C67B5C">01</div>
+      <div class="insight-title">ADN Preservado</div>
+      <div class="insight-body">Riviera es la unica propuesta que mantiene el terracotta original de LIFTORY. No reinventa — evoluciona. Los usuarios existentes sentiran continuidad, los nuevos sentiran premium. Es evolucion, no revolucion.</div>
+    </div>
+    <div class="insight-card" style="border-left-color:#C67B5C">
+      <div class="insight-num" style="color:#C67B5C">02</div>
+      <div class="insight-title">Teal como Diferenciador</div>
+      <div class="insight-body">Ninguna app de fitness usa teal como color secundario. El Mediterranean Teal #2A6B5E agrega profundidad, evoca el mar, y crea un contraste sofisticado con el terracotta. Es el color que nadie espera en una app de fuerza.</div>
+    </div>
+    <div class="insight-card" style="border-left-color:#C67B5C">
+      <div class="insight-num" style="color:#C67B5C">03</div>
+      <div class="insight-title">Sistema Actual Compatible</div>
+      <div class="insight-body">Riviera usa Syne + DM Sans + DM Mono — exactamente el sistema tipografico que LIFTORY ya tiene. Cero migracion tipografica. Solo cambia la paleta y el modo. El menor riesgo tecnico de las tres propuestas.</div>
+    </div>
+  </div>
+
+  <!-- Scores -->
+  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Evaluacion</div>
+  <div class="score-block">
+    <div class="score-row">
+      <div class="score-label">Distincion</div>
+      <div class="score-track"><div class="score-fill" style="width:80%;background:#C67B5C"></div></div>
+      <div class="score-val">8.0</div>
+    </div>
+    <div class="score-row">
+      <div class="score-label">Energia</div>
+      <div class="score-track"><div class="score-fill" style="width:75%;background:#C67B5C"></div></div>
+      <div class="score-val">7.5</div>
+    </div>
+    <div class="score-row">
+      <div class="score-label">Premium Feel</div>
+      <div class="score-track"><div class="score-fill" style="width:90%;background:#C67B5C"></div></div>
+      <div class="score-val">9.0</div>
+    </div>
+    <div class="score-row">
+      <div class="score-label">Accesibilidad</div>
+      <div class="score-track"><div class="score-fill" style="width:95%;background:#C67B5C"></div></div>
+      <div class="score-val">9.5</div>
+    </div>
+    <div class="score-row">
+      <div class="score-label">Escalabilidad</div>
+      <div class="score-track"><div class="score-fill" style="width:95%;background:#C67B5C"></div></div>
+      <div class="score-val">9.5</div>
+    </div>
+  </div>
+
+  <!-- Verdict -->
+  <div class="verdict">
+    <div class="verdict-title" style="color:#C67B5C">Veredicto: Riviera</div>
+    <div class="verdict-grid">
+      <div>
+        <div class="verdict-item-label">Target</div>
+        <div class="verdict-item-value">Adultos 25-45. Atletas recreativos con gusto. Profesionales que entrenan con seriedad pero no se identifican con la estetica "bro". Buscan una app que refleje como viven: con intencion y estilo.</div>
+      </div>
+      <div>
+        <div class="verdict-item-label">Fortalezas</div>
+        <div class="verdict-item-value">Balance perfecto energia-premium. Mantiene ADN terracotta. Cero migracion tipografica. Teal como diferenciador unico. Escalable a todos los mercados. La mayor accesibilidad de las tres propuestas.</div>
+      </div>
+      <div>
+        <div class="verdict-item-label">Riesgos</div>
+        <div class="verdict-item-value">Menos distintiva que Mallorquina. Podria percibirse como "otra app bonita" sin el factor de exclusividad extrema. Requiere que la ejecucion del teal sea precisa — mal usado puede sentirse corporativo.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mockups -->
+  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Mockups de Interfaz</div>
+  <div class="mockup-row">
+    <!-- Mockup A: Home Screen -->
+    <div>
+      <div class="mockup-label">Home Screen</div>
+      <div class="phone" style="border-color:#E8E4DE">
+        <div class="phone-status" style="background:#F5F2ED;color:#1E1C1A">
+          <span class="time">9:41</span>
+          <span class="icons"><span class="bar" style="border-color:#1E1C1A"></span></span>
+        </div>
+        <div class="phone-screen" style="background:#F5F2ED">
+          <div class="phone-wordmark" style="color:#1E1C1A">LIFTORY</div>
+          <div class="phone-heading" style="color:#1E1C1A;font-size:16px">Hoy</div>
+          <div class="phone-card" style="background:#FFFFFF;border-color:#E8E4DE;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.04)">
+            <div class="phone-day" style="color:#8A857E">DIA 3</div>
+            <div class="phone-badge" style="background:rgba(198,123,92,0.12);color:#C67B5C">Acumulacion</div>
+            <div class="phone-card-title" style="color:#1E1C1A">Upper Power</div>
+            <div class="phone-exercises" style="color:#8A857E">5 ejercicios — 45 min est.</div>
+            <div style="margin-top:8px;display:flex;gap:3px">
+              <div style="width:24px;height:3px;background:#C67B5C;border-radius:2px"></div>
+              <div style="width:24px;height:3px;background:#C67B5C;border-radius:2px"></div>
+              <div style="width:24px;height:3px;background:#E8E4DE;border-radius:2px"></div>
+              <div style="width:24px;height:3px;background:#E8E4DE;border-radius:2px"></div>
+              <div style="width:24px;height:3px;background:#E8E4DE;border-radius:2px"></div>
+            </div>
+          </div>
+          <div class="phone-card" style="background:#FFFFFF;border-color:#E8E4DE;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.04);padding:10px 12px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <div style="font-family:'DM Mono',monospace;font-size:7px;color:#8A857E;letter-spacing:0.1em;text-transform:uppercase">Racha</div>
+                <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#1E1C1A;letter-spacing:-0.02em">12</div>
+              </div>
+              <div>
+                <div style="font-family:'DM Mono',monospace;font-size:7px;color:#8A857E;letter-spacing:0.1em;text-transform:uppercase">Semana</div>
+                <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#1E1C1A;letter-spacing:-0.02em">3/4</div>
+              </div>
+              <div>
+                <div style="font-family:'DM Mono',monospace;font-size:7px;color:#8A857E;letter-spacing:0.1em;text-transform:uppercase">Volumen</div>
+                <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#1E1C1A;letter-spacing:-0.02em">8.2t</div>
+              </div>
+            </div>
+          </div>
+          <div class="phone-tab-bar" style="border-color:#E8E4DE">
+            <div class="phone-tab active" style="color:#C67B5C">
+              <div class="phone-tab-icon" style="border-color:#C67B5C;background:rgba(198,123,92,0.08)">H</div>
+              <div>Hoy</div>
+            </div>
+            <div class="phone-tab" style="color:#8A857E">
+              <div class="phone-tab-icon" style="border-color:#E8E4DE">P</div>
+              <div>Plan</div>
+            </div>
+            <div class="phone-tab" style="color:#8A857E">
+              <div class="phone-tab-icon" style="border-color:#E8E4DE">E</div>
+              <div>Stats</div>
+            </div>
+            <div class="phone-tab" style="color:#8A857E">
+              <div class="phone-tab-icon" style="border-color:#E8E4DE">U</div>
+              <div>Perfil</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mockup B: Paywall -->
+    <div>
+      <div class="mockup-label">Paywall</div>
+      <div class="phone" style="border-color:#E8E4DE">
+        <div class="phone-status" style="background:#F5F2ED;color:#1E1C1A">
+          <span class="time">9:41</span>
+          <span class="icons"><span class="bar" style="border-color:#1E1C1A"></span></span>
+        </div>
+        <div class="phone-screen" style="background:#F5F2ED">
+          <div class="phone-wordmark" style="color:#1E1C1A;text-align:center;margin-bottom:8px">LIFTORY</div>
+          <div style="text-align:center;margin-bottom:12px">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:14px;font-style:italic;color:#8A857E;margin-bottom:4px">Entrenamiento de elite</div>
+            <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#1E1C1A">Disciplina mediterranea.</div>
+          </div>
+          <div class="phone-plan" style="border-color:#E8E4DE;background:#FFFFFF">
+            <div class="phone-plan-name" style="color:#8A857E">Mensual</div>
+            <div class="phone-plan-price" style="color:#1E1C1A">$399</div>
+            <div class="phone-plan-period" style="color:#8A857E">MXN / mes</div>
+          </div>
+          <div class="phone-plan featured" style="border-color:#C67B5C;background:#FFFFFF">
+            <div class="phone-plan-name" style="color:#C67B5C">Semestral</div>
+            <div class="phone-plan-price" style="color:#1E1C1A">$2,094</div>
+            <div class="phone-plan-period" style="color:#8A857E">MXN / 6 meses</div>
+            <div class="phone-plan-save" style="background:rgba(198,123,92,0.1);color:#C67B5C">Ahorra 12%</div>
+          </div>
+          <div class="phone-plan" style="border-color:#E8E4DE;background:#FFFFFF">
+            <div class="phone-plan-name" style="color:#8A857E">Anual</div>
+            <div class="phone-plan-price" style="color:#1E1C1A">$3,588</div>
+            <div class="phone-plan-period" style="color:#8A857E">MXN / ano</div>
+            <div class="phone-plan-save" style="background:rgba(122,139,92,0.12);color:#7A8B5C">Ahorra 25%</div>
+          </div>
+          <div class="phone-cta" style="background:#C67B5C;color:#FFFFFF">Suscribirse</div>
+          <div style="text-align:center;margin-top:8px;font-family:'DM Mono',monospace;font-size:7px;color:#8A857E">Cancela cuando quieras</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mockup C: PR Celebration -->
+    <div>
+      <div class="mockup-label">PR Celebration</div>
+      <div class="phone" style="border-color:#E8E4DE">
+        <div class="phone-status" style="background:#F5F2ED;color:#1E1C1A">
+          <span class="time">9:41</span>
+          <span class="icons"><span class="bar" style="border-color:#1E1C1A"></span></span>
+        </div>
+        <div class="phone-screen" style="background:#F5F2ED;min-height:320px;position:relative">
+          <div class="phone-overlay" style="background:rgba(245,242,237,0.85)">
+            <div class="phone-modal" style="background:#FFFFFF;border:1px solid #E8E4DE">
+              <div class="phone-pr-badge" style="background:rgba(198,123,92,0.12);color:#C67B5C">Nuevo PR</div>
+              <div class="phone-pr-exercise" style="color:#8A857E">Bench Press</div>
+              <div class="phone-pr-weight" style="color:#1E1C1A">100 kg</div>
+              <div class="phone-pr-improvement" style="background:rgba(42,107,94,0.1);color:#2A6B5E">+5 kg vs anterior</div>
+              <div class="phone-pr-btn" style="background:#C67B5C;color:#FFFFFF">SEGUIR</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 04 — COMPARATIVA FINAL
+     ============================================================ -->
+<section id="section-compare" class="brief">
+  <div class="brief-header">
+    <div class="brief-label">04 — Analisis</div>
+    <h2 class="brief-title">Comparativa Final</h2>
+    <p class="brief-subtitle">Las tres propuestas lado a lado. Una tabla para facilitar la decision.</p>
+  </div>
+
+  <div style="overflow-x:auto">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th style="width:160px">Dimension</th>
+          <th>Sand Stone</th>
+          <th>Mallorquina</th>
+          <th class="col-highlight">Riviera</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Color Signature</strong></td>
+          <td><span style="display:inline-block;width:12px;height:12px;background:#B8956A;border-radius:2px;vertical-align:middle;margin-right:6px"></span>#B8956A Sand Stone</td>
+          <td><span style="display:inline-block;width:12px;height:12px;background:#652F23;border-radius:2px;vertical-align:middle;margin-right:6px"></span>#652F23 Burgundy Clay</td>
+          <td class="col-highlight"><span style="display:inline-block;width:12px;height:12px;background:#C67B5C;border-radius:2px;vertical-align:middle;margin-right:6px"></span>#C67B5C Terracotta + <span style="display:inline-block;width:12px;height:12px;background:#2A6B5E;border-radius:2px;vertical-align:middle;margin-right:6px"></span>#2A6B5E Teal</td>
+        </tr>
+        <tr>
+          <td><strong>Inspiracion</strong></td>
+          <td>Technogym, Oura, Aesop</td>
+          <td>Mio Clubs, SHA Wellness, Mandarin Oriental</td>
+          <td class="col-highlight">Third Space, Cal Reiet, David Lloyd</td>
+        </tr>
+        <tr>
+          <td><strong>Target Principal</strong></td>
+          <td>Profesionales 30-50. Amantes del diseno industrial.</td>
+          <td>Adultos 35-55. Club privado. Wellness premium.</td>
+          <td class="col-highlight">Adultos 25-45. Atletas con gusto. El rango mas amplio.</td>
+        </tr>
+        <tr>
+          <td><strong>Posicionamiento</strong></td>
+          <td>"Soy equipo de diseno"</td>
+          <td>"Soy club privado"</td>
+          <td class="col-highlight">"Soy el entrenador mas sofisticado del mundo"</td>
+        </tr>
+        <tr>
+          <td><strong>Distincion</strong></td>
+          <td>8.5</td>
+          <td>9.5</td>
+          <td class="col-highlight">8.0</td>
+        </tr>
+        <tr>
+          <td><strong>Energia</strong></td>
+          <td>6.0</td>
+          <td>5.0</td>
+          <td class="col-highlight">7.5</td>
+        </tr>
+        <tr>
+          <td><strong>Premium Feel</strong></td>
+          <td>9.5</td>
+          <td>9.8</td>
+          <td class="col-highlight">9.0</td>
+        </tr>
+        <tr>
+          <td><strong>Accesibilidad</strong></td>
+          <td>9.0</td>
+          <td>7.0</td>
+          <td class="col-highlight">9.5</td>
+        </tr>
+        <tr>
+          <td><strong>Escalabilidad</strong></td>
+          <td>9.0</td>
+          <td>7.5</td>
+          <td class="col-highlight">9.5</td>
+        </tr>
+        <tr>
+          <td><strong>Promedio</strong></td>
+          <td><strong>8.4</strong></td>
+          <td><strong>7.8</strong></td>
+          <td class="col-highlight"><strong style="color:#C67B5C">8.7</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Riesgo Principal</strong></td>
+          <td>Demasiado calma para usuarios jovenes</td>
+          <td>Puede alienar audiencias amplias</td>
+          <td class="col-highlight">Requiere ejecucion precisa del teal</td>
+        </tr>
+        <tr>
+          <td><strong>Esfuerzo Tecnico</strong></td>
+          <td>Medio — nuevo tipo system parcial</td>
+          <td>Alto — nuevo tipo system completo + serif</td>
+          <td class="col-highlight">Bajo — mismo tipo system, solo paleta</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Visual comparison of backgrounds -->
+  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;margin-top:48px">Comparacion Visual de Fondos</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:48px">
+    <div style="background:#F4F0EB;padding:40px;text-align:center">
+      <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#2C2825;letter-spacing:-0.04em;margin-bottom:8px">LIFTORY</div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:#9B9590;letter-spacing:0.15em">SAND STONE</div>
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:#B8956A;margin-top:4px">#F4F0EB</div>
+    </div>
+    <div style="background:#FAF6F1;padding:40px;text-align:center">
+      <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#482E25;letter-spacing:-0.04em;margin-bottom:8px">LIFTORY</div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:#816D66;letter-spacing:0.15em">MALLORQUINA</div>
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:#652F23;margin-top:4px">#FAF6F1</div>
+    </div>
+    <div style="background:#F5F2ED;padding:40px;text-align:center">
+      <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#1E1C1A;letter-spacing:-0.04em;margin-bottom:8px">LIFTORY</div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:#8A857E;letter-spacing:0.15em">RIVIERA</div>
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:#C67B5C;margin-top:4px">#F5F2ED</div>
+    </div>
+  </div>
+
+  <!-- Visual comparison of accents -->
+  <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px">Comparacion de Colores de Acento</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:48px">
+    <div style="padding:32px;background:var(--card);text-align:center">
+      <div style="width:64px;height:64px;background:#B8956A;border-radius:50%;margin:0 auto 12px"></div>
+      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#2C2825">Sand Stone</div>
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:#9B9590;margin-top:4px">#B8956A</div>
+      <div style="font-family:'DM Sans',sans-serif;font-size:11px;color:#9B9590;margin-top:8px">Dorado arena, neutro, industrial</div>
+    </div>
+    <div style="padding:32px;background:var(--card);text-align:center">
+      <div style="width:64px;height:64px;background:#652F23;border-radius:50%;margin:0 auto 12px"></div>
+      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#482E25">Burgundy Clay</div>
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:#816D66;margin-top:4px">#652F23</div>
+      <div style="font-family:'DM Sans',sans-serif;font-size:11px;color:#816D66;margin-top:8px">Profundo, exclusivo, tierra</div>
+    </div>
+    <div style="padding:32px;background:var(--card);text-align:center">
+      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px">
+        <div style="width:64px;height:64px;background:#C67B5C;border-radius:50%"></div>
+        <div style="width:64px;height:64px;background:#2A6B5E;border-radius:50%"></div>
+      </div>
+      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#1E1C1A">Terracotta + Teal</div>
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:#8A857E;margin-top:4px">#C67B5C + #2A6B5E</div>
+      <div style="font-family:'DM Sans',sans-serif;font-size:11px;color:#8A857E;margin-top:8px">Calido + fresco, tierra + mar</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 05 — RECOMENDACION CMO
+     ============================================================ -->
+<section id="section-reco" class="reco section-riviera">
+  <div class="reco-hero">
+    <div class="brief-label">05 — Recomendacion</div>
+    <h2 class="brief-title" style="margin-bottom:24px">Riviera</h2>
+    <p class="brief-subtitle" style="margin:0 auto;max-width:600px">La recomendacion del equipo de marca. El balance optimo entre identidad, ambicion y ejecucion.</p>
+  </div>
+
+  <div class="reco-body">
+    <p>Despues de analizar las tres propuestas contra criterios de distincion, energia, premium feel, accesibilidad y escalabilidad, la recomendacion es clara: <strong>Riviera es la direccion optima para LIFTORY.</strong></p>
+
+    <div class="highlight">
+      Riviera mantiene el ADN terracotta de LIFTORY, agrega el teal mediterraneo como diferenciador, y usa light mode para posicionar la app donde NINGUNA otra app de fuerza esta. Cada app de gym es dark mode. LIFTORY seria la unica que se atreve a ser light — y eso es poder.
+    </div>
+
+    <p><strong>Por que Riviera y no Sand Stone:</strong> Sand Stone es hermosa. Es la propuesta con mayor premium feel puro. Pero le falta energia. Una app de fuerza necesita un pulso — algo que diga "aqui se trabaja". El dorado arena de Technogym funciona en equipos fisicos que imponen por su tamano. En una pantalla de 6 pulgadas, necesitamos un poco mas de presencia. El terracotta de Riviera tiene esa presencia sin perder la elegancia.</p>
+
+    <p><strong>Por que Riviera y no Mallorquina:</strong> Mallorquina es la propuesta mas valiente. El burgundy clay de Mio Clubs es extraordinario. Pero tambien es la propuesta con mayor riesgo. Su audiencia es mas estrecha, su escalabilidad es menor, y requiere un cambio tipografico completo. Mallorquina seria perfecta si LIFTORY fuera exclusivamente para el mercado mediterraneo premium. Pero nuestra ambicion es global — y Riviera escala mejor.</p>
+
+    <p><strong>Lo que Riviera logra:</strong></p>
+
+    <p>1. Preserva el terracotta que ya define a LIFTORY, haciendo la transicion invisible para usuarios actuales.</p>
+    <p>2. Agrega el Mediterranean Teal como un segundo color que ninguna app de fitness ha usado — un oceano azul literal en el branding.</p>
+    <p>3. Mantiene el sistema tipografico existente (Syne + DM Sans + DM Mono), eliminando la complejidad tecnica de migracion.</p>
+    <p>4. Obtiene la puntuacion mas alta en accesibilidad (9.5) y escalabilidad (9.5) — los dos factores mas criticos para crecimiento.</p>
+    <p>5. Posiciona a LIFTORY como la primera app de fuerza light-mode premium — un territorio completamente vacio.</p>
+
+    <div class="highlight">
+      La decision no es que color. Es que posicionamiento quieres. Sand Stone dice "soy equipo de diseno". Mallorquina dice "soy club privado". Riviera dice "soy el entrenador mas sofisticado del mundo". Cual eres tu?
+    </div>
+
+    <p>Dicho esto, reconocemos que Sand Stone es la opcion correcta si la prioridad absoluta es percepcion de lujo silencioso (quiet luxury). Y Mallorquina es la opcion correcta si la decision es crear un producto de nicho ultra-exclusivo con pricing agresivo. Ambas son excelentes propuestas. Pero para una marca que aspira a ser global y atletica y sofisticada simultaneamente — Riviera es la respuesta.</p>
+
+    <p style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.1em;color:var(--muted);margin-top:40px;padding-top:24px;border-top:1px solid var(--border)">Preparado por el equipo de marca de LIFTORY. Abril 2026. Todos los colores, tipografias y mockups son propuestas para discusion interna. No representan decisiones finales de producto.</p>
+  </div>
+
+  <div class="reco-close">
+    <p>El lujo no grita. El lujo elige. Y LIFTORY esta lista para elegir donde ninguna otra app de fuerza ha estado: en la luz.</p>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="doc-footer">
+  LIFTORY — Brand Light Mode Brief — Abril 2026 — Documento Confidencial
+</footer>
+
+</body>
+</html>

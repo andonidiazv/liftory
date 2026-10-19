@@ -26,6 +26,46 @@ export type MacroGroup =
   | "Cadera";
 
 const MUSCLE_TO_MACRO: Record<string, MacroGroup> = {
+  // ─── Sinónimos encontrados en auditoría (2026-10-18) ───────────────────
+  // El catálogo acumuló 103 nombres de músculo distintos con sinónimos que
+  // no se reconocían entre sí (quads/quadriceps, glutes/glute_max/gluteus_maximus,
+  // chest/pec_major/pectorals). 42 quedaban sin mapear = 7% de las referencias
+  // invisibles para el análisis de volumen.
+  abs: "Core",
+  rectus_abdominis: "Core",
+  diaphragm: "Core",
+  hip_capsule: "Cadera",
+  hip_rotators: "Cadera",
+  TFL: "Cadera",
+  glute_max: "Gluteos",
+  glute_medius: "Gluteos",
+  gluteus_minimus: "Gluteos",
+  mid_trapezius: "Espalda",
+  trapezius: "Espalda",
+  upper_traps: "Espalda",
+  latissimus_dorsi: "Espalda",
+  triceps_long_head: "Triceps",
+  triceps_brachii: "Triceps",
+  triceps_brachii_long_head: "Triceps",
+  biceps_brachii: "Biceps",
+  biceps_brachii_short_head: "Biceps",
+  pec_major: "Pecho",
+  pec_minor: "Pecho",
+  pectorals: "Pecho",
+  pectorals_upper: "Pecho",
+  pectorals_inner: "Pecho",
+  upper_pectorals: "Pecho",
+  pectoralis_major_clavicular: "Pecho",
+  chest_lower: "Pecho",
+  lateral_deltoid: "Hombros",
+  posterior_deltoid: "Hombros",
+  lumbar: "Lumbar",
+  posterior_chain: "Lumbar",
+  forearm: "Antebrazos",
+  wrist_flexors: "Antebrazos",
+  wrist_extensors: "Antebrazos",
+  ankles: "Pantorrillas",
+
   // Pecho
   chest: "Pecho",
   pectoralis_major: "Pecho",

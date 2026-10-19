@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
-import { BarChart3, Users, Dumbbell, Sparkles, Brain, ScrollText, LogOut, Home, ClipboardList, MessageSquare, Award, CreditCard, Menu, X } from "lucide-react";
+import { Shuffle, BarChart3, Users, Dumbbell, Sparkles, Brain, ScrollText, LogOut, Home, ClipboardList, MessageSquare, Award, CreditCard, Menu, X } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 const navItems = [
@@ -8,6 +8,7 @@ const navItems = [
   { label: "Usuarios", icon: Users, to: "/admin/users" },
   { label: "Programas", icon: ClipboardList, to: "/admin/programs" },
   { label: "Ejercicios", icon: Dumbbell, to: "/admin/exercises" },
+  { label: "Sustituciones", icon: Shuffle, to: "/admin/swaps" },
   { label: "Feedback", icon: MessageSquare, to: "/admin/feedback" },
   { label: "Badges", icon: Award, to: "/admin/badges" },
   { label: "Pagos", icon: CreditCard, to: "/admin/payments" },

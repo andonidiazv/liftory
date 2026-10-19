@@ -78,6 +78,7 @@ export default function Home() {
   const { notification: badgeReview, dismiss: dismissBadgeReview, checkNext: checkNextBadgeReview } = useBadgeReviewNotification();
   const {
     programInfo,
+    currentBlock,
     selectedDate,
     selectedWorkout,
     weekDays,
@@ -192,7 +193,7 @@ export default function Home() {
     : null;
 
   // Meso position for the bottom strip
-  const currentMesoNum = quickStats.currentMeso ? parseInt(quickStats.currentMeso.replace(/\D/g, ""), 10) : null;
+
 
   return (
     <>
@@ -322,9 +323,12 @@ export default function Home() {
             )}
 
             {/* Current mesocycle marker — tap to open archive */}
-            {currentMesoNum && programInfo && (
+            {currentBlock && programInfo && (
               <MesoStrip
-                current={currentMesoNum}
+                cycleNumber={currentBlock.cycleNumber}
+                title={currentBlock.title}
+                weekNumber={currentBlock.weekNumber}
+                totalWeeks={currentBlock.totalWeeks}
                 onTap={() => navigate("/program")}
               />
             )}
@@ -866,32 +870,48 @@ function WeekStrip({
   );
 }
 
-function MesoStrip({ current, onTap }: { current: number; onTap: () => void }) {
-  // Single text mark — no fabricated total, no dot count we don't have data
-  // for. Just "MESOCICLO III" centered, gold roman numeral as anchor.
+function MesoStrip({
+  cycleNumber, title, weekNumber, totalWeeks, onTap,
+}: {
+  cycleNumber: number;
+  title: string | null;
+  weekNumber: number;
+  totalWeeks: number | null;
+  onTap: () => void;
+}) {
+  // Dónde estás, en un renglón: bloque y semana.
+  //
+  // El numeral romano se descartó aquí: con un separador al lado, "I" y la
+  // divisoria se leen como dos barras y parece un glitch. "M1" es inequívoco
+  // de un vistazo y es el mismo token que usan las cards del tab Programa,
+  // así que las dos pantallas hablan igual.
+  const resto = [title?.trim(), totalWeeks ? `Semana ${weekNumber}/${totalWeeks}` : `Semana ${weekNumber}`]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
     <button
       onClick={onTap}
-      className="press-scale flex items-center justify-center gap-2.5 py-2 mx-auto"
-      aria-label="Abrir archivo de mesociclos"
+      className="press-scale flex items-baseline justify-center gap-2 py-2 mx-auto max-w-full px-6"
+      aria-label={`Mesociclo ${cycleNumber}, semana ${weekNumber}. Abrir programa`}
     >
       <span
-        className="font-mono uppercase"
-        style={{ fontSize: 10, letterSpacing: "3.5px", color: "hsl(var(--muted-foreground))" }}
-      >
-        Mesociclo
-      </span>
-      <span
-        className="font-display font-bold"
+        className="font-display font-bold shrink-0"
         style={{
-          fontSize: 16,
-          letterSpacing: "-0.02em",
+          fontSize: 12,
+          letterSpacing: "0.02em",
           color: "#C4A24E",
-          textShadow: "0 0 14px rgba(196,162,78,0.35)",
+          textShadow: "0 0 12px rgba(196,162,78,0.3)",
           lineHeight: 1,
         }}
       >
-        {romanize(current)}
+        M{cycleNumber}
+      </span>
+      <span
+        className="font-mono uppercase truncate"
+        style={{ fontSize: 9.5, letterSpacing: "2.2px", color: "hsl(var(--muted-foreground))", lineHeight: 1 }}
+      >
+        {resto}
       </span>
     </button>
   );

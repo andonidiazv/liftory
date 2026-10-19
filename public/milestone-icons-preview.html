@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFTORY Milestone Icons</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#FAF9F6;font-family:'DM Sans',sans-serif;padding:32px 20px;display:flex;flex-direction:column;align-items:center;gap:32px}
+h1{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;letter-spacing:-0.03em;color:#1a1a1a;text-align:center}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;width:100%;max-width:380px}
+.card{
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  padding:24px 12px 18px;border-radius:16px;
+  background:rgba(0,0,0,0.02);border:1px solid rgba(0,0,0,0.04);
+  cursor:pointer;transition:transform 0.2s ease;
+}
+.card:active{transform:scale(0.96)}
+.card .icon-box{width:70px;height:70px;display:flex;align-items:center;justify-content:center;position:relative}
+.card .label{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.08em;color:#999;text-align:center}
+.card .name{font-family:'Syne',sans-serif;font-weight:700;font-size:11px;color:#1a1a1a;text-align:center;letter-spacing:-0.01em}
+
+/* Animated strokes */
+.draw-path{stroke-dashoffset:var(--len);transition:stroke-dashoffset 1s cubic-bezier(0.4,0,0.15,1)}
+.card.animated .draw-path{stroke-dashoffset:0}
+.glow-circle{opacity:0;transition:opacity 0.5s ease 0.6s}
+.card.animated .glow-circle{opacity:1}
+
+/* Overlay */
+.overlay{
+  position:fixed;inset:0;z-index:100;
+  background:rgba(0,0,0,0);backdrop-filter:blur(0px);
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:none;transition:all 0.4s ease;
+}
+.overlay.active{background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);pointer-events:auto}
+.modal{
+  display:flex;flex-direction:column;align-items:center;
+  padding:40px 32px 32px;max-width:320px;width:85%;
+  border-radius:24px;background:#FAF9F6;
+  box-shadow:0 25px 60px rgba(0,0,0,0.3);
+  transform:scale(0.7) translateY(30px);opacity:0;
+  transition:all 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+.overlay.active .modal{transform:scale(1) translateY(0);opacity:1}
+.modal-icon{width:90px;height:90px;margin-bottom:12px;position:relative}
+.modal-title{
+  font-family:'Syne',sans-serif;font-weight:800;font-size:22px;
+  letter-spacing:-0.03em;color:#1a1a1a;text-align:center;line-height:1.15;
+  opacity:0;transform:translateY(16px);transition:all 0.5s ease 0.5s;
+}
+.overlay.active .modal-title{opacity:1;transform:translateY(0)}
+.modal-sub{
+  font-size:13px;color:#888;text-align:center;max-width:230px;line-height:1.5;margin-top:6px;
+  opacity:0;transform:translateY(12px);transition:all 0.5s ease 0.7s;
+}
+.overlay.active .modal-sub{opacity:1;transform:translateY(0)}
+.accent-bar{width:0;height:3px;border-radius:2px;margin-top:12px;transition:width 0.5s cubic-bezier(0.4,0,0.15,1) 0.9s}
+.overlay.active .accent-bar{width:40px}
+.dismiss{
+  margin-top:18px;padding:12px 32px;border-radius:100px;border:none;
+  background:#1a1a1a;color:#fff;font-family:'Syne',sans-serif;font-weight:700;
+  font-size:12px;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;
+  opacity:0;transform:translateY(10px);transition:all 0.4s ease 1s;
+}
+.overlay.active .dismiss{opacity:1;transform:translateY(0)}
+
+.modal .draw-path{transition:stroke-dashoffset 1s cubic-bezier(0.4,0,0.15,1) 0.3s}
+.overlay.active .draw-path{stroke-dashoffset:0}
+.modal .glow-circle{transition:opacity 0.5s ease 0.8s}
+.overlay.active .glow-circle{opacity:1}
+</style>
+</head>
+<body>
+
+<h1>LIFTORY Milestone Icons</h1>
+
+<div class="grid">
+
+  <!-- 1. FLAME — Primer workout -->
+  <div class="card" onclick="toggleCard(this); return false;" data-milestone="first_workout">
+    <div class="icon-box">
+      <svg width="70" height="70" viewBox="0 0 70 70" fill="none">
+        <circle class="glow-circle" cx="35" cy="35" r="30" fill="rgba(122,139,92,0.08)"/>
+        <path class="draw-path" d="M35 52 C25 52, 18 43, 18 35 C18 26, 24 20, 28 16 C28 24, 32 26, 35 22 C38 26, 42 24, 42 16 C46 20, 52 26, 52 35 C52 43, 45 52, 35 52Z" stroke="#7A8B5C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:140;--len:140"/>
+      </svg>
+    </div>
+    <div class="name">Primer workout</div>
+    <div class="label">La mecha prendio</div>
+  </div>
+
+  <!-- 2. ARROW BREAKING CEILING — Primer PR -->
+  <div class="card" onclick="toggleCard(this)" data-milestone="first_pr">
+    <div class="icon-box">
+      <svg width="70" height="70" viewBox="0 0 70 70" fill="none">
+        <circle class="glow-circle" cx="35" cy="35" r="30" fill="rgba(201,169,110,0.1)"/>
+        <line class="draw-path" x1="14" y1="28" x2="56" y2="28" stroke="#C9A96E" stroke-width="2" stroke-dasharray="6 4" style="stroke-dasharray:60;--len:60" opacity="0.4"/>
+        <path class="draw-path" d="M35 56 L35 22 M27 30 L35 22 L43 30" stroke="#C9A96E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:60;--len:60"/>
+        <line class="draw-path" x1="28" y1="16" x2="42" y2="16" stroke="#C9A96E" stroke-width="1.5" stroke-linecap="round" opacity="0.5" style="stroke-dasharray:14;--len:14"/>
+      </svg>
+    </div>
+    <div class="name">Primer PR</div>
+    <div class="label">Record roto</div>
+  </div>
+
+  <!-- 3. FIVE BARS — Semana perfecta -->
+  <div class="card" onclick="toggleCard(this)" data-milestone="perfect_week">
+    <div class="icon-box">
+      <svg width="70" height="70" viewBox="0 0 70 70" fill="none">
+        <circle class="glow-circle" cx="35" cy="35" r="30" fill="rgba(122,139,92,0.08)"/>
+        <rect class="draw-path" x="11" y="38" width="6" height="16" rx="2" stroke="#7A8B5C" stroke-width="1.8" style="stroke-dasharray:50;--len:50"/>
+        <rect class="draw-path" x="21" y="32" width="6" height="22" rx="2" stroke="#7A8B5C" stroke-width="1.8" style="stroke-dasharray:56;--len:56"/>
+        <rect class="draw-path" x="31" y="26" width="6" height="28" rx="2" stroke="#7A8B5C" stroke-width="1.8" style="stroke-dasharray:62;--len:62"/>
+        <rect class="draw-path" x="41" y="20" width="6" height="34" rx="2" stroke="#7A8B5C" stroke-width="1.8" style="stroke-dasharray:68;--len:68"/>
+        <rect class="draw-path" x="51" y="14" width="6" height="40" rx="2" stroke="#7A8B5C" stroke-width="1.8" style="stroke-dasharray:74;--len:74"/>
+        <path class="draw-path" d="M10 58 L58 58" stroke="#7A8B5C" stroke-width="1.5" stroke-linecap="round" opacity="0.3" style="stroke-dasharray:48;--len:48"/>
+      </svg>
+    </div>
+    <div class="name">Semana perfecta</div>
+    <div class="label">5 de 5</div>
+  </div>
+
+  <!-- 4. BOLT — Score ELITE -->
+  <div class="card" onclick="toggleCard(this)" data-milestone="elite_score">
+    <div class="icon-box">
+      <svg width="70" height="70" viewBox="0 0 70 70" fill="none">
+        <circle class="glow-circle" cx="35" cy="35" r="30" fill="rgba(201,169,110,0.1)"/>
+        <path class="draw-path" d="M40 12 L24 36 L33 36 L28 58 L48 32 L38 32 Z" stroke="#C9A96E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:140;--len:140"/>
+      </svg>
+    </div>
+    <div class="name">Score ELITE</div>
+    <div class="label">85+ puntos</div>
+  </div>
+
+  <!-- 5. CHAIN LINKS — Streak -->
+  <div class="card" onclick="toggleCard(this)" data-milestone="streak">
+    <div class="icon-box">
+      <svg width="70" height="70" viewBox="0 0 70 70" fill="none">
+        <circle class="glow-circle" cx="35" cy="35" r="30" fill="rgba(122,139,92,0.08)"/>
+        <rect class="draw-path" x="12" y="24" width="22" height="12" rx="6" stroke="#7A8B5C" stroke-width="2" style="stroke-dasharray:60;--len:60"/>
+        <rect class="draw-path" x="28" y="24" width="22" height="12" rx="6" stroke="#7A8B5C" stroke-width="2" style="stroke-dasharray:60;--len:60"/>
+        <rect class="draw-path" x="20" y="36" width="22" height="12" rx="6" stroke="#7A8B5C" stroke-width="2" style="stroke-dasharray:60;--len:60"/>
+        <rect class="draw-path" x="36" y="36" width="22" height="12" rx="6" stroke="#7A8B5C" stroke-width="2" style="stroke-dasharray:60;--len:60"/>
+      </svg>
+    </div>
+    <div class="name">Streak</div>
+    <div class="label">Sin romper cadena</div>
+  </div>
+
+  <!-- 6. ROCKET — Workout milestones -->
+  <div class="card" onclick="toggleCard(this)" data-milestone="workout_count">
+    <div class="icon-box">
+      <svg width="70" height="70" viewBox="0 0 70 70" fill="none">
+        <circle class="glow-circle" cx="35" cy="35" r="30" fill="rgba(199,91,57,0.08)"/>
+        <path class="draw-path" d="M35 14 C35 14, 48 22, 48 38 L42 44 L28 44 L22 38 C22 22, 35 14, 35 14Z" stroke="#C75B39" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:110;--len:110"/>
+        <circle class="draw-path" cx="35" cy="32" r="4" stroke="#C75B39" stroke-width="1.8" style="stroke-dasharray:26;--len:26"/>
+        <path class="draw-path" d="M30 44 L28 54 L35 50 L42 54 L40 44" stroke="#C75B39" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:50;--len:50"/>
+      </svg>
+    </div>
+    <div class="name">Workout milestone</div>
+    <div class="label">10, 25, 50, 100</div>
+  </div>
+
+  <!-- 7. TARGET/BULLSEYE — Fase completada -->
+  <div class="card" onclick="toggleCard(this)" data-milestone="phase_complete">
+    <div class="icon-box">
+      <svg width="70" height="70" viewBox="0 0 70 70" fill="none">
+        <circle class="glow-circle" cx="35" cy="35" r="30" fill="rgba(199,91,57,0.08)"/>
+        <circle class="draw-path" cx="35" cy="35" r="22" stroke="#C75B39" stroke-width="2" style="stroke-dasharray:139;--len:139"/>
+        <circle class="draw-path" cx="35" cy="35" r="14" stroke="#C75B39" stroke-width="1.8" style="stroke-dasharray:88;--len:88"/>
+        <circle class="draw-path" cx="35" cy="35" r="5" stroke="#C75B39" stroke-width="2.5" fill="#C75B39" fill-opacity="0" style="stroke-dasharray:32;--len:32"/>
+      </svg>
+    </div>
+    <div class="name">Fase completada</div>
+    <div class="label">Siguiente nivel</div>
+  </div>
+
+  <!-- 8. CROWN — 100 workouts / Legendary -->
+  <div class="card" onclick="toggleCard(this)" data-milestone="legendary">
+    <div class="icon-box">
+      <svg width="70" height="70" viewBox="0 0 70 70" fill="none">
+        <circle class="glow-circle" cx="35" cy="35" r="30" fill="rgba(201,169,110,0.1)"/>
+        <path class="draw-path" d="M16 46 L16 30 L26 38 L35 24 L44 38 L54 30 L54 46 Z" stroke="#C9A96E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:130;--len:130"/>
+        <line class="draw-path" x1="16" y1="50" x2="54" y2="50" stroke="#C9A96E" stroke-width="2" stroke-linecap="round" style="stroke-dasharray:38;--len:38"/>
+        <circle class="draw-path" cx="26" cy="28" r="2" stroke="#C9A96E" stroke-width="1.5" style="stroke-dasharray:13;--len:13"/>
+        <circle class="draw-path" cx="35" cy="22" r="2" stroke="#C9A96E" stroke-width="1.5" style="stroke-dasharray:13;--len:13"/>
+        <circle class="draw-path" cx="44" cy="28" r="2" stroke="#C9A96E" stroke-width="1.5" style="stroke-dasharray:13;--len:13"/>
+      </svg>
+    </div>
+    <div class="name">Legendario</div>
+    <div class="label">100 workouts</div>
+  </div>
+
+</div>
+
+<!-- Tap any card to see modal -->
+<p style="font-size:11px;color:#bbb;text-align:center;margin-top:4px">Toca cada icono para ver la animacion</p>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay" onclick="hideModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-icon" id="modal-icon"></div>
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-sub" id="modal-sub"></div>
+    <div class="accent-bar" id="accent-bar"></div>
+    <button class="dismiss" onclick="hideModal()">SEGUIR</button>
+  </div>
+</div>
+
+<script>
+const milestoneData = {
+  first_workout: { title:'Primer entrenamiento completo', sub:'La consistencia empieza con uno.', color:'#7A8B5C' },
+  first_pr: { title:'Tu primer PR', sub:'Acabas de romper tu record personal.', color:'#C9A96E' },
+  perfect_week: { title:'Semana perfecta', sub:'5 de 5 sesiones completadas.', color:'#7A8B5C' },
+  elite_score: { title:'Score ELITE', sub:'Entrenaste con intencion real.', color:'#C9A96E' },
+  streak: { title:'7 dias de streak', sub:'7 dias consecutivos. Imparable.', color:'#7A8B5C' },
+  workout_count: { title:'25 workouts', sub:'Un cuarto de centenar.', color:'#C75B39' },
+  phase_complete: { title:'ACUMULACION completada', sub:'Siguiente fase desbloqueada.', color:'#C75B39' },
+  legendary: { title:'100 workouts', sub:'Triple digitos. Eres del 1%.', color:'#C9A96E' },
+};
+
+function toggleCard(card) {
+  // Reset all
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('animated'));
+  // Animate this one
+  void card.offsetWidth; // force reflow
+  card.classList.add('animated');
+
+  // Show modal after icon draws
+  const key = card.dataset.milestone;
+  const data = milestoneData[key];
+  setTimeout(() => {
+    const iconSvg = card.querySelector('svg').cloneNode(true);
+    iconSvg.setAttribute('width', '90');
+    iconSvg.setAttribute('height', '90');
+    // Force animation on clone
+    iconSvg.querySelectorAll('.draw-path').forEach(p => p.style.strokeDashoffset = '0');
+    iconSvg.querySelectorAll('.glow-circle').forEach(c => c.style.opacity = '1');
+
+    document.getElementById('modal-icon').innerHTML = '';
+    document.getElementById('modal-icon').appendChild(iconSvg);
+    document.getElementById('modal-title').textContent = data.title;
+    document.getElementById('modal-sub').textContent = data.sub;
+    document.getElementById('accent-bar').style.background = data.color;
+    document.getElementById('overlay').classList.add('active');
+  }, 800);
+}
+
+function hideModal() {
+  document.getElementById('overlay').classList.remove('active');
+}
+</script>
+</body>
+</html>

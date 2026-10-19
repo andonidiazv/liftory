@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>M3 · LIFTORY</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --gold:#C4A24E; --gold-dim:#8B7235;
+      --bg:#0D0D0F; --bg-2:#16161A; --bg-3:#1F1F25; --bg-4:#262630;
+      --text:#FAF8F5; --muted:#8A8A8E;
+      --line:rgba(196,162,78,0.18); --line-soft:rgba(255,255,255,0.06);
+      --hot:#D45555; --good:#7A8B5C; --kb:#B86C3D; --rec:#5C8B7A;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',system-ui,sans-serif;line-height:1.55}
+    body{max-width:1080px;margin:0 auto;padding:56px 32px 96px}
+
+    h1,h2,h3,h4{font-family:'Syne',sans-serif;font-weight:800;letter-spacing:-0.03em;color:var(--text)}
+    h1{font-size:60px;line-height:1;letter-spacing:-0.04em}
+    h2{font-size:36px;line-height:1.05;margin-top:80px;margin-bottom:24px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+    h3{font-size:22px;line-height:1.15;margin-top:34px;margin-bottom:14px;color:var(--gold)}
+    h4{font-size:14px;line-height:1.3;margin-top:22px;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-weight:700;font-family:'JetBrains Mono',monospace}
+    .wm{font-family:'Syne';font-weight:800;letter-spacing:-0.04em;color:var(--gold);font-size:18px}
+
+    .hero{padding:24px 0 56px;border-bottom:1px solid var(--line);margin-bottom:16px}
+    .hero .crumb{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:18px}
+    .hero h1{color:var(--gold)}
+    .hero .sub{font-size:18px;color:var(--muted);margin-top:14px;max-width:640px}
+    .hero .pill{display:inline-block;padding:5px 12px;border:1px solid var(--line);border-radius:999px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:0.12em;margin-top:22px;text-transform:uppercase}
+
+    .meta{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line-soft);margin:32px 0 0;border-radius:10px;overflow:hidden}
+    .meta>div{background:var(--bg-2);padding:18px 14px}
+    .meta dt{font-size:10px;color:var(--muted);letter-spacing:0.16em;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+    .meta dd{margin-top:6px;font-family:'Syne';font-weight:800;font-size:22px;color:var(--text);letter-spacing:-0.02em}
+
+    p{font-size:16px;margin:14px 0;color:var(--text)}
+    p.lead{font-size:18px;color:var(--text)}
+    em{color:var(--gold);font-style:italic}
+    strong{color:var(--text);font-weight:600}
+
+    .card{background:var(--bg-2);border:1px solid var(--line-soft);border-radius:14px;padding:24px;margin:18px 0}
+    .card.gold{border-color:var(--line);background:linear-gradient(180deg,rgba(196,162,78,0.07),rgba(196,162,78,0.02))}
+    .card.kb{border-color:rgba(184,108,61,0.3);background:linear-gradient(180deg,rgba(184,108,61,0.05),transparent)}
+    .quote{font-family:'Syne';font-weight:700;font-size:24px;line-height:1.3;color:var(--gold);letter-spacing:-0.02em;border-left:3px solid var(--gold);padding:6px 0 6px 22px;margin:28px 0;font-style:italic}
+
+    table{width:100%;border-collapse:collapse;font-size:13px;margin:18px 0}
+    th,td{padding:11px 12px;text-align:left;border-bottom:1px solid var(--line-soft);vertical-align:top}
+    th{background:var(--bg-3);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);font-weight:700;border-bottom:1px solid var(--line)}
+    td.mono{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text)}
+    td.muted{color:var(--muted)}
+    td.gold{color:var(--gold);font-weight:600}
+    tr:hover{background:rgba(196,162,78,0.03)}
+
+    .timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:28px 0}
+    .tl{background:var(--bg-2);border:1px solid var(--line-soft);border-radius:12px;padding:20px 16px;position:relative}
+    .tl.current{border-color:var(--gold);background:linear-gradient(180deg,rgba(196,162,78,0.08),rgba(196,162,78,0.02))}
+    .tl-roman{font-family:'Syne';font-weight:800;font-size:32px;color:var(--gold);letter-spacing:-0.03em;line-height:1}
+    .tl-title{font-family:'Syne';font-weight:800;font-size:15px;letter-spacing:0.02em;text-transform:uppercase;margin-top:10px;color:var(--text)}
+    .tl-mesos{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:6px;letter-spacing:0.12em;text-transform:uppercase}
+    .tl-desc{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.5}
+    .tl-here{position:absolute;top:-10px;right:14px;background:var(--gold);color:var(--bg);font-family:'JetBrains Mono',monospace;font-size:9px;padding:4px 8px;border-radius:999px;letter-spacing:0.18em;font-weight:700}
+
+    .days-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:24px 0}
+    @media(max-width:720px){.days-grid{grid-template-columns:1fr}}
+    .dcard{background:var(--bg-2);border:1px solid var(--line-soft);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:8px}
+    .dcard .ddow{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:0.18em;text-transform:uppercase}
+    .dcard .dname{font-family:'Syne';font-weight:800;font-size:22px;letter-spacing:-0.02em;color:var(--text)}
+    .dcard .dmoda{font-size:13px;color:var(--gold);font-style:italic;font-weight:500}
+    .dcard .dhyper{font-size:12px;color:var(--muted);padding-top:8px;border-top:1px solid var(--line-soft);margin-top:8px}
+    .dcard .dhyper strong{color:var(--text)}
+    .dcard .dkb{display:inline-block;font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--kb);background:rgba(184,108,61,0.15);padding:2px 8px;border-radius:999px;letter-spacing:0.14em;text-transform:uppercase;align-self:flex-start;margin-top:6px}
+    .dcard .drec{display:inline-block;font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--rec);background:rgba(92,139,122,0.15);padding:2px 8px;border-radius:999px;letter-spacing:0.14em;text-transform:uppercase;align-self:flex-start;margin-top:6px}
+
+    /* Week details */
+    details{background:var(--bg-2);border:1px solid var(--line-soft);border-radius:12px;margin:18px 0;overflow:hidden}
+    details[open]{border-color:var(--line)}
+    summary{padding:20px 24px;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:18px}
+    summary:hover{background:rgba(196,162,78,0.04)}
+    summary::-webkit-details-marker{display:none}
+    summary::after{content:"+";font-family:'Syne';font-weight:700;font-size:28px;color:var(--gold)}
+    details[open] summary::after{content:"−"}
+    .wlabel{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:0.18em;text-transform:uppercase}
+    .wtitle{font-family:'Syne';font-weight:800;font-size:24px;letter-spacing:-0.02em;margin-top:4px}
+    .wphase{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;letter-spacing:0.1em;text-transform:uppercase}
+    .wbody{padding:0 24px 28px}
+    .wthesis{font-family:'Syne';font-style:italic;font-weight:700;color:var(--gold);font-size:17px;line-height:1.4;padding:14px 0 20px;border-bottom:1px solid var(--line-soft);margin-bottom:24px}
+
+    /* ════ WORKOUT CARD (estilo app preview) ════ */
+    .wc{background:var(--bg-3);border:1px solid var(--line-soft);border-radius:16px;margin:18px 0;overflow:hidden}
+    .wc.recovery{border-color:rgba(92,139,122,0.3);background:linear-gradient(180deg,rgba(92,139,122,0.04),transparent)}
+    .wc-header{padding:18px 22px;border-bottom:1px solid var(--line-soft);display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;background:rgba(196,162,78,0.04)}
+    .wc.recovery .wc-header{background:rgba(92,139,122,0.06)}
+    .wc-dow{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:0.2em;text-transform:uppercase;font-weight:700;min-width:36px}
+    .wc.recovery .wc-dow{color:var(--rec)}
+    .wc-name{font-family:'Syne';font-weight:800;font-size:20px;letter-spacing:-0.02em;color:var(--text)}
+    .wc-meta{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-left:auto;letter-spacing:0.08em;text-transform:uppercase}
+    .wc-sub{width:100%;font-size:12px;color:var(--muted);font-style:italic;margin-top:2px}
+    .wc-blocks{padding:14px 0}
+
+    /* Block dentro de workout card */
+    .wb{padding:14px 22px;border-bottom:1px solid var(--line-soft)}
+    .wb:last-child{border-bottom:none}
+    .wb-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+    .wb-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:0.16em;text-transform:uppercase;font-weight:700}
+    .wb-fmt{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);background:var(--bg-4);padding:2px 8px;border-radius:4px;letter-spacing:0.08em;text-transform:uppercase}
+    .wb-fmt.kb{color:var(--kb);background:rgba(184,108,61,0.15)}
+    .wb-fmt.flow{color:var(--good);background:rgba(122,139,92,0.15)}
+    .wb-fmt.new{color:var(--gold);background:rgba(196,162,78,0.15)}
+
+    /* Sub-group (para prime blocks agrupados) */
+    .wb-sub{padding:6px 0 6px 12px;border-left:2px solid var(--line-soft);margin:6px 0}
+    .wb-sub-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:0.12em;text-transform:uppercase;display:block;margin-bottom:4px;font-weight:700}
+
+    /* Exercise row */
+    .wb-row{display:grid;grid-template-columns:1fr auto;gap:14px;padding:4px 0;align-items:baseline}
+    .wb-ex{color:var(--text);font-size:13px;line-height:1.5}
+    .wb-rep{color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;text-align:right;white-space:nowrap}
+    .wb-rep.muted{color:var(--muted);font-weight:400}
+    .wb-row.prominent .wb-ex{font-weight:600;font-size:14px}
+    .wb-row.prominent .wb-rep{font-size:14px;background:rgba(196,162,78,0.1);padding:2px 8px;border-radius:4px}
+
+    .wb-note{font-size:11px;color:var(--muted);font-style:italic;margin-top:8px;line-height:1.55;padding-top:8px;border-top:1px dashed var(--line-soft)}
+    .wb-tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9px;padding:1px 6px;border-radius:3px;letter-spacing:0.04em;margin-left:4px;font-weight:600;vertical-align:middle}
+    .wb-tag.new{background:rgba(196,162,78,0.2);color:var(--gold)}
+    .wb-tag.target{background:rgba(122,139,92,0.2);color:var(--good)}
+    .wb-tag.kb{background:rgba(184,108,61,0.2);color:var(--kb)}
+    .wb-tag.flow{background:rgba(92,139,122,0.2);color:var(--rec)}
+
+    /* Movement catalog */
+    .move-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:20px 0}
+    .mv{background:var(--bg-2);border:1px solid var(--line-soft);border-radius:12px;padding:18px}
+    .mv.kb{border-color:rgba(184,108,61,0.3)}
+    .mv-name{font-family:'Syne';font-weight:800;font-size:16px;color:var(--text);letter-spacing:-0.01em}
+    .mv-tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--gold);padding:3px 8px;border:1px solid var(--line);border-radius:999px;letter-spacing:0.12em;text-transform:uppercase;margin-top:8px;margin-bottom:8px;margin-right:4px}
+    .mv-tag.kb-tag{color:var(--kb);border-color:rgba(184,108,61,0.4)}
+    .mv-desc{font-size:12px;color:var(--muted);line-height:1.55;margin-top:6px}
+    .mv-prog{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);margin-top:10px;letter-spacing:0.05em}
+
+    footer{margin-top:96px;padding:32px 0 0;border-top:1px solid var(--line);text-align:center;color:var(--muted);font-size:12px;line-height:1.7}
+    footer .sig{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-top:18px}
+
+    @media print{
+      body{max-width:none;padding:24px;color:#000;background:#fff}
+      h1,h2,h3,h4,.wm{color:#000}
+      .hero h1,h3,.quote{color:#8B7235}
+      details{break-inside:avoid}
+      details>summary::after{display:none}
+      details:not([open])>*:not(summary){display:block !important}
+      .wc{break-inside:avoid}
+    }
+    @media(max-width:720px){
+      body{padding:32px 18px 64px}
+      h1{font-size:42px}
+      h2{font-size:26px}
+      .timeline{grid-template-columns:1fr 1fr}
+      .meta{grid-template-columns:1fr 1fr}
+      .wbody{padding:0 14px 22px}
+      .wb{padding:12px 14px}
+      .wb-row{grid-template-columns:1fr}
+      .wb-rep{text-align:left;font-size:13px;margin-top:2px}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════ 1. HERO ════ -->
+<header class="hero">
+  <div class="crumb"><span class="wm">LIFTORY</span> · Build Him Elite · Macrociclo 2026 · v3</div>
+  <h1>M3</h1>
+  <p class="sub">Tercer mesociclo del macrociclo. Capítulo II. Pesa rusa protagonista, brazos como block fijo, core diario, break a la barra olímpica, jueves Active Recovery real, Barbell Hip Thrust (Smith) como signature glute.</p>
+  <span class="pill">Coach Adonis · v3 · Workout preview style</span>
+  <dl class="meta">
+    <div><dt>Duración</dt><dd>6 semanas</dd></div>
+    <div><dt>Modalidad ★</dt><dd>KB-dominant</dd></div>
+    <div><dt>Días entreno</dt><dd>5 + 1 AR</dd></div>
+    <div><dt>Filosofía</dt><dd>FBB Stack</dd></div>
+  </dl>
+</header>
+
+<!-- ════ 2. MACROCICLO ════ -->
+<section>
+  <h2>El año en 4 capítulos</h2>
+  <p class="lead">2026 es un macrociclo. 8 mesos × 6 semanas. Cada par de mesos es un capítulo. M3 abre el segundo.</p>
+  <div class="timeline">
+    <div class="tl"><div class="tl-roman">I</div><div class="tl-title">Forja</div><div class="tl-mesos">M1 · M2 · Q1</div><div class="tl-desc">Strength split clásico. Base técnica, hábito, motor.</div></div>
+    <div class="tl current"><div class="tl-here">aquí</div><div class="tl-roman">II</div><div class="tl-title">Hybrid Discovery</div><div class="tl-mesos">M3 · M4 · Q2</div><div class="tl-desc">KB protagonista, FBB Stack, brazos block fijo, core diario.</div></div>
+    <div class="tl"><div class="tl-roman">III</div><div class="tl-title">Pico</div><div class="tl-mesos">M5 · M6 · Q3</div><div class="tl-desc">1RM olympic. AMRAP backoffs. Benchmarks.</div></div>
+    <div class="tl"><div class="tl-roman">IV</div><div class="tl-title">Dominio</div><div class="tl-mesos">M7 · M8 · Q4</div><div class="tl-desc">Hybrid completo. Specialty work. Autonomía.</div></div>
+  </div>
+</section>
+
+<!-- ════ 3. FILOSOFÍA ════ -->
+<section>
+  <h2>Filosofía M3 — KB + FBB Stack</h2>
+  <div class="quote">"M3 saca al atleta del rack. Le pone la pesa rusa en las manos. Le enseña a moverse en flow. Y le respeta los jueves."</div>
+  <p class="lead">5 días de entreno + 1 Active Recovery (JUE) + 1 descanso completo (DOM). Cada día con identidad por modalidad, no por músculo. KB en LUN/MIE/VIE. Barbell solo MAR + SÁB. Brazos como block fijo. Core diario.</p>
+
+  <h3>Decisiones firmes</h3>
+  <table>
+    <thead><tr><th>Decisión</th><th>Por qué</th></tr></thead>
+    <tbody>
+      <tr><td class="mono gold">JUE = Active Recovery real</td><td>No es workout completo. Movilidad + Animal Flow + Zone 2 + TGU skill maintenance + Spine &amp; Hips. CNS recovery genuino.</td></tr>
+      <tr><td class="mono gold">Barbell Hip Thrust en Smith</td><td>Como Heavy B signature en MAR. Smith permite cargas altas con setup estable. Glute focus directo.</td></tr>
+      <tr><td class="mono gold">Heavy lifts a 4 series desde W1</td><td>Incline DB Bench / CS Row / Bulgarian arrancan en 4×10 (no 3). Rest 2:30 entre sets — heavy es heavy.</td></tr>
+      <tr><td class="mono gold">Barra olímpica solo MAR + SÁB</td><td>Break al barbell. KB y DB el resto.</td></tr>
+      <tr><td class="mono gold">Brazos block fijo en 5 días</td><td>Atleta target quiere brazos llenos sin ser curl bro.</td></tr>
+      <tr><td class="mono gold">Core en CADA día (no solo SÁB)</td><td>Anti-extension, anti-rotation, anti-lateral, gymnastic abs. Foco rotativo.</td></tr>
+      <tr><td class="mono gold">NO 1RM en pull-up/bench/squat</td><td>Reservado para Capítulo III.</td></tr>
+      <tr><td class="mono gold">NO rotacional con peso pesado</td><td>Cintura pequeña. Russian Twist con DB OUT.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ════ 4. IDENTIDADES DE DÍA ════ -->
+<section>
+  <h2>La semana — 6 identidades</h2>
+  <p>Cada día tiene una identidad. Lunes a Sábado son días de entreno. Jueves es <strong>Active Recovery real</strong>. Domingo descanso total.</p>
+
+  <div class="days-grid">
+    <div class="dcard">
+      <div class="ddow">Lun</div>
+      <div class="dname">Density Day</div>
+      <div class="dmoda">KB Z Press + Commando · Lean-Away Lateral · tríceps</div>
+      <div class="dkb">KB protagonista</div>
+      <div class="dhyper"><strong>Target:</strong> Hombros 3D · lats wide · tríceps · core anti-extension</div>
+    </div>
+    <div class="dcard">
+      <div class="ddow">Mar</div>
+      <div class="dname">Tempo Day</div>
+      <div class="dmoda">Front Squat tempo + Smith HT con iso + Nordic + 45° Hip Ext</div>
+      <div class="dhyper"><strong>Target:</strong> Glúteo signature · quad · ham · tendón posterior</div>
+    </div>
+    <div class="dcard">
+      <div class="ddow">Mié</div>
+      <div class="dname">Skill Day</div>
+      <div class="dmoda">Double KB Complex + MU Burpee For Time + Lat Volume + bíceps</div>
+      <div class="dkb">KB protagonista</div>
+      <div class="dhyper"><strong>Target:</strong> V-taper · bíceps · gymnastic abs · skill</div>
+    </div>
+    <div class="dcard">
+      <div class="ddow">Jue</div>
+      <div class="dname">Active Recovery</div>
+      <div class="dmoda">Animal Flow + Zone 2 + Cossack + TGU skill + Spine &amp; Hips</div>
+      <div class="drec">Recovery real · OPCIONAL</div>
+      <div class="dhyper"><strong>Target:</strong> CNS reset · mobility · vagal tone · sleep quality</div>
+    </div>
+    <div class="dcard">
+      <div class="ddow">Vie</div>
+      <div class="dname">Upper Hypertrophy + Strength</div>
+      <div class="dmoda">Incline DB Bench + CS DB Row + Shoulder 3D + Arm Superset + Weighted Dip</div>
+      <div class="dhyper"><strong>Target:</strong> Pec superior · back density · hombro 3D · brazos · Z2 opcional</div>
+    </div>
+    <div class="dcard">
+      <div class="ddow">Sáb</div>
+      <div class="dname">Lower Hypertrophy Unilateral + Engine + Carry</div>
+      <div class="dmoda">Barbell Bulgarian + Snatch-Grip RDL + DB Walking Lunges + Sled Push + Calf + Farmer Hold</div>
+      <div class="dhyper"><strong>Target:</strong> Quad/glute unilateral · grip + posture indestructible</div>
+    </div>
+  </div>
+  <h4>Domingo · Descanso completo</h4>
+</section>
+
+<!-- ════ 5. MASTER TABLE ════ -->
+<section>
+  <h2>Las 6 semanas — vista de águila</h2>
+  <table>
+    <thead><tr><th>Sem</th><th>Fase</th><th>Volumen</th><th>Intensidad</th><th>Lo novedoso</th></tr></thead>
+    <tbody>
+      <tr><td class="mono gold">W1</td><td class="mono">BASE</td><td>Base 100%</td><td>RPE 7-7.5 · 50-70%</td><td>Introducción FBB Stack. Atleta aprende KB Z Press EMOM, Double KB Complex, Barbell Bulgarian, Snatch-Grip RDL, MU Burpee For Time, Smith HT iso.</td></tr>
+      <tr><td class="mono gold">W2</td><td class="mono">BASE+</td><td>+15%</td><td>RPE 7.5 · cargas igual</td><td>Mismos ejercicios. Más reps + ronda extra en accesorios. MU Burpee cap baja a 10 min.</td></tr>
+      <tr><td class="mono gold">W3</td><td class="mono">ACUM</td><td>+25%</td><td>RPE 8</td><td>Volumen pico. Density a 14 min. Lat Vol 4 rondas. MU Burpee 50 reps. Sled 30m. Hypertrophy a 4×15.</td></tr>
+      <tr><td class="mono gold">W4</td><td class="mono">INT</td><td>-15% vs W3</td><td>RPE 8.5-9 · peso +10%</td><td>Carga sube, reps bajan. Heavies a 5×6-8 con +peso. MU Burpee EMOM 10 min. Nordic ecc 6s. Farmer Hold top peso.</td></tr>
+      <tr><td class="mono gold">W5</td><td class="mono">PEAK</td><td>-20% vs W3</td><td>RPE 9-9.5 · top peso</td><td>1 test honesto por día. Front Squat 4×5 RPE 9. Test Dip 3×5 RPE 9. MU Burpee SUB-12 min. Bulgarian 4×5 pesado. Sled sprint 5×20m.</td></tr>
+      <tr><td class="mono gold">W6</td><td class="mono">DELOAD</td><td>-30%</td><td>RPE ≤7 · 60%</td><td>CNS recovery real. 2-3 sets · cargas 60%. Sled skip · Nordic skip · MU Burpee skip o 15 reps light.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ════ 6. SEMANAS DETALLADAS (workout-card style) ════ -->
+<section>
+  <h2>Las 6 semanas día por día</h2>
+  <p>Vista tipo preview de workout app. <span class="wb-tag new">nuevo</span> patrón nuevo · <span class="wb-tag kb">KB</span> pesa rusa · <span class="wb-tag flow">flow</span> flow creativo · <span class="wb-tag target">target</span> foco estético.</p>
+
+  <!-- ═══════ W1 BASE ═══════ -->
+  <details open>
+    <summary>
+      <div>
+        <div class="wlabel">Semana 1 · Base</div>
+        <div class="wtitle">Aprende el stack · KB flows base · Smith Hip Thrust intro</div>
+        <div class="wphase">RPE 7 · 70% · volumen base · foco técnico</div>
+      </div>
+    </summary>
+    <div class="wbody">
+      <p class="wthesis">"Semana de descubrimiento. El atleta toca por primera vez los KB flows. Cargas conservadoras, ritmo cuidado, técnica primero."</p>
+
+      <!-- ─── LUN W1 ─── -->
+      <div class="wc">
+        <div class="wc-header">
+          <span class="wc-dow">Lun</span>
+          <h3 class="wc-name">Density Day</h3>
+          <span class="wc-meta">~78 min · 7 bloques</span>
+          <span class="wc-sub">KB Z Press density + Commando V-taper + tríceps + anti-extension</span>
+        </div>
+        <div class="wc-blocks">
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">PRIME BLOCK</span><span class="wb-fmt">2 rondas · 3 grupos · ~10 min</span></div>
+            <div class="wb-sub">
+              <span class="wb-sub-label">1 · Mobility hombro</span>
+              <div class="wb-row"><span class="wb-ex">Wall Slide</span><span class="wb-rep">× 8</span></div>
+              <div class="wb-row"><span class="wb-ex">Band Dislocates</span><span class="wb-rep">× 10</span></div>
+            </div>
+            <div class="wb-sub">
+              <span class="wb-sub-label">2 · Activación escapular</span>
+              <div class="wb-row"><span class="wb-ex">Scap Push-up</span><span class="wb-rep">× 10</span></div>
+              <div class="wb-row"><span class="wb-ex">Banded Pull-Apart</span><span class="wb-rep">× 15</span></div>
+            </div>
+            <div class="wb-sub">
+              <span class="wb-sub-label">3 · Specific prep KB</span>
+              <div class="wb-row"><span class="wb-ex">KB Around the World <span class="wb-tag kb">KB</span> <span class="wb-tag flow">flow</span></span><span class="wb-rep">× 10/lado</span></div>
+              <div class="wb-row"><span class="wb-ex">KB Halo <span class="wb-tag kb">KB</span></span><span class="wb-rep">× 10/lado</span></div>
+            </div>
+            <div class="wb-note">2 rondas completas de los 3 grupos antes de pasar al Density Block.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">DENSITY BLOCK A</span><span class="wb-fmt kb">EMOM 12 min · alterna cada minuto</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">Min impar · KB Alternating Z Press <span class="wb-tag new">nuevo</span> <span class="wb-tag kb">KB</span></span><span class="wb-rep">8 reps/lado</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">Min par · Commando Pull-up <span class="wb-tag new">nuevo</span> <span class="wb-tag target">V-taper</span></span><span class="wb-rep">8-10 reps</span></div>
+            <div class="wb-note">6 sets de cada uno alternando minuto a minuto · KB Z Press sentado piernas extendidas (anti-extension obligatorio) · Commando = grip mixto, alternando cuello a un lado de la barra · target hombros 3D + lats wide + core</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">HYPERTROPHY BLOCK</span><span class="wb-fmt">3 × (10/lado + 12) · rest 60s</span></div>
+            <div class="wb-row"><span class="wb-ex">Cable Lean-Away Lateral Raise (unilateral) <span class="wb-tag new">nuevo</span> <span class="wb-tag target">delt lateral aislado</span></span><span class="wb-rep">× 10/lado</span></div>
+            <div class="wb-row"><span class="wb-ex">Bent-Over Rear Delt Fly <span class="wb-tag target">delt posterior</span></span><span class="wb-rep">× 12</span></div>
+            <div class="wb-note">Cable Lean-Away unilateral · cable bajo, agarrás de la mano más alejada de la polea, inclinás el torso hacia el lado opuesto · la polea da <strong>tensión constante en todo el rango</strong> (a diferencia del DB que pierde tensión arriba) · aísla 100% la cabeza lateral del deltoide.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">SKILL PUSH · superset push-up</span><span class="wb-fmt new">3 sets · rest 2 min entre series</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">DB Bench Press · tempo 2-1-1</span><span class="wb-rep">3 × 8</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">→ inmediato · Push-up combo (5 wide + 5 standard + 5 close grip) <span class="wb-tag new">nuevo</span></span><span class="wb-rep">× 15</span></div>
+            <div class="wb-note">Después de CADA set de DB Bench, sin rest, 15 push-ups: 5 abiertas + 5 normales + 5 cerradas. Trabaja pec en 3 vectores distintos en pre-fatigue. Rest 2 min entre la combinación completa.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">ARM BLOCK</span><span class="wb-fmt">4 × (12+10) · rest 60s · <span class="wb-tag new">+1 set vs default</span></span></div>
+            <div class="wb-row"><span class="wb-ex">Tricep Rope Pushdown <span class="wb-tag target">tríceps</span></span><span class="wb-rep">× 12</span></div>
+            <div class="wb-row"><span class="wb-ex">DB Skull Crusher</span><span class="wb-rep">× 10</span></div>
+            <div class="wb-note">Subimos a 4 sets · volumen extra de tríceps sin reventar el día.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">CORE BLOCK</span><span class="wb-fmt new">3 rondas · anti-extension + loaded</span></div>
+            <div class="wb-row"><span class="wb-ex">Hollow Body Hold</span><span class="wb-rep">30s</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">Low Plank KB Press-Drag (unilateral) <span class="wb-tag new">nuevo</span> <span class="wb-tag kb">KB</span> <span class="wb-tag target">core anti-extension loaded</span></span><span class="wb-rep">× 10/lado</span></div>
+            <div class="wb-note">Posición de <strong>plancha baja (antebrazos)</strong> con una KB delante de la mano que va a trabajar · agarrás la KB · la <strong>extendés overhead</strong> deslizándola hacia adelante hasta que el brazo queda completamente extendido · después la <strong>jalás hacia tu cuerpo</strong> hasta que el codo queda pegado al torso · todo manteniendo la cadera estable y la plancha baja sin rotación. 10 reps cada lado. Mata oblicuos + serrato + estabilidad escapular. Rest 30s entre rondas.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">RECOVERY BLOCK</span><span class="wb-fmt">90s c/u</span></div>
+            <div class="wb-row"><span class="wb-ex">Doorway Pec Stretch</span><span class="wb-rep">90s</span></div>
+            <div class="wb-row"><span class="wb-ex">Thoracic Foam Extension</span><span class="wb-rep">90s</span></div>
+            <div class="wb-row"><span class="wb-ex">Cross-Body Shoulder Stretch</span><span class="wb-rep">60s/lado</span></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ─── MAR W1 ─── -->
+      <div class="wc">
+        <div class="wc-header">
+          <span class="wc-dow">Mar</span>
+          <h3 class="wc-name">Tempo Day</h3>
+          <span class="wc-meta">~82 min · 7 bloques</span>
+          <span class="wc-sub">Front Squat tempo + Smith Hip Thrust + Reverse Sit Up + Weighted Lateral Plank · Nordic cierra hamstrings</span>
+        </div>
+        <div class="wc-blocks">
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">PRIME BLOCK</span><span class="wb-fmt">2 rondas · 3 grupos · ~10 min</span></div>
+            <div class="wb-sub">
+              <span class="wb-sub-label">1 · Mobility cadera</span>
+              <div class="wb-row"><span class="wb-ex">90/90 Hip Switches</span><span class="wb-rep">× 5/lado</span></div>
+              <div class="wb-row"><span class="wb-ex">World's Greatest Stretch</span><span class="wb-rep">× 5/lado</span></div>
+            </div>
+            <div class="wb-sub">
+              <span class="wb-sub-label">2 · Activación glúteo</span>
+              <div class="wb-row"><span class="wb-ex">Glute Bridge March</span><span class="wb-rep">× 10</span></div>
+              <div class="wb-row"><span class="wb-ex">Banded Lateral Walk</span><span class="wb-rep">× 10/lado</span></div>
+            </div>
+            <div class="wb-sub">
+              <span class="wb-sub-label">3 · Movement pattern prep</span>
+              <div class="wb-row prominent"><span class="wb-ex">Squat priming flow: Bottom of Squat Hold → Squat Pulses → Squat Jumps <span class="wb-tag new">nuevo</span></span><span class="wb-rep">20s + 20s + × 5</span></div>
+              <div class="wb-row"><span class="wb-ex">Bodyweight RDL</span><span class="wb-rep">× 5</span></div>
+            </div>
+            <div class="wb-note">Flow del squat priming: 20s en el fondo (rango profundo) → 20s de pulses (resistencia isométrica al rango) → 5 jumps (output reactivo). Sin descanso entre los 3. 2 rondas completas de los 3 grupos.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">HEAVY A · Strength</span><span class="wb-fmt">4 sets · 50-55% 1RM · RPE 7 · tempo 4-1-1-1 · rest 150s</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">Front Squat <span class="wb-tag target">quad sweep</span></span><span class="wb-rep">4 × 10</span></div>
+            <div class="wb-note">Tempo 4-1-1-1: 4s bajada · 1s pause abajo · 1s subida · 1s pause arriba. <strong>W1 BASE: 50-55% de tu 1RM de Front Squat</strong>. El tempo eccéntrico largo + 10 reps multiplican la fatiga real — con 50% sentirás cerca de 70% en sentadilla normal. Si la última rep se rompe en técnica, bajas la carga 5%. Velocidad de la excéntrica > peso.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">HEAVY B · Glute signature</span><span class="wb-fmt new">SMITH · 4 sets · pause 2s + iso 10s · rest 120s</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">Barbell Hip Thrust en Smith Machine <span class="wb-tag new">signature</span> <span class="wb-tag target">glúteo</span></span><span class="wb-rep">4 × (8 + iso 10s)</span></div>
+            <div class="wb-note">Smith permite carga máxima con setup estable. Pausa 2s arriba apretando glúteo en cada rep. <strong>Al terminar las 8 reps, mantén iso hold arriba 10 segundos</strong> sin perder contracción (glúteo apretado todo el tiempo, costillas abajo). Lift principal del día para glute development.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">CORE BLOCK</span><span class="wb-fmt new">3 rondas · superset · descarga cadera/lumbar</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">Reverse Sit Up <span class="wb-tag new">nuevo</span> <span class="wb-tag target">abs + flexión cadera</span></span><span class="wb-rep">3 × 8-10</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">Weighted Lateral Plank Dinámico <span class="wb-tag new">nuevo</span> <span class="wb-tag target">anti-rotation + escapular</span></span><span class="wb-rep">3 × 12</span></div>
+            <div class="wb-note"><strong>Insertado entre Hip Thrust y Nordic</strong> · descarga cadera/lumbar de la carga axial pesada · core en patrones funcionales sin compresión.<br><strong>Reverse Sit Up:</strong> acostado en piso, brazos extendidos overhead agarrado de un poste/soporte, lleva rodillas al pecho y luego extiende las piernas elevando la cadera del suelo hasta full extension (solo espalda alta en contacto con el piso) · regresa controlado a la posición inicial sin que pies o piernas toquen el piso.<br><strong>Weighted Lateral Plank Dinámico:</strong> plancha alta sobre dos DBs, haces un row con una mano y terminas el rep en lateral plank con el DB encima del torso · cambias al otro lado · 12 reps totales alternando (6/lado).</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">TENDÓN · post-core</span><span class="wb-fmt">3 sets · 5s ecc · rest 90-120s</span></div>
+            <div class="wb-row"><span class="wb-ex">Nordic Hamstring Curl assisted <span class="wb-tag target">tendón resilience</span></span><span class="wb-rep">3 × 4</span></div>
+            <div class="wb-note">Después del Core Block (que descarga cadera/lumbar) → ahora Nordic con CNS y hamstring relativamente frescos. <strong>Velocidad de la excéntrica > reps</strong>: 5s controlados bajando · si la técnica colapsa antes de las 4 reps, se cuentan las limpias. Rest 90-120s entre sets (la calidad de la eccéntrica importa más que comprimir tiempo).</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">POSTERIOR CHAIN · glute focus</span><span class="wb-fmt new">4 sets · pause 2s · rest 120s</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">45° Hip Extension (Glute Bias) <span class="wb-tag new">Brett Contreras</span> <span class="wb-tag target">glúteo</span></span><span class="wb-rep">4 × 10</span></div>
+            <div class="wb-note">El ejercicio canónico de Brett Contreras en el banco de hyperextension 45° · ejecución como <strong>hip extension</strong> (NO spine extension): pelvis redondea/posterior tilt, glúteo aprieta arriba, espalda neutra todo el tiempo · carga con disco al pecho · cierre accessory del día, alto volumen sin demanda neural.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">RECOVERY BLOCK</span><span class="wb-fmt">60-90s c/u</span></div>
+            <div class="wb-row"><span class="wb-ex">Pigeon</span><span class="wb-rep">60s/lado</span></div>
+            <div class="wb-row"><span class="wb-ex">Couch Stretch</span><span class="wb-rep">60s/lado</span></div>
+            <div class="wb-row"><span class="wb-ex">Frog Stretch</span><span class="wb-rep">60s</span></div>
+            <div class="wb-row"><span class="wb-ex">Cat-Cow Reach</span><span class="wb-rep">90s</span></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ─── MIE W1 ─── -->
+      <div class="wc">
+        <div class="wc-header">
+          <span class="wc-dow">Mié</span>
+          <h3 class="wc-name">Skill Day</h3>
+          <span class="wc-meta">~68 min · 7 bloques</span>
+          <span class="wc-sub">Double KB Complex + MU Burpee For Time + IC/Gorilla + DB Pull Complex + bíceps</span>
+        </div>
+        <div class="wc-blocks">
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">PRIME BLOCK</span><span class="wb-fmt">2 rondas · 3 grupos · ~10 min</span></div>
+            <div class="wb-sub">
+              <span class="wb-sub-label">1 · Mobility t-spine + muñeca</span>
+              <div class="wb-row"><span class="wb-ex">Thoracic Extension Foam</span><span class="wb-rep">× 10</span></div>
+              <div class="wb-row"><span class="wb-ex">Wrist Mobility</span><span class="wb-rep">60s</span></div>
+            </div>
+            <div class="wb-sub">
+              <span class="wb-sub-label">2 · Activación escapular pull + hinge</span>
+              <div class="wb-row"><span class="wb-ex">Scap Pull</span><span class="wb-rep">× 10</span></div>
+              <div class="wb-row"><span class="wb-ex">Dead Hang</span><span class="wb-rep">20s</span></div>
+              <div class="wb-row"><span class="wb-ex">Bodyweight RDL</span><span class="wb-rep">× 8</span></div>
+            </div>
+            <div class="wb-sub">
+              <span class="wb-sub-label">3 · Specific prep Double KB</span>
+              <div class="wb-row"><span class="wb-ex">Double KB Deadlift <span class="wb-tag kb">KB</span></span><span class="wb-rep">× 5</span></div>
+              <div class="wb-row"><span class="wb-ex">Double KB Front Rack Hold <span class="wb-tag kb">KB</span></span><span class="wb-rep">20s</span></div>
+              <div class="wb-row"><span class="wb-ex">Double KB Strict Press <span class="wb-tag kb">KB</span></span><span class="wb-rep">× 3</span></div>
+            </div>
+            <div class="wb-note">2 rondas. El KB Complex que viene exige cadera, agarre y rack position — prep proporcional.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">SKILL A · Double KB Complex</span><span class="wb-fmt kb new flow">3 sets · 5 reps · rest 2-3 min</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">Double KB Complex <span class="wb-tag new">nuevo</span> <span class="wb-tag kb">KB</span> <span class="wb-tag flow">flow</span></span><span class="wb-rep">3 × 5 reps</span></div>
+            <div class="wb-note"><strong>1 rep del complex = los 5 movimientos encadenados sin soltar las KBs:</strong><br>
+              &nbsp;&nbsp;1. Double KB Swing &nbsp; → &nbsp; 2. Double KB Swing Squat (catch en squat al peak) &nbsp; → &nbsp; 3. Double KB High Pull &nbsp; → &nbsp; 4. Double KB Clean &nbsp; → &nbsp; 5. Double KB Thruster.<br>
+              Eso es 1 rep. Hacés 5 reps seguidas = 1 set. 3 sets totales con descanso 2-3 min entre. <strong>KBs moderadas en W1</strong> (técnica primero). Target: hombros + lats + glúteo + grip + conditioning simultáneo.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">SKILL B · MU Burpee</span><span class="wb-fmt new">For Time · 40 reps · cap 12 min</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">MU Burpee <span class="wb-tag new">nuevo</span> <span class="wb-tag target">skill + output</span></span><span class="wb-rep">40 reps</span></div>
+            <div class="wb-note"><strong>1 rep = burpee → jump-to-bar → Muscle-Up</strong>. Score = tiempo total. Cap 12 min — si llegas, anota el tiempo; si no llegas, anota el número de reps completadas en 12'.<br><br><strong>Regresiones del MU (elige por nivel):</strong><br>· <strong>R1 Banded MU</strong> — liga de resistencia colgada de la barra para asistir el pull/transición. Mantiene patrón completo (false grip → pull → transición → dip → press out). <em>El más cercano al MU real.</em><br>· <strong>R2 Jumping MU</strong> — salto desde caja al peak del pull (bypass del pull explosivo), foco 100% en la transición. <em>Drill de patrón.</em><br>· <strong>R3 High Pull-up + Bar Dip</strong> — pull-up alto (pecho a barra) → jump arriba de la barra → dip. Las 2 fases del MU separadas. <em>Para intermedios.</em><br>· <strong>R4 Pull-up + Push-up</strong> — 1 pull-up + 1 push-up (sin barra alta). <em>Para quien aún no tiene base de MU.</em></div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">LAT VOLUME · superset</span><span class="wb-fmt kb new">3 × (12 + 10/lado) · rest 90s</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">Ice Cream Makers <span class="wb-tag new">nuevo</span> <span class="wb-tag target">lats + core gymnastic</span></span><span class="wb-rep">× 12</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">KB Gorilla Row <span class="wb-tag new">nuevo</span> <span class="wb-tag kb">KB</span> <span class="wb-tag target">back density</span></span><span class="wb-rep">× 20 (10/lado)</span></div>
+            <div class="wb-note">3 sets en W1 (sube a 4 en W2+). <br>Ice Cream Makers: hanging desde pull-up arriba, bajás controlado a posición horizontal con piernas extendidas (ice cream scooper motion) y subís de vuelta · lats brutal + control gimnástico. <br>KB Gorilla Row: dos KBs en piso entre piernas, posición hinge profunda, row alternando una mano mientras la otra apoyada en la KB · back density + anti-rotation extremo. 20 reps totales = 10 por lado alternando.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">PULL POWER · DB Complex</span><span class="wb-fmt new">4 sets · 6 reps · RPE 7.5 · rest 75s</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">DB High Pull + DB Squat Clean Complex <span class="wb-tag new">nuevo</span> <span class="wb-tag target">trap + escapular + power + cadera</span></span><span class="wb-rep">4 × 6 reps</span></div>
+            <div class="wb-note"><strong>1 rep del complex = 1 DB High Pull + 1 DB Squat Clean</strong> encadenados sin soltar las DBs.<br>1. <strong>DB High Pull</strong>: setup desde hang (DBs colgando a los lados), triple extensión explosiva → high pull hasta clavículas con codos altos. <br>2. <strong>DB Squat Clean</strong>: desde la posición arriba del high pull, rebotas a squat catch con las DBs en rack position, te levantas. <br>Eso es 1 rep. 6 reps consecutivas = 1 set. Power-based, no curl. Trabaja traps + rear delt + grip + cadera + cuádriceps en flow.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">ARM BLOCK · bíceps</span><span class="wb-fmt">3 × (10+8) · rest 60s</span></div>
+            <div class="wb-row"><span class="wb-ex">DB Hammer Curl <span class="wb-tag target">brachialis</span></span><span class="wb-rep">× 10</span></div>
+            <div class="wb-row"><span class="wb-ex">DB Cross-Body Curl</span><span class="wb-rep">× 8/lado</span></div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">RECOVERY</span><span class="wb-fmt">60s c/u</span></div>
+            <div class="wb-row"><span class="wb-ex">Wall Lat Stretch</span><span class="wb-rep">60s</span></div>
+            <div class="wb-row"><span class="wb-ex">Hanging Stretch</span><span class="wb-rep">60s</span></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ─── JUE W1 · ACTIVE RECOVERY ─── -->
+      <div class="wc recovery">
+        <div class="wc-header">
+          <span class="wc-dow">Jue</span>
+          <h3 class="wc-name">Active Recovery</h3>
+          <span class="wc-meta">OPCIONAL (recomendado) · ~50 min</span>
+          <span class="wc-sub">Animal Flow + Cossack + Zone 2 + TGU skill + Spine &amp; Hips · CNS reset · si te sentís quemado podés skipearlo, pero idealmente lo hacés</span>
+        </div>
+        <div class="wc-blocks">
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">DYNAMIC FLOW</span><span class="wb-fmt flow">3 min flow</span></div>
+            <div class="wb-row"><span class="wb-ex">Animal Flow basics: Beast → Ape → Crab transitions <span class="wb-tag flow">flow</span></span><span class="wb-rep">3 min</span></div>
+            <div class="wb-note">Foco en transiciones limpias. NO entrenamiento. Coordination drill.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">MOVEMENT QUALITY</span><span class="wb-fmt">tempo lento</span></div>
+            <div class="wb-row"><span class="wb-ex">Cossack Squat Flow alternando <span class="wb-tag flow">flow</span></span><span class="wb-rep">3 min</span></div>
+            <div class="wb-note">Ritmo conversacional. Sin fatiga. Mobility cadera + adductor.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">ENGINE</span><span class="wb-fmt">Zone 2 · HR 130-145</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">Row Erg o Ski Erg <span class="wb-tag target">recovery cardiovascular</span></span><span class="wb-rep">25 min</span></div>
+            <div class="wb-note">Ritmo conversacional. Si podés cantar, está en zona. Si no podés hablar, bajá ritmo.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">SKILL MAINTENANCE</span><span class="wb-fmt kb">3 sets · light · rest 75s</span></div>
+            <div class="wb-row"><span class="wb-ex">Turkish Get-Up con KB ligera <span class="wb-tag kb">KB</span></span><span class="wb-rep">3 × 3/lado</span></div>
+            <div class="wb-note">KB intencionalmente ligera (50% del peso de skill day). Foco en transiciones. NO es loaded core, es maintenance.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">SPINE &amp; HIPS</span><span class="wb-fmt">90s c/u</span></div>
+            <div class="wb-row"><span class="wb-ex">90/90 Hip Switches</span><span class="wb-rep">90s</span></div>
+            <div class="wb-row"><span class="wb-ex">Thoracic Extension over Foam</span><span class="wb-rep">90s</span></div>
+            <div class="wb-row"><span class="wb-ex">Frog Stretch</span><span class="wb-rep">90s</span></div>
+            <div class="wb-row"><span class="wb-ex">Pigeon</span><span class="wb-rep">90s/lado</span></div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">RESET &amp; BREATHE</span><span class="wb-fmt">3 min · vagal tone</span></div>
+            <div class="wb-row"><span class="wb-ex">Box Breathing 4-4-4-4</span><span class="wb-rep">3 min</span></div>
+            <div class="wb-row"><span class="wb-ex">Child's Pose</span><span class="wb-rep">2 min</span></div>
+            <div class="wb-row"><span class="wb-ex">Legs Up the Wall</span><span class="wb-rep">2 min</span></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ─── VIE W1 ─── -->
+      <div class="wc">
+        <div class="wc-header">
+          <span class="wc-dow">Vie</span>
+          <h3 class="wc-name">Upper Hypertrophy + Strength</h3>
+          <span class="wc-meta">~72 min · 7 bloques</span>
+          <span class="wc-sub">Incline DB Bench + Chest-Supp Row + Rotational LR + Pec Deck Rear Delt + DB Preacher unilateral + Cable OH Tricep + Weighted Dip</span>
+        </div>
+        <div class="wc-blocks">
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">PRIME BLOCK</span><span class="wb-fmt">2 rondas · 3 grupos · ~10 min</span></div>
+            <div class="wb-sub">
+              <span class="wb-sub-label">1 · Mobility t-spine</span>
+              <div class="wb-row"><span class="wb-ex">Cat-Cow Reach</span><span class="wb-rep">× 8</span></div>
+              <div class="wb-row"><span class="wb-ex">Quadruped T-Spine Rotation <span class="wb-tag new">nuevo</span></span><span class="wb-rep">× 8/lado</span></div>
+            </div>
+            <div class="wb-sub">
+              <span class="wb-sub-label">2 · Activación push/pull</span>
+              <div class="wb-row"><span class="wb-ex">Push-up to Alternating Toe Touch <span class="wb-tag new">nuevo</span></span><span class="wb-rep">× 8</span></div>
+              <div class="wb-row"><span class="wb-ex">Banded Face Pull</span><span class="wb-rep">× 15</span></div>
+            </div>
+            <div class="wb-sub">
+              <span class="wb-sub-label">3 · Dinámicos CNS</span>
+              <div class="wb-row"><span class="wb-ex">Bear to Low Crab Transition</span><span class="wb-rep">× 6</span></div>
+              <div class="wb-row"><span class="wb-ex">Half-Kneeling KB Snatch + Windmill <span class="wb-tag kb">KB</span> <span class="wb-tag new">nuevo</span></span><span class="wb-rep">× 5/lado</span></div>
+            </div>
+            <div class="wb-note">2 rondas completas. Despierta cintura escapular + cadera unilateral + agarre antes del push/pull de volumen.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">HEAVY PUSH · pecho superior</span><span class="wb-fmt">4 × 10 · RPE 7.5 · rest 2:30</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">Incline DB Bench Press <span class="wb-tag target">pec superior</span></span><span class="wb-rep">4 × 10</span></div>
+            <div class="wb-note">Banco a 30-45°. DBs a la altura del pecho clavicular. Heavy = rest 2:30 entre sets.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">HEAVY PULL · back density</span><span class="wb-fmt">4 × 10 · RPE 8 · rest 2:30</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">Chest-Supported DB Row <span class="wb-tag target">mid back</span></span><span class="wb-rep">4 × 10</span></div>
+            <div class="wb-note">Pecho apoyado en banco a 30°. Codo al costado, no al techo. Aprieta romboides arriba.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">SHOULDER 3D · superset</span><span class="wb-fmt">3 rondas · rest 60s</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">DB Rotational Lateral Raise <span class="wb-tag new">nuevo</span> <span class="wb-tag target">delt lateral 3D</span></span><span class="wb-rep">× 12</span></div>
+            <div class="wb-row"><span class="wb-ex">Pec Deck Rear Delt Fly <span class="wb-tag new">nuevo</span> <span class="wb-tag target">delt posterior</span></span><span class="wb-rep">× 12</span></div>
+            <div class="wb-note"><strong>DB Rotational Lateral Raise:</strong> brazos a 90° fijos, manos juntas debajo del pecho con DBs livianas. Llevas las DBs en un solo movimiento hacia los lados de la cabeza manteniendo los brazos a 90° arriba. Patrón rotacional único — distinto al lateral raise estándar y al lean-away del LUN. <br><strong>Pec Deck Rear Delt Fly:</strong> sentado al revés en la máquina (pecho pegado al respaldo), aperturas hacia atrás → rear delt aislado en máquina (cero compensación, tensión constante en todo el rango).</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">ARM SUPERSET · hypertrophy</span><span class="wb-fmt">3 rondas · rest 75s</span></div>
+            <div class="wb-row"><span class="wb-ex">DB Preacher Curl (unilateral) <span class="wb-tag target">bíceps en estiramiento</span></span><span class="wb-rep">× 10/lado</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">Cable Overhead Tricep Extension (rope) <span class="wb-tag new">nuevo</span> <span class="wb-tag target">tríceps largo elongado</span></span><span class="wb-rep">× 12</span></div>
+            <div class="wb-note">DB Preacher unilateral = isolación quirúrgica del bíceps, corrige asimetrías. El Cable Overhead Tricep estira la cabeza larga del tríceps en posición elongada — donde más responde a tensión. <strong>Par perfecto:</strong> dos músculos opuestos, ambos cargados en stretch.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">STRENGTH COMPOUND · cierre</span><span class="wb-fmt new">3 sets · RPE 8 · rest 120s</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">Weighted Dip <span class="wb-tag new">nuevo</span> <span class="wb-tag target">pecho + tríceps + delt anterior</span></span><span class="wb-rep">3 × 6</span></div>
+            <div class="wb-note">Lastre con cinturón de dip (cadena + disco/KB). Tronco ligeramente inclinado adelante para énfasis pecho (no totalmente vertical). Baja controlado hasta hombros nivelados con codos. Cierra el día con un compound pesado sin saturar CNS como lo haría un Death By. <strong>W1 BASE: carga conservadora para establecer base honesta.</strong> Progresa: W2 3×8 misma carga · W3 4×6 más carga · W4 4×8 más carga · W5 3×5 RPE 9 · W6 3×6 deload.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">RECOVERY BLOCK</span><span class="wb-fmt">60-90s c/u</span></div>
+            <div class="wb-row"><span class="wb-ex">Scorpion Stretch</span><span class="wb-rep">60s/lado</span></div>
+            <div class="wb-row"><span class="wb-ex">Lat Stretch Doorway</span><span class="wb-rep">60s/lado</span></div>
+            <div class="wb-row"><span class="wb-ex">Overhead Tricep Stretch</span><span class="wb-rep">45s/lado</span></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ─── SÁB W1 ─── -->
+      <div class="wc">
+        <div class="wc-header">
+          <span class="wc-dow">Sáb</span>
+          <h3 class="wc-name">Lower Hypertrophy Unilateral + Engine + Carry</h3>
+          <span class="wc-meta">~85 min · 7 bloques</span>
+          <span class="wc-sub">Barbell Bulgarian + Snatch-Grip RDL + DB Walking Lunges + Sled Push + Calf + Carry</span>
+        </div>
+        <div class="wc-blocks">
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">PRIME BLOCK</span><span class="wb-fmt">2 rondas · 3 grupos · ~10 min</span></div>
+            <div class="wb-sub">
+              <span class="wb-sub-label">1 · Mobility cadera + tobillo</span>
+              <div class="wb-row"><span class="wb-ex">90/90 Hip Switches</span><span class="wb-rep">× 5/lado</span></div>
+              <div class="wb-row"><span class="wb-ex">Weighted Ankle Stretch hold</span><span class="wb-rep">60s/lado</span></div>
+            </div>
+            <div class="wb-sub">
+              <span class="wb-sub-label">2 · Activación glúteo</span>
+              <div class="wb-row"><span class="wb-ex">Glute Bridge March</span><span class="wb-rep">× 10</span></div>
+              <div class="wb-row"><span class="wb-ex">Banded Lateral Walk</span><span class="wb-rep">× 10/lado</span></div>
+            </div>
+            <div class="wb-sub">
+              <span class="wb-sub-label">3 · Dinámicos CNS</span>
+              <div class="wb-row"><span class="wb-ex">Lateral Bound <span class="wb-tag new">nuevo</span></span><span class="wb-rep">× 5/lado</span></div>
+              <div class="wb-row"><span class="wb-ex">Kang Squat <span class="wb-tag new">nuevo</span></span><span class="wb-rep">× 6</span></div>
+            </div>
+            <div class="wb-note">2 rondas. <strong>90/90:</strong> rotación interna + externa de cadera, esencial pre-Bulgarian. <strong>Ankle hold:</strong> hold en stretch position (no CARs) — abre dorsiflexión para sentadilla profunda. <strong>Lateral Bound:</strong> plyo unilateral horizontal para despertar CNS unilateral. <strong>Kang Squat:</strong> bodyweight, combo squat + RDL hacia atrás — graba el patrón compuesto del día (squat + hinge) sin carga.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">HEAVY A · Unilateral Quad</span><span class="wb-fmt new">4 sets · RPE 7.5 · rest 90s/lado</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">Barbell Bulgarian Split Squat <span class="wb-tag new">signature</span> <span class="wb-tag target">quad + glute medio + estabilidad</span></span><span class="wb-rep">4 × 8/lado</span></div>
+            <div class="wb-note">Barra libre sobre los hombros (back squat position). Pie trasero elevado en banco o caja. Torso ligeramente inclinado adelante. Baja controlada hasta que el muslo de adelante queda paralelo al piso. Empuja el piso con el pie de adelante. <strong>W1 BASE: técnica primero — carga moderada</strong>, el balance con barra libre es la primera curva de aprendizaje (vs DB que es más estable). Si pierdes equilibrio, baja peso o usa landmine como sustituto. Progresa: W2 misma carga + 4 sets · W3 4×10 · W4 5×6 más carga · W5 4×5 pesado · W6 3×6 deload.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">HEAVY B · Unilateral Hinge</span><span class="wb-fmt">3 × 8/lado · RPE 7.5 · rest 90s/lado</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">B-Stance Barbell RDL <span class="wb-tag target">glute max + ham unilateral</span></span><span class="wb-rep">3 × 8/lado</span></div>
+            <div class="wb-note">Pie trasero solo en la punta, 30cm atrás. 80% del peso cae en pie delantero. Bisagra profunda con barra cerca de la espinilla, espalda neutral. Aprieta glúteo arriba. Más estable que single-leg RDL puro — la asistencia residual te deja cargar peso real al glúteo unilateral.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">GLUTE VOLUME</span><span class="wb-fmt">3 × 12/lado · rest 90s</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">DB Walking Lunges <span class="wb-tag target">glute max + quad volumen</span></span><span class="wb-rep">3 × 12/lado</span></div>
+            <div class="wb-note">DB en cada mano, paso largo (énfasis glúteo, no quad). 24 reps por set × 3 sets.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">LEG ENGINE · Sled Push</span><span class="wb-fmt new">3 sets · pesado · rest 90s</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">Sled Push <span class="wb-tag target">propulsión + conditioning</span></span><span class="wb-rep">3 × 25m</span></div>
+            <div class="wb-note">Sled cargado pesado, mango bajo para conducción horizontal. Empuja con triple extensión + paso explosivo. <strong>Sled = pura propulsión + grip + pulmón con CERO eccentric</strong> → recovery friendly, no satura el CNS que ya viene cargado de Bulgarian + Snatch-Grip RDL. <strong>W1: 3 sets — sube a 4×25m en W2.</strong> Si no hay sled, sustituto: Heavy Sled Drag o KB Front Rack Carry pesado 3 × 25m.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">CALF + HOLD · superset</span><span class="wb-fmt">3 rondas · rest 60s</span></div>
+            <div class="wb-row"><span class="wb-ex">Leg Press Calf Raise <span class="wb-tag target">gastrocnemius</span></span><span class="wb-rep">× 15</span></div>
+            <div class="wb-row prominent"><span class="wb-ex">Farmer Hold heavy <span class="wb-tag target">grip + posture isométrico</span></span><span class="wb-rep">45s</span></div>
+            <div class="wb-note">Calf en leg press = más carga + isolación pura del gastrocnemius. Pausa 1s arriba en cada rep. <strong>Farmer Hold</strong> 45s con DBs pesadas: postura erguida, hombros atrás, grip firme. Hold isométrico, no caminata.</div>
+          </div>
+
+          <div class="wb">
+            <div class="wb-header"><span class="wb-label">RECOVERY BLOCK</span><span class="wb-fmt">90s c/u</span></div>
+            <div class="wb-row"><span class="wb-ex">Pigeon</span><span class="wb-rep">90s/lado</span></div>
+            <div class="wb-row"><span class="wb-ex">Couch Stretch</span><span class="wb-rep">90s/lado</span></div>
+            <div class="wb-row"><span class="wb-ex">Frog Stretch</span><span class="wb-rep">90s</span></div>
+            <div class="wb-row"><span class="wb-ex">Cat-Cow Reach</span><span class="wb-rep">90s</span></div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </details>
+
+  <!-- ═══════ W2 BASE+ ═══════ -->
+  <details>
+    <summary>
+      <div>
+        <div class="wlabel">Semana 2 · Base+</div>
+        <div class="wtitle">Misma estructura, más volumen</div>
+        <div class="wphase">RPE 7.5 · vol +15% · cargas igual</div>
+      </div>
+    </summary>
+    <div class="wbody">
+      <p class="wthesis">"Ya no descubres — ejecutas. Sube reps + ronda extra en accesorios. Cargas iguales."</p>
+      <table>
+        <thead><tr><th>Día</th><th>Cambios principales vs W1</th></tr></thead>
+        <tbody>
+          <tr><td class="gold mono">LUN Density</td><td>Density A · Z Press <strong>9/lado</strong> · Hypertrophy <strong>4 rondas</strong> · Skill Push <strong>4×8</strong> · Hollow Body 35s</td></tr>
+          <tr><td class="gold mono">MAR Tempo</td><td>Front Squat 4×10 <strong>RPE 8</strong> misma carga · Smith HT iso <strong>12s</strong> · Reverse Sit Up 3×10-12 · Lateral Plank Din 3×14 · Nordic <strong>3×5</strong> · 45° Hip Ext 4×12</td></tr>
+          <tr><td class="gold mono">MIE Skill</td><td>Double KB Complex 3×5 <strong>KB sube</strong> · MU Burpee For Time cap <strong>10 min</strong> · Lat Vol <strong>4 rondas</strong> · Pull Power 4×7 · Core 3 rondas</td></tr>
+          <tr><td class="gold mono">JUE Recovery</td><td>Igual estructura · Zone 2 <strong>28 min</strong> · TGU 3×3/lado mantiene</td></tr>
+          <tr><td class="gold mono">VIE Upper Hyp</td><td>Heavy Push/Pull 4×10 <strong>+5kg</strong> · Shoulder 3D 3×14 · Arm Superset 3×(10+12) más peso · Dip <strong>3×8</strong> misma carga</td></tr>
+          <tr><td class="gold mono">SÁB Lower Hyp</td><td>Bulgarian 4×8/lado <strong>+carga</strong> · Snatch-Grip <strong>4×8</strong> (era 3) · Walking Lunges 3×14/lado · Sled <strong>4×25m</strong> · Farmer Hold <strong>50s</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <!-- ═══════ W3 ACUMULACIÓN ═══════ -->
+  <details>
+    <summary>
+      <div>
+        <div class="wlabel">Semana 3 · Acumulación</div>
+        <div class="wtitle">Volumen pico de la semana</div>
+        <div class="wphase">RPE 8 · vol +25% vs W1 · top reps</div>
+      </div>
+    </summary>
+    <div class="wbody">
+      <p class="wthesis">"La semana más pesada en volumen. Cargas saludables, reps altas. El motor se acumula."</p>
+      <table>
+        <thead><tr><th>Día</th><th>Cambios principales vs W2</th></tr></thead>
+        <tbody>
+          <tr><td class="gold mono">LUN Density</td><td>Density A <strong>14 min</strong> (era 12) · Z Press 10/lado · Hypertrophy 4×(15+15) · Skill Push <strong>5×8</strong> · Arm Block 4×(15+12) · Hollow Body 40s</td></tr>
+          <tr><td class="gold mono">MAR Tempo</td><td>Front Squat <strong>4×12</strong> 60% · Smith HT 5×8+iso 15s · Reverse Sit Up 3×12 · Lateral Plank Din 3×16 · Nordic <strong>4×5</strong> · 45° Hip Ext <strong>5×10</strong></td></tr>
+          <tr><td class="gold mono">MIE Skill</td><td>KB Complex 3×5 <strong>KB pesada</strong> · MU Burpee <strong>50 reps</strong> cap 12 · Lat Vol 4×(15+24) · Pull Power <strong>5×6</strong> · Core 3 rondas</td></tr>
+          <tr><td class="gold mono">JUE Recovery</td><td>Zone 2 <strong>30 min</strong> (peak engine) · TGU 3×4/lado · igual el resto</td></tr>
+          <tr><td class="gold mono">VIE Upper Hyp</td><td>Heavy Push/Pull <strong>4×12</strong> · Shoulder 3D <strong>4 rondas</strong> · Arm Superset 4×(12+12) · Dip 4×6 misma carga</td></tr>
+          <tr><td class="gold mono">SÁB Lower Hyp</td><td>Bulgarian <strong>4×10</strong>/lado · Snatch-Grip <strong>4×10</strong> · Walking Lunges 4×12/lado · Sled <strong>4×30m</strong> · Farmer Hold <strong>55s</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <!-- ═══════ W4 INTENSIFICACIÓN ═══════ -->
+  <details>
+    <summary>
+      <div>
+        <div class="wlabel">Semana 4 · Intensificación</div>
+        <div class="wtitle">Carga sube, volumen baja</div>
+        <div class="wphase">RPE 8.5-9 · vol -15% vs W3 · peso +10%</div>
+      </div>
+    </summary>
+    <div class="wbody">
+      <p class="wthesis">"Menos reps. Más peso. Output sobre acumulación. El atleta empuja el techo."</p>
+      <table>
+        <thead><tr><th>Día</th><th>Cambios principales vs W3</th></tr></thead>
+        <tbody>
+          <tr><td class="gold mono">LUN Density</td><td>Density A 12' · KB <strong>top peso</strong> · Hypertrophy 4×10 <strong>más peso</strong> · Skill Push <strong>5×6 +peso</strong> · Arm Block 4×(10+8) más peso · Hollow Body 45s</td></tr>
+          <tr><td class="gold mono">MAR Tempo</td><td>Front Squat <strong>5×6 70%</strong> · Smith HT <strong>5×6 RPE 9</strong> · Reverse Sit Up 3×10 · Nordic 4×3 <strong>ecc 6s</strong> · 45° Hip Ext 5×8 +carga</td></tr>
+          <tr><td class="gold mono">MIE Skill</td><td>KB Complex 3×5 <strong>KB top</strong> · MU Burpee <strong>EMOM 10 min</strong> · Lat Vol 4×(10+20) +peso · Pull Power <strong>5×4</strong> carga · Core 3 rondas más reps</td></tr>
+          <tr><td class="gold mono">JUE Recovery</td><td>Mantiene Zone 2 30 min · TGU 3×3 más peso · igual el resto</td></tr>
+          <tr><td class="gold mono">VIE Upper Hyp</td><td>Incline DB <strong>5×8 +peso</strong> · CS Row <strong>5×8</strong> · Dip <strong>4×8 +carga</strong> · Shoulder 3D 3×10 +peso · Arm Superset 3×(8+10) +carga</td></tr>
+          <tr><td class="gold mono">SÁB Lower Hyp</td><td>Bulgarian <strong>5×6 +peso</strong> · Snatch-Grip <strong>4×6 RPE 8.5</strong> · Walking Lunges 3×10 +peso · Sled 4×25m <strong>+carga</strong> · Farmer Hold <strong>60s top peso</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <!-- ═══════ W5 PEAK ═══════ -->
+  <details>
+    <summary>
+      <div>
+        <div class="wlabel">Semana 5 · Peak</div>
+        <div class="wtitle">Top intensidad · 1 test honesto por día</div>
+        <div class="wphase">RPE 9-9.5 · peso top · technical PRs</div>
+      </div>
+    </summary>
+    <div class="wbody">
+      <p class="wthesis">"No buscamos PRs en TODO. Pico de carga en signature lifts. Tests medidos, no aspiracionales."</p>
+      <table>
+        <thead><tr><th>Día</th><th>Cambios principales vs W4</th></tr></thead>
+        <tbody>
+          <tr><td class="gold mono">LUN Density</td><td><strong>TEST Density A:</strong> max reps en 12' EMOM · Hypertrophy <strong>5×8 peak</strong> · Skill Push <strong>4×5 RPE 9</strong> · Arm Block 4×6 RPE 9 · Core 3×45s holds</td></tr>
+          <tr><td class="gold mono">MAR Tempo</td><td><strong>Front Squat 4×5 RPE 9</strong> · Smith HT <strong>4×5 pesado</strong> · Reverse Sit Up 3×8 lento · Nordic <strong>3×2 técnico</strong> · 45° Hip Ext 4×6 RPE 9</td></tr>
+          <tr><td class="gold mono">MIE Skill</td><td>KB Complex <strong>3×4 técnica top</strong> · <strong>TEST MU Burpee: 40 reps SUB-12 min</strong> · Lat Vol 4×8 peak · Pull Power <strong>4×3 RPE 9.5</strong></td></tr>
+          <tr><td class="gold mono">JUE Recovery</td><td>Igual W4 · prioridad recovery real · sin push CNS</td></tr>
+          <tr><td class="gold mono">VIE Upper Hyp</td><td>Incline DB <strong>4×6 RPE 9</strong> · CS Row 4×6 · <strong>TEST Dip 3×5 RPE 9</strong> max peso · Shoulder 3D mantiene · Arm Superset 3×6 RPE 9</td></tr>
+          <tr><td class="gold mono">SÁB Lower Hyp</td><td><strong>Bulgarian 4×5 RPE 9 pesado</strong> · Snatch-Grip <strong>3×5 RPE 9</strong> · Walking Lunges 3×8 top carga · Sled <strong>5×20m sprint</strong> · Farmer Hold 60s peso top</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <!-- ═══════ W6 DELOAD ═══════ -->
+  <details>
+    <summary>
+      <div>
+        <div class="wlabel">Semana 6 · Deload</div>
+        <div class="wtitle">CNS recovery real · 60% intensidad · -30% volumen</div>
+        <div class="wphase">RPE ≤7 · cargas 60% · 2-3 series accesorios</div>
+      </div>
+    </summary>
+    <div class="wbody">
+      <p class="wthesis">"Semana de cierre. Si tienes energía sobrante, NO la uses — guárdala para M4."</p>
+      <table>
+        <thead><tr><th>Día</th><th>Estructura · todo light</th></tr></thead>
+        <tbody>
+          <tr><td class="gold mono">LUN Density</td><td>Density A <strong>8 min · 60%</strong> · Hypertrophy <strong>2×10 light</strong> · Skill Push 2×8 light · Arm Block 2×10 BW · Core 2 rondas · Recovery completo</td></tr>
+          <tr><td class="gold mono">MAR Tempo</td><td>Front Squat <strong>3×6 60%</strong> · Smith HT 3×8 60% · Core 2 rondas · <strong>Nordic skip</strong> · 45° Hip Ext 3×10 light · Recovery completo</td></tr>
+          <tr><td class="gold mono">MIE Skill</td><td>KB Complex <strong>2×3 light</strong> · MU Burpee <strong>skip</strong> o 15 reps light · Lat Vol 2 rondas · Pull Power 3×6 60% · Core 2 rondas</td></tr>
+          <tr><td class="gold mono">JUE Recovery</td><td>Solo Zone 2 + breathing · sin TGU · solo Spine &amp; Hips + Box Breathing 5 min</td></tr>
+          <tr><td class="gold mono">VIE Upper Hyp</td><td>Heavy Push/Pull <strong>3×8 60%</strong> · Dip 2×5 BW · Shoulder 3D 2 rondas · Arm Superset 2×10 light · Z2 opcional</td></tr>
+          <tr><td class="gold mono">SÁB Lower Hyp</td><td>Bulgarian <strong>3×6 60%</strong> · Snatch-Grip 3×6 60% · Walking Lunges 2×10 light · <strong>Sled skip</strong> · Farmer Hold 30s · Recovery extendido</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+</section>
+
+<!-- ════ 7. CATÁLOGO MOVIMIENTOS ════ -->
+<section>
+  <h2>Catálogo de movimientos M3 · signature + nuevos</h2>
+
+  <h3>5 movimientos signature del programa</h3>
+  <div class="move-grid">
+    <div class="mv kb">
+      <div class="mv-name">KB Z Press EMOM (alterna)</div>
+      <span class="mv-tag kb-tag">LUN · W1+</span><span class="mv-tag kb-tag">density · hombros 3D</span>
+      <div class="mv-desc">EMOM 12 min alternando: min impar KB Z Press 8/lado, min par Commando Pull-up 8-10. Sentado piernas Z = sin trampa, todo hombro + core.</div>
+      <div class="mv-prog">W1: 8/lado · W3: 14' 10/lado · W5: 12' max reps test</div>
+    </div>
+    <div class="mv kb">
+      <div class="mv-name">Double KB Complex</div>
+      <span class="mv-tag kb-tag">MIE · W1+</span><span class="mv-tag kb-tag">flow signature</span>
+      <div class="mv-desc">1 rep = Swing → Swing Squat → High Pull → Clean → Thruster encadenados sin soltar. Hombros + lats + glúteo + grip + conditioning en un solo flow.</div>
+      <div class="mv-prog">W1: 3×5 KB moderado · W4: 3×5 KB top · W6: 2×3 light</div>
+    </div>
+    <div class="mv">
+      <div class="mv-name">MU Burpee For Time</div>
+      <span class="mv-tag kb-tag">MIE · W1+</span><span class="mv-tag kb-tag">skill + output</span>
+      <div class="mv-desc">1 rep = burpee → jump-to-bar → Muscle-Up. Cap 12 min en W1. 4 regresiones (Banded → Jumping → High Pull-up + Dip → Pull-up + Push-up) para todo nivel.</div>
+      <div class="mv-prog">W1: 40 reps cap 12' · W3: 50 reps · W5: 40 reps SUB-12' test</div>
+    </div>
+    <div class="mv">
+      <div class="mv-name">Barbell Bulgarian Split Squat</div>
+      <span class="mv-tag kb-tag">SÁB · W1+</span><span class="mv-tag kb-tag">unilateral signature</span>
+      <div class="mv-desc">Sentadilla unilateral con barra libre en back squat position. Pie trasero elevado. Balance + propiocepción + fuerza unilateral real.</div>
+      <div class="mv-prog">W1: 4×8/lado RPE 7.5 · W3: 4×10 · W5: 4×5 RPE 9 pesado</div>
+    </div>
+    <div class="mv">
+      <div class="mv-name">Snatch-Grip RDL</div>
+      <span class="mv-tag kb-tag">SÁB · W1+</span><span class="mv-tag kb-tag">hybrid signature</span>
+      <div class="mv-desc">RDL con agarre snatch (manos casi en discos). Carga upper back + traps + lats + glute + ham + grip en un solo movimiento.</div>
+      <div class="mv-prog">W1: 3×8 RPE 7.5 · W3: 4×10 · W5: 3×5 RPE 9</div>
+    </div>
+  </div>
+
+  <h3>Movimientos nuevos por target</h3>
+  <table>
+    <thead><tr><th>Movimiento</th><th>Día</th><th>Target</th></tr></thead>
+    <tbody>
+      <tr><td class="gold">Front Squat tempo 4-1-1-1</td><td class="mono">MAR</td><td>Quad + core erecto · tempo eccéntrico brutal</td></tr>
+      <tr><td class="gold">Barbell Hip Thrust en Smith + iso 10s</td><td class="mono">MAR</td><td>Glute signature · carga máxima + isométrico arriba</td></tr>
+      <tr><td class="gold">Reverse Sit Up</td><td class="mono">MAR</td><td>Abs + flexión cadera · agarrado overhead</td></tr>
+      <tr><td class="gold">Weighted Lateral Plank Dinámico</td><td class="mono">MAR</td><td>Anti-rotation + escapular · renegade row terminando en lateral plank</td></tr>
+      <tr><td class="gold">Nordic Hamstring Curl assisted</td><td class="mono">MAR</td><td>Tendón posterior · ecc 5-6s · cierre día</td></tr>
+      <tr><td class="gold">45° Hip Extension (Brett)</td><td class="mono">MAR</td><td>Glúteo accesory · hip extension, NO spine extension</td></tr>
+      <tr><td class="gold">Cable Lean-Away Lateral Raise</td><td class="mono">LUN</td><td>Delt lateral aislado · tensión constante</td></tr>
+      <tr><td class="gold">Low Plank KB Press-Drag</td><td class="mono">LUN</td><td>Anti-extension + core unilateral · reemplazo de Russian Twist</td></tr>
+      <tr><td class="gold">KB Skull Crusher</td><td class="mono">LUN</td><td>Tríceps largo en estiramiento · offset KB</td></tr>
+      <tr><td class="gold">Ice Cream Maker</td><td class="mono">MIE</td><td>Lats gimnástico desde top de pull-up</td></tr>
+      <tr><td class="gold">KB Gorilla Row</td><td class="mono">MIE</td><td>Back density + anti-rotation extremo</td></tr>
+      <tr><td class="gold">DB High Pull + Squat Clean Complex</td><td class="mono">MIE</td><td>Traps + cadera + cuádriceps en flow</td></tr>
+      <tr><td class="gold">Incline DB Bench Press</td><td class="mono">VIE</td><td>Pec superior · el músculo olvidado del press</td></tr>
+      <tr><td class="gold">Chest-Supported DB Row</td><td class="mono">VIE</td><td>Mid back + lat density · sin lumbar como limiter</td></tr>
+      <tr><td class="gold">DB Rotational Lateral Raise</td><td class="mono">VIE</td><td>Delt lateral · brazos a 90° con patrón rotacional</td></tr>
+      <tr><td class="gold">Pec Deck Rear Delt Fly</td><td class="mono">VIE</td><td>Rear delt aislado · sin compensación</td></tr>
+      <tr><td class="gold">Cable Overhead Tricep Extension (rope)</td><td class="mono">VIE</td><td>Tríceps largo en estiramiento elongado</td></tr>
+      <tr><td class="gold">Weighted Dip</td><td class="mono">VIE</td><td>Pecho + tríceps + delt anterior · lastre progresivo</td></tr>
+      <tr><td class="gold">DB Walking Lunges (pesadas, paso largo)</td><td class="mono">SÁB</td><td>Glute max + quad volumen unilateral</td></tr>
+      <tr><td class="gold">Sled Push 25m</td><td class="mono">SÁB</td><td>Propulsión + conditioning · cero eccentric</td></tr>
+      <tr><td class="gold">Leg Press Calf Raise pause-at-top</td><td class="mono">SÁB</td><td>Gastrocnemius · más carga que de pie</td></tr>
+      <tr><td class="gold">Farmer Hold 45s</td><td class="mono">SÁB</td><td>Grip + posture isométrico · pillar hybrid athlete</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ════ 8. PROGRESIÓN ════ -->
+<section>
+  <h2>Progresión signature lifts · W1 → W6</h2>
+  <table>
+    <thead><tr><th>Lift</th><th>Día</th><th>W1 Base</th><th>W2 Base+</th><th>W3 Acum</th><th>W4 Intens</th><th>W5 Peak</th><th>W6 Deload</th></tr></thead>
+    <tbody>
+      <tr><td class="gold">Front Squat tempo 4-1-1-1</td><td class="mono">MAR</td><td class="mono">4×10 50-55%</td><td class="mono">4×10 RPE 8</td><td class="mono">4×12 60%</td><td class="mono">5×6 70%</td><td class="mono">4×5 RPE 9</td><td class="mono">3×6 60%</td></tr>
+      <tr><td class="gold">Smith Hip Thrust + iso</td><td class="mono">MAR</td><td class="mono">4×(8+iso 10s)</td><td class="mono">4×(8+iso 12s)</td><td class="mono">5×8+iso 15s</td><td class="mono">5×6 RPE 9</td><td class="mono">4×5 pesado</td><td class="mono">3×8 60%</td></tr>
+      <tr><td class="gold">Incline DB Bench</td><td class="mono">VIE</td><td class="mono">4×10 RPE 7.5</td><td class="mono">4×10 +5kg</td><td class="mono">4×12</td><td class="mono">5×8 +peso</td><td class="mono">4×6 RPE 9</td><td class="mono">3×8 60%</td></tr>
+      <tr><td class="gold">Chest-Supp DB Row</td><td class="mono">VIE</td><td class="mono">4×10 RPE 8</td><td class="mono">4×10 +5kg</td><td class="mono">4×12</td><td class="mono">5×8 +peso</td><td class="mono">4×6 RPE 9</td><td class="mono">3×8 60%</td></tr>
+      <tr><td class="gold">Weighted Dip</td><td class="mono">VIE</td><td class="mono">3×6 RPE 8</td><td class="mono">3×8 misma carga</td><td class="mono">4×6 +carga</td><td class="mono">4×8 +carga</td><td class="mono">3×5 RPE 9 (test)</td><td class="mono">2×5 BW</td></tr>
+      <tr><td class="gold">Barbell Bulgarian Split Sq</td><td class="mono">SÁB</td><td class="mono">4×8/lado RPE 7.5</td><td class="mono">4×8 +carga</td><td class="mono">4×10/lado</td><td class="mono">5×6 +peso</td><td class="mono">4×5 RPE 9</td><td class="mono">3×6 60%</td></tr>
+      <tr><td class="gold">Snatch-Grip RDL</td><td class="mono">SÁB</td><td class="mono">3×8 RPE 7.5</td><td class="mono">4×8</td><td class="mono">4×10</td><td class="mono">4×6 RPE 8.5</td><td class="mono">3×5 RPE 9</td><td class="mono">3×6 60%</td></tr>
+      <tr><td class="gold">KB Z Press EMOM 12'</td><td class="mono">LUN</td><td class="mono">8/lado + 8-10 Commando</td><td class="mono">9/lado · KB sube</td><td class="mono">EMOM 14' · 10/lado</td><td class="mono">12' KB top</td><td class="mono">12' Test max reps</td><td class="mono">8' · 60%</td></tr>
+      <tr><td class="gold">Cable Lean-Away LR</td><td class="mono">LUN</td><td class="mono">3×(10/lado + 12)</td><td class="mono">4×(10/lado + 12)</td><td class="mono">4×(15+15)</td><td class="mono">4×10 +peso</td><td class="mono">5×8 peak</td><td class="mono">2×10 light</td></tr>
+      <tr><td class="gold">Double KB Complex</td><td class="mono">MIE</td><td class="mono">3×5 reps</td><td class="mono">3×5 · KB sube</td><td class="mono">3×5 · KB pesada</td><td class="mono">3×5 · KB top</td><td class="mono">3×4 · técnica top</td><td class="mono">2×3 light</td></tr>
+      <tr><td class="gold">MU Burpee For Time</td><td class="mono">MIE</td><td class="mono">40 reps · cap 12'</td><td class="mono">40 reps · cap 10'</td><td class="mono">50 reps · cap 12'</td><td class="mono">EMOM 10'</td><td class="mono">40 reps SUB-12' (test)</td><td class="mono">15 reps light o skip</td></tr>
+      <tr><td class="gold">DB Walking Lunges</td><td class="mono">SÁB</td><td class="mono">3×12/lado</td><td class="mono">3×14/lado</td><td class="mono">4×12/lado</td><td class="mono">3×10 +peso</td><td class="mono">3×8 top carga</td><td class="mono">2×10 light</td></tr>
+      <tr><td class="gold">Sled Push 25m</td><td class="mono">SÁB</td><td class="mono">3 sets pesado</td><td class="mono">4 sets</td><td class="mono">4×30m</td><td class="mono">4×25m +carga</td><td class="mono">5×20m sprint</td><td class="mono">skip</td></tr>
+      <tr><td class="gold">45° Hip Ext (Brett)</td><td class="mono">MAR</td><td class="mono">4×10 pause 2s</td><td class="mono">4×12</td><td class="mono">5×10</td><td class="mono">5×8 +carga</td><td class="mono">4×6 RPE 9</td><td class="mono">3×10 light</td></tr>
+      <tr><td class="gold">Nordic Hamstring</td><td class="mono">MAR</td><td class="mono">3×4 ecc 5s</td><td class="mono">3×5</td><td class="mono">4×5</td><td class="mono">4×3 ecc 6s</td><td class="mono">3×2 técnico</td><td class="muted">skip</td></tr>
+      <tr><td class="gold">Farmer Hold</td><td class="mono">SÁB</td><td class="mono">3×45s</td><td class="mono">3×50s</td><td class="mono">3×55s</td><td class="mono">3×60s top peso</td><td class="mono">3×60s peak</td><td class="mono">2×30s</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ════ 9. MÉTRICAS ════ -->
+<section>
+  <h2>Qué medimos · qué NO</h2>
+  <table>
+    <thead><tr><th>SÍ medimos</th><th>NO medimos</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="mono">MU Burpee For Time SUB-12 min (W5 MIE · test signature)<br>Front Squat 4×5 RPE 9 (W5 MAR · top tempo)<br>Weighted Dip 3×5 RPE 9 max peso (W5 VIE · test)<br>Barbell Bulgarian 4×5 RPE 9 pesado (W5 SÁB)<br>KB Z Press EMOM 12' max reps (W5 LUN)<br>Snatch-Grip RDL 3×5 RPE 9 (W5 SÁB)<br>Farmer Hold 60s peso top (W5 SÁB)</td>
+        <td class="mono">1RM en cualquier lift (reservado M5+)<br>Power Clean (no es signature M3)<br>Calistenia 1RM (NUNCA)<br>Personal records de Hypertrophy reps (volumen ≠ test)</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<footer>
+  <p>Propuesta preparada por <span class="wm">Coach Adonis</span> · LIFTORY Director Deportivo · v4 · Junio 2026</p>
+  <p>Knowledge base en <code>src/coach-adonis/coach-adonis-knowledge-base.md</code></p>
+  <div class="sig">Build Him Elite · Capítulo II · Hybrid Discovery · KB Protagonista · Active Recovery Real</div>
+</footer>
+
+</body>
+</html>

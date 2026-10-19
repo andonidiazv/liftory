@@ -57,6 +57,17 @@ export interface AllWorkoutDay {
   workoutType: string | null;
   dayLabel: string | null;
   weekNumber: number;
+  mesocycleId: string | null;
+}
+
+/** Qué bloque corre hoy, leído del propio workout agendado.
+ *  Las fechas hardcodeadas de MESOCYCLE_DATE_RANGES ya no sirven: desde que
+ *  el atleta puede activar cualquier mesociclo cuando quiera, la única verdad
+ *  es el mesocycle_id que trae la sesión del día. */
+export interface MesocycleMeta {
+  cycleNumber: number;
+  title: string | null;
+  totalWeeks: number | null;
 }
 
 export interface NextCycleInfo {
@@ -97,6 +108,7 @@ interface HomeServerData {
   quickStats: QuickStats;
   currentWeekNumber: number;
   nextCycleInfo: NextCycleInfo | null;
+  mesoMeta: Record<string, MesocycleMeta>;
 }
 
 // ── Query function: fetches all home data from Supabase ──
@@ -131,7 +143,7 @@ async function fetchHomeData(userId: string): Promise<HomeServerData> {
   if (statsStart) prsQuery.gte("logged_at", statsStart);
   if (statsEnd) prsQuery.lte("logged_at", statsEnd + "T23:59:59");
 
-  const [programRes, allWorkoutsRes, statsRes, prsRes] = await Promise.all([
+  const [programRes, allWorkoutsRes, statsRes, prsRes, mesosRes] = await Promise.all([
     supabase
       .from("programs")
       .select("id, name, total_weeks, current_week, current_block")
@@ -141,19 +153,27 @@ async function fetchHomeData(userId: string): Promise<HomeServerData> {
 
     supabase
       .from("workouts")
-      .select("id, scheduled_date, day_label, workout_type, estimated_duration, is_rest_day, is_completed, coach_note, week_number, workout_sets(id, exercise_id)")
+      .select("id, scheduled_date, day_label, workout_type, estimated_duration, is_rest_day, is_completed, coach_note, week_number, mesocycle_id, workout_sets(id, exercise_id)")
       .eq("user_id", userId)
       .order("scheduled_date", { ascending: true }),
 
     completedQuery,
     prsQuery,
+
+    supabase.from("mesocycles").select("id, cycle_number, title, total_weeks"),
   ]);
+
+  const mesoMeta: Record<string, MesocycleMeta> = {};
+  for (const m of (mesosRes.data as Array<{ id: string; cycle_number: number; title: string | null; total_weeks: number | null }>) ?? []) {
+    mesoMeta[m.id] = { cycleNumber: m.cycle_number, title: m.title, totalWeeks: m.total_weeks };
+  }
 
   const programInfo = programRes.data ? (programRes.data as ProgramInfo) : null;
 
   const wks = (allWorkoutsRes.data as Array<{
     id: string; scheduled_date: string; is_completed: boolean;
     is_rest_day: boolean; workout_type: string; day_label: string; week_number: number;
+    mesocycle_id: string | null;
   }>) ?? [];
 
   // Deduplicate by date — keep the first (oldest) workout per date
@@ -170,6 +190,7 @@ async function fetchHomeData(userId: string): Promise<HomeServerData> {
       workoutType: w.workout_type,
       dayLabel: w.day_label,
       weekNumber: w.week_number,
+      mesocycleId: w.mesocycle_id ?? null,
     });
   }
 
@@ -285,7 +306,7 @@ async function fetchHomeData(userId: string): Promise<HomeServerData> {
     }
   }
 
-  return { programInfo, allWorkouts, quickStats, currentWeekNumber, nextCycleInfo };
+  return { programInfo, allWorkouts, quickStats, currentWeekNumber, nextCycleInfo, mesoMeta };
 }
 
 // ── Query function: fetch single day workout detail ──
@@ -355,6 +376,7 @@ export function useNavigableHome() {
   const quickStats = homeData?.quickStats ?? { totalCompleted: 0, monthPRs: 0, streak: 0, currentMeso: null };
   const currentWeekNumber = homeData?.currentWeekNumber ?? 1;
   const nextCycleInfo = homeData?.nextCycleInfo ?? null;
+  const mesoMeta = homeData?.mesoMeta ?? {};
 
   const loading = homeLoading;
 
@@ -615,6 +637,16 @@ export function useNavigableHome() {
     }
   }, [nextCycleInfo]);
 
+  const currentBlock = useMemo(() => {
+    const day =
+      allWorkouts.find((w) => w.date === selectedDate) ??
+      allWorkouts.find((w) => w.date === todayStr);
+    if (!day?.mesocycleId) return null;
+    const meta = mesoMeta[day.mesocycleId];
+    if (!meta) return null;
+    return { ...meta, weekNumber: day.weekNumber };
+  }, [allWorkouts, selectedDate, todayStr, mesoMeta]);
+
   const showNextCyclePrompt = nextCycleInfo && nextCycleInfo.mesocycleId !== dismissedCycleId;
 
   return {
@@ -626,6 +658,7 @@ export function useNavigableHome() {
     currentWeekNumber,
     maxAllowedWeek,
     quickStats,
+    currentBlock,
     allWorkouts,
     minDate,
     maxDate,

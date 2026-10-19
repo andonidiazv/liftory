@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFTORY — Brand Evolution Brief</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0A0A0A;--card:#1C1C1E;--text:#FAF8F5;--muted:#8A8A8E;
+  --terracotta:#B8622F;--gold:#C9A96E;--olive:#7A8B5C;
+  --border:rgba(255,255,255,0.06);
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+/* COVER */
+.cover{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:80px 40px;position:relative}
+.cover::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(184,98,47,0.06),transparent 70%);pointer-events:none}
+.cover-eyebrow{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(--terracotta);margin-bottom:32px;position:relative;z-index:1}
+.cover-title{font-family:'Syne',sans-serif;font-size:clamp(48px,8vw,120px);font-weight:800;letter-spacing:-0.04em;line-height:0.9;margin-bottom:24px;position:relative;z-index:1}
+.cover-sub{font-family:'Cormorant Garamond',serif;font-size:clamp(18px,2.5vw,28px);font-weight:300;font-style:italic;color:rgba(250,248,245,0.5);max-width:600px;line-height:1.4;position:relative;z-index:1}
+
+/* NAV */
+.toc{padding:60px 80px;border-top:1px solid var(--border)}
+.toc-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--terracotta);margin-bottom:32px}
+.toc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:var(--border)}
+.toc-item{background:var(--bg);padding:32px;cursor:pointer;transition:background 0.3s}
+.toc-item:hover{background:rgba(255,255,255,0.02)}
+.toc-num{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;color:var(--muted);margin-bottom:12px}
+.toc-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;letter-spacing:-0.02em;margin-bottom:8px}
+.toc-desc{font-size:13px;font-weight:300;color:rgba(250,248,245,0.4);line-height:1.5}
+.toc-current{border-left:3px solid var(--terracotta)}
+
+/* BRIEF SECTIONS */
+.brief{padding:100px 80px;border-top:1px solid var(--border);position:relative}
+.brief-header{margin-bottom:64px}
+.brief-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.28em;text-transform:uppercase;color:var(--terracotta);margin-bottom:16px;display:flex;align-items:center;gap:16px}
+.brief-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.brief-title{font-family:'Syne',sans-serif;font-size:clamp(32px,4vw,56px);font-weight:800;letter-spacing:-0.03em;line-height:0.95;margin-bottom:16px}
+.brief-subtitle{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;font-style:italic;color:rgba(250,248,245,0.5);max-width:600px}
+
+/* PALETTE */
+.palette-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:2px;margin-bottom:48px;background:var(--border)}
+.swatch{aspect-ratio:1;position:relative;display:flex;flex-direction:column;justify-content:flex-end;padding:14px}
+.swatch-name{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:2px}
+.swatch-hex{font-family:'DM Mono',monospace;font-size:11px}
+.swatch-role{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:0.1em;text-transform:uppercase;opacity:0.6;margin-top:4px}
+.swatch-light .swatch-name,.swatch-light .swatch-hex,.swatch-light .swatch-role{color:#1C1C1E}
+
+/* TYPE SHOWCASE */
+.type-showcase{margin-bottom:48px}
+.type-row{padding:24px 0;border-bottom:1px solid var(--border);display:grid;grid-template-columns:180px 1fr auto;align-items:center;gap:24px}
+.type-meta{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;color:var(--muted);line-height:1.6}
+.type-sample{line-height:1.1}
+.type-tag{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;padding:5px 10px;border-radius:2px;white-space:nowrap}
+.tag-primary{background:rgba(184,98,47,0.1);color:var(--terracotta);border:1px solid rgba(184,98,47,0.2)}
+.tag-secondary{background:rgba(255,255,255,0.03);color:var(--muted);border:1px solid var(--border)}
+
+/* TWO COL */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--border);margin-bottom:48px}
+.col-card{background:var(--bg);padding:40px}
+.col-title{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--muted);margin-bottom:24px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.col-item{padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:14px;font-weight:300;color:rgba(250,248,245,0.7);line-height:1.5}
+
+/* INSIGHT CARDS */
+.insight-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;background:var(--border);margin-bottom:48px}
+.insight-card{background:var(--bg);padding:32px;border-left:3px solid var(--terracotta)}
+.insight-num{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;color:var(--terracotta);margin-bottom:10px}
+.insight-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:600;margin-bottom:8px}
+.insight-body{font-size:12px;font-weight:300;line-height:1.6;color:rgba(250,248,245,0.4)}
+
+/* SCORE */
+.score-block{margin-bottom:48px}
+.score-row{display:flex;align-items:center;gap:16px;margin-bottom:12px}
+.score-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);width:160px;flex-shrink:0}
+.score-track{flex:1;height:2px;background:rgba(255,255,255,0.06);position:relative}
+.score-fill{position:absolute;left:0;top:0;bottom:0}
+.score-val{font-family:'DM Mono',monospace;font-size:12px;color:var(--text);width:24px;text-align:right}
+
+/* POSITIONING */
+.positioning{background:var(--card);border-radius:0;padding:48px;margin-bottom:48px;border-left:3px solid var(--gold)}
+.pos-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:16px}
+.pos-text{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;font-style:italic;color:rgba(250,248,245,0.8);line-height:1.5}
+
+/* TAGLINES */
+.taglines{margin-bottom:48px}
+.tagline-item{font-family:'Cormorant Garamond',serif;font-size:20px;font-style:italic;font-weight:300;color:rgba(250,248,245,0.6);padding:14px 0;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:baseline}
+.tagline-item::before{content:'"';color:var(--terracotta);font-size:24px;flex-shrink:0}
+
+/* MOCKUP */
+.mockup-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:var(--border);margin-bottom:48px}
+.mockup-card{padding:40px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px}
+
+/* COMPARISON */
+.compare-table{width:100%;border-collapse:collapse;margin-bottom:48px}
+.compare-table th{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);padding:14px 20px;text-align:left;border-bottom:1px solid var(--border);font-weight:400}
+.compare-table td{padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.03);font-size:13px;font-weight:300;color:rgba(250,248,245,0.6)}
+.compare-table .highlight-row td{color:var(--text);font-weight:500}
+
+/* DIVIDER */
+.section-divider{height:1px;background:linear-gradient(to right,transparent,rgba(184,98,47,0.3),transparent);margin:0}
+
+/* VERDICT */
+.verdict-card{background:linear-gradient(135deg,rgba(184,98,47,0.08),rgba(201,169,110,0.05));border:1px solid rgba(184,98,47,0.15);padding:48px;margin-bottom:48px}
+.verdict-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--terracotta);margin-bottom:16px}
+.verdict-text{font-size:15px;font-weight:300;line-height:1.8;color:rgba(250,248,245,0.7)}
+
+/* FOOTER */
+.doc-footer{padding:80px;text-align:center;border-top:1px solid var(--border)}
+.footer-logo{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;letter-spacing:-0.03em;margin-bottom:8px}
+.footer-sub{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ COVER ═══════════════════════════════════════ -->
+<section class="cover">
+  <div class="cover-eyebrow">Brand Evolution Brief -- Abril 2026</div>
+  <h1 class="cover-title">LIFTORY</h1>
+  <p class="cover-sub">Analisis de branding actual y 5 propuestas estrategicas para posicionar LIFTORY como la mejor app de entrenamiento de fuerza del mundo.</p>
+</section>
+
+<!-- ═══════════════════════════════════════ TOC ═══════════════════════════════════════ -->
+<nav class="toc">
+  <div class="toc-label">Contenido</div>
+  <div class="toc-grid">
+    <div class="toc-item toc-current">
+      <div class="toc-num">00</div>
+      <div class="toc-name">Estado Actual</div>
+      <div class="toc-desc">Analisis del branding actual de LIFTORY y areas de oportunidad</div>
+    </div>
+    <div class="toc-item">
+      <div class="toc-num">01</div>
+      <div class="toc-name">Forged</div>
+      <div class="toc-desc">Estetica de competicion con neon y hierro. Inspirado en HYROX + WHOOP.</div>
+    </div>
+    <div class="toc-item">
+      <div class="toc-num">02</div>
+      <div class="toc-name">Atelier</div>
+      <div class="toc-desc">Lujo silencioso para fuerza. Inspirado en Equinox + Technogym.</div>
+    </div>
+    <div class="toc-item">
+      <div class="toc-num">03</div>
+      <div class="toc-name">Carbon</div>
+      <div class="toc-desc">Inteligencia y precision. Inspirado en Tonal + Oura + Eight Sleep.</div>
+    </div>
+    <div class="toc-item">
+      <div class="toc-num">04</div>
+      <div class="toc-name">Volt</div>
+      <div class="toc-desc">Energia y comunidad global. Inspirado en Nike Training + Peloton.</div>
+    </div>
+    <div class="toc-item">
+      <div class="toc-num">05</div>
+      <div class="toc-name">Terra</div>
+      <div class="toc-desc">Evolucion organica del actual. Lo mejor de LIFTORY refinado al maximo.</div>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════════════════ -->
+<!-- BRIEF 00: ESTADO ACTUAL                                                               -->
+<!-- ═══════════════════════════════════════════════════════════════════════════════════════ -->
+<section class="brief" id="current">
+  <div class="brief-header">
+    <div class="brief-label">00 -- Estado Actual</div>
+    <div class="brief-title">LIFTORY Hoy</div>
+    <div class="brief-subtitle">Analisis objetivo del sistema de branding actual y areas de oportunidad.</div>
+  </div>
+
+  <!-- Palette -->
+  <div class="brief-label">Paleta actual</div>
+  <div class="palette-row">
+    <div class="swatch" style="background:#0D0C0A"><div class="swatch-name">Off Black</div><div class="swatch-hex">#0D0C0A</div><div class="swatch-role">Background</div></div>
+    <div class="swatch" style="background:#1C1C1E"><div class="swatch-name">Charcoal</div><div class="swatch-hex">#1C1C1E</div><div class="swatch-role">Cards</div></div>
+    <div class="swatch" style="background:#B8622F"><div class="swatch-name">Terracotta</div><div class="swatch-hex">#B8622F</div><div class="swatch-role">Primary Accent</div></div>
+    <div class="swatch" style="background:#C9A96E"><div class="swatch-name">Gold</div><div class="swatch-hex">#C9A96E</div><div class="swatch-role">Secondary</div></div>
+    <div class="swatch" style="background:#7A8B5C"><div class="swatch-name">Olive</div><div class="swatch-hex">#7A8B5C</div><div class="swatch-role">Success</div></div>
+    <div class="swatch swatch-light" style="background:#FAF8F5"><div class="swatch-name">Cream</div><div class="swatch-hex">#FAF8F5</div><div class="swatch-role">Text</div></div>
+    <div class="swatch" style="background:#8A8A8E"><div class="swatch-name">Muted</div><div class="swatch-hex">#8A8A8E</div><div class="swatch-role">Secondary Text</div></div>
+  </div>
+
+  <!-- Type -->
+  <div class="brief-label">Tipografia actual</div>
+  <div class="type-showcase">
+    <div class="type-row">
+      <div class="type-meta">SYNE 800<br>-0.03em tracking</div>
+      <div class="type-sample" style="font-family:'Syne',sans-serif;font-size:36px;font-weight:800;letter-spacing:-0.03em">LIFTORY</div>
+      <div class="type-tag tag-primary">Display</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">SYNE 700<br>Headings</div>
+      <div class="type-sample" style="font-family:'Syne',sans-serif;font-size:24px;font-weight:700;letter-spacing:-0.02em">Tu entrenamiento</div>
+      <div class="type-tag tag-primary">Heading</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">INTER 400<br>Body text</div>
+      <div class="type-sample" style="font-family:'Inter',sans-serif;font-size:15px;font-weight:400;color:rgba(250,248,245,0.7)">Programacion periodizada en 6 fases para resultados reales.</div>
+      <div class="type-tag tag-secondary">Body</div>
+    </div>
+  </div>
+
+  <!-- Scores -->
+  <div class="brief-label">Evaluacion objetiva</div>
+  <div class="score-block">
+    <div class="score-row"><div class="score-label">Distincion</div><div class="score-track"><div class="score-fill" style="width:75%;background:var(--terracotta)"></div></div><div class="score-val">7.5</div></div>
+    <div class="score-row"><div class="score-label">Coherencia</div><div class="score-track"><div class="score-fill" style="width:60%;background:var(--terracotta)"></div></div><div class="score-val">6.0</div></div>
+    <div class="score-row"><div class="score-label">Premium feel</div><div class="score-track"><div class="score-fill" style="width:65%;background:var(--terracotta)"></div></div><div class="score-val">6.5</div></div>
+    <div class="score-row"><div class="score-label">Escalabilidad</div><div class="score-track"><div class="score-fill" style="width:55%;background:var(--terracotta)"></div></div><div class="score-val">5.5</div></div>
+    <div class="score-row"><div class="score-label">Reconocimiento</div><div class="score-track"><div class="score-fill" style="width:50%;background:var(--terracotta)"></div></div><div class="score-val">5.0</div></div>
+  </div>
+
+  <!-- Strengths/Weaknesses -->
+  <div class="two-col">
+    <div class="col-card">
+      <div class="col-title" style="color:var(--olive)">Fortalezas</div>
+      <div class="col-item">Paleta terracotta/gold es unica en el espacio fitness -- ningun competidor la usa</div>
+      <div class="col-item">Dark mode premium se alinea con las mejores apps del mercado</div>
+      <div class="col-item">Syne como display font tiene personalidad fuerte y memorable</div>
+      <div class="col-item">Tagline "Move Better. Lift Stronger. Live Longer." comunica bien la propuesta de valor</div>
+      <div class="col-item">Sin emojis en UI -- decision correcta para percepcion premium</div>
+    </div>
+    <div class="col-card">
+      <div class="col-title" style="color:rgba(250,248,245,0.25)">Areas de oportunidad</div>
+      <div class="col-item">La paleta de 7 colores es excesiva -- las marcas premium usan 90% monocromo + 1 acento</div>
+      <div class="col-item">No hay sistema de iconografia propio ni lenguaje visual consistente</div>
+      <div class="col-item">Falta un "color signature" que sea inmediatamente reconocible (como el rojo Peloton o el verde WHOOP)</div>
+      <div class="col-item">Tipografia de headings vs body no tiene suficiente contraste jerarquico</div>
+      <div class="col-item">No hay motion design language definido (animaciones, transiciones, celebraciones)</div>
+      <div class="col-item">La app carece de micro-interacciones que creen momentos memorables (PRs, badges, streaks)</div>
+    </div>
+  </div>
+
+  <div class="verdict-card">
+    <div class="verdict-label">Diagnostico</div>
+    <div class="verdict-text">LIFTORY tiene una base solida con la paleta terracotta que lo diferencia de cualquier competidor. El problema no es la direccion -- es la ejecucion y consistencia. La paleta tiene demasiados colores compitiendo entre si, la jerarquia tipografica necesita mas contraste, y faltan los detalles premium (motion, sound, haptics) que separan una app de $10M de una de $1B. Las 5 propuestas siguientes mantienen lo mejor de LIFTORY y resuelven estas areas.</div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════════════════ -->
+<!-- BRIEF 01: FORGED                                                                      -->
+<!-- ═══════════════════════════════════════════════════════════════════════════════════════ -->
+<section class="brief" id="forged">
+  <div class="brief-header">
+    <div class="brief-label">01 -- Propuesta</div>
+    <div class="brief-title">FORGED</div>
+    <div class="brief-subtitle">Competicion, hierro y fuego. Para el atleta que busca superar su marca cada dia.</div>
+  </div>
+
+  <div class="positioning">
+    <div class="pos-label">Inspiracion</div>
+    <div class="pos-text">HYROX x WHOOP x Nike Training. Agresivo pero sofisticado. La estetica de quien compite contra si mismo.</div>
+  </div>
+
+  <div class="brief-label">Paleta de color</div>
+  <div class="palette-row">
+    <div class="swatch" style="background:#08080A"><div class="swatch-name">Obsidian</div><div class="swatch-hex">#08080A</div><div class="swatch-role">Background</div></div>
+    <div class="swatch" style="background:#141416"><div class="swatch-name">Iron</div><div class="swatch-hex">#141416</div><div class="swatch-role">Cards</div></div>
+    <div class="swatch" style="background:#D4FF00"><div class="swatch-name">Forge</div><div class="swatch-hex">#D4FF00</div><div class="swatch-role">Primary Accent</div></div>
+    <div class="swatch swatch-light" style="background:#F0EDE8"><div class="swatch-name">Ash</div><div class="swatch-hex">#F0EDE8</div><div class="swatch-role">Text</div></div>
+    <div class="swatch" style="background:#6B6B70"><div class="swatch-name">Steel</div><div class="swatch-hex">#6B6B70</div><div class="swatch-role">Secondary</div></div>
+  </div>
+
+  <div class="brief-label">Tipografia</div>
+  <div class="type-showcase">
+    <div class="type-row">
+      <div class="type-meta">SYNE 800<br>Condensed feel</div>
+      <div class="type-sample" style="font-family:'Syne',sans-serif;font-size:36px;font-weight:800;letter-spacing:-0.04em;color:#D4FF00">LIFTORY</div>
+      <div class="type-tag tag-primary">Wordmark</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">OUTFIT 700<br>Headlines</div>
+      <div class="type-sample" style="font-family:'Outfit',sans-serif;font-size:28px;font-weight:700;letter-spacing:-0.02em">PERSONAL RECORD</div>
+      <div class="type-tag tag-primary">Heading</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">INTER 400<br>Body</div>
+      <div class="type-sample" style="font-family:'Inter',sans-serif;font-size:15px;font-weight:400;color:rgba(240,237,232,0.6)">Programacion de fuerza con tracking en tiempo real.</div>
+      <div class="type-tag tag-secondary">Body</div>
+    </div>
+  </div>
+
+  <div class="brief-label">Taglines</div>
+  <div class="taglines">
+    <div class="tagline-item">Forged in iron. Verified by data.</div>
+    <div class="tagline-item">Your strength has a scoreboard.</div>
+    <div class="tagline-item">Every rep counts. Every PR proves it.</div>
+  </div>
+
+  <div class="insight-grid">
+    <div class="insight-card" style="border-color:#D4FF00">
+      <div class="insight-num" style="color:#D4FF00">01</div>
+      <div class="insight-title">Neon como firma</div>
+      <div class="insight-body">Un solo color neon (#D4FF00) sobre negro puro crea reconocimiento instantaneo. HYROX demostro que esta combinacion domina en redes sociales.</div>
+    </div>
+    <div class="insight-card" style="border-color:#D4FF00">
+      <div class="insight-num" style="color:#D4FF00">02</div>
+      <div class="insight-title">Motion agresivo</div>
+      <div class="insight-body">Animaciones de impacto para PRs: shake de pantalla, flash neon, numeros que escalan. Cada logro se siente como un knockout.</div>
+    </div>
+    <div class="insight-card" style="border-color:#D4FF00">
+      <div class="insight-num" style="color:#D4FF00">03</div>
+      <div class="insight-title">Leaderboard culture</div>
+      <div class="insight-body">Rankings, comparaciones, challenges semanales. La competencia sana como motor de retencion y engagement.</div>
+    </div>
+  </div>
+
+  <div class="score-block">
+    <div class="score-row"><div class="score-label">Distincion</div><div class="score-track"><div class="score-fill" style="width:90%;background:#D4FF00"></div></div><div class="score-val">9.0</div></div>
+    <div class="score-row"><div class="score-label">Energia</div><div class="score-track"><div class="score-fill" style="width:95%;background:#D4FF00"></div></div><div class="score-val">9.5</div></div>
+    <div class="score-row"><div class="score-label">Premium feel</div><div class="score-track"><div class="score-fill" style="width:70%;background:#D4FF00"></div></div><div class="score-val">7.0</div></div>
+    <div class="score-row"><div class="score-label">Accesibilidad</div><div class="score-track"><div class="score-fill" style="width:60%;background:#D4FF00"></div></div><div class="score-val">6.0</div></div>
+    <div class="score-row"><div class="score-label">Escalabilidad</div><div class="score-track"><div class="score-fill" style="width:80%;background:#D4FF00"></div></div><div class="score-val">8.0</div></div>
+  </div>
+
+  <div class="verdict-card" style="border-color:#D4FF00;background:rgba(212,255,0,0.03)">
+    <div class="verdict-label" style="color:#D4FF00">Para quien es</div>
+    <div class="verdict-text">Atletas competitivos, 22-35 anos. CrossFitters, powerlifters, atletas funcionales. Personas que publican PRs en Instagram Stories. Quieren sentir que cada sesion es una batalla ganada. Riesgo: puede alienar al publico wellness/longevidad.</div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════════════════ -->
+<!-- BRIEF 02: ATELIER                                                                     -->
+<!-- ═══════════════════════════════════════════════════════════════════════════════════════ -->
+<section class="brief" id="atelier">
+  <div class="brief-header">
+    <div class="brief-label">02 -- Propuesta</div>
+    <div class="brief-title">ATELIER</div>
+    <div class="brief-subtitle">Lujo silencioso aplicado a la fuerza. Para quien entrena con la misma intencion con la que vive.</div>
+  </div>
+
+  <div class="positioning">
+    <div class="pos-label">Inspiracion</div>
+    <div class="pos-text">Equinox x Technogym x Aesop. La interseccion entre diserio italiano, hospitalidad de lujo y entrenamiento de fuerza con proposito.</div>
+  </div>
+
+  <div class="brief-label">Paleta de color</div>
+  <div class="palette-row">
+    <div class="swatch" style="background:#0C0B09"><div class="swatch-name">Onyx</div><div class="swatch-hex">#0C0B09</div><div class="swatch-role">Background</div></div>
+    <div class="swatch" style="background:#1A1917"><div class="swatch-name">Smoke</div><div class="swatch-hex">#1A1917</div><div class="swatch-role">Cards</div></div>
+    <div class="swatch" style="background:#C5A55A"><div class="swatch-name">Brass</div><div class="swatch-hex">#C5A55A</div><div class="swatch-role">Primary Accent</div></div>
+    <div class="swatch swatch-light" style="background:#F8F4EF"><div class="swatch-name">Linen</div><div class="swatch-hex">#F8F4EF</div><div class="swatch-role">Text</div></div>
+    <div class="swatch" style="background:#7A756D"><div class="swatch-name">Pewter</div><div class="swatch-hex">#7A756D</div><div class="swatch-role">Secondary</div></div>
+  </div>
+
+  <div class="brief-label">Tipografia</div>
+  <div class="type-showcase">
+    <div class="type-row">
+      <div class="type-meta">SYNE 800<br>Wordmark only</div>
+      <div class="type-sample" style="font-family:'Syne',sans-serif;font-size:36px;font-weight:800;letter-spacing:-0.03em;color:#C5A55A">LIFTORY</div>
+      <div class="type-tag tag-primary">Wordmark</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">CORMORANT 400<br>Serif headlines</div>
+      <div class="type-sample" style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:400;font-style:italic;color:#F8F4EF">Tu entrenamiento es tu obra</div>
+      <div class="type-tag tag-primary">Heading</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">INTER 300<br>Lightweight body</div>
+      <div class="type-sample" style="font-family:'Inter',sans-serif;font-size:15px;font-weight:300;color:rgba(248,244,239,0.5)">Periodizacion inteligente disenada para quienes exigen mas de si.</div>
+      <div class="type-tag tag-secondary">Body</div>
+    </div>
+  </div>
+
+  <div class="brief-label">Taglines</div>
+  <div class="taglines">
+    <div class="tagline-item">Strength, refined.</div>
+    <div class="tagline-item">The discipline of lifting. The art of progress.</div>
+    <div class="tagline-item">Where performance meets intention.</div>
+  </div>
+
+  <div class="insight-grid">
+    <div class="insight-card" style="border-color:#C5A55A">
+      <div class="insight-num" style="color:#C5A55A">01</div>
+      <div class="insight-title">Serif en fitness</div>
+      <div class="insight-body">Equinox demostro que serifas en fitness crean percepcion de lujo. Usar Cormorant Garamond para headings separa a LIFTORY de todo el mercado.</div>
+    </div>
+    <div class="insight-card" style="border-color:#C5A55A">
+      <div class="insight-num" style="color:#C5A55A">02</div>
+      <div class="insight-title">Gold como distincion</div>
+      <div class="insight-body">Un solo acento dorado (#C5A55A) comunica exclusividad sin esfuerzo. Como Equinox y Technogym -- el gold es sinonimo de premium en wellness.</div>
+    </div>
+    <div class="insight-card" style="border-color:#C5A55A">
+      <div class="insight-num" style="color:#C5A55A">03</div>
+      <div class="insight-title">Espacio como lujo</div>
+      <div class="insight-body">Mas whitespace, menos elementos por pantalla. Cada dato respira. Los margenes generosos comunican confianza y sofisticacion.</div>
+    </div>
+  </div>
+
+  <div class="score-block">
+    <div class="score-row"><div class="score-label">Distincion</div><div class="score-track"><div class="score-fill" style="width:95%;background:#C5A55A"></div></div><div class="score-val">9.5</div></div>
+    <div class="score-row"><div class="score-label">Premium feel</div><div class="score-track"><div class="score-fill" style="width:98%;background:#C5A55A"></div></div><div class="score-val">9.8</div></div>
+    <div class="score-row"><div class="score-label">Energia</div><div class="score-track"><div class="score-fill" style="width:45%;background:#C5A55A"></div></div><div class="score-val">4.5</div></div>
+    <div class="score-row"><div class="score-label">Accesibilidad</div><div class="score-track"><div class="score-fill" style="width:50%;background:#C5A55A"></div></div><div class="score-val">5.0</div></div>
+    <div class="score-row"><div class="score-label">Escalabilidad</div><div class="score-track"><div class="score-fill" style="width:70%;background:#C5A55A"></div></div><div class="score-val">7.0</div></div>
+  </div>
+
+  <div class="verdict-card" style="border-color:#C5A55A;background:rgba(197,165,90,0.03)">
+    <div class="verdict-label" style="color:#C5A55A">Para quien es</div>
+    <div class="verdict-text">Profesionales 30-50 que valoran la estetica tanto como los resultados. El tipo de persona que compra en Aesop, entrena en Equinox y elige sus apps por diseno. Riesgo: puede percibirse como demasiado "suave" para lifters hardcore.</div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════════════════ -->
+<!-- BRIEF 03: CARBON                                                                      -->
+<!-- ═══════════════════════════════════════════════════════════════════════════════════════ -->
+<section class="brief" id="carbon">
+  <div class="brief-header">
+    <div class="brief-label">03 -- Propuesta</div>
+    <div class="brief-title">CARBON</div>
+    <div class="brief-subtitle">Inteligencia y precision. Para el atleta que optimiza cada variable de su rendimiento.</div>
+  </div>
+
+  <div class="positioning">
+    <div class="pos-label">Inspiracion</div>
+    <div class="pos-text">Tonal x Oura x Eight Sleep. La app de fuerza que se siente como un instrumento de precision, no como un gimnasio.</div>
+  </div>
+
+  <div class="brief-label">Paleta de color</div>
+  <div class="palette-row">
+    <div class="swatch" style="background:#0A0E1A"><div class="swatch-name">Deep Navy</div><div class="swatch-hex">#0A0E1A</div><div class="swatch-role">Background</div></div>
+    <div class="swatch" style="background:#141925"><div class="swatch-name">Slate</div><div class="swatch-hex">#141925</div><div class="swatch-role">Cards</div></div>
+    <div class="swatch" style="background:#3B82F6"><div class="swatch-name">Signal</div><div class="swatch-hex">#3B82F6</div><div class="swatch-role">Primary Accent</div></div>
+    <div class="swatch" style="background:#06B6D4"><div class="swatch-name">Insight</div><div class="swatch-hex">#06B6D4</div><div class="swatch-role">Data Accent</div></div>
+    <div class="swatch swatch-light" style="background:#E8ECF4"><div class="swatch-name">Frost</div><div class="swatch-hex">#E8ECF4</div><div class="swatch-role">Text</div></div>
+  </div>
+
+  <div class="brief-label">Tipografia</div>
+  <div class="type-showcase">
+    <div class="type-row">
+      <div class="type-meta">SPACE GROTESK 700<br>Geometric precision</div>
+      <div class="type-sample" style="font-family:'Space Grotesk',sans-serif;font-size:36px;font-weight:700;letter-spacing:-0.03em;color:#3B82F6">LIFTORY</div>
+      <div class="type-tag tag-primary">Wordmark</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">SPACE GROTESK 600<br>Headlines</div>
+      <div class="type-sample" style="font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:600;letter-spacing:-0.01em;color:#E8ECF4">Progressive Overload Score</div>
+      <div class="type-tag tag-primary">Heading</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">INTER 400<br>Body + Data</div>
+      <div class="type-sample" style="font-family:'Inter',sans-serif;font-size:15px;font-weight:400;color:rgba(232,236,244,0.5)">Tu volumen semanal aumento 12% vs semana anterior.</div>
+      <div class="type-tag tag-secondary">Body</div>
+    </div>
+  </div>
+
+  <div class="brief-label">Taglines</div>
+  <div class="taglines">
+    <div class="tagline-item">Intelligence meets iron.</div>
+    <div class="tagline-item">Your strength, quantified.</div>
+    <div class="tagline-item">Precision training for measurable progress.</div>
+  </div>
+
+  <div class="insight-grid">
+    <div class="insight-card" style="border-color:#3B82F6">
+      <div class="insight-num" style="color:#3B82F6">01</div>
+      <div class="insight-title">Navy > Black</div>
+      <div class="insight-body">Oura y Eight Sleep usan navy oscuro en vez de negro puro. Crea profundidad, sofisticacion tech y reduce fatiga visual. Pequeno cambio, gran impacto.</div>
+    </div>
+    <div class="insight-card" style="border-color:#3B82F6">
+      <div class="insight-num" style="color:#3B82F6">02</div>
+      <div class="insight-title">Data-forward UI</div>
+      <div class="insight-body">Scores de 0-100, sparklines, tendencias semanales. La data es la experiencia, no un feature secundario. Como WHOOP pero para fuerza.</div>
+    </div>
+    <div class="insight-card" style="border-color:#3B82F6">
+      <div class="insight-num" style="color:#3B82F6">03</div>
+      <div class="insight-title">Blue = trust</div>
+      <div class="insight-body">Azul comunica confiabilidad, tecnologia y precision. Es el color de las marcas tech mas valiosas del mundo (Apple Health, Samsung, Garmin).</div>
+    </div>
+  </div>
+
+  <div class="score-block">
+    <div class="score-row"><div class="score-label">Distincion</div><div class="score-track"><div class="score-fill" style="width:70%;background:#3B82F6"></div></div><div class="score-val">7.0</div></div>
+    <div class="score-row"><div class="score-label">Premium feel</div><div class="score-track"><div class="score-fill" style="width:85%;background:#3B82F6"></div></div><div class="score-val">8.5</div></div>
+    <div class="score-row"><div class="score-label">Tech credibility</div><div class="score-track"><div class="score-fill" style="width:95%;background:#3B82F6"></div></div><div class="score-val">9.5</div></div>
+    <div class="score-row"><div class="score-label">Accesibilidad</div><div class="score-track"><div class="score-fill" style="width:75%;background:#3B82F6"></div></div><div class="score-val">7.5</div></div>
+    <div class="score-row"><div class="score-label">Escalabilidad</div><div class="score-track"><div class="score-fill" style="width:90%;background:#3B82F6"></div></div><div class="score-val">9.0</div></div>
+  </div>
+
+  <div class="verdict-card" style="border-color:#3B82F6;background:rgba(59,130,246,0.03)">
+    <div class="verdict-label" style="color:#3B82F6">Para quien es</div>
+    <div class="verdict-text">Data nerds del fitness, 25-45. Engineers, biohackers, usuarios de WHOOP/Oura que buscan la misma profundidad en su entrenamiento de fuerza. Quieren graficas, tendencias y numeros. Riesgo: puede perder el alma "strength" y sentirse como otra app de datos mas.</div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════════════════ -->
+<!-- BRIEF 04: VOLT                                                                        -->
+<!-- ═══════════════════════════════════════════════════════════════════════════════════════ -->
+<section class="brief" id="volt">
+  <div class="brief-header">
+    <div class="brief-label">04 -- Propuesta</div>
+    <div class="brief-title">VOLT</div>
+    <div class="brief-subtitle">Energia, comunidad y coaching de clase mundial. Para el atleta que quiere mas que una app.</div>
+  </div>
+
+  <div class="positioning">
+    <div class="pos-label">Inspiracion</div>
+    <div class="pos-text">Nike Training Club x Peloton x Hyperice. La energia de un coach de elite en tu bolsillo con la comunidad de un movimiento global.</div>
+  </div>
+
+  <div class="brief-label">Paleta de color</div>
+  <div class="palette-row">
+    <div class="swatch" style="background:#0D0D0F"><div class="swatch-name">Pitch</div><div class="swatch-hex">#0D0D0F</div><div class="swatch-role">Background</div></div>
+    <div class="swatch" style="background:#1A1A1D"><div class="swatch-name">Graphite</div><div class="swatch-hex">#1A1A1D</div><div class="swatch-role">Cards</div></div>
+    <div class="swatch" style="background:#E63946"><div class="swatch-name">Ignite</div><div class="swatch-hex">#E63946</div><div class="swatch-role">Primary Accent</div></div>
+    <div class="swatch swatch-light" style="background:#FAFAFA"><div class="swatch-name">Clean</div><div class="swatch-hex">#FAFAFA</div><div class="swatch-role">Text</div></div>
+    <div class="swatch" style="background:#71717A"><div class="swatch-name">Zinc</div><div class="swatch-hex">#71717A</div><div class="swatch-role">Secondary</div></div>
+  </div>
+
+  <div class="brief-label">Tipografia</div>
+  <div class="type-showcase">
+    <div class="type-row">
+      <div class="type-meta">OUTFIT 900<br>Maximum impact</div>
+      <div class="type-sample" style="font-family:'Outfit',sans-serif;font-size:40px;font-weight:900;letter-spacing:-0.04em;color:#E63946">LIFTORY</div>
+      <div class="type-tag tag-primary">Wordmark</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">OUTFIT 700<br>Bold condensed</div>
+      <div class="type-sample" style="font-family:'Outfit',sans-serif;font-size:28px;font-weight:700;letter-spacing:-0.02em;text-transform:uppercase">Sesion completa</div>
+      <div class="type-tag tag-primary">Heading</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">PLUS JAKARTA 400<br>Warm sans-serif</div>
+      <div class="type-sample" style="font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:400;color:rgba(250,250,250,0.6)">Tu coach de fuerza personal, disponible 24/7.</div>
+      <div class="type-tag tag-secondary">Body</div>
+    </div>
+  </div>
+
+  <div class="brief-label">Taglines</div>
+  <div class="taglines">
+    <div class="tagline-item">Strength is a team sport.</div>
+    <div class="tagline-item">Your gym. Your coach. Your people.</div>
+    <div class="tagline-item">Train together. Rise together.</div>
+  </div>
+
+  <div class="insight-grid">
+    <div class="insight-card" style="border-color:#E63946">
+      <div class="insight-num" style="color:#E63946">01</div>
+      <div class="insight-title">Rojo = accion</div>
+      <div class="insight-body">Peloton demostro que el rojo vibrante activa emocionalmente. Crea urgencia, pasion y energia. Es el color que mas engagement genera en fitness apps.</div>
+    </div>
+    <div class="insight-card" style="border-color:#E63946">
+      <div class="insight-num" style="color:#E63946">02</div>
+      <div class="insight-title">Community-first</div>
+      <div class="insight-body">Challenges grupales, live leaderboards, streaks compartidos. La retencion viene de la comunidad, no solo del contenido. Peloton lo probo.</div>
+    </div>
+    <div class="insight-card" style="border-color:#E63946">
+      <div class="insight-num" style="color:#E63946">03</div>
+      <div class="insight-title">Celebracion maxima</div>
+      <div class="insight-body">PRs con confetti, sonido, vibracion. Milestones con animaciones full-screen. Cada logro se siente epico. Nike Training + Peloton nailed this.</div>
+    </div>
+  </div>
+
+  <div class="score-block">
+    <div class="score-row"><div class="score-label">Distincion</div><div class="score-track"><div class="score-fill" style="width:65%;background:#E63946"></div></div><div class="score-val">6.5</div></div>
+    <div class="score-row"><div class="score-label">Energia</div><div class="score-track"><div class="score-fill" style="width:98%;background:#E63946"></div></div><div class="score-val">9.8</div></div>
+    <div class="score-row"><div class="score-label">Community appeal</div><div class="score-track"><div class="score-fill" style="width:95%;background:#E63946"></div></div><div class="score-val">9.5</div></div>
+    <div class="score-row"><div class="score-label">Accesibilidad</div><div class="score-track"><div class="score-fill" style="width:90%;background:#E63946"></div></div><div class="score-val">9.0</div></div>
+    <div class="score-row"><div class="score-label">Escalabilidad</div><div class="score-track"><div class="score-fill" style="width:85%;background:#E63946"></div></div><div class="score-val">8.5</div></div>
+  </div>
+
+  <div class="verdict-card" style="border-color:#E63946;background:rgba(230,57,70,0.03)">
+    <div class="verdict-label" style="color:#E63946">Para quien es</div>
+    <div class="verdict-text">El mercado mas amplio: 20-40 anos, hombres y mujeres que quieren coaching, comunidad y motivacion. Mas accesible que Forged o Atelier. Riesgo: el rojo es competido (Peloton, YouTube, Netflix) y puede diluir la identidad unica de LIFTORY.</div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════════════════ -->
+<!-- BRIEF 05: TERRA                                                                       -->
+<!-- ═══════════════════════════════════════════════════════════════════════════════════════ -->
+<section class="brief" id="terra">
+  <div class="brief-header">
+    <div class="brief-label">05 -- Propuesta (Recomendada)</div>
+    <div class="brief-title">TERRA</div>
+    <div class="brief-subtitle">La evolucion natural de LIFTORY. Todo lo que funciona, refinado. Todo lo que falta, resuelto.</div>
+  </div>
+
+  <div class="positioning">
+    <div class="pos-label">Filosofia</div>
+    <div class="pos-text">No cambiar la identidad -- perfeccionarla. Mantener la paleta terracotta que hace unico a LIFTORY, reducir el ruido visual, agregar los detalles premium que separan a las marcas de $10M de las de $1B.</div>
+  </div>
+
+  <div class="brief-label">Paleta de color (refinada)</div>
+  <div class="palette-row">
+    <div class="swatch" style="background:#0C0B09"><div class="swatch-name">Earth</div><div class="swatch-hex">#0C0B09</div><div class="swatch-role">Background</div></div>
+    <div class="swatch" style="background:#181715"><div class="swatch-name">Clay</div><div class="swatch-hex">#181715</div><div class="swatch-role">Cards</div></div>
+    <div class="swatch" style="background:#C75B39"><div class="swatch-name">Terra</div><div class="swatch-hex">#C75B39</div><div class="swatch-role">Signature Color</div></div>
+    <div class="swatch swatch-light" style="background:#FAF8F5"><div class="swatch-name">Bone</div><div class="swatch-hex">#FAF8F5</div><div class="swatch-role">Text</div></div>
+    <div class="swatch" style="background:#6B6560"><div class="swatch-name">Stone</div><div class="swatch-hex">#6B6560</div><div class="swatch-role">Secondary</div></div>
+  </div>
+
+  <div class="brief-label">Cambios vs actual</div>
+  <div class="two-col">
+    <div class="col-card">
+      <div class="col-title" style="color:#C75B39">Lo que cambia</div>
+      <div class="col-item"><strong>Paleta reducida de 7 a 5 colores.</strong> Eliminamos gold, olive y muted como colores de marca. El terracotta es el unico acento.</div>
+      <div class="col-item"><strong>Terracotta ajustado de #B8622F a #C75B39.</strong> Ligeramente mas saturado y vibrante para mejor contraste en pantalla.</div>
+      <div class="col-item"><strong>Card background sube de #1C1C1E a #181715.</strong> Tono mas calido que armoniza con terracotta.</div>
+      <div class="col-item"><strong>Nuevo sistema de jerarquia tipografica.</strong> Syne solo para wordmark y titulos principales. Inter para todo lo demas con variaciones de peso.</div>
+      <div class="col-item"><strong>Motion design language.</strong> PR = screen pulse terracotta + haptic. Badge = reveal animation. Streak = flame animation sutil.</div>
+      <div class="col-item"><strong>Sound design.</strong> Tono metalico suave para PR. Click satisfactorio para completar sets. Ninguno intrusivo.</div>
+    </div>
+    <div class="col-card">
+      <div class="col-title" style="color:var(--olive)">Lo que se mantiene</div>
+      <div class="col-item">Terracotta como color signature -- ningun competidor lo usa. Es la ventaja competitiva visual de LIFTORY.</div>
+      <div class="col-item">Syne 800 como display font para el wordmark LIFTORY.</div>
+      <div class="col-item">Dark mode como experiencia predeterminada.</div>
+      <div class="col-item">Cream (#FAF8F5) como color de texto -- mas calido que blanco puro, reduce fatiga visual.</div>
+      <div class="col-item">Tagline "Move Better. Lift Stronger. Live Longer."</div>
+      <div class="col-item">Tono profesional sin emojis en interfaz.</div>
+    </div>
+  </div>
+
+  <div class="brief-label">Tipografia (refinada)</div>
+  <div class="type-showcase">
+    <div class="type-row">
+      <div class="type-meta">SYNE 800<br>Wordmark only</div>
+      <div class="type-sample" style="font-family:'Syne',sans-serif;font-size:36px;font-weight:800;letter-spacing:-0.03em;color:#C75B39">LIFTORY</div>
+      <div class="type-tag tag-primary">Logo</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">INTER 700<br>Section headings</div>
+      <div class="type-sample" style="font-family:'Inter',sans-serif;font-size:28px;font-weight:700;letter-spacing:-0.02em">Tu entrenamiento</div>
+      <div class="type-tag tag-primary">H1</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">INTER 600<br>Card titles</div>
+      <div class="type-sample" style="font-family:'Inter',sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.01em">Back Squat - 4x6</div>
+      <div class="type-tag tag-secondary">H2</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">INTER 400<br>Body text</div>
+      <div class="type-sample" style="font-family:'Inter',sans-serif;font-size:15px;font-weight:400;color:rgba(250,248,245,0.6)">Semana 3 de acumulacion. Volumen progresivo.</div>
+      <div class="type-tag tag-secondary">Body</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta">DM MONO 400<br>Data & labels</div>
+      <div class="type-sample" style="font-family:'DM Mono',monospace;font-size:13px;font-weight:400;color:#C75B39">PR: 140 KG | +5 KG VS PREV</div>
+      <div class="type-tag tag-primary">Data</div>
+    </div>
+  </div>
+
+  <div class="brief-label">Taglines</div>
+  <div class="taglines">
+    <div class="tagline-item">Move Better. Lift Stronger. Live Longer.</div>
+    <div class="tagline-item">Your strength has a story.</div>
+    <div class="tagline-item">Built different. Trained smarter.</div>
+  </div>
+
+  <div class="insight-grid">
+    <div class="insight-card" style="border-color:#C75B39">
+      <div class="insight-num" style="color:#C75B39">01</div>
+      <div class="insight-title">Terracotta ownership</div>
+      <div class="insight-body">Ninguna app de fitness usa terracotta como color primario. Es un activo de marca que no se puede copiar facilmente. Terra lo convierte en una ventaja de $1B: al reducir la paleta, el terracotta se vuelve sinonimo de LIFTORY.</div>
+    </div>
+    <div class="insight-card" style="border-color:#C75B39">
+      <div class="insight-num" style="color:#C75B39">02</div>
+      <div class="insight-title">Un font, multiples pesos</div>
+      <div class="insight-body">En vez de Syne + Inter compitiendo, Inter se vuelve el sistema tipografico unico (300-700) con Syne reservado exclusivamente para el wordmark. Esto crea consistencia y legibilidad perfectas.</div>
+    </div>
+    <div class="insight-card" style="border-color:#C75B39">
+      <div class="insight-num" style="color:#C75B39">03</div>
+      <div class="insight-title">Micro-momentos premium</div>
+      <div class="insight-body">Lo que separa $10M de $1B: PR screen pulse, badge reveal animation, streak flame, rest timer haptic, session complete sound. Son los detalles que crean adiccion y hacen que la app se sienta viva.</div>
+    </div>
+  </div>
+
+  <div class="score-block">
+    <div class="score-row"><div class="score-label">Distincion</div><div class="score-track"><div class="score-fill" style="width:90%;background:#C75B39"></div></div><div class="score-val">9.0</div></div>
+    <div class="score-row"><div class="score-label">Premium feel</div><div class="score-track"><div class="score-fill" style="width:88%;background:#C75B39"></div></div><div class="score-val">8.8</div></div>
+    <div class="score-row"><div class="score-label">Consistencia</div><div class="score-track"><div class="score-fill" style="width:95%;background:#C75B39"></div></div><div class="score-val">9.5</div></div>
+    <div class="score-row"><div class="score-label">Accesibilidad</div><div class="score-track"><div class="score-fill" style="width:85%;background:#C75B39"></div></div><div class="score-val">8.5</div></div>
+    <div class="score-row"><div class="score-label">Escalabilidad</div><div class="score-track"><div class="score-fill" style="width:90%;background:#C75B39"></div></div><div class="score-val">9.0</div></div>
+  </div>
+
+  <div class="verdict-card" style="border-color:#C75B39;background:rgba(199,91,57,0.05)">
+    <div class="verdict-label" style="color:#C75B39">Por que esta es la recomendacion</div>
+    <div class="verdict-text">Terra no reinventa LIFTORY -- lo perfecciona. Mantiene la identidad terracotta que ya es unica en el mercado, reduce el ruido visual de 7 a 5 colores, crea un sistema tipografico mas limpio, y agrega los micro-momentos premium (motion, sound, haptics) que son la diferencia real entre una app buena y una app adictiva. Es la opcion que menos disrumpe la experiencia actual del usuario pero mas eleva la percepcion de marca. El terracotta no lo tiene nadie -- eso vale mas que cualquier rediseno radical.</div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════════════════ -->
+<!-- COMPARISON TABLE                                                                      -->
+<!-- ═══════════════════════════════════════════════════════════════════════════════════════ -->
+<section class="brief" id="comparison">
+  <div class="brief-header">
+    <div class="brief-label">Comparativa Final</div>
+    <div class="brief-title">Las 5 propuestas lado a lado</div>
+  </div>
+
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th>Propuesta</th>
+        <th>Color Signature</th>
+        <th>Inspiracion</th>
+        <th>Target</th>
+        <th>Premium</th>
+        <th>Riesgo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="color:#D4FF00;font-weight:600">01 Forged</td>
+        <td><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:#D4FF00;vertical-align:middle;margin-right:6px"></span>#D4FF00</td>
+        <td>HYROX + WHOOP</td>
+        <td>Competitivos 22-35</td>
+        <td>7.0</td>
+        <td>Nicho estrecho</td>
+      </tr>
+      <tr>
+        <td style="color:#C5A55A;font-weight:600">02 Atelier</td>
+        <td><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:#C5A55A;vertical-align:middle;margin-right:6px"></span>#C5A55A</td>
+        <td>Equinox + Technogym</td>
+        <td>Professionals 30-50</td>
+        <td>9.8</td>
+        <td>Muy "suave"</td>
+      </tr>
+      <tr>
+        <td style="color:#3B82F6;font-weight:600">03 Carbon</td>
+        <td><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:#3B82F6;vertical-align:middle;margin-right:6px"></span>#3B82F6</td>
+        <td>Tonal + Oura</td>
+        <td>Data nerds 25-45</td>
+        <td>8.5</td>
+        <td>Pierde alma strength</td>
+      </tr>
+      <tr>
+        <td style="color:#E63946;font-weight:600">04 Volt</td>
+        <td><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:#E63946;vertical-align:middle;margin-right:6px"></span>#E63946</td>
+        <td>Nike + Peloton</td>
+        <td>Mass market 20-40</td>
+        <td>7.5</td>
+        <td>Color competido</td>
+      </tr>
+      <tr class="highlight-row">
+        <td style="color:#C75B39;font-weight:700">05 Terra</td>
+        <td><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:#C75B39;vertical-align:middle;margin-right:6px"></span>#C75B39</td>
+        <td>LIFTORY evolved</td>
+        <td>Serious lifters 25-45</td>
+        <td>8.8</td>
+        <td>Bajo -- evolucion natural</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="verdict-card">
+    <div class="verdict-label">Recomendacion CMO</div>
+    <div class="verdict-text">Mi recomendacion es <strong>Terra (05)</strong> como base, con elementos selectivos de <strong>Atelier (02)</strong> para momentos premium (serif en empty states, transiciones suaves) y de <strong>Carbon (03)</strong> para la capa de datos (scores, tendencias, sparklines). Esta combinacion crea una marca unica que ningun competidor puede copiar: la calidez del terracotta, la sofisticacion del espacio y la inteligencia de los datos. LIFTORY no necesita verse como otra app -- necesita verse como LIFTORY, pero al maximo nivel posible.</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="doc-footer">
+  <div class="footer-logo">LIFTORY</div>
+  <div class="footer-sub">Brand Evolution Brief -- Abril 2026</div>
+</footer>
+
+</body>
+</html>

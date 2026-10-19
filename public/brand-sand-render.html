@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFTORY — Sand & Black Direction</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0A0A0A;
+    --sand: #C7B299;
+    --sand-light: #D9CCBA;
+    --sand-muted: #9A8B78;
+    --sand-subtle: rgba(199, 178, 153, 0.10);
+    --sand-strong: rgba(199, 178, 153, 0.18);
+    --card: #151515;
+    --border: #1E1E1E;
+    --text: #E8E8E8;
+    --muted: #7A7A7A;
+    --neon: #D4FF00;
+    --page-bg: #111111;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--page-bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wordmark {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--sand);
+  }
+
+  /* ── Header ── */
+  .hero {
+    text-align: center;
+    padding: 80px 40px 60px;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-label {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--sand-muted);
+    margin-bottom: 24px;
+  }
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 48px;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  .hero h1 span { color: var(--sand); }
+  .hero p {
+    font-size: 18px;
+    color: var(--sand-muted);
+    font-weight: 300;
+    letter-spacing: 0.01em;
+  }
+
+  /* ── Palette ── */
+  .palette-section {
+    padding: 48px 40px;
+    border-bottom: 1px solid var(--border);
+  }
+  .palette-section h3 {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+  .palette-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .swatch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .swatch-color {
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .swatch-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .swatch-hex {
+    font-size: 11px;
+    color: var(--sand-muted);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+
+  /* ── Phone Grid ── */
+  .screens-section {
+    padding: 60px 40px;
+  }
+  .screens-section > h3 {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 40px;
+    text-align: center;
+  }
+  .phone-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* ── Phone Frame ── */
+  .phone-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .phone-label {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--sand-muted);
+    font-weight: 600;
+  }
+  .phone {
+    width: 320px;
+    height: 640px;
+    background: var(--black);
+    border-radius: 36px;
+    border: 2px solid #222;
+    overflow: hidden;
+    position: relative;
+    box-shadow:
+      0 0 0 1px rgba(199,178,153,0.05),
+      0 20px 60px rgba(0,0,0,0.5),
+      0 4px 20px rgba(0,0,0,0.3);
+  }
+  .phone::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 28px;
+    background: #111;
+    border-radius: 0 0 16px 16px;
+    z-index: 10;
+  }
+  .phone-content {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    padding: 44px 20px 24px;
+    scrollbar-width: none;
+  }
+  .phone-content::-webkit-scrollbar { display: none; }
+
+  /* ── Splash Screen ── */
+  .splash {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 44px 20px 24px;
+    text-align: center;
+  }
+  .splash .wordmark {
+    font-size: 42px;
+    margin-bottom: 16px;
+  }
+  .splash .tagline {
+    font-size: 13px;
+    color: var(--sand-muted);
+    font-weight: 300;
+    line-height: 1.6;
+    margin-bottom: 48px;
+    letter-spacing: 0.02em;
+  }
+  .btn-sand {
+    background: var(--sand);
+    color: var(--black);
+    border: none;
+    border-radius: 12px;
+    padding: 14px 48px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+  .btn-sand-outline {
+    background: transparent;
+    color: var(--sand);
+    border: 1.5px solid var(--sand);
+    border-radius: 12px;
+    padding: 12px 32px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    font-family: 'Inter', sans-serif;
+  }
+  .btn-sand-full {
+    background: var(--sand);
+    color: var(--black);
+    border: none;
+    border-radius: 12px;
+    padding: 14px 0;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    width: 100%;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* ── Home ── */
+  .home-header {
+    margin-bottom: 24px;
+  }
+  .home-greeting {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .home-program {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--sand);
+    font-weight: 700;
+  }
+
+  .workout-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .workout-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .workout-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+  .workout-card-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* Progress ring */
+  .progress-ring {
+    width: 44px;
+    height: 44px;
+    position: relative;
+  }
+  .progress-ring svg {
+    transform: rotate(-90deg);
+  }
+  .progress-ring-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--sand);
+  }
+
+  /* Week days */
+  .week-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .day-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+    background: var(--sand-subtle);
+    flex-shrink: 0;
+  }
+  .day-circle.active {
+    background: var(--sand);
+    color: var(--black);
+  }
+  .day-circle.today {
+    border: 1.5px solid var(--sand);
+    color: var(--sand);
+    background: transparent;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: flex;
+    gap: 8px;
+  }
+  .stat-pill {
+    flex: 1;
+    background: var(--sand-subtle);
+    border-radius: 10px;
+    padding: 10px 8px;
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--sand);
+    margin-bottom: 2px;
+  }
+  .stat-label {
+    font-size: 9px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── Workout Overview ── */
+  .wo-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+  .wo-subtitle {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .block-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--sand);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .block-card-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .block-card-info {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .block-card-status {
+    font-size: 10px;
+    color: var(--sand);
+    margin-top: 6px;
+    font-weight: 600;
+  }
+
+  /* ── Block Detail ── */
+  .exercise-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .exercise-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .exercise-target {
+    font-size: 11px;
+    color: var(--sand-muted);
+    margin-bottom: 12px;
+  }
+  .set-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .set-table th {
+    font-size: 9px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 4px 0 8px;
+    text-align: center;
+    font-weight: 600;
+  }
+  .set-table td {
+    padding: 6px 0;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text);
+    border-top: 1px solid var(--border);
+  }
+  .set-input {
+    background: rgba(199,178,153,0.08);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    width: 42px;
+    padding: 4px;
+    text-align: center;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+  }
+  .set-check {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 1.5px solid var(--sand);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .set-check.done {
+    background: var(--sand);
+    border-color: var(--sand);
+  }
+  .set-check.done::after {
+    content: '';
+    width: 6px;
+    height: 10px;
+    border: solid var(--black);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    margin-top: -2px;
+  }
+
+  /* ── Profile ── */
+  .profile-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--sand-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--sand);
+    font-family: 'Syne', sans-serif;
+    margin: 0 auto 12px;
+  }
+  .profile-name {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .profile-handle {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+  .settings-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .settings-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .settings-row:last-child {
+    border-bottom: none;
+  }
+  .settings-row-label {
+    font-size: 13px;
+    color: var(--text);
+  }
+  .settings-row-value {
+    font-size: 12px;
+    color: var(--sand-muted);
+  }
+  .toggle-track {
+    width: 44px;
+    height: 24px;
+    border-radius: 12px;
+    background: var(--sand);
+    position: relative;
+    display: inline-block;
+  }
+  .toggle-track::after {
+    content: '';
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--black);
+    position: absolute;
+    top: 3px;
+    right: 3px;
+  }
+  .seg-toggle {
+    display: flex;
+    background: var(--sand-subtle);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .seg-option {
+    padding: 6px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .seg-option.active {
+    background: var(--sand);
+    color: var(--black);
+    border-radius: 8px;
+  }
+
+  /* ── Comparison ── */
+  .comparison-section {
+    padding: 60px 40px;
+    border-top: 1px solid var(--border);
+  }
+  .comparison-section > h3 {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .comparison-section > p {
+    text-align: center;
+    color: var(--sand-muted);
+    font-size: 14px;
+    margin-bottom: 40px;
+  }
+  .comparison-row {
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    flex-wrap: wrap;
+  }
+  .comparison-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .comparison-label {
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .comparison-label.sand { color: var(--sand); }
+  .comparison-label.neon { color: var(--neon); }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 40px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* Neon variants for comparison */
+  .neon-btn {
+    background: var(--neon);
+    color: var(--black);
+    border: none;
+    border-radius: 12px;
+    padding: 14px 0;
+    font-size: 14px;
+    font-weight: 700;
+    width: 100%;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+  }
+  .neon-accent { color: var(--neon); }
+  .neon-block-border { border-left-color: var(--neon); }
+  .neon-day.active {
+    background: var(--neon) !important;
+    color: var(--black) !important;
+  }
+  .neon-day.today {
+    border-color: var(--neon) !important;
+    color: var(--neon) !important;
+  }
+  .neon-stat .stat-value { color: var(--neon); }
+  .neon-ring-fg { stroke: var(--neon); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hero">
+  <div class="hero-label">Brand Direction / April 2026</div>
+  <h1>LIFTORY — <span>Sand & Black</span></h1>
+  <p>Warm minimalism meets forge intensity</p>
+</section>
+
+<!-- ═══════════════ PALETTE ═══════════════ -->
+<section class="palette-section">
+  <h3>Color Palette</h3>
+  <div class="palette-row">
+    <div class="swatch">
+      <div class="swatch-color" style="background:#0A0A0A;"></div>
+      <div class="swatch-label">Black</div>
+      <div class="swatch-hex">#0A0A0A</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#C7B299;"></div>
+      <div class="swatch-label">Sand</div>
+      <div class="swatch-hex">#C7B299</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#D9CCBA;"></div>
+      <div class="swatch-label">Sand Light</div>
+      <div class="swatch-hex">#D9CCBA</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#9A8B78;"></div>
+      <div class="swatch-label">Sand Muted</div>
+      <div class="swatch-hex">#9A8B78</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:rgba(199,178,153,0.10); border:1px solid rgba(199,178,153,0.2);"></div>
+      <div class="swatch-label">Sand Subtle</div>
+      <div class="swatch-hex">10%</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:rgba(199,178,153,0.18); border:1px solid rgba(199,178,153,0.25);"></div>
+      <div class="swatch-label">Sand Strong</div>
+      <div class="swatch-hex">18%</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#151515;"></div>
+      <div class="swatch-label">Card</div>
+      <div class="swatch-hex">#151515</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#1E1E1E;"></div>
+      <div class="swatch-label">Border</div>
+      <div class="swatch-hex">#1E1E1E</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#E8E8E8;"></div>
+      <div class="swatch-label">Text</div>
+      <div class="swatch-hex">#E8E8E8</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#7A7A7A;"></div>
+      <div class="swatch-label">Muted</div>
+      <div class="swatch-hex">#7A7A7A</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SCREENS ═══════════════ -->
+<section class="screens-section">
+  <h3>App Screens — Sand Direction</h3>
+
+  <div class="phone-grid">
+
+    <!-- ── 1. SPLASH ── -->
+    <div class="phone-wrapper">
+      <div class="phone-label">Splash</div>
+      <div class="phone">
+        <div class="splash">
+          <div class="wordmark" style="font-size:42px;">LIFTORY</div>
+          <div class="tagline">Move Better. Lift Stronger.<br>Live Longer.</div>
+          <button class="btn-sand">Comenzar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 2. HOME ── -->
+    <div class="phone-wrapper">
+      <div class="phone-label">Home</div>
+      <div class="phone">
+        <div class="phone-content">
+          <div class="home-header">
+            <div class="home-greeting">Hola, Andoni</div>
+            <div class="home-program">BUILD HIM ELITE</div>
+          </div>
+
+          <div class="workout-card">
+            <div class="workout-card-top">
+              <div>
+                <div class="workout-card-title">UPPER PULL</div>
+                <div class="workout-card-sub">Dia 3 de 5 / Semana 4</div>
+              </div>
+              <div class="progress-ring">
+                <svg width="44" height="44" viewBox="0 0 44 44">
+                  <circle cx="22" cy="22" r="18" fill="none" stroke="var(--border)" stroke-width="3"/>
+                  <circle cx="22" cy="22" r="18" fill="none" stroke="var(--sand)" stroke-width="3" stroke-dasharray="113" stroke-dashoffset="34" stroke-linecap="round"/>
+                </svg>
+                <span class="progress-ring-text">70%</span>
+              </div>
+            </div>
+
+            <div class="week-row">
+              <div class="day-circle active">L</div>
+              <div class="day-circle active">M</div>
+              <div class="day-circle today">M</div>
+              <div class="day-circle">J</div>
+              <div class="day-circle">V</div>
+              <div class="day-circle">S</div>
+              <div class="day-circle">D</div>
+            </div>
+
+            <div class="stats-row">
+              <div class="stat-pill">
+                <div class="stat-value">3</div>
+                <div class="stat-label">Dias streak</div>
+              </div>
+              <div class="stat-pill">
+                <div class="stat-value">5</div>
+                <div class="stat-label">Workouts</div>
+              </div>
+              <div class="stat-pill">
+                <div class="stat-value">5</div>
+                <div class="stat-label">PRs</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:16px;">
+            <button class="btn-sand-full">Iniciar Sesion</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 3. WORKOUT OVERVIEW ── -->
+    <div class="phone-wrapper">
+      <div class="phone-label">Workout Overview</div>
+      <div class="phone">
+        <div class="phone-content">
+          <div style="font-size:11px;color:var(--sand-muted);margin-bottom:4px;">Dia 3 / Semana 4</div>
+          <div class="wo-title">SHOULDER + ARMS</div>
+          <div class="wo-subtitle">3 bloques / ~55 min estimado</div>
+
+          <div class="block-card">
+            <div class="block-card-name">PRIME BLOCK</div>
+            <div class="block-card-info">2 ejercicios / Calentamiento y activacion</div>
+            <div class="block-card-status">Completado</div>
+          </div>
+
+          <div class="block-card">
+            <div class="block-card-name">HEAVY BLOCK — A</div>
+            <div class="block-card-info">3 ejercicios / Fuerza principal</div>
+            <div class="block-card-status">En progreso</div>
+          </div>
+
+          <div class="block-card">
+            <div class="block-card-name">HEAVY BLOCK — B</div>
+            <div class="block-card-info">3 ejercicios / Volumen accesorio</div>
+            <div class="block-card-status" style="color:var(--muted);">Pendiente</div>
+          </div>
+
+          <div style="margin-top:20px;">
+            <button class="btn-sand-full">TERMINAR SESION</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 4. BLOCK DETAIL ── -->
+    <div class="phone-wrapper">
+      <div class="phone-label">Block Detail</div>
+      <div class="phone">
+        <div class="phone-content">
+          <div style="font-size:10px;color:var(--sand-muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:4px;">Bloque 2 de 3</div>
+          <div class="wo-title" style="font-size:18px;">HEAVY BLOCK — A</div>
+          <div class="wo-subtitle" style="margin-bottom:16px;">Fuerza principal</div>
+
+          <div class="exercise-card">
+            <div class="exercise-name">DB Military Press</div>
+            <div class="exercise-target">3 sets / RPE 8 / Hombro anterior</div>
+            <table class="set-table">
+              <thead>
+                <tr>
+                  <th>SET</th>
+                  <th>RPE</th>
+                  <th>KG</th>
+                  <th>REPS</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="color:var(--sand);font-weight:700;">1</td>
+                  <td style="color:var(--muted);">8</td>
+                  <td><span class="set-input">22.5</span></td>
+                  <td><span class="set-input">10</span></td>
+                  <td><span class="set-check done"></span></td>
+                </tr>
+                <tr>
+                  <td style="color:var(--sand);font-weight:700;">2</td>
+                  <td style="color:var(--muted);">8</td>
+                  <td><span class="set-input">22.5</span></td>
+                  <td><span class="set-input">9</span></td>
+                  <td><span class="set-check done"></span></td>
+                </tr>
+                <tr>
+                  <td style="color:var(--sand);font-weight:700;">3</td>
+                  <td style="color:var(--muted);">8</td>
+                  <td><span class="set-input" style="color:var(--muted);">—</span></td>
+                  <td><span class="set-input" style="color:var(--muted);">—</span></td>
+                  <td><span class="set-check"></span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="exercise-card" style="opacity:0.5;">
+            <div class="exercise-name">Lateral Raise — Cable</div>
+            <div class="exercise-target">3 sets / RPE 9 / Deltoides lateral</div>
+          </div>
+
+          <div style="margin-top:16px;">
+            <button class="btn-sand-full">Siguiente: HEAVY BLOCK — B</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 5. PROFILE ── -->
+    <div class="phone-wrapper">
+      <div class="phone-label">Profile</div>
+      <div class="phone">
+        <div class="phone-content">
+          <div class="profile-avatar">A</div>
+          <div class="profile-name">Andoni Diaz</div>
+          <div class="profile-handle">@andoni</div>
+
+          <div class="settings-card">
+            <div class="settings-row">
+              <span class="settings-row-label">Apariencia</span>
+              <div class="seg-toggle">
+                <div class="seg-option active">Alta</div>
+                <div class="seg-option">Baja</div>
+              </div>
+            </div>
+            <div class="settings-row">
+              <span class="settings-row-label">Notificaciones</span>
+              <div class="toggle-track"></div>
+            </div>
+            <div class="settings-row">
+              <span class="settings-row-label">Unidades</span>
+              <span class="settings-row-value">KG</span>
+            </div>
+          </div>
+
+          <div class="settings-card" style="margin-top:12px;">
+            <div class="settings-row">
+              <span class="settings-row-label">Programa actual</span>
+              <span class="settings-row-value" style="color:var(--sand);">BUILD HIM ELITE</span>
+            </div>
+            <div class="settings-row">
+              <span class="settings-row-label">Semana</span>
+              <span class="settings-row-value">4 de 12</span>
+            </div>
+            <div class="settings-row">
+              <span class="settings-row-label">Dias entrenados</span>
+              <span class="settings-row-value">18</span>
+            </div>
+          </div>
+
+          <div class="settings-card" style="margin-top:12px;">
+            <div class="settings-row">
+              <span class="settings-row-label">Exportar datos</span>
+              <span class="settings-row-value" style="color:var(--sand);">CSV</span>
+            </div>
+            <div class="settings-row">
+              <span class="settings-row-label">Version</span>
+              <span class="settings-row-value">1.4.0</span>
+            </div>
+          </div>
+
+          <div style="margin-top:20px;">
+            <button class="btn-sand-outline" style="width:100%;text-align:center;">Cerrar Sesion</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════ COMPARISON ═══════════════ -->
+<section class="comparison-section">
+  <h3>Accent Comparison</h3>
+  <p>Sand vs. current Neon — same screen, different personality</p>
+
+  <div class="comparison-row">
+
+    <!-- Sand version -->
+    <div class="comparison-col">
+      <div class="comparison-label sand">Sand #C7B299</div>
+      <div class="phone" style="height:520px;">
+        <div class="phone-content">
+          <div class="home-header">
+            <div class="home-greeting">Hola, Andoni</div>
+            <div class="home-program">BUILD HIM ELITE</div>
+          </div>
+          <div class="workout-card">
+            <div class="workout-card-top">
+              <div>
+                <div class="workout-card-title">UPPER PULL</div>
+                <div class="workout-card-sub">Dia 3 de 5</div>
+              </div>
+              <div class="progress-ring">
+                <svg width="44" height="44" viewBox="0 0 44 44">
+                  <circle cx="22" cy="22" r="18" fill="none" stroke="var(--border)" stroke-width="3"/>
+                  <circle cx="22" cy="22" r="18" fill="none" stroke="var(--sand)" stroke-width="3" stroke-dasharray="113" stroke-dashoffset="34" stroke-linecap="round"/>
+                </svg>
+                <span class="progress-ring-text">70%</span>
+              </div>
+            </div>
+            <div class="week-row">
+              <div class="day-circle active">L</div>
+              <div class="day-circle active">M</div>
+              <div class="day-circle today">M</div>
+              <div class="day-circle">J</div>
+              <div class="day-circle">V</div>
+              <div class="day-circle">S</div>
+              <div class="day-circle">D</div>
+            </div>
+            <div class="stats-row">
+              <div class="stat-pill">
+                <div class="stat-value">3</div>
+                <div class="stat-label">Streak</div>
+              </div>
+              <div class="stat-pill">
+                <div class="stat-value">5</div>
+                <div class="stat-label">Workouts</div>
+              </div>
+              <div class="stat-pill">
+                <div class="stat-value">5</div>
+                <div class="stat-label">PRs</div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:12px;">
+            <button class="btn-sand-full">Iniciar Sesion</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Neon version -->
+    <div class="comparison-col">
+      <div class="comparison-label neon">Neon #D4FF00</div>
+      <div class="phone" style="height:520px;">
+        <div class="phone-content">
+          <div class="home-header">
+            <div class="home-greeting">Hola, Andoni</div>
+            <div class="home-program" style="color:var(--neon);">BUILD HIM ELITE</div>
+          </div>
+          <div class="workout-card">
+            <div class="workout-card-top">
+              <div>
+                <div class="workout-card-title">UPPER PULL</div>
+                <div class="workout-card-sub">Dia 3 de 5</div>
+              </div>
+              <div class="progress-ring">
+                <svg width="44" height="44" viewBox="0 0 44 44">
+                  <circle cx="22" cy="22" r="18" fill="none" stroke="var(--border)" stroke-width="3"/>
+                  <circle cx="22" cy="22" r="18" fill="none" stroke="var(--neon)" stroke-width="3" stroke-dasharray="113" stroke-dashoffset="34" stroke-linecap="round"/>
+                </svg>
+                <span class="progress-ring-text" style="color:var(--neon);">70%</span>
+              </div>
+            </div>
+            <div class="week-row">
+              <div class="day-circle neon-day active" style="background:var(--neon);color:var(--black);">L</div>
+              <div class="day-circle neon-day active" style="background:var(--neon);color:var(--black);">M</div>
+              <div class="day-circle neon-day today" style="border:1.5px solid var(--neon);color:var(--neon);background:transparent;">M</div>
+              <div class="day-circle">J</div>
+              <div class="day-circle">V</div>
+              <div class="day-circle">S</div>
+              <div class="day-circle">D</div>
+            </div>
+            <div class="stats-row">
+              <div class="stat-pill neon-stat">
+                <div class="stat-value" style="color:var(--neon);">3</div>
+                <div class="stat-label">Streak</div>
+              </div>
+              <div class="stat-pill neon-stat">
+                <div class="stat-value" style="color:var(--neon);">5</div>
+                <div class="stat-label">Workouts</div>
+              </div>
+              <div class="stat-pill neon-stat">
+                <div class="stat-value" style="color:var(--neon);">5</div>
+                <div class="stat-label">PRs</div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:12px;">
+            <button class="neon-btn">Iniciar Sesion</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<div class="footer">
+  LIFTORY Brand Direction / Sand & Black / April 2026
+</div>
+
+</body>
+</html>
