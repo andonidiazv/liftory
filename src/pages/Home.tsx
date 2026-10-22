@@ -22,7 +22,7 @@ import { isVipJoiner } from "@/lib/vip-emails";
  * Rich exploration (week navigator, stats, archive) moved out of Home —
  * stats live in /progreso, meso archive + week grid in /programa.
  *
- * Design source: public/home-redesign-atelier-journey.html (screen 02).
+ * Design source: docs/home-redesign-atelier-journey.html (screen 02).
  *
  * Variants of the hero, in priority order:
  *  - NextCycleHero    — a new mesocycle is available to start

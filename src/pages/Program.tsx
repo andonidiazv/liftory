@@ -19,7 +19,7 @@ import { M2_MANUAL_CONTENT } from "@/lib/mesocycle-content";
  * status. Active card highlighted with a gold border-top; completed cards
  * fade. Future cards lock until their start date.
  *
- * Design source: public/home-redesign-atelier-journey.html (screen 03).
+ * Design source: docs/home-redesign-atelier-journey.html (screen 03).
  */
 
 interface MesocycleRow {
