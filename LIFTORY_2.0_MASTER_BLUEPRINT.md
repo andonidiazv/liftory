@@ -1,0 +1,778 @@
+# LIFTORY 2.0 — MASTER PRODUCT & EXECUTION BLUEPRINT
+
+**Versión:** 1.0
+**Última actualización:** 2026-10-22
+**Estado:** Pendiente de aprobación del fundador
+**Fuente de verdad:** este archivo. Todo trabajo futuro referencia los IDs `LFT-xxx` de aquí.
+
+---
+
+## 0 · CÓMO USAR ESTE DOCUMENTO
+
+Este archivo reemplaza a todos los reportes sueltos. Las dos auditorías que lo alimentan
+siguen publicadas como evidencia, pero **no se actualizan**: lo que cambia, cambia aquí.
+
+| Documento | Para qué sirve ahora |
+|---|---|
+| [Auditoría de producto](https://claude.ai/artifact/8GjeARon3jPd8r3LCXKEd3) | Evidencia medida de los bloqueadores de lanzamiento |
+| [La capa de inteligencia](https://claude.ai/artifact/4GihbNQ56TAtCcRn1tvL79) | Evidencia medida de la base de ejercicios y las reglas |
+| **Este archivo** | **Qué se hace, en qué orden, y cómo sabemos que terminó** |
+
+**Reglas de mantenimiento**
+1. Un ID nunca se reusa ni se renumera.
+2. Cambiar el alcance o la prioridad de un ítem exige una línea en el *Change Log* (§19).
+3. Un ítem no pasa a `completado` sin cumplir su criterio de aceptación.
+4. Las decisiones pendientes (§16) bloquean trabajo. No se asumen aprobadas.
+
+---
+
+## 1 · RESUMEN EJECUTIVO
+
+LIFTORY tiene un contenido de entrenamiento excelente envuelto en un producto que
+sólo funciona para un perfil: hombre avanzado con gimnasio completo.
+
+Tres hechos medidos lo resumen:
+
+- **La metodología ya es determinista.** En los 5 mesociclos de BUILD HIM ELITE, el RPE sube
+  de forma monotónica de W1 a W5, pica en W5 y descarga en W6 — 5 de 5, sin excepción.
+  El volumen baja en W6 — 5 de 5. El esqueleto de un mesociclo son reglas, no IA.
+- **La base de datos no aguanta la personalización.** 98 de 122 ejercicios intermedios en uso
+  no tienen regresión a principiante. 72 de 103 que exigen gimnasio no tienen alternativa.
+  El modelo de relaciones no puede expresar "progresión": de 168 filas, 0 lo son.
+- **El producto no está listo para cobrar.** Cero suscripciones y cero pagos han pasado por
+  el sistema. El acceso se controla con un campo puesto a mano.
+
+**La tesis de ejecución:** no se construye inteligencia sobre datos que no aguantan.
+Primero la base (fases 0–2), que además desbloquea el lanzamiento. Después se lanza.
+El Coach Studio se construye con suscriptores pagando, no antes.
+
+**El camino crítico tiene seis eslabones y ninguno se puede saltar:**
+
+> Vocabularios controlados → Relaciones tipadas → Poblar relaciones →
+> Arquitectura de programa unificada → Onboarding real → Lanzamiento
+
+---
+
+## 2 · VISIÓN DE PRODUCTO
+
+**MOVE WELL. GET STRONG. BUILD A BODY FOR LIFE.**
+
+LIFTORY es una plataforma guiada por una metodología, no un generador de rutinas.
+El usuario no compra acceso a entrenamientos: compra acceso a un sistema de coaching
+estructurado que se adapta a él.
+
+**Los cinco principios que filtran cada iniciativa de este backlog:**
+
+1. **La metodología manda.** Adaptamos el método al usuario; no reinventamos el método por usuario.
+2. **La personalización es por nivel y equipo**, no por género. Objetivo y disponibilidad son secundarios.
+3. **La IA sirve a la metodología.** Nunca genera programación sin que un humano la apruebe.
+4. **El coach escala, no desaparece.** El objetivo es multiplicar a Andoni, no sustituirlo.
+5. **Lanzar bien vale más que lanzar completo.** La fiabilidad gana a la cantidad de features.
+
+**Prueba de filtro:** si una iniciativa no mejora adherencia, retención, calidad de
+entrenamiento o fiabilidad, no entra antes del lanzamiento.
+
+---
+
+## 3 · ESTADO ACTUAL VERIFICADO
+
+Todo medido contra producción (`yjgasprksvplswemprsu`) y `main` el 2026-10-22.
+
+| Área | Estado | Evidencia |
+|---|---|---|
+| Código | 179 archivos, 49,269 líneas, 27 rutas | Medido |
+| Ejercicios | 474 registros, 469 activos, 346 usados en plantillas | Medido |
+| Video | 127/469 con video (27%); 0 links rotos; 117/129 pesan >8 MB | 129 URLs verificadas una por una |
+| Metadatos | `movement_plane` 27%, `secondary_movement_pattern` 9%, `contraindications` 1% | Medido en los 474 |
+| Vocabularios | `equipment_required` 59 valores libres; `primary_muscles` 103 | Medido |
+| Duplicados | 7 grupos idénticos tras normalizar + 8 familias dudosas | Medido |
+| Relaciones | 168 filas: 128 regresiones, 40 laterales, **0 progresiones** | Medido |
+| Programas | BUILD HIM ELITE 210 sesiones; los otros 3, 42 cada uno | Medido |
+| Divergencia BH vs SH | 22–26% de patrón, explicada por género, no por objetivo | Medido |
+| Usuarios | 13; 10 con cero entrenamientos; 3 entrenando de verdad | Medido |
+| Pagos | `subscriptions` 0 filas, `payments` 0 filas | Medido |
+| Seguridad | Anónimo lee 336 plantillas + 9,014 sets. Sin datos de usuario expuestos. Escritura bloqueada | Probado sin login |
+| Badges | 14 definidos, 0 otorgados | Medido |
+| Offline | Sprint 1 (cola de escritura) en producción y validado | Sesión previa |
+
+### Lo que NO se ha producido todavía
+
+El encargo original listaba 14 workstreams como completados. **Cuatro no existen.**
+No los voy a consolidar como si existieran.
+
+| Workstream | Estado real |
+|---|---|
+| Rediseño UX/UI con mockups de alta fidelidad | **No producido.** Hay hallazgos sueltos, no un sistema ni pantallas. |
+| Auditoría y dirección de marca | **No producida.** La marca se respetó; no se auditó. |
+| Estrategia de crecimiento y retención | **No producida.** Sólo existe el análisis de precio. |
+| Declaración de posicionamiento | **No producida.** Hay tres ángulos de diferenciación, no un statement. |
+
+Esto está recogido como `LFT-050` a `LFT-053`. Ninguno es bloqueador de lanzamiento.
+
+---
+
+## 4 · DECISIONES ESTRATÉGICAS YA FUNDAMENTADAS
+
+Son **recomendaciones con evidencia**, no decisiones aprobadas. Su aprobación vive en §16.
+
+| # | Recomendación | Evidencia que la sostiene |
+|---|---|---|
+| E1 | Unificar en **Modelo C**: un motor, tracks por objetivo | Los 4 programas ya comparten vocabulario de bloques; SCULPT HER ELITE vs FOUNDATION divergen 4.7% |
+| E2 | Retirar el género como variable de programación | La divergencia BH/SH es pull+push vs core+hinge: estereotipo, no objetivo |
+| E3 | Motor **híbrido con reparto invertido**: reglas para la estructura, IA sólo para elegir ejercicio y redactar | La onda y el orden de bloques son 100% consistentes en 180 sesiones |
+| E4 | **No bajar el precio**; cerrar la brecha de valor | A ~USD $38 compites con Ladder ELITE ($44.99, con coach 1:1) y con Smart Fit ($299–699 MXN) |
+| E5 | Construir fases 0–2 antes de lanzar; Coach Studio después | Las fases 0–2 también resuelven bloqueadores de lanzamiento; 3–5 no |
+| E6 | Conservar Build Him / Sculpt Her como marca, no como arquitectura | El nombre tiene valor; la rama de código no |
+
+---
+
+## 5 · ARQUITECTURA UNIFICADA (destino)
+
+```
+                    EL MÉTODO LIFTORY
+         (reglas duras: onda, orden de bloques, perfiles)
+                            │
+                ┌───────────┴───────────┐
+                │      TRACK            │   ← por objetivo, no por sexo
+                │  Fuerza & Hipertrofia │
+                │  Rendimiento Atlético │
+                │  Recomposición        │
+                │  Fuerza & Longevidad  │
+                └───────────┬───────────┘
+                            │
+                      MESOCICLO (6 semanas)
+                            │
+        ┌───────────────────┼───────────────────┐
+     NIVEL               EQUIPO              TIEMPO
+  beginner /          full_gym /           días/semana
+  intermediate /      home_gym /           duración
+  advanced            minimal /
+                      bodyweight
+                            │
+                   SELECCIÓN DE EJERCICIO
+              (vía exercise_relations tipadas)
+                            │
+                      PROGRESIÓN (RPE)
+```
+
+**Las tres capas de personalización**
+
+| Capa | Qué decide | Cuándo | Con qué |
+|---|---|---|---|
+| Programa | Track y mesociclo | Onboarding y al cerrar bloque | Objetivo, nivel, días |
+| Ejercicio | Qué variante ves tú | Al asignarse el mesociclo | Nivel + equipo vía `exercise_relations` |
+| Sesión | Recortes de hoy | Al abrir la sesión | Prioridad de bloque + swaps aprobados |
+
+**Regla que mantiene esto honesto:** cuando no existe sustitución válida, el sistema lo dice
+y lo manda a la cola de trabajo. Nunca improvisa.
+
+---
+
+## 6 · MASTER BACKLOG
+
+Prioridades: **P0** bloquea lanzamiento · **P1** crítico · **P2** alto valor · **P3** futuro
+Esfuerzo: **S** horas · **M** días · **L** 1–2 semanas · **XL** más de 2 semanas
+Estado inicial: `pendiente` salvo donde se indique.
+
+### Fase 0 — Decisiones y arquitectura
+
+| ID | Workstream | Iniciativa | Problema | Acción | Pri | Esf | Depende | Owner | Criterio de aceptación | Fase |
+|---|---|---|---|---|---|---|---|---|---|---|
+| LFT-001 | Arquitectura | Decidir modelo de programa | 4 programas, 3 famélicos, divergencia por género | Aprobar o rechazar Modelo C (§16 D1) | P0 | S | — | Fundador | Decisión registrada en §16 con fecha | Pre-lanzamiento |
+| LFT-002 | Arquitectura | Definir los tracks | Si es Modelo C, hay que nombrar los tracks | Definir 3–4 tracks por objetivo | P0 | S | LFT-001 | Fundador | Lista cerrada de tracks con descripción | Pre-lanzamiento |
+| LFT-003 | Arquitectura | Alcance de personalización en v1 | Riesgo de prometer más de lo que la base aguanta | Fijar qué dimensiones se encienden al lanzar | P0 | S | LFT-001 | Fundador | Documentado en §16 D3 | Pre-lanzamiento |
+| LFT-004 | Arquitectura | Aprobar la taxonomía | Esquema propuesto sin aprobar | Revisar §7 y aprobar o ajustar | P0 | S | — | Fundador | Esquema firmado | Pre-lanzamiento |
+| LFT-005 | Negocio | Fijar precio y modelo de cobro | $699 MXN sin validar contra valor entregado | Decidir precio, prueba gratis y planes | P0 | S | — | Fundador | Price IDs definitivos en Stripe | Pre-lanzamiento |
+
+### Fase 1 — Base de datos y programación
+
+| ID | Workstream | Iniciativa | Problema | Acción | Pri | Esf | Depende | Owner | Criterio de aceptación | Fase |
+|---|---|---|---|---|---|---|---|---|---|---|
+| LFT-100 | Seguridad | Cerrar RLS de plantillas | Anónimo lee 336 workouts y 9,014 sets | Política que exija sesión autenticada y suscripción activa | **P0** | S | — | Ingeniería | Cliente anónimo devuelve 0 filas de `workouts` y `workout_sets`; usuario con sesión sigue viendo lo suyo | Pre-lanzamiento |
+| LFT-101 | Datos | Vocabulario de equipo canónico | 59 valores libres con sinónimos | Tabla `equipment` + `equipment_alias`; migrar los 474 | **P0** | M | LFT-004 | Ingeniería | 0 valores fuera del catálogo; `band`/`resistance_band`, `cable`/`cable_machine`, `rack`/`squat_rack` resueltos | Pre-lanzamiento |
+| LFT-102 | Datos | Vocabulario de músculos | 103 valores libres; 42 sin mapear | Tabla `muscles` + `muscle_alias` | P1 | M | LFT-004 | Ingeniería | 100% de `primary_muscles` mapea a código canónico | Pre-lanzamiento |
+| LFT-103 | Datos | Resolver 7 duplicados exactos | Mismo ejercicio dos veces | Marcar canónico + `merged_into`; nunca borrar | **P0** | M | LFT-101 | Fundador + Ing. | 7 grupos resueltos; `workout_sets` histórico intacto | Pre-lanzamiento |
+| LFT-104 | Datos | Revisar 8 familias dudosas | ¿Variantes o duplicados? | Revisión de coach, una por una | P1 | M | LFT-103 | Fundador | Cada familia marcada como variante legítima o fusionada | Pre-lanzamiento |
+| LFT-105 | Datos | Tabla `exercise_relations` tipada | 0 progresiones expresables | Nueva tabla con `relation_type`, `requires_review`, `rationale`; migrar las 168 | **P0** | M | LFT-004 | Ingeniería | Se puede insertar y leer una progresión; las 168 migradas con tipo correcto | Pre-lanzamiento |
+| LFT-106 | Datos | Poblar `movement_plane` | 27% de relleno; filtro clave | Completar los 346 en uso | **P0** | M | LFT-101 | Fundador + Ing. | 100% de los ejercicios programados con plano | Pre-lanzamiento |
+| LFT-107 | Datos | 98 regresiones a principiante | Un principiante no puede entrenar | Generar candidatos por familia; aprobar en lote | **P0** | XL | LFT-105, LFT-106 | Fundador + Ing. | Todo ejercicio intermedio en uso tiene ≥1 ruta a principiante aprobada | Pre-lanzamiento |
+| LFT-108 | Datos | 72 alternativas sin gimnasio | No se puede entrenar en casa | Mismo mecanismo que LFT-107, eje equipo | **P0** | XL | LFT-105, LFT-101 | Fundador + Ing. | Todo ejercicio con dependencia de gym tiene alternativa aprobada, o queda marcado como irreducible | Pre-lanzamiento |
+| LFT-109 | Datos | Campos nuevos del ejercicio | Falta `technical_demand`, `loading_type`, `suitable_for` | Migración aditiva, sin tocar IDs | P1 | M | LFT-004 | Ingeniería | Columnas creadas; poblado ≥90% en los 346 en uso | Pre-lanzamiento |
+| LFT-110 | Datos | Limpiar columnas muertas | `emotional_barrier_tag` 0%, `video_duration_seconds` 0% | Borrar la primera; poblar la segunda | P2 | S | — | Ingeniería | Sin columnas al 0% de relleno | Post-lanzamiento |
+| LFT-111 | Datos | `block_types` controlado | 57 etiquetas libres; 64 nombres de día | Catálogo de ~10 tipos con perfil por defecto | P1 | M | LFT-004 | Fundador + Ing. | Todo `block_label` mapea a un `block_type`; el nombre bonito queda como etiqueta | Pre-lanzamiento |
+| LFT-112 | Programación | Codificar las reglas duras | La metodología vive en la cabeza de Andoni | Onda W1–W6, orden de bloques, perfiles por bloque, 6+1 | P1 | L | LFT-111 | Ingeniería | Un test reproduce la curva de RPE de los 5 mesociclos existentes | Pre-lanzamiento |
+| LFT-113 | Programación | Resolver 3 anomalías de coach | M5 RPE 9.94 · M5 volumen plano · M3 baja en W3 | Decisión de entrenador, no corrección automática | P1 | S | — | Fundador | Cada una confirmada como intencional o corregida | Pre-lanzamiento |
+| LFT-114 | Datos | Unificar `status` / `is_selectable` | 4 mesos `draft` pero seleccionables | Una sola fuente de verdad | **P0** | S | — | Ingeniería | Imposible exponer un mesociclo no aprobado | Pre-lanzamiento |
+
+### Fase 2 — Producto y UX
+
+| ID | Workstream | Iniciativa | Problema | Acción | Pri | Esf | Depende | Owner | Criterio de aceptación | Fase |
+|---|---|---|---|---|---|---|---|---|---|---|
+| LFT-200 | UX | Onboarding pregunta equipo y días | `equipment:"full_gym"` y `training_days:5` hardcodeados | Pasos reales + guardar respuesta | **P0** | M | LFT-101, LFT-003 | Ingeniería | 0 constantes escritas a mano; la respuesta llega a la BD | Pre-lanzamiento |
+| LFT-201 | UX | Ruta real de principiante | `if (exp==="beginner") return "intermediate"` | Asignación que respeta el nivel declarado | **P0** | M | LFT-001, LFT-107 | Ingeniería | Un principiante recibe contenido de nivel principiante | Pre-lanzamiento |
+| LFT-202 | UX | Asignación por track | Hoy es género × nivel | Reescribir `assignProgram` sobre el Modelo C | **P0** | L | LFT-001, LFT-002 | Ingeniería | El género ya no decide selección de ejercicios | Pre-lanzamiento |
+| LFT-203 | UX | Enseñar el vocabulario | RPE, PRIME BLOCK, EMOM sin explicar nunca | Microcopy en contexto, primera vez que aparece | P1 | M | — | Diseño + Ing. | Todo término de jerga tiene una explicación de una línea | Pre-lanzamiento |
+| LFT-204 | Media | Transcodificar 117 videos pesados | Máx 48.9 MB; inusable con datos móviles | Reencodear a 2–4 MB, generar thumbnails | **P0** | L | — | Ingeniería | Ningún video >5 MB; los 2 sin thumbnail resueltos | Pre-lanzamiento |
+| LFT-205 | Media | Grabar video faltante | 27% de cobertura | Priorizar los más usados en programación real | P1 | XL | LFT-103 | Fundador | ≥70% de cobertura en los ejercicios programados | Post-lanzamiento |
+| LFT-206 | UX | Selector de mesociclos a todos | Hoy limitado a 2 perfiles | Quitar allowlist tras validar | P2 | S | LFT-114 | Ingeniería | Disponible para todo usuario con suscripción activa | Post-lanzamiento |
+| LFT-207 | UX | Badges: conectar o retirar | 14 definidos, 0 otorgados | Decidir y ejecutar | P1 | M | — | Fundador + Ing. | O se otorgan en producción, o desaparecen de la UI | Post-lanzamiento |
+| LFT-208 | UX | Progreso por bloque | No se ve qué mejoró | Qué subió, qué se mantuvo, qué se estancó | P2 | L | — | Diseño + Ing. | Al cerrar un mesociclo, el atleta ve su delta | Post-lanzamiento |
+
+### Fase 3 — Listo para lanzar
+
+| ID | Workstream | Iniciativa | Problema | Acción | Pri | Esf | Depende | Owner | Criterio de aceptación | Fase |
+|---|---|---|---|---|---|---|---|---|---|---|
+| LFT-300 | Pagos | Probar Stripe end-to-end | 0 suscripciones, 0 pagos jamás | Alta, cobro, webhook, portal, cancelación en modo test | **P0** | M | LFT-005 | Ingeniería | Un ciclo completo deja filas correctas en `subscriptions` y `payments` | Pre-lanzamiento |
+| LFT-301 | Pagos | Control de acceso real | `subscription_status` puesto a mano | Que el acceso derive del estado real de Stripe | **P0** | M | LFT-300 | Ingeniería | Cancelar en Stripe quita el acceso sin intervención manual | Pre-lanzamiento |
+| LFT-302 | Seguridad | Sacar `.env` del control de versiones | Rastreado pese a estar en `.gitignore` | `git rm --cached .env` tras confirmar variables en Vercel | **P0** | S | — | Ingeniería | `.env` deja de estar rastreado; el build de Vercel sigue pasando | Pre-lanzamiento |
+| LFT-303 | Calidad | Deuda de tipos | Errores TS preexistentes en ~18 archivos | Limpiar los que afectan rutas críticas | P1 | L | — | Ingeniería | `tsc --noEmit` limpio en las rutas de onboarding, workout y pago | Pre-lanzamiento |
+| LFT-304 | Calidad | Llaves duplicadas en `muscleGroups.ts` | 5 errores TS1117; sinónimos que no surten | Consolidar | P1 | S | LFT-102 | Ingeniería | 0 errores TS1117 | Pre-lanzamiento |
+| LFT-305 | Analítica | Instrumentar métricas de lanzamiento | No hay forma de ver activación ni adherencia | Eventos de §18 | **P0** | M | — | Ingeniería | Los 6 eventos de lanzamiento se registran y son consultables | Pre-lanzamiento |
+| LFT-306 | Calidad | Rendimiento real en celular | Nunca medido en condiciones de gimnasio | Medir carga en gama media con datos | P1 | M | LFT-204 | Ingeniería | Sesión abre en <3 s en 4G en gama media | Pre-lanzamiento |
+| LFT-307 | Calidad | Correos transaccionales | Edge functions existen, nunca verificadas | Probar que llegan y se ven bien | P1 | S | — | Ingeniería | Alta, bienvenida, cobro y fallo de cobro verificados | Pre-lanzamiento |
+| LFT-308 | Calidad | Accesibilidad | No auditada | Contraste, tamaños, foco, lectores | P2 | L | — | Diseño + Ing. | Sin fallos críticos en las 5 pantallas principales | Post-lanzamiento |
+| LFT-309 | Contenido | Resolver la semana 7 | 3 programas se quedan sin contenido | Resuelto por el Modelo C (LFT-202) | **P0** | — | LFT-202 | Fundador | Ningún usuario llega a un calendario vacío | Pre-lanzamiento |
+
+### Fase 4 — Coach Studio
+
+| ID | Workstream | Iniciativa | Problema | Acción | Pri | Esf | Depende | Owner | Criterio de aceptación | Fase |
+|---|---|---|---|---|---|---|---|---|---|---|
+| LFT-400 | Admin | Bandeja de calidad de datos | 474 fichas, mantenimiento manual | Ordenar por lo que falta, no alfabético | P1 | M | LFT-109 | Ingeniería | Se ve "87 sin plano" y se actúa desde ahí | Post-lanzamiento |
+| LFT-401 | Admin | Resolución de duplicados | Proceso manual y riesgoso | Dos fichas lado a lado, elegir canónico | P1 | M | LFT-103 | Ingeniería | Fusionar no rompe historial | Post-lanzamiento |
+| LFT-402 | Admin | Mapa de relaciones | Editar ficha por ficha no escala | Ver y editar la cadena completa | P2 | L | LFT-105 | Diseño + Ing. | Editar una cadena sin abrir fichas sueltas | Post-lanzamiento |
+| LFT-403 | Admin | Cola de propuestas tipadas | `/admin/swaps` sólo cubre swaps | Extender a `exercise_relations` | P1 | M | LFT-105 | Ingeniería | Aprobar en lote cualquier tipo de relación | Post-lanzamiento |
+| LFT-404 | IA | Generador de esqueleto | Andoni escribe cada mesociclo | Reglas generan 6 semanas sin modelo | P2 | L | LFT-112 | Ingeniería | Esqueleto válido sin intervención de IA | Futuro |
+| LFT-405 | IA | Selección de ejercicio asistida | Elegir ejercicio tiene criterio | IA elige de candidatos pre-filtrados, por `exercise_id` | P2 | L | LFT-404, LFT-107, LFT-108 | Ingeniería | Imposible proponer un ejercicio inexistente | Futuro |
+| LFT-406 | IA | Capa de validación | Una propuesta mala no debe pasar callada | Audita cobertura, volumen, duración, redundancia | P2 | M | LFT-404 | Ingeniería | Marca problemas; nunca corrige en silencio | Futuro |
+| LFT-407 | Admin | Pantalla de revisión y aprobación | Nada se publica sin Andoni | Revisar, editar, comparar, aprobar, publicar | P2 | XL | LFT-406 | Diseño + Ing. | Ningún mesociclo generado llega a un atleta sin aprobación explícita | Futuro |
+| LFT-408 | IA | Captura de ediciones | El sistema no aprende | Guardar propuesto → aprobado con contexto | P3 | M | LFT-407 | Ingeniería | Toda edición queda registrada | Futuro |
+| LFT-409 | IA | Promoción de reglas candidatas | Una edición no es una regla | A las 3 repeticiones, proponer regla; Andoni aprueba | P3 | M | LFT-408 | Ingeniería | Una regla aprobada entra al motor determinista, no al modelo | Futuro |
+| LFT-410 | Admin | Historial de cambios | `audit_log` existe y está vacía | Conectarla | P2 | M | — | Ingeniería | Todo cambio en ejercicios y mesociclos queda registrado | Post-lanzamiento |
+
+### Fase 5 — Crecimiento, y lo que falta por producir
+
+| ID | Workstream | Iniciativa | Problema | Acción | Pri | Esf | Depende | Owner | Criterio de aceptación | Fase |
+|---|---|---|---|---|---|---|---|---|---|---|
+| LFT-050 | Diseño | Rediseño UX/UI con mockups | **Nunca producido** | Sistema de diseño + 5 pantallas en alta fidelidad | P2 | XL | LFT-202 | Diseño | Mockups de las 5 pantallas principales | Post-lanzamiento |
+| LFT-051 | Marca | Auditoría de marca | **Nunca producida** | Evaluar logo, tipografía, paleta, tono | P3 | L | — | Diseño | Documento con qué se conserva y qué cambia | Futuro |
+| LFT-052 | Crecimiento | Estrategia de retención | **Nunca producida** | Activación, hábito, churn, referidos | P2 | L | LFT-305 | Fundador | Plan con métricas objetivo propias | Post-lanzamiento |
+| LFT-053 | Marca | Declaración de posicionamiento | **Nunca producida** | Statement y propuesta de valor | P2 | M | LFT-001 | Fundador | Una frase que no sea "la mejor app de fitness" | Post-lanzamiento |
+| LFT-500 | Producto | Offline Sprint 2 y 3 | Cache de lectura y pulido PWA | Continuar el roadmap offline | P2 | L | — | Ingeniería | Sesión abre sin red | Post-lanzamiento |
+| LFT-501 | Deuda | `BlockDetail.tsx` 2,381 líneas | Concentra demasiada responsabilidad | Separar por modo de bloque | P2 | L | — | Ingeniería | Ningún archivo de componente >800 líneas | Post-lanzamiento |
+| LFT-502 | Seguridad | Documentos en historial de git | 8 MB estuvieron públicos unas horas | Decidir si se reescribe historial | P3 | M | — | Fundador | Decisión registrada | Post-lanzamiento |
+| LFT-503 | Producto | Wearables | `wearable_data` vacía | Integrar tras validar demanda | P3 | XL | — | Ingeniería | — | Futuro |
+| LFT-504 | Producto | Comunidad y retos | No existe | Evaluar tras validar entrenamiento en solitario | P3 | XL | LFT-052 | Fundador | — | Futuro |
+
+---
+
+## 7 · ESQUEMA PROPUESTO
+
+Aditivo. No cambia IDs, no borra historial.
+
+```sql
+-- 1 · relaciones tipadas (lo más urgente, LFT-105)
+CREATE TABLE exercise_relations (
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  from_exercise_id uuid NOT NULL REFERENCES exercises(id),
+  to_exercise_id   uuid NOT NULL REFERENCES exercises(id),
+  relation_type    text NOT NULL CHECK (relation_type IN
+                     ('regression','progression','equipment_swap',
+                      'equivalent','unilateral_variant')),
+  bidirectional    boolean NOT NULL DEFAULT false,
+  rank             smallint NOT NULL DEFAULT 1,
+  requires_review  boolean NOT NULL DEFAULT true,
+  approved_by      uuid,
+  approved_at      timestamptz,
+  rationale        text,
+  UNIQUE (from_exercise_id, to_exercise_id, relation_type)
+);
+
+-- 2 · vocabularios controlados (LFT-101, LFT-102, LFT-111)
+CREATE TABLE equipment       (code text PRIMARY KEY, label_es text, label_en text,
+                              family text, is_machine boolean DEFAULT false);
+CREATE TABLE equipment_alias (alias text PRIMARY KEY, canonical_code text REFERENCES equipment(code));
+CREATE TABLE muscles         (code text PRIMARY KEY, label_es text, region text);
+CREATE TABLE muscle_alias    (alias text PRIMARY KEY, canonical_code text REFERENCES muscles(code));
+
+CREATE TABLE block_types (
+  code                  text PRIMARY KEY,   -- PRIME, POWER, HEAVY, BUILD, CORE, POLISH, RECOVERY…
+  label_es              text NOT NULL,
+  session_position      smallint NOT NULL,  -- 0 abre … 100 cierra
+  default_rep_min       smallint,
+  default_rep_max       smallint,
+  default_rpe_min       numeric(3,1),
+  default_rpe_max       numeric(3,1),
+  default_rest_seconds  smallint,
+  uses_tempo            boolean DEFAULT false
+);
+
+-- 3 · campos nuevos del ejercicio (LFT-109)
+ALTER TABLE exercises
+  ADD COLUMN loading_type     text,      -- bodyweight | external | assisted | timed
+  ADD COLUMN stability_demand smallint,  -- 1-5
+  ADD COLUMN technical_demand smallint,  -- 1-5, distinto de difficulty
+  ADD COLUMN suitable_for     jsonb,     -- {strength:0-3, hypertrophy, mobility, conditioning, power}
+  ADD COLUMN rep_range_min    smallint,
+  ADD COLUMN rep_range_max    smallint,
+  ADD COLUMN is_canonical     boolean NOT NULL DEFAULT true,
+  ADD COLUMN merged_into      uuid REFERENCES exercises(id);
+```
+
+**Semilla de `block_types`** — medida de las 180 sesiones de BUILD HIM ELITE:
+
+| code | posición | reps | RPE | descanso | tempo |
+|---|---|---|---|---|---|
+| PRIME | 0 | 8 | — | 8s | no |
+| POWER | 20 | 2 | 7.8 | 9s | no |
+| HEAVY | 25 | 6 | 8.15 | 116s | **sí** |
+| BUILD | 55 | 12 | 8.22 | 54s | a veces |
+| CORE | 75 | 11 | 8.09 | 34s | no |
+| POLISH | 70 | 14 | 8.57 | 25s | no |
+| RECOVERY | 100 | 1 | — | 0s | no |
+
+---
+
+## 8 · MAPA DE DEPENDENCIAS
+
+**Camino crítico** — todo lo demás puede moverse; esto no.
+
+```
+LFT-100 ─────────────────────────────────────────────► (independiente, hacer ya)
+LFT-302 ─────────────────────────────────────────────► (independiente, hacer ya)
+LFT-114 ─────────────────────────────────────────────► (independiente, hacer ya)
+
+LFT-001 ──► LFT-002 ──► LFT-202 ──► LFT-201 ──► LFT-309
+  (decisión)              (asignación)   (principiante)  (sin calendario vacío)
+
+LFT-004 ──► LFT-101 ──► LFT-103 ──► LFT-106 ──┐
+              │                                ├──► LFT-107 ──┐
+              └──────────────► LFT-105 ────────┘              ├──► LANZAR
+                                 │                            │
+                                 └──► LFT-108 ────────────────┘
+                                        │
+LFT-003 ──────────────► LFT-200 ────────┘
+
+LFT-005 ──► LFT-300 ──► LFT-301 ─────────────────────► LANZAR
+```
+
+**Trabajo en paralelo, sin bloqueos**
+
+| Pista | Ítems | Por qué no bloquea |
+|---|---|---|
+| Seguridad | LFT-100, LFT-302 | No tocan datos de entrenamiento |
+| Media | LFT-204 | Transcodificar es independiente del esquema |
+| Pagos | LFT-005, LFT-300, LFT-301 | No depende de la base de ejercicios |
+| Analítica | LFT-305 | Instrumentar es independiente |
+| Calidad | LFT-303, LFT-304, LFT-307 | Deuda aislada |
+
+**Decisiones que bloquean código**
+
+| Decisión | Bloquea |
+|---|---|
+| D1 Modelo de programa | LFT-002, LFT-201, LFT-202, LFT-309 |
+| D2 Taxonomía | LFT-101, LFT-105, LFT-109, LFT-111 |
+| D3 Alcance de personalización | LFT-200, LFT-107, LFT-108 |
+| D5 Precio | LFT-300, LFT-301 |
+
+---
+
+## 9 · ALCANCE DE LANZAMIENTO
+
+### MUST HAVE — sin esto no se lanza
+
+| ID | Por qué es innegociable |
+|---|---|
+| LFT-100 | Tu metodología es el producto y hoy se lee gratis |
+| LFT-302 | El service role key no puede llegar a GitHub |
+| LFT-114 | No se puede exponer un mesociclo sin terminar |
+| LFT-001, LFT-002 | Todo lo de producto depende de esta decisión |
+| LFT-101, LFT-103 | Causa raíz de los duplicados; bloquea el filtrado por equipo |
+| LFT-105, LFT-106 | Sin relaciones tipadas no hay personalización honesta |
+| LFT-107, LFT-108 | Prometer adaptación por nivel y equipo sin esto es vender algo que no existe |
+| LFT-200, LFT-201, LFT-202 | Preguntar el nivel y tirarlo a la basura es un defecto, no una carencia |
+| LFT-204 | Un video de 48 MB en el gimnasio es un video que nadie ve |
+| LFT-300, LFT-301 | Cobrar sin haber probado el cobro es inaceptable |
+| LFT-305 | Lanzar sin medir es lanzar a ciegas |
+| LFT-309 | Nadie debe llegar a un calendario vacío |
+
+### SHOULD HAVE — si no retrasa
+
+LFT-102, LFT-104, LFT-109, LFT-111, LFT-112, LFT-113, LFT-203, LFT-303, LFT-304, LFT-306, LFT-307
+
+### CAN WAIT — después del lanzamiento
+
+LFT-110, LFT-205, LFT-206, LFT-207, LFT-208, LFT-308, LFT-400, LFT-401, LFT-403, LFT-410, LFT-500, LFT-501, LFT-050, LFT-052, LFT-053
+
+### FUTURE — no debe distraer
+
+LFT-404 a LFT-409 (Coach Studio completo), LFT-051, LFT-502, LFT-503, LFT-504
+
+> **Propuestas que retrasan el lanzamiento sin justificarlo, y por qué las rechazo:**
+> construir tres arcos completos de 30 semanas (el Modelo C lo vuelve innecesario);
+> el Coach Studio antes de tener suscriptores (multiplica a un coach sin clientes);
+> wearables y comunidad (ninguna validada); rediseño visual completo (la app ya se ve bien,
+> lo que falla es lo que hay debajo).
+
+---
+
+## 10 · PLAN POR SPRINTS
+
+Sin fechas: no hay fecha de lanzamiento ni capacidad de desarrollo acordadas.
+Secuencia relativa. Cada sprint deja algo demostrable.
+
+### Sprint 1 — Tapar los agujeros y decidir
+**Objetivo:** cerrar lo que sangra hoy y desbloquear todo lo demás.
+
+| ID | Tarea |
+|---|---|
+| LFT-100 | Políticas RLS sobre plantillas |
+| LFT-302 | Sacar `.env` del control de versiones |
+| LFT-114 | Unificar `status` / `is_selectable` |
+| LFT-001 → LFT-005 | Las cinco decisiones del fundador |
+
+**Decisiones requeridas:** D1 a D5 (§16) — es el entregable principal del sprint.
+**Pruebas:** cliente anónimo devuelve 0 filas; usuario autenticado sin cambios; `git ls-files .env` vacío.
+**Resultado:** la metodología deja de ser pública y el equipo sabe qué construir.
+
+### Sprint 2 — Vocabularios y duplicados
+**Objetivo:** que los campos de clasificación dejen de ser texto libre.
+
+| ID | Tarea |
+|---|---|
+| LFT-101 | `equipment` + `equipment_alias`, migrar 474 |
+| LFT-102 | `muscles` + `muscle_alias` |
+| LFT-304 | Llaves duplicadas en `muscleGroups.ts` |
+| LFT-103 | Resolver los 7 duplicados exactos |
+| LFT-104 | Revisar las 8 familias dudosas |
+
+**Decisiones requeridas:** cuáles de las 8 familias son el mismo ejercicio.
+**Pruebas:** 0 valores fuera de catálogo; backup previo; historial de `workout_sets` intacto.
+**Resultado:** se puede filtrar por equipo sin fallos silenciosos.
+
+### Sprint 3 — Relaciones tipadas
+**Objetivo:** que el sistema pueda decir "sube".
+
+| ID | Tarea |
+|---|---|
+| LFT-105 | `exercise_relations` + migrar las 168 |
+| LFT-106 | Poblar `movement_plane` en los 346 en uso |
+| LFT-109 | Campos nuevos del ejercicio |
+| LFT-403 | Extender la cola de aprobación |
+
+**Pruebas:** una progresión se inserta y se lee; el `SwapButton` sigue funcionando con la tabla nueva.
+**Resultado:** la base soporta personalización real.
+
+### Sprint 4 — Llenar las relaciones
+**Objetivo:** que un principiante sin gimnasio pueda entrenar.
+
+| ID | Tarea |
+|---|---|
+| LFT-107 | 98 regresiones a principiante |
+| LFT-108 | 72 alternativas sin gimnasio |
+
+**Decisiones requeridas:** aprobación en lote de los candidatos. Es el sprint con más trabajo de coach.
+**Pruebas:** ningún ejercicio programado sin ruta, o marcado explícitamente como irreducible.
+**Resultado:** las dos dimensiones de personalización ya tienen datos detrás.
+
+### Sprint 5 — Arquitectura unificada y onboarding
+**Objetivo:** que el producto use lo que acabamos de construir.
+
+| ID | Tarea |
+|---|---|
+| LFT-202 | Reescribir `assignProgram` sobre el Modelo C |
+| LFT-201 | Ruta real de principiante |
+| LFT-200 | Onboarding pregunta equipo y días |
+| LFT-309 | Verificar que nadie se queda sin contenido |
+| LFT-111 | `block_types` controlado |
+
+**Pruebas:** cuatro perfiles de prueba (principiante en casa, intermedio en gym, avanzado en casa, avanzado en gym) reciben programación coherente y completa.
+**Resultado:** LIFTORY cumple lo que promete el onboarding.
+
+### Sprint 6 — Listo para cobrar
+**Objetivo:** que el negocio funcione.
+
+| ID | Tarea |
+|---|---|
+| LFT-300 | Stripe end-to-end en modo test |
+| LFT-301 | Acceso derivado del estado real |
+| LFT-305 | Instrumentar las métricas de lanzamiento |
+| LFT-204 | Transcodificar los 117 videos |
+| LFT-307 | Verificar correos |
+| LFT-306 | Rendimiento en celular real |
+
+**Pruebas:** ciclo completo de suscripción; cancelar en Stripe quita acceso; ningún video >5 MB.
+**Resultado:** **listo para lanzar.**
+
+### Sprint 7 en adelante
+LFT-203 (vocabulario), LFT-205 (video), LFT-207 (badges), LFT-400/401 (admin),
+LFT-500 (offline), LFT-052 (retención). El Coach Studio empieza cuando haya suscriptores.
+
+---
+
+## 11 · REGISTRO DE DECISIONES DEL FUNDADOR
+
+Ninguna está aprobada. Todas bloquean trabajo.
+
+### D1 — Arquitectura de programa · **BLOQUEA 4 ÍTEMS** · estado: `pendiente`
+
+**Opciones**
+- **A** · Mantener los cuatro programas.
+- **B** · Un método único sin tracks.
+- **C** · Motor único con tracks por objetivo. ← **recomendada**
+
+**Evidencia:** los cuatro programas ya comparten vocabulario de bloques, así que el método
+único ya existe de hecho. SCULPT HER ELITE y FOUNDATION divergen 4.7%: son el mismo programa.
+La diferencia BUILD HIM / SCULPT HER (22–26%) es pull+push vs core+hinge — un estereotipo
+de género, no un objetivo de entrenamiento.
+
+**Trade-off:** C exige migrar la asignación y puede incomodar a usuarios que eligieron por marca.
+A no cuesta nada hoy y cuesta cuatro veces más cada mesociclo futuro.
+
+**Bloquea:** LFT-002, LFT-201, LFT-202, LFT-309.
+
+### D2 — Taxonomía de ejercicios · **BLOQUEA 4 ÍTEMS** · estado: `pendiente`
+
+**Opciones:** adoptar el esquema de §7 · adoptarlo con ajustes · proponer otro.
+**Evidencia:** 59 valores de equipo, 103 de músculo, 57 etiquetas de bloque, todo texto libre.
+**Trade-off:** es trabajo de migración sin beneficio visible para el usuario. Es el precio de que todo lo demás funcione.
+**Bloquea:** LFT-101, LFT-105, LFT-109, LFT-111.
+
+### D3 — Personalización en v1 · **BLOQUEA 3 ÍTEMS** · estado: `pendiente`
+
+**Opciones**
+- Sólo nivel.
+- **Nivel + equipo.** ← **recomendada**
+- Nivel + equipo + días + duración.
+
+**Evidencia:** nivel y equipo son tu prioridad declarada. Días y duración multiplican
+la superficie de prueba sin evidencia de que los usuarios los pidan.
+**Trade-off:** `training_days` sigue hardcodeado en 5 un tiempo más.
+**Bloquea:** LFT-200, LFT-107, LFT-108.
+
+### D4 — IA antes o después del lanzamiento · estado: `pendiente`
+
+**Opciones:** Coach Studio antes de lanzar · **después** ← recomendada · nada de IA por ahora.
+**Evidencia:** las fases 0–2 también desbloquean el lanzamiento; las 3–5 no. Un motor que
+multiplica a un coach sin clientes multiplica por cero.
+**Trade-off:** Andoni sigue escribiendo mesociclos a mano unos meses más.
+
+### D5 — Precio y modelo de cobro · **BLOQUEA 2 ÍTEMS** · estado: `pendiente`
+
+**Opciones:** mantener $699 MXN · ajustar · cambiar la estructura (prueba gratis, anual, founder).
+**Evidencia:** ~USD $38 está arriba de Ladder PRO ($29.99) y Centr ($29.99), cerca de
+Ladder ELITE ($44.99) que incluye coach 1:1. En México, Smart Fit cuesta $299–699.
+**Recomendación:** no bajar el precio; cerrar la brecha de valor con las fases 0–2.
+**Bloquea:** LFT-300, LFT-301.
+
+### D6 — Las tres anomalías de programación · estado: `pendiente`
+M5 semana 5 promedia RPE 9.94 · M5 tiene volumen plano W1–W5 · M3 baja en W3.
+Decisión de entrenador. Bloquea codificar las reglas (LFT-112).
+
+### D7 — Las 8 familias de casi-duplicados · estado: `pendiente`
+`Pull Up` / `Bodyweight Pull-up`, `Bench Press` / `Barbell Bench Press`, etc.
+Sólo tú sabes si son variantes legítimas. Bloquea LFT-104.
+
+### D8 — Marca Build Him / Sculpt Her · estado: `pendiente`
+**Recomendación:** conservar como marca y colección editorial; retirar como arquitectura.
+
+### D9 — Reescribir el historial de git · estado: `pendiente`
+8 MB de documentos internos estuvieron públicos unas horas y siguen en el historial.
+Si el repo es privado, no importa. No pude verificar la visibilidad (`gh` sin autenticar).
+
+---
+
+## 12 · REGISTRO DE RIESGOS
+
+| ID | Riesgo | Prob. | Sev. | Mitigación | Señal temprana | Ítems |
+|---|---|---|---|---|---|---|
+| R1 | La migración de vocabularios corrompe datos | Media | **Alta** | Backup previo, migración aditiva, alias en vez de reemplazo, validación antes de commit | Conteos que no cuadran tras migrar | LFT-101, LFT-102 |
+| R2 | Fusionar duplicados rompe historial | Media | **Alta** | Nunca borrar: `is_canonical` + `merged_into`; IDs intactos | Un `workout_set` apunta a nada | LFT-103 |
+| R3 | LFT-107/108 consumen más tiempo de coach del previsto | **Alta** | Media | Generar candidatos por familia y aprobar en lote; aceptar "irreducible" como respuesta | Ritmo de aprobación bajo en la primera semana | LFT-107, LFT-108 |
+| R4 | Stripe falla en producción pese a pasar en test | Media | **Alta** | Webhook idempotente, reconciliación manual el primer mes, alertas en fallo de cobro | Discrepancia entre Stripe y `subscriptions` | LFT-300, LFT-301 |
+| R5 | El Modelo C molesta a usuarios actuales | Baja | Media | Conservar la marca; migrar sin cambiar lo ya agendado | Quejas tras migrar | LFT-202 |
+| R6 | La IA propone programación mala y erosiona confianza | Media | **Alta** | Sólo IDs de catálogo filtrado, esquema estricto, validador que marca, aprobación obligatoria | Tasa de edición alta en las primeras propuestas | LFT-405, LFT-406 |
+| R7 | Carga de trabajo del fundador insostenible | **Alta** | **Alta** | Secuenciar las decisiones; no pedir 9 decisiones a la vez; lotes de aprobación | Sprints que se alargan esperando decisiones | Todo |
+| R8 | Se lanza sin medir y no se sabe qué falla | Media | **Alta** | LFT-305 es MUST HAVE | Primer usuario real sin eventos registrados | LFT-305 |
+| R9 | Activación catastrófica: 10 de 13 usuarios nunca entrenaron | **Desconocida** | **Alta** | Confirmar cuáles son cuentas de prueba antes de concluir nada | — | LFT-305 |
+| R10 | Construir la base retrasa tanto que el impulso se pierde | Media | Media | Sprints con entregable demostrable; lanzar al terminar el 6 | Tres sprints sin nada visible | Todo |
+
+---
+
+## 13 · MÉTRICAS
+
+### Necesarias al lanzar
+
+| Métrica | Definición | Instrumentación |
+|---|---|---|
+| Onboarding completado | % que llega a tener programa activo | Evento `onboarding_completed` |
+| Primer entrenamiento | % que completa 1 sesión en 7 días | `workouts.is_completed` + fecha de alta |
+| Atletas activos semanales | Usuarios únicos con ≥1 sesión completada por semana | Agregado de `workouts` |
+| Adherencia | Sesiones completadas ÷ sesiones agendadas | Ya calculable |
+| Conversión prueba → pago | % que paga tras la prueba | `subscriptions` tras LFT-300 |
+| Churn mensual | Cancelaciones ÷ suscriptores activos | Webhook de Stripe |
+
+### Después de features avanzadas
+
+Retención a 4 y 8 semanas · Mesociclos completados · Éxito de sustitución
+(% de swaps que no se revierten) · Fricción de registro (tiempo por set) ·
+Tasa de aceptación de mesociclos generados · Tiempo de edición del coach ·
+Horas de programación ahorradas.
+
+> **Advertencia sobre benchmarks externos:** los números que circulan (retención día 30
+> de 3–12%, churn 7–10% mensual) vienen de blogs de vendors que se citan entre sí y varios
+> trazan a datos de 2023. No fijes metas con ellos. Tus propios números serán el único
+> benchmark útil.
+
+---
+
+## 14 · CHECKLIST DE LANZAMIENTO
+
+```
+SEGURIDAD
+  [ ] LFT-100  Anónimo no lee plantillas
+  [ ] LFT-302  .env fuera del control de versiones
+  [ ] RLS verificada tabla por tabla con cliente anónimo
+
+DATOS
+  [ ] LFT-101  Vocabulario de equipo canónico
+  [ ] LFT-103  7 duplicados resueltos sin romper historial
+  [ ] LFT-105  Relaciones tipadas en producción
+  [ ] LFT-106  movement_plane al 100% en los programados
+  [ ] LFT-107  Toda ruta a principiante existe o está marcada irreducible
+  [ ] LFT-108  Toda alternativa sin gimnasio existe o está marcada irreducible
+  [ ] Backup verificado antes de cada migración
+
+PRODUCTO
+  [ ] LFT-200  Onboarding pregunta equipo y días de verdad
+  [ ] LFT-201  Un principiante recibe contenido de principiante
+  [ ] LFT-202  El género ya no decide selección de ejercicios
+  [ ] LFT-309  Ningún perfil llega a calendario vacío
+  [ ] LFT-204  Ningún video supera 5 MB
+  [ ] 4 perfiles de prueba entrenan una semana completa sin hueco
+
+NEGOCIO
+  [ ] LFT-300  Ciclo completo de Stripe probado
+  [ ] LFT-301  Cancelar en Stripe quita el acceso
+  [ ] LFT-307  Correos verificados
+  [ ] LFT-305  Las 6 métricas de lanzamiento registran
+
+CALIDAD
+  [ ] LFT-306  Sesión abre en <3 s en 4G gama media
+  [ ] LFT-114  Imposible exponer un mesociclo sin aprobar
+  [ ] tsc limpio en onboarding, workout y pago
+```
+
+---
+
+## 15 · QUÉ HACEMOS AHORA — LAS 10 ACCIONES
+
+En orden exacto de ejecución.
+
+**1 · Cerrar RLS en las plantillas** — `LFT-100`
+Tu metodología se lee hoy sin pagar y sin registrarse. Dos políticas, horas de trabajo.
+Desbloquea: poder hablar del producto sin regalarlo. No depende de nada.
+*Terminado cuando:* un cliente anónimo devuelve 0 filas de `workouts` y `workout_sets`, y un usuario con sesión sigue viendo lo suyo.
+
+**2 · Sacar `.env` del control de versiones** — `LFT-302`
+Está rastreado pese al `.gitignore`. El próximo `git add -A` sube el service role key.
+Requiere antes: confirmar que Vercel tiene las variables.
+*Terminado cuando:* `git ls-files .env` sale vacío y el build de Vercel sigue pasando.
+
+**3 · Decidir el modelo de programa** — `LFT-001` / `D1`
+Es la decisión que más trabajo desbloquea y la única que no puedo tomar yo.
+Desbloquea: LFT-002, LFT-201, LFT-202, LFT-309 — todo el producto.
+*Terminado cuando:* la decisión está escrita en §16 con fecha.
+
+**4 · Aprobar la taxonomía** — `LFT-004` / `D2`
+Sin vocabularios controlados, nada posterior es confiable.
+*Terminado cuando:* el esquema de §7 está aprobado o ajustado.
+
+**5 · Vocabulario de equipo canónico** — `LFT-101`
+59 valores con sinónimos. Causa raíz de los duplicados y de que el filtrado por equipo falle.
+Requiere antes: acción 4.
+*Terminado cuando:* 0 valores fuera del catálogo y los pares `band`/`resistance_band`, `cable`/`cable_machine`, `rack`/`squat_rack` resueltos.
+
+**6 · Resolver los 7 duplicados exactos** — `LFT-103`
+`High Hang Power Clean` ×2 con video en ambos. `Goblet Squat` ×2 con equipo idéntico.
+Requiere antes: acción 5.
+*Terminado cuando:* los 7 grupos tienen canónico marcado y el historial de `workout_sets` quedó intacto.
+
+**7 · Relaciones tipadas** — `LFT-105`
+Hoy es imposible expresar una progresión. Es el bloqueador técnico de toda la personalización.
+Requiere antes: acción 4.
+*Terminado cuando:* una progresión se inserta y se lee, y las 168 filas quedaron migradas con su tipo correcto.
+
+**8 · Poblar `movement_plane`** — `LFT-106`
+27% de relleno. Es el filtro que impide sustituciones malas.
+Requiere antes: acción 5.
+*Terminado cuando:* los 346 ejercicios programados tienen plano.
+
+**9 · Llenar las relaciones faltantes** — `LFT-107` + `LFT-108`
+98 regresiones y 72 alternativas sin gimnasio. El sprint más pesado y el que convierte a
+LIFTORY en lo que dice ser.
+Requiere antes: acciones 7 y 8.
+*Terminado cuando:* todo ejercicio programado tiene ruta por nivel y por equipo, o está marcado explícitamente como irreducible.
+
+**10 · Onboarding y asignación reales** — `LFT-200` + `LFT-201` + `LFT-202`
+Preguntar el nivel y reescribirlo a "intermediate" es un defecto, no una carencia.
+Requiere antes: acciones 3 y 9.
+*Terminado cuando:* cuatro perfiles de prueba reciben una semana completa de programación coherente.
+
+---
+
+### LA ACCIÓN MÁS IMPORTANTE
+
+> ## Cerrar RLS en las plantillas — `LFT-100`
+
+No es la más ambiciosa. Es la primera por tres razones:
+
+**No depende de ninguna decisión tuya.** Las otras nueve esperan a que decidas el modelo de
+programa o la taxonomía. Ésta se puede hacer hoy.
+
+**Es la más barata.** Dos políticas de RLS. Horas, no semanas.
+
+**Protege lo único que no se puede recuperar.** Dijiste que el usuario no compra rutinas:
+compra tu sistema. Ese sistema —336 sesiones, 9,014 series, con tus cues de entrenador—
+está disponible gratis para quien sepa dónde mirar. Cada día que pasa es un día más en que
+cualquiera puede llevárselo, y eso no se deshace cerrando la puerta después.
+
+Las otras nueve construyen el producto. Ésta evita que el producto deje de ser tuyo
+mientras lo construimos.
+
+---
+
+## 16 · LOG DE DECISIONES
+
+| Fecha | Decisión | Resultado |
+|---|---|---|
+| 2026-10-22 | Documento creado | v1.0 pendiente de aprobación |
+
+## 17 · CHANGE LOG
+
+| Fecha | Versión | Cambio |
+|---|---|---|
+| 2026-10-22 | 1.0 | Consolidación de la auditoría de producto y la capa de inteligencia |
+
+## 18 · COMPLETADO EN ESTA SESIÓN
+
+| Qué | Dónde |
+|---|---|
+| `start_mesocycle` arranca hoy, no "el próximo lunes" | `20261019180000_start_mesocycle_today.sql` |
+| Borrado asimétrico que dejaba `workout_sets` huérfanos | misma migración |
+| Indicador de mesociclo y semana en el Home | `Home.tsx`, `useNavigableHome.ts` |
+| `SwapButton` en los 6 modos de bloque | `SwapButton.tsx` + timers |
+| Orden de lookup del swap corregido (se puede volver a subir) | `SwapButton.tsx`, `BlockDetail.tsx` |
+| Selector de mesociclos con stats medidas | `MesocyclePicker.tsx` |
+| RPE de M5 corregido en la copy: decía 8.58, es 8.87 | base de datos |
+| 33 documentos internos sacados de `public/` | `docs/` |
+
+## 19 · BLOQUEADORES ABIERTOS
+
+| Bloqueador | Bloquea | Quién lo resuelve |
+|---|---|---|
+| D1 a D5 sin decidir | Casi todo el backlog | Fundador |
+| Visibilidad del repo desconocida | D9 | Fundador |
+| No se sabe qué usuarios son de prueba | R9, métricas base | Fundador |
+
+**Próximo sprint:** Sprint 1 — Tapar los agujeros y decidir.
+**Estado de lanzamiento:** no listo. 12 ítems MUST HAVE pendientes.
