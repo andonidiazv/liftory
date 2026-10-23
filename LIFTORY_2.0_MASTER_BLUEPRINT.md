@@ -1,8 +1,8 @@
 # LIFTORY 2.0 — MASTER PRODUCT & EXECUTION BLUEPRINT
 
-**Versión:** 1.3
+**Versión:** 1.5
 **Última actualización:** 2026-10-23
-**Estado:** Pendiente de aprobación del fundador
+**Estado:** En ejecución · Sprint 2
 **Fuente de verdad:** este archivo. Todo trabajo futuro referencia los IDs `LFT-xxx` de aquí.
 
 ---
@@ -189,7 +189,7 @@ Estado inicial: `pendiente` salvo donde se indique.
 | ID | Workstream | Iniciativa | Problema | Acción | Pri | Esf | Depende | Owner | Criterio de aceptación | Fase |
 |---|---|---|---|---|---|---|---|---|---|---|
 | LFT-100 | Seguridad | Cerrar RLS de plantillas | Anónimo lee 336 workouts y 9,014 sets | Política que exija sesión autenticada | **P0** | S | — | Ingeniería | ✅ **COMPLETADO 2026-10-23.** Anónimo ve 0 filas en 15 tablas; Home, Programa y sesión verificados sin errores | Pre-lanzamiento |
-| LFT-101 | Datos | Vocabulario de equipo canónico | 59 valores libres con sinónimos | Tabla `equipment` + `equipment_alias`; migrar los 474 | **P0** | M | LFT-004 | Ingeniería | 0 valores fuera del catálogo; `band`/`resistance_band`, `cable`/`cable_machine`, `rack`/`squat_rack` resueltos | Pre-lanzamiento |
+| LFT-101 | Datos | Vocabulario de equipo canónico | 59 valores libres con sinónimos | Tabla `equipment` + `equipment_alias`; migrar los 474 | **P0** | M | LFT-004 | Ingeniería | ✅ **COMPLETADO 2026-10-23.** 59 → 46 códigos, 0 fuera del catálogo, trigger que lo impide, admin lee de la tabla. `gym_only` deja listo el filtro de casa: 355 de 474 ejercicios se pueden hacer sin gimnasio | Pre-lanzamiento |
 | LFT-102 | Datos | Vocabulario de músculos | 103 valores libres; 42 sin mapear | Tabla `muscles` + `muscle_alias` | P1 | M | LFT-004 | Ingeniería | 100% de `primary_muscles` mapea a código canónico | Pre-lanzamiento |
 | LFT-103 | Datos | Resolver 7 duplicados exactos | Mismo ejercicio dos veces | Marcar canónico + `merged_into`; nunca borrar | **P0** | M | LFT-101 | Fundador + Ing. | 7 grupos resueltos; `workout_sets` histórico intacto | Pre-lanzamiento |
 | LFT-104 | Datos | Revisar 8 familias dudosas | ¿Variantes o duplicados? | Revisión de coach, una por una | P1 | M | LFT-103 | Fundador | Cada familia marcada como variante legítima o fusionada | Pre-lanzamiento |
@@ -514,12 +514,12 @@ LFT-500 (offline), LFT-052 (retención). El Coach Studio empieza cuando haya sus
 
 Ninguna está aprobada. Todas bloquean trabajo.
 
-### D1 — Arquitectura de programa · **BLOQUEA 4 ÍTEMS** · estado: `pendiente`
+### D1 — Arquitectura de programa · ✅ **DECIDIDO 2026-10-23: Modelo C**
 
 **Opciones**
 - **A** · Mantener los cuatro programas.
 - **B** · Un método único sin tracks.
-- **C** · Motor único con tracks por objetivo. ← **recomendada**
+- **C** · Motor único con tracks por objetivo. ← **ELEGIDA POR ANDONI**
 
 **Evidencia:** los cuatro programas ya comparten vocabulario de bloques, así que el método
 único ya existe de hecho. SCULPT HER ELITE y FOUNDATION divergen 4.7%: son el mismo programa.
@@ -538,16 +538,20 @@ A no cuesta nada hoy y cuesta cuatro veces más cada mesociclo futuro.
 **Trade-off:** es trabajo de migración sin beneficio visible para el usuario. Es el precio de que todo lo demás funcione.
 **Bloquea:** LFT-101, LFT-105, LFT-109, LFT-111.
 
-### D3 — Personalización en v1 · **BLOQUEA 3 ÍTEMS** · estado: `pendiente`
+### D3 — Personalización en v1 · ✅ **DECIDIDO 2026-10-23: las cuatro dimensiones**
 
 **Opciones**
 - Sólo nivel.
-- **Nivel + equipo.** ← **recomendada**
-- Nivel + equipo + días + duración.
+- **Nivel + equipo.** ← recomendada por Claude
+- **Nivel + equipo + días + duración.** ← **ELEGIDA POR ANDONI**
 
 **Evidencia:** nivel y equipo son tu prioridad declarada. Días y duración multiplican
 la superficie de prueba sin evidencia de que los usuarios los pidan.
-**Trade-off:** `training_days` sigue hardcodeado en 5 un tiempo más.
+**Trade-off aceptado:** días y duración exigen decidir qué se recorta cuando alguien entrena 3 días
+en vez de 6, o tiene 45 minutos en vez de 70. Eso es criterio de entrenador, no ingeniería, y va a
+necesitar una sesión tuya (queda como **D10**). Para que no retrase el lanzamiento se construye en
+dos tiempos: nivel y equipo primero (bloquean el lanzamiento), días y duración después, sobre la
+misma arquitectura.
 **Bloquea:** LFT-200, LFT-107, LFT-108.
 
 ### D4 — IA antes o después del lanzamiento · estado: `pendiente`
@@ -564,6 +568,12 @@ multiplica a un coach sin clientes multiplica por cero.
 Ladder ELITE ($44.99) que incluye coach 1:1. En México, Smart Fit cuesta $299–699.
 **Recomendación:** no bajar el precio; cerrar la brecha de valor con las fases 0–2.
 **Bloquea:** LFT-300, LFT-301.
+
+### D10 — Qué se recorta al entrenar menos días o menos tiempo · estado: `pendiente` · nace de D3
+Si alguien entrena 3 días, ¿qué sesiones sobreviven y cuáles se fusionan? Si tiene 45 minutos,
+¿qué bloque se sacrifica primero? Hoy existe `short_on_time_note` en los workouts, así que hay
+un punto de partida. Decisión de entrenador. **No bloquea el lanzamiento** si se construye después
+de nivel y equipo.
 
 ### D6 — Las tres anomalías de programación · estado: `pendiente`
 M5 semana 5 promedia RPE 9.94 · M5 tiene volumen plano W1–W5 · M3 baja en W3.
@@ -751,6 +761,8 @@ mientras lo construimos.
 | 2026-10-23 | LFT-100 ejecutado y aprobado por Andoni | Plantillas cerradas a usuarios autenticados. Gating por suscripción queda para LFT-301 |
 | 2026-10-23 | LFT-302 cambió de enfoque | No se desrastrea `.env`: las 4 `VITE_*` ya viajan públicas en el bundle, así que tenerlas en git no filtra nada y quitarlas podía romper el build de Vercel. Se separó sólo el secreto a `.env.local` |
 | 2026-10-23 | LFT-114 · premisa descartada | "4 mesociclos sin terminar expuestos" era falso: los 8 están completos (36 sesiones, 6 descansos, 0 huecos). El `draft` era etiqueta vieja. Su daño real era bloquear `handleNewCycle` en el admin |
+| 2026-10-23 | **D1 · Modelo C** | Un motor con tracks por objetivo. El género deja de decidir la selección de ejercicios; Build Him y Sculpt Her quedan como marca |
+| 2026-10-23 | **D3 · Las cuatro dimensiones** | Andoni eligió nivel + equipo + días + duración, por encima de la recomendación de limitarlo a dos. Se construye en dos tiempos para no retrasar el lanzamiento. Abre D10 |
 | 2026-10-23 | LFT-115 añadido y resuelto | El ciclo `live` llevaba 180 días vencido en los 4 programas. No se cambió el `status` de los `live`: assignProgram lo usa para decidir cuántos workouts copiar, y tocarlo era un cambio de comportamiento no acordado |
 
 ## 17 · CHANGE LOG
@@ -761,6 +773,8 @@ mientras lo construimos.
 | 2026-10-23 | 1.1 | Red de seguridad verificada (snapshot + restore probados). LFT-100 completado. |
 | 2026-10-23 | 1.2 | LFT-302 completado. Se descartó `git rm --cached .env`: habría arriesgado el build de Vercel sin necesidad. |
 | 2026-10-23 | 1.3 | LFT-114 completado. Su premisa era falsa (nada estaba a medio construir) pero destapó LFT-115, un P0 que no estaba en el plan. |
+| 2026-10-23 | 1.4 | D1 y D3 decididas. Sprint 1 cerrado. Arranca Sprint 2. |
+| 2026-10-23 | 1.5 | LFT-101 completado. El admin deja de tener su propia lista de equipo. |
 
 ## 18 · COMPLETADO EN ESTA SESIÓN
 
@@ -770,6 +784,7 @@ mientras lo construimos.
 | **LFT-302** · Secretos fuera del archivo rastreado | `.env.local` + `scripts/_lib-env.mjs` |
 | **LFT-114** · Etiquetas de mesociclo corregidas + guardia | `20261023120000_lft114_mesocycle_status.sql` |
 | **LFT-115** · Ciclo vencido ya no agenda en el pasado | `assignProgram.ts`, `Onboarding.tsx` |
+| **LFT-101** · Vocabulario de equipo canónico, 59 → 46 | `20261023130000_lft101_equipment_vocabulary.sql` |
 | `rls_report()` + `scripts/rls-check.mjs` para auditar políticas reales | migración + script |
 | Respaldo y restauración verificados | `scripts/snapshot.mjs`, `scripts/restore.mjs` |
 | `start_mesocycle` arranca hoy, no "el próximo lunes" | `20261019180000_start_mesocycle_today.sql` |
@@ -785,9 +800,10 @@ mientras lo construimos.
 
 | Bloqueador | Bloquea | Quién lo resuelve |
 |---|---|---|
-| D1 a D5 sin decidir | Casi todo el backlog | Fundador |
+| D2 (taxonomía) sin decidir formalmente | LFT-101, 105, 109, 111 | Se avanza con la propuesta de §7; Andoni puede vetar |
+| D5 (precio) sin decidir | LFT-300, LFT-301 | Fundador · no urge hasta Sprint 6 |
 | Visibilidad del repo desconocida | D9 | Fundador |
 | No se sabe qué usuarios son de prueba | R9, métricas base | Fundador |
 
-**Próximo sprint:** Sprint 1 — Tapar los agujeros y decidir. **Siguiente ítem: LFT-005 / D5** (precio) o LFT-001 / D1 (modelo de programa) — ambos esperan decisión de Andoni.
-**Estado de lanzamiento:** no listo. 9 de 13 ítems MUST HAVE pendientes (LFT-100 ✅, LFT-302 ✅, LFT-114 ✅, LFT-115 ✅).
+**Sprint actual:** Sprint 2 — Vocabularios y duplicados. **Siguiente ítem: LFT-102** (vocabulario de músculos) y **LFT-304** (llaves duplicadas).
+**Estado de lanzamiento:** no listo. 8 de 13 ítems MUST HAVE pendientes (LFT-100 ✅, LFT-302 ✅, LFT-114 ✅, LFT-115 ✅, LFT-101 ✅).

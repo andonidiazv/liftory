@@ -15,10 +15,27 @@ const CATEGORIES = ["strength", "olympic", "conditioning", "mobility", "accessor
 const PATTERNS = ["squat", "hinge", "push", "pull", "carry", "rotation", "core", "locomotion"];
 const SECONDARY_PATTERNS = ["", ...PATTERNS]; // empty = no secondary
 const DIFFICULTIES = ["beginner", "intermediate", "advanced", "all_levels"];
-const EQUIPMENT_OPTIONS = [
-  "barbell", "dumbbell", "kettlebell", "cable", "machine", "band",
-  "bodyweight", "rack", "bench", "box", "none"
-];
+/** El equipo ya no se escribe a mano aquí.
+ *
+ *  Esta lista estaba hardcodeada con 11 valores ("cable", "rack", "box",
+ *  "bodyweight") mientras los scripts de programación escribían otros
+ *  ("cable_machine", "squat_rack", "plyo_box"). Dos fuentes de verdad, y el
+ *  resultado fueron 59 valores distintos en la base y ejercicios duplicados:
+ *  "Barbell Back Squat" existía dos veces, una con `rack` y otra con
+ *  `squat_rack`.
+ *
+ *  Ahora el catálogo vive en la tabla `equipment` y un trigger rechaza
+ *  cualquier código que no esté ahí. Ver LFT-101. */
+function useEquipmentCatalog() {
+  const [opciones, setOpciones] = useState<string[]>([]);
+  useEffect(() => {
+    supabase.from("equipment").select("code,label_es,family")
+      .order("family").order("label_es")
+      .then(({ data }) => setOpciones((data ?? []).map((e) => e.code)));
+  }, []);
+  return opciones;
+}
+
 const MUSCLE_OPTIONS = [
   "chest", "back", "shoulders", "biceps", "triceps", "quads", "hamstrings",
   "glutes", "calves", "core", "lats", "traps", "rhomboids", "forearms", "hip_flexors"
@@ -74,6 +91,7 @@ type SortColumn = "name" | "category" | "difficulty" | "movement_pattern";
 type SortDir = "asc" | "desc";
 
 export default function AdminExercises() {
+  const EQUIPMENT_OPTIONS = useEquipmentCatalog();
   const { user: adminUser } = useAuth();
   const [exercises, setExercises] = useState<ExerciseRow[]>([]);
   const [total, setTotal] = useState(0);

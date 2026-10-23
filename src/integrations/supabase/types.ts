@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       ai_rules: {
@@ -194,6 +169,56 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "badge_definitions"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipment: {
+        Row: {
+          code: string
+          family: string
+          gym_only: boolean
+          is_machine: boolean
+          label_en: string
+          label_es: string
+        }
+        Insert: {
+          code: string
+          family: string
+          gym_only?: boolean
+          is_machine?: boolean
+          label_en: string
+          label_es: string
+        }
+        Update: {
+          code?: string
+          family?: string
+          gym_only?: boolean
+          is_machine?: boolean
+          label_en?: string
+          label_es?: string
+        }
+        Relationships: []
+      }
+      equipment_alias: {
+        Row: {
+          alias: string
+          canonical_code: string
+        }
+        Insert: {
+          alias: string
+          canonical_code: string
+        }
+        Update: {
+          alias?: string
+          canonical_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_alias_canonical_code_fkey"
+            columns: ["canonical_code"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["code"]
           },
         ]
       }
@@ -1210,6 +1235,17 @@ export type Database = {
         Args: { p_cycle_start_date: string; p_program_id: string }
         Returns: number
       }
+      rls_report: {
+        Args: never
+        Returns: {
+          comando: string
+          expresion: string
+          politica: string
+          rls_activo: boolean
+          roles: string
+          tabla: string
+        }[]
+      }
       start_mesocycle: {
         Args: {
           p_mesocycle_id: string
@@ -1355,9 +1391,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },
