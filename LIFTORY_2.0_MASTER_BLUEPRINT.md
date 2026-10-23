@@ -1,7 +1,7 @@
 # LIFTORY 2.0 — MASTER PRODUCT & EXECUTION BLUEPRINT
 
-**Versión:** 1.0
-**Última actualización:** 2026-10-22
+**Versión:** 1.1
+**Última actualización:** 2026-10-23
 **Estado:** Pendiente de aprobación del fundador
 **Fuente de verdad:** este archivo. Todo trabajo futuro referencia los IDs `LFT-xxx` de aquí.
 
@@ -188,7 +188,7 @@ Estado inicial: `pendiente` salvo donde se indique.
 
 | ID | Workstream | Iniciativa | Problema | Acción | Pri | Esf | Depende | Owner | Criterio de aceptación | Fase |
 |---|---|---|---|---|---|---|---|---|---|---|
-| LFT-100 | Seguridad | Cerrar RLS de plantillas | Anónimo lee 336 workouts y 9,014 sets | Política que exija sesión autenticada y suscripción activa | **P0** | S | — | Ingeniería | Cliente anónimo devuelve 0 filas de `workouts` y `workout_sets`; usuario con sesión sigue viendo lo suyo | Pre-lanzamiento |
+| LFT-100 | Seguridad | Cerrar RLS de plantillas | Anónimo lee 336 workouts y 9,014 sets | Política que exija sesión autenticada | **P0** | S | — | Ingeniería | ✅ **COMPLETADO 2026-10-23.** Anónimo ve 0 filas en 15 tablas; Home, Programa y sesión verificados sin errores | Pre-lanzamiento |
 | LFT-101 | Datos | Vocabulario de equipo canónico | 59 valores libres con sinónimos | Tabla `equipment` + `equipment_alias`; migrar los 474 | **P0** | M | LFT-004 | Ingeniería | 0 valores fuera del catálogo; `band`/`resistance_band`, `cable`/`cable_machine`, `rack`/`squat_rack` resueltos | Pre-lanzamiento |
 | LFT-102 | Datos | Vocabulario de músculos | 103 valores libres; 42 sin mapear | Tabla `muscles` + `muscle_alias` | P1 | M | LFT-004 | Ingeniería | 100% de `primary_muscles` mapea a código canónico | Pre-lanzamiento |
 | LFT-103 | Datos | Resolver 7 duplicados exactos | Mismo ejercicio dos veces | Marcar canónico + `merged_into`; nunca borrar | **P0** | M | LFT-101 | Fundador + Ing. | 7 grupos resueltos; `workout_sets` histórico intacto | Pre-lanzamiento |
@@ -746,17 +746,23 @@ mientras lo construimos.
 | Fecha | Decisión | Resultado |
 |---|---|---|
 | 2026-10-22 | Documento creado | v1.0 pendiente de aprobación |
+| 2026-10-23 | Punto de regreso v1.0 establecido | Tag `v1.0-pre-2.0` + snapshot de 47,405 filas, restauración probada end-to-end |
+| 2026-10-23 | LFT-100 ejecutado y aprobado por Andoni | Plantillas cerradas a usuarios autenticados. Gating por suscripción queda para LFT-301 |
 
 ## 17 · CHANGE LOG
 
 | Fecha | Versión | Cambio |
 |---|---|---|
 | 2026-10-22 | 1.0 | Consolidación de la auditoría de producto y la capa de inteligencia |
+| 2026-10-23 | 1.1 | Red de seguridad verificada (snapshot + restore probados). LFT-100 completado. |
 
 ## 18 · COMPLETADO EN ESTA SESIÓN
 
 | Qué | Dónde |
 |---|---|
+| **LFT-100** · Plantillas cerradas a anónimos | `20261023110000_lft100_close_template_rls.sql` |
+| `rls_report()` + `scripts/rls-check.mjs` para auditar políticas reales | migración + script |
+| Respaldo y restauración verificados | `scripts/snapshot.mjs`, `scripts/restore.mjs` |
 | `start_mesocycle` arranca hoy, no "el próximo lunes" | `20261019180000_start_mesocycle_today.sql` |
 | Borrado asimétrico que dejaba `workout_sets` huérfanos | misma migración |
 | Indicador de mesociclo y semana en el Home | `Home.tsx`, `useNavigableHome.ts` |
@@ -774,5 +780,5 @@ mientras lo construimos.
 | Visibilidad del repo desconocida | D9 | Fundador |
 | No se sabe qué usuarios son de prueba | R9, métricas base | Fundador |
 
-**Próximo sprint:** Sprint 1 — Tapar los agujeros y decidir.
-**Estado de lanzamiento:** no listo. 12 ítems MUST HAVE pendientes.
+**Próximo sprint:** Sprint 1 — Tapar los agujeros y decidir. **Siguiente ítem: LFT-302** (sacar `.env` del control de versiones).
+**Estado de lanzamiento:** no listo. 11 de 12 ítems MUST HAVE pendientes (LFT-100 ✅).
