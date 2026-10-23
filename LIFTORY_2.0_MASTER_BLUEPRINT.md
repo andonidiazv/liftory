@@ -1,6 +1,6 @@
 # LIFTORY 2.0 — MASTER PRODUCT & EXECUTION BLUEPRINT
 
-**Versión:** 1.1
+**Versión:** 1.2
 **Última actualización:** 2026-10-23
 **Estado:** Pendiente de aprobación del fundador
 **Fuente de verdad:** este archivo. Todo trabajo futuro referencia los IDs `LFT-xxx` de aquí.
@@ -224,7 +224,7 @@ Estado inicial: `pendiente` salvo donde se indique.
 |---|---|---|---|---|---|---|---|---|---|---|
 | LFT-300 | Pagos | Probar Stripe end-to-end | 0 suscripciones, 0 pagos jamás | Alta, cobro, webhook, portal, cancelación en modo test | **P0** | M | LFT-005 | Ingeniería | Un ciclo completo deja filas correctas en `subscriptions` y `payments` | Pre-lanzamiento |
 | LFT-301 | Pagos | Control de acceso real | `subscription_status` puesto a mano | Que el acceso derive del estado real de Stripe | **P0** | M | LFT-300 | Ingeniería | Cancelar en Stripe quita el acceso sin intervención manual | Pre-lanzamiento |
-| LFT-302 | Seguridad | Sacar `.env` del control de versiones | Rastreado pese a estar en `.gitignore` | `git rm --cached .env` tras confirmar variables en Vercel | **P0** | S | — | Ingeniería | `.env` deja de estar rastreado; el build de Vercel sigue pasando | Pre-lanzamiento |
+| LFT-302 | Seguridad | Separar los secretos del `.env` rastreado | El service role key vivía en el mismo archivo que git rastrea | Secretos a `.env.local` (ignorado); `.env` conserva sólo las `VITE_*`, que ya son públicas | **P0** | S | — | Ingeniería | ✅ **COMPLETADO 2026-10-23.** `git add -A` ya no puede incluir el secreto; build y scripts verificados | Pre-lanzamiento |
 | LFT-303 | Calidad | Deuda de tipos | Errores TS preexistentes en ~18 archivos | Limpiar los que afectan rutas críticas | P1 | L | — | Ingeniería | `tsc --noEmit` limpio en las rutas de onboarding, workout y pago | Pre-lanzamiento |
 | LFT-304 | Calidad | Llaves duplicadas en `muscleGroups.ts` | 5 errores TS1117; sinónimos que no surten | Consolidar | P1 | S | LFT-102 | Ingeniería | 0 errores TS1117 | Pre-lanzamiento |
 | LFT-305 | Analítica | Instrumentar métricas de lanzamiento | No hay forma de ver activación ni adherencia | Eventos de §18 | **P0** | M | — | Ingeniería | Los 6 eventos de lanzamiento se registran y son consultables | Pre-lanzamiento |
@@ -748,6 +748,7 @@ mientras lo construimos.
 | 2026-10-22 | Documento creado | v1.0 pendiente de aprobación |
 | 2026-10-23 | Punto de regreso v1.0 establecido | Tag `v1.0-pre-2.0` + snapshot de 47,405 filas, restauración probada end-to-end |
 | 2026-10-23 | LFT-100 ejecutado y aprobado por Andoni | Plantillas cerradas a usuarios autenticados. Gating por suscripción queda para LFT-301 |
+| 2026-10-23 | LFT-302 cambió de enfoque | No se desrastrea `.env`: las 4 `VITE_*` ya viajan públicas en el bundle, así que tenerlas en git no filtra nada y quitarlas podía romper el build de Vercel. Se separó sólo el secreto a `.env.local` |
 
 ## 17 · CHANGE LOG
 
@@ -755,12 +756,14 @@ mientras lo construimos.
 |---|---|---|
 | 2026-10-22 | 1.0 | Consolidación de la auditoría de producto y la capa de inteligencia |
 | 2026-10-23 | 1.1 | Red de seguridad verificada (snapshot + restore probados). LFT-100 completado. |
+| 2026-10-23 | 1.2 | LFT-302 completado. Se descartó `git rm --cached .env`: habría arriesgado el build de Vercel sin necesidad. |
 
 ## 18 · COMPLETADO EN ESTA SESIÓN
 
 | Qué | Dónde |
 |---|---|
 | **LFT-100** · Plantillas cerradas a anónimos | `20261023110000_lft100_close_template_rls.sql` |
+| **LFT-302** · Secretos fuera del archivo rastreado | `.env.local` + `scripts/_lib-env.mjs` |
 | `rls_report()` + `scripts/rls-check.mjs` para auditar políticas reales | migración + script |
 | Respaldo y restauración verificados | `scripts/snapshot.mjs`, `scripts/restore.mjs` |
 | `start_mesocycle` arranca hoy, no "el próximo lunes" | `20261019180000_start_mesocycle_today.sql` |
@@ -780,5 +783,5 @@ mientras lo construimos.
 | Visibilidad del repo desconocida | D9 | Fundador |
 | No se sabe qué usuarios son de prueba | R9, métricas base | Fundador |
 
-**Próximo sprint:** Sprint 1 — Tapar los agujeros y decidir. **Siguiente ítem: LFT-302** (sacar `.env` del control de versiones).
-**Estado de lanzamiento:** no listo. 11 de 12 ítems MUST HAVE pendientes (LFT-100 ✅).
+**Próximo sprint:** Sprint 1 — Tapar los agujeros y decidir. **Siguiente ítem: LFT-114** (unificar `status` / `is_selectable`).
+**Estado de lanzamiento:** no listo. 10 de 12 ítems MUST HAVE pendientes (LFT-100 ✅, LFT-302 ✅).
