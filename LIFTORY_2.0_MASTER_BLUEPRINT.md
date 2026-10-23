@@ -1,6 +1,6 @@
 # LIFTORY 2.0 — MASTER PRODUCT & EXECUTION BLUEPRINT
 
-**Versión:** 1.6
+**Versión:** 1.7
 **Última actualización:** 2026-10-23
 **Estado:** En ejecución · Sprint 2
 **Fuente de verdad:** este archivo. Todo trabajo futuro referencia los IDs `LFT-xxx` de aquí.
@@ -265,6 +265,37 @@ Estado inicial: `pendiente` salvo donde se indique.
 | LFT-502 | Seguridad | Documentos en historial de git | 8 MB estuvieron públicos unas horas | Decidir si se reescribe historial | P3 | M | — | Fundador | Decisión registrada | Post-lanzamiento |
 | LFT-503 | Producto | Wearables | `wearable_data` vacía | Integrar tras validar demanda | P3 | XL | — | Ingeniería | — | Futuro |
 | LFT-504 | Producto | Comunidad y retos | No existe | Evaluar tras validar entrenamiento en solitario | P3 | XL | LFT-052 | Fundador | — | Futuro |
+
+---
+
+## 6.5 · CONVENCIÓN DE NOMBRES
+
+Decidida el 2026-10-23 a partir de lo que ya domina en el catálogo, no inventada.
+
+**Forma:** `[Equipo] [Posición/Modificador] [Movimiento] [Variación]`
+→ `Barbell Back-Rack Bulgarian Split Squat`, `Half-Kneeling KB Snatch + Windmill`
+
+**Reglas**
+
+1. **Los compuestos van con guión.** `Pull-up`, `Push-up`, `Step-up`, `Chin-up`, `Sit-up`.
+   Era la forma dominante (6 de 7 fichas de dominada) y `Pull Up` era la excepción.
+2. **No se escribe "Bodyweight" cuando esa es la versión por defecto.** Una dominada es
+   con peso corporal salvo que diga lo contrario; la cargada se llama `Weighted Pull-up`.
+   Sí se usa cuando distingue de verdad: `Bodyweight Reverse Nordic` frente al lastrado.
+3. **El implemento va al frente cuando cambia el ejercicio**, no cuando es incidental.
+   `Barbell Bench Press` sí, porque existe la versión con mancuerna.
+4. **Pendiente (D11):** `DB`/`Dumbbell` está 31 a 26 y `KB`/`Kettlebell` 29 a 15.
+   Hay que elegir uno y renombrar. No urge: no rompe nada, sólo se ve descuidado.
+
+**Fusiones aplicadas bajo esta convención**
+
+| Se queda | Se retira | Por qué |
+|---|---|---|
+| `Pull-up` | `Bodyweight Pull-up` | 80 sets contra 28, y "Bodyweight" sobra |
+| `Barbell Bench Press` | `Bench Press` | 189 sets contra 0, y el otro no tenía video |
+
+Una ficha fusionada **nunca se borra**: queda `is_active = false` con `merged_into`
+apuntando a la buena, para que el historial del atleta siga resolviendo.
 
 ---
 
@@ -778,6 +809,7 @@ mientras lo construimos.
 | 2026-10-23 | 1.4 | D1 y D3 decididas. Sprint 1 cerrado. Arranca Sprint 2. |
 | 2026-10-23 | 1.5 | LFT-101 completado. El admin deja de tener su propia lista de equipo. |
 | 2026-10-23 | 1.6 | LFT-116 y LFT-117 completados a petición de Andoni (revisión de nivel de los 474). |
+| 2026-10-23 | 1.7 | Convención de nombres fijada (§6.5). Primeras dos fusiones de duplicados. |
 
 ## 18 · COMPLETADO EN ESTA SESIÓN
 
@@ -790,6 +822,7 @@ mientras lo construimos.
 | **LFT-101** · Vocabulario de equipo canónico, 59 → 46 | `20261023130000_lft101_equipment_vocabulary.sql` |
 | **LFT-116** · Nivel revisado en los 474, con rúbrica escrita | `scripts/review-difficulty.mjs` |
 | **LFT-117** · Seis fichas con equipo imposible, corregidas | base de datos |
+| **LFT-103 (parcial)** · `Pull-up` y `Barbell Bench Press` fusionados | `20261023140000_merged_into.sql` |
 | `rls_report()` + `scripts/rls-check.mjs` para auditar políticas reales | migración + script |
 | Respaldo y restauración verificados | `scripts/snapshot.mjs`, `scripts/restore.mjs` |
 | `start_mesocycle` arranca hoy, no "el próximo lunes" | `20261019180000_start_mesocycle_today.sql` |
@@ -812,5 +845,5 @@ mientras lo construimos.
 
 **Sprint actual:** Sprint 2 — Vocabularios y duplicados. **Siguiente ítem: LFT-102** (vocabulario de músculos) y **LFT-304** (llaves duplicadas).
 
-**Pendiente de criterio de Andoni:** las 8 familias de casi-duplicados (D7) y `Bodyweight Skull Crusher`, cuya ficha pide mancuerna.
+**Pendiente de criterio de Andoni:** quedan 6 familias de casi-duplicados (D7); `Scap Pull-up` / `Scapular Pull-up` es la más clara.
 **Estado de lanzamiento:** no listo. 8 de 13 ítems MUST HAVE pendientes (LFT-100 ✅, LFT-302 ✅, LFT-114 ✅, LFT-115 ✅, LFT-101 ✅).
