@@ -1,6 +1,6 @@
 # LIFTORY 2.0 — MASTER PRODUCT & EXECUTION BLUEPRINT
 
-**Versión:** 1.7
+**Versión:** 1.8
 **Última actualización:** 2026-10-23
 **Estado:** En ejecución · Sprint 2
 **Fuente de verdad:** este archivo. Todo trabajo futuro referencia los IDs `LFT-xxx` de aquí.
@@ -190,7 +190,7 @@ Estado inicial: `pendiente` salvo donde se indique.
 |---|---|---|---|---|---|---|---|---|---|---|
 | LFT-100 | Seguridad | Cerrar RLS de plantillas | Anónimo lee 336 workouts y 9,014 sets | Política que exija sesión autenticada | **P0** | S | — | Ingeniería | ✅ **COMPLETADO 2026-10-23.** Anónimo ve 0 filas en 15 tablas; Home, Programa y sesión verificados sin errores | Pre-lanzamiento |
 | LFT-101 | Datos | Vocabulario de equipo canónico | 59 valores libres con sinónimos | Tabla `equipment` + `equipment_alias`; migrar los 474 | **P0** | M | LFT-004 | Ingeniería | ✅ **COMPLETADO 2026-10-23.** 59 → 46 códigos, 0 fuera del catálogo, trigger que lo impide, admin lee de la tabla. `gym_only` deja listo el filtro de casa: 355 de 474 ejercicios se pueden hacer sin gimnasio | Pre-lanzamiento |
-| LFT-102 | Datos | Vocabulario de músculos | 103 valores libres; 42 sin mapear | Tabla `muscles` + `muscle_alias` | P1 | M | LFT-004 | Ingeniería | 100% de `primary_muscles` mapea a código canónico | Pre-lanzamiento |
+| LFT-102 | Datos | Vocabulario de músculos | 103 valores libres; 42 sin mapear | Tabla `muscles` + `muscle_alias` | P1 | M | LFT-004 | Ingeniería | ✅ **COMPLETADO 2026-10-23.** 103 → 33 códigos, 71 alias, 0 fuera del catálogo, trigger que lo impide. El análisis de volumen ya no pierde referencias | Pre-lanzamiento |
 | LFT-116 | Datos | Revisar el nivel de los 474 ejercicios | `all_levels` se usaba al azar; estiramientos y CARs marcados como principiante | Rúbrica explícita + reclasificación | P1 | M | — | Fundador + Ing. | ✅ **COMPLETADO 2026-10-23.** 94 ejercicios reclasificados; `all_levels` 42 → 122; ninguna cadena de regresión rota (26 antes, 26 después) | Pre-lanzamiento |
 | LFT-117 | Datos | Equipo que contradice el nombre | 6 fichas decían "sin equipo" siendo imposibles sin él | Corregir | P1 | S | LFT-101 | Ingeniería | ✅ **COMPLETADO 2026-10-23.** Muscle Up y Chin-up ya no aparecen como entrenables en casa | Pre-lanzamiento |
 | LFT-103 | Datos | Resolver 7 duplicados exactos | Mismo ejercicio dos veces | Marcar canónico + `merged_into`; nunca borrar | **P0** | M | LFT-101 | Fundador + Ing. | 7 grupos resueltos; `workout_sets` histórico intacto | Pre-lanzamiento |
@@ -229,7 +229,7 @@ Estado inicial: `pendiente` salvo donde se indique.
 | LFT-301 | Pagos | Control de acceso real | `subscription_status` puesto a mano | Que el acceso derive del estado real de Stripe | **P0** | M | LFT-300 | Ingeniería | Cancelar en Stripe quita el acceso sin intervención manual | Pre-lanzamiento |
 | LFT-302 | Seguridad | Separar los secretos del `.env` rastreado | El service role key vivía en el mismo archivo que git rastrea | Secretos a `.env.local` (ignorado); `.env` conserva sólo las `VITE_*`, que ya son públicas | **P0** | S | — | Ingeniería | ✅ **COMPLETADO 2026-10-23.** `git add -A` ya no puede incluir el secreto; build y scripts verificados | Pre-lanzamiento |
 | LFT-303 | Calidad | Deuda de tipos | Errores TS preexistentes en ~18 archivos | Limpiar los que afectan rutas críticas | P1 | L | — | Ingeniería | `tsc --noEmit` limpio en las rutas de onboarding, workout y pago | Pre-lanzamiento |
-| LFT-304 | Calidad | Llaves duplicadas en `muscleGroups.ts` | 5 errores TS1117; sinónimos que no surten | Consolidar | P1 | S | LFT-102 | Ingeniería | 0 errores TS1117 | Pre-lanzamiento |
+| LFT-304 | Calidad | Llaves duplicadas en `muscleGroups.ts` | 5 errores TS1117; sinónimos que no surten | Consolidar | P1 | S | LFT-102 | Ingeniería | ✅ **COMPLETADO 2026-10-23.** Las 5 tenían el mismo valor: redundancia, no conflicto | Pre-lanzamiento |
 | LFT-305 | Analítica | Instrumentar métricas de lanzamiento | No hay forma de ver activación ni adherencia | Eventos de §18 | **P0** | M | — | Ingeniería | Los 6 eventos de lanzamiento se registran y son consultables | Pre-lanzamiento |
 | LFT-306 | Calidad | Rendimiento real en celular | Nunca medido en condiciones de gimnasio | Medir carga en gama media con datos | P1 | M | LFT-204 | Ingeniería | Sesión abre en <3 s en 4G en gama media | Pre-lanzamiento |
 | LFT-307 | Calidad | Correos transaccionales | Edge functions existen, nunca verificadas | Probar que llegan y se ven bien | P1 | S | — | Ingeniería | Alta, bienvenida, cobro y fallo de cobro verificados | Pre-lanzamiento |
@@ -810,6 +810,7 @@ mientras lo construimos.
 | 2026-10-23 | 1.5 | LFT-101 completado. El admin deja de tener su propia lista de equipo. |
 | 2026-10-23 | 1.6 | LFT-116 y LFT-117 completados a petición de Andoni (revisión de nivel de los 474). |
 | 2026-10-23 | 1.7 | Convención de nombres fijada (§6.5). Primeras dos fusiones de duplicados. |
+| 2026-10-23 | 1.8 | LFT-102 y LFT-304 completados. Sprint 2 cerrado salvo las familias dudosas (D7). |
 
 ## 18 · COMPLETADO EN ESTA SESIÓN
 
@@ -823,6 +824,8 @@ mientras lo construimos.
 | **LFT-116** · Nivel revisado en los 474, con rúbrica escrita | `scripts/review-difficulty.mjs` |
 | **LFT-117** · Seis fichas con equipo imposible, corregidas | base de datos |
 | **LFT-103 (parcial)** · `Pull-up` y `Barbell Bench Press` fusionados | `20261023140000_merged_into.sql` |
+| **LFT-102** · Vocabulario de músculos, 103 → 33 | `20261023150000_lft102_muscle_vocabulary.sql` |
+| **LFT-304** · Llaves duplicadas eliminadas | `src/utils/muscleGroups.ts` |
 | `rls_report()` + `scripts/rls-check.mjs` para auditar políticas reales | migración + script |
 | Respaldo y restauración verificados | `scripts/snapshot.mjs`, `scripts/restore.mjs` |
 | `start_mesocycle` arranca hoy, no "el próximo lunes" | `20261019180000_start_mesocycle_today.sql` |
@@ -843,7 +846,7 @@ mientras lo construimos.
 | Visibilidad del repo desconocida | D9 | Fundador |
 | No se sabe qué usuarios son de prueba | R9, métricas base | Fundador |
 
-**Sprint actual:** Sprint 2 — Vocabularios y duplicados. **Siguiente ítem: LFT-102** (vocabulario de músculos) y **LFT-304** (llaves duplicadas).
+**Sprint actual:** Sprint 3 — Relaciones tipadas. **Siguiente ítem: LFT-105** (relaciones tipadas) — arranca el Sprint 3.
 
 **Pendiente de criterio de Andoni:** quedan 6 familias de casi-duplicados (D7); `Scap Pull-up` / `Scapular Pull-up` es la más clara.
-**Estado de lanzamiento:** no listo. 8 de 13 ítems MUST HAVE pendientes (LFT-100 ✅, LFT-302 ✅, LFT-114 ✅, LFT-115 ✅, LFT-101 ✅).
+**Estado de lanzamiento:** no listo. 7 de 13 ítems MUST HAVE pendientes. Completados: LFT-100, LFT-302, LFT-114, LFT-115, LFT-101, LFT-102, LFT-116, LFT-117, LFT-304 y la mitad de LFT-103.

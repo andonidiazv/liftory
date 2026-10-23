@@ -104,14 +104,11 @@ const MUSCLE_TO_MACRO: Record<string, MacroGroup> = {
 
   // Biceps
   biceps: "Biceps",
-  biceps_brachii: "Biceps",
   brachialis: "Biceps",
   brachioradialis: "Biceps",
 
   // Triceps
   triceps: "Triceps",
-  triceps_brachii: "Triceps",
-  triceps_brachii_long_head: "Triceps",
 
   // Antebrazos / grip
   forearms: "Antebrazos",
@@ -129,7 +126,6 @@ const MUSCLE_TO_MACRO: Record<string, MacroGroup> = {
   glutes: "Gluteos",
   gluteus_maximus: "Gluteos",
   gluteus_medius: "Gluteos",
-  gluteus_minimus: "Gluteos",
   glute_med: "Gluteos",
 
   // Pantorrillas
@@ -147,7 +143,6 @@ const MUSCLE_TO_MACRO: Record<string, MacroGroup> = {
   groin: "Cadera",
   gracilis: "Cadera",
   piriformis: "Cadera",
-  TFL: "Cadera",
 
   // Core
   core: "Core",
