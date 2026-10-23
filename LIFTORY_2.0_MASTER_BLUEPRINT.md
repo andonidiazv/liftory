@@ -1,6 +1,6 @@
 # LIFTORY 2.0 — MASTER PRODUCT & EXECUTION BLUEPRINT
 
-**Versión:** 1.2
+**Versión:** 1.3
 **Última actualización:** 2026-10-23
 **Estado:** Pendiente de aprobación del fundador
 **Fuente de verdad:** este archivo. Todo trabajo futuro referencia los IDs `LFT-xxx` de aquí.
@@ -202,7 +202,8 @@ Estado inicial: `pendiente` salvo donde se indique.
 | LFT-111 | Datos | `block_types` controlado | 57 etiquetas libres; 64 nombres de día | Catálogo de ~10 tipos con perfil por defecto | P1 | M | LFT-004 | Fundador + Ing. | Todo `block_label` mapea a un `block_type`; el nombre bonito queda como etiqueta | Pre-lanzamiento |
 | LFT-112 | Programación | Codificar las reglas duras | La metodología vive en la cabeza de Andoni | Onda W1–W6, orden de bloques, perfiles por bloque, 6+1 | P1 | L | LFT-111 | Ingeniería | Un test reproduce la curva de RPE de los 5 mesociclos existentes | Pre-lanzamiento |
 | LFT-113 | Programación | Resolver 3 anomalías de coach | M5 RPE 9.94 · M5 volumen plano · M3 baja en W3 | Decisión de entrenador, no corrección automática | P1 | S | — | Fundador | Cada una confirmada como intencional o corregida | Pre-lanzamiento |
-| LFT-114 | Datos | Unificar `status` / `is_selectable` | 4 mesos `draft` pero seleccionables | Una sola fuente de verdad | **P0** | S | — | Ingeniería | Imposible exponer un mesociclo no aprobado | Pre-lanzamiento |
+| LFT-114 | Datos | Unificar `status` / `is_selectable` | 4 mesos `draft` pero seleccionables | Separar los dos conceptos y corregir etiquetas viejas | **P0** | S | — | Ingeniería | ✅ **COMPLETADO 2026-10-23.** Los 8 mesociclos verificados completos; M2–M5 pasados a `completed`; restricción `CHECK` impide que un draft sea seleccionable | Pre-lanzamiento |
+| LFT-115 | Producto | Ciclo `live` vencido entrega calendario en el pasado | Los 4 programas apuntaban a un ciclo terminado hace 180 días | `assignProgram` ignora el ciclo si ya terminó; el onboarding deja de ofrecerlo por defecto | **P0** | S | — | Ingeniería | ✅ **COMPLETADO 2026-10-23.** Hallado al ejecutar LFT-114, no estaba en el plan | Pre-lanzamiento |
 
 ### Fase 2 — Producto y UX
 
@@ -749,6 +750,8 @@ mientras lo construimos.
 | 2026-10-23 | Punto de regreso v1.0 establecido | Tag `v1.0-pre-2.0` + snapshot de 47,405 filas, restauración probada end-to-end |
 | 2026-10-23 | LFT-100 ejecutado y aprobado por Andoni | Plantillas cerradas a usuarios autenticados. Gating por suscripción queda para LFT-301 |
 | 2026-10-23 | LFT-302 cambió de enfoque | No se desrastrea `.env`: las 4 `VITE_*` ya viajan públicas en el bundle, así que tenerlas en git no filtra nada y quitarlas podía romper el build de Vercel. Se separó sólo el secreto a `.env.local` |
+| 2026-10-23 | LFT-114 · premisa descartada | "4 mesociclos sin terminar expuestos" era falso: los 8 están completos (36 sesiones, 6 descansos, 0 huecos). El `draft` era etiqueta vieja. Su daño real era bloquear `handleNewCycle` en el admin |
+| 2026-10-23 | LFT-115 añadido y resuelto | El ciclo `live` llevaba 180 días vencido en los 4 programas. No se cambió el `status` de los `live`: assignProgram lo usa para decidir cuántos workouts copiar, y tocarlo era un cambio de comportamiento no acordado |
 
 ## 17 · CHANGE LOG
 
@@ -757,6 +760,7 @@ mientras lo construimos.
 | 2026-10-22 | 1.0 | Consolidación de la auditoría de producto y la capa de inteligencia |
 | 2026-10-23 | 1.1 | Red de seguridad verificada (snapshot + restore probados). LFT-100 completado. |
 | 2026-10-23 | 1.2 | LFT-302 completado. Se descartó `git rm --cached .env`: habría arriesgado el build de Vercel sin necesidad. |
+| 2026-10-23 | 1.3 | LFT-114 completado. Su premisa era falsa (nada estaba a medio construir) pero destapó LFT-115, un P0 que no estaba en el plan. |
 
 ## 18 · COMPLETADO EN ESTA SESIÓN
 
@@ -764,6 +768,8 @@ mientras lo construimos.
 |---|---|
 | **LFT-100** · Plantillas cerradas a anónimos | `20261023110000_lft100_close_template_rls.sql` |
 | **LFT-302** · Secretos fuera del archivo rastreado | `.env.local` + `scripts/_lib-env.mjs` |
+| **LFT-114** · Etiquetas de mesociclo corregidas + guardia | `20261023120000_lft114_mesocycle_status.sql` |
+| **LFT-115** · Ciclo vencido ya no agenda en el pasado | `assignProgram.ts`, `Onboarding.tsx` |
 | `rls_report()` + `scripts/rls-check.mjs` para auditar políticas reales | migración + script |
 | Respaldo y restauración verificados | `scripts/snapshot.mjs`, `scripts/restore.mjs` |
 | `start_mesocycle` arranca hoy, no "el próximo lunes" | `20261019180000_start_mesocycle_today.sql` |
@@ -783,5 +789,5 @@ mientras lo construimos.
 | Visibilidad del repo desconocida | D9 | Fundador |
 | No se sabe qué usuarios son de prueba | R9, métricas base | Fundador |
 
-**Próximo sprint:** Sprint 1 — Tapar los agujeros y decidir. **Siguiente ítem: LFT-114** (unificar `status` / `is_selectable`).
-**Estado de lanzamiento:** no listo. 10 de 12 ítems MUST HAVE pendientes (LFT-100 ✅, LFT-302 ✅).
+**Próximo sprint:** Sprint 1 — Tapar los agujeros y decidir. **Siguiente ítem: LFT-005 / D5** (precio) o LFT-001 / D1 (modelo de programa) — ambos esperan decisión de Andoni.
+**Estado de lanzamiento:** no listo. 9 de 13 ítems MUST HAVE pendientes (LFT-100 ✅, LFT-302 ✅, LFT-114 ✅, LFT-115 ✅).

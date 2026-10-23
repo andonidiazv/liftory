@@ -51,15 +51,24 @@ export async function assignProgram(
   // 3. Fetch the live mesocycle for this program (if any)
   const { data: mesocycle } = await supabase
     .from("mesocycles")
-    .select("id, cycle_start_date")
+    .select("id, cycle_start_date, cycle_end_date")
     .eq("template_program_id", template.id)
     .eq("status", "live")
     .single();
 
+  // Un ciclo marcado "live" puede llevar meses vencido: el status se cambia a
+  // mano desde el admin y nadie lo cierra cuando termina. El 2026-10-23 los
+  // cuatro programas seguían apuntando a un ciclo que acabó 180 días antes,
+  // así que alguien que se registrara hoy y eligiera "entrar con el grupo"
+  // recibía un calendario entero en el pasado: abría la app y no tenía nada
+  // que hacer. Si el ciclo ya terminó, se ignora y se arranca desde este lunes.
+  const hoy = new Date().toISOString().split("T")[0];
+  const cicloVencido = !!mesocycle?.cycle_end_date && mesocycle.cycle_end_date < hoy;
+
   // 4. Determine the start date for the user's workouts
   let startDate: Date;
 
-  if (mode === "live" && mesocycle) {
+  if (mode === "live" && mesocycle && !cicloVencido) {
     // GO LIVE: use the mesocycle's cycle_start_date
     startDate = new Date(mesocycle.cycle_start_date + "T00:00:00");
   } else {

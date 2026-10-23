@@ -669,8 +669,12 @@ export default function Onboarding() {
   /* ════════════ STEP 8: LIVE vs S1 CHOICE ════════════ */
   if (step === 8) {
     const showRecommendWait = mesocycleInfo && mesocycleInfo.weeksLeft <= 0;
+    // Si el ciclo del grupo ya terminó, "entrar con el grupo" entrega un
+    // calendario en el pasado. Se deja visible para no cambiar la pantalla,
+    // pero deja de ser la opción por defecto: elegirla arranca desde S1.
+    const cicloTerminado = !!showRecommendWait;
     const handleJoinChoice = (mode: "live" | "fresh") => {
-      setJoinMode(mode);
+      setJoinMode(cicloTerminado ? "fresh" : mode);
       if (user) { setStep(10); } else { setStep(9); }
     };
 
