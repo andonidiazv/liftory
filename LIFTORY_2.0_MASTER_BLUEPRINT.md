@@ -1,6 +1,6 @@
 # LIFTORY 2.0 — MASTER PRODUCT & EXECUTION BLUEPRINT
 
-**Versión:** 1.5
+**Versión:** 1.6
 **Última actualización:** 2026-10-23
 **Estado:** En ejecución · Sprint 2
 **Fuente de verdad:** este archivo. Todo trabajo futuro referencia los IDs `LFT-xxx` de aquí.
@@ -191,6 +191,8 @@ Estado inicial: `pendiente` salvo donde se indique.
 | LFT-100 | Seguridad | Cerrar RLS de plantillas | Anónimo lee 336 workouts y 9,014 sets | Política que exija sesión autenticada | **P0** | S | — | Ingeniería | ✅ **COMPLETADO 2026-10-23.** Anónimo ve 0 filas en 15 tablas; Home, Programa y sesión verificados sin errores | Pre-lanzamiento |
 | LFT-101 | Datos | Vocabulario de equipo canónico | 59 valores libres con sinónimos | Tabla `equipment` + `equipment_alias`; migrar los 474 | **P0** | M | LFT-004 | Ingeniería | ✅ **COMPLETADO 2026-10-23.** 59 → 46 códigos, 0 fuera del catálogo, trigger que lo impide, admin lee de la tabla. `gym_only` deja listo el filtro de casa: 355 de 474 ejercicios se pueden hacer sin gimnasio | Pre-lanzamiento |
 | LFT-102 | Datos | Vocabulario de músculos | 103 valores libres; 42 sin mapear | Tabla `muscles` + `muscle_alias` | P1 | M | LFT-004 | Ingeniería | 100% de `primary_muscles` mapea a código canónico | Pre-lanzamiento |
+| LFT-116 | Datos | Revisar el nivel de los 474 ejercicios | `all_levels` se usaba al azar; estiramientos y CARs marcados como principiante | Rúbrica explícita + reclasificación | P1 | M | — | Fundador + Ing. | ✅ **COMPLETADO 2026-10-23.** 94 ejercicios reclasificados; `all_levels` 42 → 122; ninguna cadena de regresión rota (26 antes, 26 después) | Pre-lanzamiento |
+| LFT-117 | Datos | Equipo que contradice el nombre | 6 fichas decían "sin equipo" siendo imposibles sin él | Corregir | P1 | S | LFT-101 | Ingeniería | ✅ **COMPLETADO 2026-10-23.** Muscle Up y Chin-up ya no aparecen como entrenables en casa | Pre-lanzamiento |
 | LFT-103 | Datos | Resolver 7 duplicados exactos | Mismo ejercicio dos veces | Marcar canónico + `merged_into`; nunca borrar | **P0** | M | LFT-101 | Fundador + Ing. | 7 grupos resueltos; `workout_sets` histórico intacto | Pre-lanzamiento |
 | LFT-104 | Datos | Revisar 8 familias dudosas | ¿Variantes o duplicados? | Revisión de coach, una por una | P1 | M | LFT-103 | Fundador | Cada familia marcada como variante legítima o fusionada | Pre-lanzamiento |
 | LFT-105 | Datos | Tabla `exercise_relations` tipada | 0 progresiones expresables | Nueva tabla con `relation_type`, `requires_review`, `rationale`; migrar las 168 | **P0** | M | LFT-004 | Ingeniería | Se puede insertar y leer una progresión; las 168 migradas con tipo correcto | Pre-lanzamiento |
@@ -775,6 +777,7 @@ mientras lo construimos.
 | 2026-10-23 | 1.3 | LFT-114 completado. Su premisa era falsa (nada estaba a medio construir) pero destapó LFT-115, un P0 que no estaba en el plan. |
 | 2026-10-23 | 1.4 | D1 y D3 decididas. Sprint 1 cerrado. Arranca Sprint 2. |
 | 2026-10-23 | 1.5 | LFT-101 completado. El admin deja de tener su propia lista de equipo. |
+| 2026-10-23 | 1.6 | LFT-116 y LFT-117 completados a petición de Andoni (revisión de nivel de los 474). |
 
 ## 18 · COMPLETADO EN ESTA SESIÓN
 
@@ -785,6 +788,8 @@ mientras lo construimos.
 | **LFT-114** · Etiquetas de mesociclo corregidas + guardia | `20261023120000_lft114_mesocycle_status.sql` |
 | **LFT-115** · Ciclo vencido ya no agenda en el pasado | `assignProgram.ts`, `Onboarding.tsx` |
 | **LFT-101** · Vocabulario de equipo canónico, 59 → 46 | `20261023130000_lft101_equipment_vocabulary.sql` |
+| **LFT-116** · Nivel revisado en los 474, con rúbrica escrita | `scripts/review-difficulty.mjs` |
+| **LFT-117** · Seis fichas con equipo imposible, corregidas | base de datos |
 | `rls_report()` + `scripts/rls-check.mjs` para auditar políticas reales | migración + script |
 | Respaldo y restauración verificados | `scripts/snapshot.mjs`, `scripts/restore.mjs` |
 | `start_mesocycle` arranca hoy, no "el próximo lunes" | `20261019180000_start_mesocycle_today.sql` |
@@ -806,4 +811,6 @@ mientras lo construimos.
 | No se sabe qué usuarios son de prueba | R9, métricas base | Fundador |
 
 **Sprint actual:** Sprint 2 — Vocabularios y duplicados. **Siguiente ítem: LFT-102** (vocabulario de músculos) y **LFT-304** (llaves duplicadas).
+
+**Pendiente de criterio de Andoni:** las 8 familias de casi-duplicados (D7) y `Bodyweight Skull Crusher`, cuya ficha pide mancuerna.
 **Estado de lanzamiento:** no listo. 8 de 13 ítems MUST HAVE pendientes (LFT-100 ✅, LFT-302 ✅, LFT-114 ✅, LFT-115 ✅, LFT-101 ✅).
