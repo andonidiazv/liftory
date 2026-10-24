@@ -1,6 +1,6 @@
 # LIFTORY 2.0 — MASTER PRODUCT & EXECUTION BLUEPRINT
 
-**Versión:** 1.9
+**Versión:** 2.0
 **Última actualización:** 2026-10-23
 **Estado:** En ejecución · Sprint 2
 **Fuente de verdad:** este archivo. Todo trabajo futuro referencia los IDs `LFT-xxx` de aquí.
@@ -196,7 +196,8 @@ Estado inicial: `pendiente` salvo donde se indique.
 | LFT-103 | Datos | Resolver 7 duplicados exactos | Mismo ejercicio dos veces | Marcar canónico + `merged_into`; nunca borrar | **P0** | M | LFT-101 | Fundador + Ing. | 7 grupos resueltos; `workout_sets` histórico intacto | Pre-lanzamiento |
 | LFT-104 | Datos | Revisar 8 familias dudosas | ¿Variantes o duplicados? | Revisión de coach, una por una | P1 | M | LFT-103 | Fundador | Cada familia marcada como variante legítima o fusionada | Pre-lanzamiento |
 | LFT-105 | Datos | Relaciones tipadas | 0 progresiones expresables | `relation_type` + `requires_review` + `rationale` sobre la tabla existente; generar las inversas | **P0** | M | LFT-004 | Ingeniería | ✅ **COMPLETADO 2026-10-23.** 168 → 289 filas: 121 regresiones, **121 progresiones** (antes 0), 44 cambios de equipo, 3 equivalentes. Cero contradicciones con los niveles | Pre-lanzamiento |
-| LFT-106 | Datos | Poblar `movement_plane` | 27% de relleno; filtro clave | Completar los 346 en uso | **P0** | M | LFT-101 | Fundador + Ing. | 100% de los ejercicios programados con plano | Pre-lanzamiento |
+| LFT-106 | Datos | Poblar `movement_plane` | ~~27% de relleno~~ **premisa falsa** | — | ~~P0~~ | S | — | — | ✅ **CERRADO 2026-10-23 sin trabajo real.** El campo sólo aplica a push/pull por diseño y ya estaba al **97%** (173 de 179). El "27%" era medir sobre los 474, incluyendo squat, hinge y core, donde NULL es la respuesta correcta | — |
+| LFT-118 | Datos | Familia de movimiento para filtrar candidatos | El patrón+músculo propone basura: "Leg Extension" como alternativa a la sentadilla con barra | Usar el núcleo del nombre (ya implementado en `scripts/curate-swaps.mjs`) en vez del plano | **P0** | M | — | Ingeniería | Un candidato propuesto para Barbell Back Squat es reconociblemente una sentadilla | Pre-lanzamiento |
 | LFT-107 | Datos | 98 regresiones a principiante | Un principiante no puede entrenar | Generar candidatos por familia; aprobar en lote | **P0** | XL | LFT-105, LFT-106 | Fundador + Ing. | Todo ejercicio intermedio en uso tiene ≥1 ruta a principiante aprobada | Pre-lanzamiento |
 | LFT-108 | Datos | 72 alternativas sin gimnasio | No se puede entrenar en casa | Mismo mecanismo que LFT-107, eje equipo | **P0** | XL | LFT-105, LFT-101 | Fundador + Ing. | Todo ejercicio con dependencia de gym tiene alternativa aprobada, o queda marcado como irreducible | Pre-lanzamiento |
 | LFT-109 | Datos | Campos nuevos del ejercicio | Falta `technical_demand`, `loading_type`, `suitable_for` | Migración aditiva, sin tocar IDs | P1 | M | LFT-004 | Ingeniería | Columnas creadas; poblado ≥90% en los 346 en uso | Pre-lanzamiento |
@@ -795,6 +796,7 @@ mientras lo construimos.
 | 2026-10-23 | LFT-302 cambió de enfoque | No se desrastrea `.env`: las 4 `VITE_*` ya viajan públicas en el bundle, así que tenerlas en git no filtra nada y quitarlas podía romper el build de Vercel. Se separó sólo el secreto a `.env.local` |
 | 2026-10-23 | LFT-114 · premisa descartada | "4 mesociclos sin terminar expuestos" era falso: los 8 están completos (36 sesiones, 6 descansos, 0 huecos). El `draft` era etiqueta vieja. Su daño real era bloquear `handleNewCycle` en el admin |
 | 2026-10-23 | **D1 · Modelo C** | Un motor con tracks por objetivo. El género deja de decidir la selección de ejercicios; Build Him y Sculpt Her quedan como marca |
+| 2026-10-23 | LFT-106 · premisa descartada | "movement_plane al 27%" estaba mal medido: el campo tiene un CHECK que sólo admite vertical/horizontal y su comentario dice que NULL es correcto en squat, hinge, core y movilidad. Sobre push/pull — su alcance real — ya estaba al 97%. Al intentar "poblarlo" se escribió plano en 8 ejercicios de pierna (la regla capturó "Leg Curl" por la palabra curl); revertidos el mismo día |
 | 2026-10-23 | LFT-105 · tabla nueva descartada | El blueprint (§7) proponía crear `exercise_relations`. Se evolucionó la tabla existente: la leen 8 puntos del código, dos con joins que citan el nombre de la llave foránea. Una tabla paralela dejaría dos fuentes de verdad — el mismo error que causó el desastre del vocabulario de equipo. Queda deuda cosmética: el nombre `exercise_substitutions` ya no describe lo que guarda |
 | 2026-10-23 | **D3 · Las cuatro dimensiones** | Andoni eligió nivel + equipo + días + duración, por encima de la recomendación de limitarlo a dos. Se construye en dos tiempos para no retrasar el lanzamiento. Abre D10 |
 | 2026-10-23 | LFT-115 añadido y resuelto | El ciclo `live` llevaba 180 días vencido en los 4 programas. No se cambió el `status` de los `live`: assignProgram lo usa para decidir cuántos workouts copiar, y tocarlo era un cambio de comportamiento no acordado |
@@ -813,6 +815,7 @@ mientras lo construimos.
 | 2026-10-23 | 1.7 | Convención de nombres fijada (§6.5). Primeras dos fusiones de duplicados. |
 | 2026-10-23 | 1.8 | LFT-102 y LFT-304 completados. Sprint 2 cerrado salvo las familias dudosas (D7). |
 | 2026-10-23 | 1.9 | LFT-105 completado. El selector de ejercicios ya sabe subir, no sólo bajar. |
+| 2026-10-23 | 2.0 | LFT-106 cerrado: su premisa era falsa. Nace LFT-118, que es el arreglo de verdad. |
 
 ## 18 · COMPLETADO EN ESTA SESIÓN
 
@@ -850,7 +853,7 @@ mientras lo construimos.
 | Visibilidad del repo desconocida | D9 | Fundador |
 | No se sabe qué usuarios son de prueba | R9, métricas base | Fundador |
 
-**Sprint actual:** Sprint 3 — Relaciones tipadas. **Siguiente ítem: LFT-106** (poblar `movement_plane` en los 346 en uso).
+**Sprint actual:** Sprint 3 — Relaciones tipadas. **Siguiente ítem: LFT-118** (familia de movimiento), que debe ir antes de LFT-107 y LFT-108: sin él los candidatos salen con ruido.
 
 **Pendiente de criterio de Andoni:** quedan 6 familias de casi-duplicados (D7); `Scap Pull-up` / `Scapular Pull-up` es la más clara.
 **Estado de lanzamiento:** no listo. 6 de 13 ítems MUST HAVE pendientes. Completados: LFT-100, LFT-302, LFT-114, LFT-115, LFT-101, LFT-102, LFT-116, LFT-117, LFT-304 y la mitad de LFT-103.
