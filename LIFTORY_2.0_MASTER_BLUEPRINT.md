@@ -1,6 +1,6 @@
 # LIFTORY 2.0 — MASTER PRODUCT & EXECUTION BLUEPRINT
 
-**Versión:** 2.1
+**Versión:** 2.2
 **Última actualización:** 2026-10-23
 **Estado:** En ejecución · Sprint 2
 **Fuente de verdad:** este archivo. Todo trabajo futuro referencia los IDs `LFT-xxx` de aquí.
@@ -199,7 +199,7 @@ Estado inicial: `pendiente` salvo donde se indique.
 | LFT-106 | Datos | Poblar `movement_plane` | ~~27% de relleno~~ **premisa falsa** | — | ~~P0~~ | S | — | — | ✅ **CERRADO 2026-10-23 sin trabajo real.** El campo sólo aplica a push/pull por diseño y ya estaba al **97%** (173 de 179). El "27%" era medir sobre los 474, incluyendo squat, hinge y core, donde NULL es la respuesta correcta | — |
 | LFT-119 | Datos | Auditoría de coherencia interna de las 467 fichas | Nadie había verificado que los campos no se contradigan entre sí | `scripts/auditar-fichas.mjs` | P1 | M | — | Ingeniería | ✅ **COMPLETADO 2026-10-23.** 467 auditadas. Sólo 3 errores reales: `none`+`wall` juntos, un skullcrusher mal nombrado y un thumbnail faltante. La coherencia interna está sana | Pre-lanzamiento |
 | LFT-120 | Datos | Verificación externa ficha por ficha | La coherencia interna no detecta si la descripción corresponde al movimiento real | Contrastar cada ficha contra fuentes de referencia, por tandas priorizadas por riesgo | P1 | XL | LFT-119 | Fundador + Ing. | Cada ficha contrastada y las divergencias resueltas por criterio de coach | Pre-lanzamiento |
-| LFT-118 | Datos | Familia de movimiento para filtrar candidatos | El patrón+músculo propone basura: "Leg Extension" como alternativa a la sentadilla con barra | Usar el núcleo del nombre (ya implementado en `scripts/curate-swaps.mjs`) en vez del plano | **P0** | M | — | Ingeniería | Un candidato propuesto para Barbell Back Squat es reconociblemente una sentadilla | Pre-lanzamiento |
+| LFT-118 | Datos | Grupo de movimiento para filtrar candidatos | El patrón+músculo propone basura: "Leg Extension" como alternativa a la sentadilla con barra | Campo `movement_group` con 21 valores, entre el patrón (8, muy grueso) y el nombre | **P0** | M | — | Ingeniería | ✅ **COMPLETADO 2026-10-24.** 467 clasificados, 0 sin grupo. El embudo de candidatos se estrecha 77-89% y lo que queda es reconociblemente el mismo movimiento | Pre-lanzamiento |
 | LFT-107 | Datos | 98 regresiones a principiante | Un principiante no puede entrenar | Generar candidatos por familia; aprobar en lote | **P0** | XL | LFT-105, LFT-106 | Fundador + Ing. | Todo ejercicio intermedio en uso tiene ≥1 ruta a principiante aprobada | Pre-lanzamiento |
 | LFT-108 | Datos | 72 alternativas sin gimnasio | No se puede entrenar en casa | Mismo mecanismo que LFT-107, eje equipo | **P0** | XL | LFT-105, LFT-101 | Fundador + Ing. | Todo ejercicio con dependencia de gym tiene alternativa aprobada, o queda marcado como irreducible | Pre-lanzamiento |
 | LFT-109 | Datos | Campos nuevos del ejercicio | Falta `technical_demand`, `loading_type`, `suitable_for` | Migración aditiva, sin tocar IDs | P1 | M | LFT-004 | Ingeniería | Columnas creadas; poblado ≥90% en los 346 en uso | Pre-lanzamiento |
@@ -831,6 +831,7 @@ mientras lo construimos.
 | 2026-10-23 | 1.9 | LFT-105 completado. El selector de ejercicios ya sabe subir, no sólo bajar. |
 | 2026-10-23 | 2.0 | LFT-106 cerrado: su premisa era falsa. Nace LFT-118, que es el arreglo de verdad. |
 | 2026-10-23 | 2.1 | LFT-119 completado. Nace LFT-120: verificación externa por tandas. |
+| 2026-10-24 | 2.2 | LFT-118 completado. El generador de candidatos ya propone cosas sensatas. |
 
 ## 18 · COMPLETADO EN ESTA SESIÓN
 
@@ -849,6 +850,7 @@ mientras lo construimos.
 | **LFT-105** · Relaciones tipadas + 121 progresiones generadas | `20261023160000_lft105_typed_relations.sql` |
 | **LFT-105** · El selector etiqueta la dirección y ofrece el escalón más cercano | `SwapBottomSheet.tsx` |
 | **LFT-119** · Auditoría de coherencia de las 467 fichas | `scripts/auditar-fichas.mjs` |
+| **LFT-118** · `movement_group` + generador de candidatos | `20261024100000_lft118_movement_group.sql`, `scripts/proponer-relaciones.mjs` |
 | `rls_report()` + `scripts/rls-check.mjs` para auditar políticas reales | migración + script |
 | Respaldo y restauración verificados | `scripts/snapshot.mjs`, `scripts/restore.mjs` |
 | `start_mesocycle` arranca hoy, no "el próximo lunes" | `20261019180000_start_mesocycle_today.sql` |
@@ -869,7 +871,7 @@ mientras lo construimos.
 | Visibilidad del repo desconocida | D9 | Fundador |
 | No se sabe qué usuarios son de prueba | R9, métricas base | Fundador |
 
-**Sprint actual:** Sprint 3 — Relaciones tipadas. **Siguiente ítem: LFT-120** (verificación externa por tandas) y **LFT-118** (familia de movimiento).
+**Sprint actual:** Sprint 3 — Relaciones tipadas. **Siguiente ítem: LFT-107 y LFT-108** (llenar las 169 relaciones faltantes), ahora que el generador propone candidatos sensatos. Después **LFT-120** (verificación externa por tandas).
 
 **Pendiente de criterio de Andoni:** quedan 6 familias de casi-duplicados (D7); `Scap Pull-up` / `Scapular Pull-up` es la más clara.
 **Estado de lanzamiento:** no listo. 6 de 13 ítems MUST HAVE pendientes. Completados: LFT-100, LFT-302, LFT-114, LFT-115, LFT-101, LFT-102, LFT-116, LFT-117, LFT-304 y la mitad de LFT-103.
