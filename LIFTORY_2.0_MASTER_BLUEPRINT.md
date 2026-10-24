@@ -1,6 +1,6 @@
 # LIFTORY 2.0 — MASTER PRODUCT & EXECUTION BLUEPRINT
 
-**Versión:** 2.3
+**Versión:** 2.4
 **Última actualización:** 2026-10-23
 **Estado:** En ejecución · Sprint 2
 **Fuente de verdad:** este archivo. Todo trabajo futuro referencia los IDs `LFT-xxx` de aquí.
@@ -200,7 +200,7 @@ Estado inicial: `pendiente` salvo donde se indique.
 | LFT-119 | Datos | Auditoría de coherencia interna de las 467 fichas | Nadie había verificado que los campos no se contradigan entre sí | `scripts/auditar-fichas.mjs` | P1 | M | — | Ingeniería | ✅ **COMPLETADO 2026-10-23.** 467 auditadas. Sólo 3 errores reales: `none`+`wall` juntos, un skullcrusher mal nombrado y un thumbnail faltante. La coherencia interna está sana | Pre-lanzamiento |
 | LFT-120 | Datos | Verificación externa ficha por ficha | La coherencia interna no detecta si la descripción corresponde al movimiento real | Contrastar cada ficha contra fuentes de referencia, por tandas priorizadas por riesgo | P1 | XL | LFT-119 | Fundador + Ing. | Cada ficha contrastada y las divergencias resueltas por criterio de coach | Pre-lanzamiento |
 | LFT-118 | Datos | Grupo de movimiento para filtrar candidatos | El patrón+músculo propone basura: "Leg Extension" como alternativa a la sentadilla con barra | Campo `movement_group` con 21 valores, entre el patrón (8, muy grueso) y el nombre | **P0** | M | — | Ingeniería | ✅ **COMPLETADO 2026-10-24.** 467 clasificados, 0 sin grupo. El embudo de candidatos se estrecha 77-89% y lo que queda es reconociblemente el mismo movimiento | Pre-lanzamiento |
-| LFT-107 | Datos | 98 regresiones a principiante | Un principiante no puede entrenar | Generar candidatos por familia; aprobar en lote | **P0** | XL | LFT-105, LFT-106 | Fundador + Ing. | Todo ejercicio intermedio en uso tiene ≥1 ruta a principiante aprobada | Pre-lanzamiento |
+| LFT-107 | Datos | Relaciones faltantes | Un principiante no puede entrenar | Generar sólo lo defendible sin criterio de coach; dejar hueco donde no | **P0** | XL | LFT-105, LFT-118 | Ingeniería | 🟡 **PARCIAL 2026-10-24.** 132 relaciones escritas, de 452 propuestas. 205 de 323 ejercicios tienen salida. Los 118 restantes requieren verificación caso por caso (LFT-120) | Pre-lanzamiento |
 | LFT-108 | Datos | 72 alternativas sin gimnasio | No se puede entrenar en casa | Mismo mecanismo que LFT-107, eje equipo | **P0** | XL | LFT-105, LFT-101 | Fundador + Ing. | Todo ejercicio con dependencia de gym tiene alternativa aprobada, o queda marcado como irreducible | Pre-lanzamiento |
 | LFT-109 | Datos | Campos nuevos del ejercicio | Falta `technical_demand`, `loading_type`, `suitable_for` | Migración aditiva, sin tocar IDs | P1 | M | LFT-004 | Ingeniería | Columnas creadas; poblado ≥90% en los 346 en uso | Pre-lanzamiento |
 | LFT-110 | Datos | Limpiar columnas muertas | `emotional_barrier_tag` 0%, `video_duration_seconds` 0% | Borrar la primera; poblar la segunda | P2 | S | — | Ingeniería | Sin columnas al 0% de relleno | Post-lanzamiento |
@@ -843,6 +843,7 @@ mientras lo construimos.
 | 2026-10-23 | 2.1 | LFT-119 completado. Nace LFT-120: verificación externa por tandas. |
 | 2026-10-24 | 2.2 | LFT-118 completado. El generador de candidatos ya propone cosas sensatas. |
 | 2026-10-24 | 2.3 | Seis comprobaciones cruzadas en el generador, a propuesta de Andoni. Validado contra fuentes. |
+| 2026-10-24 | 2.4 | 132 relaciones escritas tras revisar las 138 candidatas una por una. 3 duplicados más fusionados. |
 
 ## 18 · COMPLETADO EN ESTA SESIÓN
 
@@ -863,6 +864,8 @@ mientras lo construimos.
 | **LFT-119** · Auditoría de coherencia de las 467 fichas | `scripts/auditar-fichas.mjs` |
 | **LFT-118** · `movement_group` + generador de candidatos | `20261024100000_lft118_movement_group.sql`, `scripts/proponer-relaciones.mjs` |
 | **LFT-118b** · Seis comprobaciones cruzadas + validación web | `scripts/proponer-relaciones.mjs` |
+| **LFT-107 (parcial)** · 132 relaciones verificadas una por una | `scripts/generar-relaciones.mjs` |
+| **LFT-103** · 3 duplicados más fusionados (Box Jump, Preacher Curl, Pull-Apart) | base de datos |
 | `rls_report()` + `scripts/rls-check.mjs` para auditar políticas reales | migración + script |
 | Respaldo y restauración verificados | `scripts/snapshot.mjs`, `scripts/restore.mjs` |
 | `start_mesocycle` arranca hoy, no "el próximo lunes" | `20261019180000_start_mesocycle_today.sql` |
