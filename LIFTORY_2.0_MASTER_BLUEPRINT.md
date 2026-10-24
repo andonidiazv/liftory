@@ -1,6 +1,6 @@
 # LIFTORY 2.0 — MASTER PRODUCT & EXECUTION BLUEPRINT
 
-**Versión:** 2.2
+**Versión:** 2.3
 **Última actualización:** 2026-10-23
 **Estado:** En ejecución · Sprint 2
 **Fuente de verdad:** este archivo. Todo trabajo futuro referencia los IDs `LFT-xxx` de aquí.
@@ -605,6 +605,16 @@ Ladder ELITE ($44.99) que incluye coach 1:1. En México, Smart Fit cuesta $299�
 **Recomendación:** no bajar el precio; cerrar la brecha de valor con las fases 0–2.
 **Bloquea:** LFT-300, LFT-301.
 
+### D13 — La antirrotación cruza grupos · estado: `pendiente` · nace de LFT-118b
+Las fuentes listan el **acarreo a una mano** como alternativa válida al Pallof Press: un
+suitcase carry es antiflexión lateral, que es la misma cualidad. Pero `SA Farmer Hold` está
+en el grupo `acarreo` y el generador nunca lo propondrá para algo de `core_antirotacion`.
+
+El grupo funciona muy bien en sentadilla, bisagra, empuje y jalón, donde la forma define el
+ejercicio. En core la cualidad importa más que la forma, y ahí el filtro es demasiado rígido.
+Opciones: mover los acarreos a una mano a `core_antirotacion`, o permitir pares de grupos
+compatibles sólo para core. Decisión de coach.
+
 ### D12 — Russian Baby Maker: ¿qué movimiento es? · estado: `pendiente` · nace de LFT-120
 El nombre viene de Catalyst Athletics, donde es un estiramiento de **aductores e ingle**:
 pies más abiertos que la sentadilla, torso inclinado, codos presionando la cara interna de
@@ -832,6 +842,7 @@ mientras lo construimos.
 | 2026-10-23 | 2.0 | LFT-106 cerrado: su premisa era falsa. Nace LFT-118, que es el arreglo de verdad. |
 | 2026-10-23 | 2.1 | LFT-119 completado. Nace LFT-120: verificación externa por tandas. |
 | 2026-10-24 | 2.2 | LFT-118 completado. El generador de candidatos ya propone cosas sensatas. |
+| 2026-10-24 | 2.3 | Seis comprobaciones cruzadas en el generador, a propuesta de Andoni. Validado contra fuentes. |
 
 ## 18 · COMPLETADO EN ESTA SESIÓN
 
@@ -851,6 +862,7 @@ mientras lo construimos.
 | **LFT-105** · El selector etiqueta la dirección y ofrece el escalón más cercano | `SwapBottomSheet.tsx` |
 | **LFT-119** · Auditoría de coherencia de las 467 fichas | `scripts/auditar-fichas.mjs` |
 | **LFT-118** · `movement_group` + generador de candidatos | `20261024100000_lft118_movement_group.sql`, `scripts/proponer-relaciones.mjs` |
+| **LFT-118b** · Seis comprobaciones cruzadas + validación web | `scripts/proponer-relaciones.mjs` |
 | `rls_report()` + `scripts/rls-check.mjs` para auditar políticas reales | migración + script |
 | Respaldo y restauración verificados | `scripts/snapshot.mjs`, `scripts/restore.mjs` |
 | `start_mesocycle` arranca hoy, no "el próximo lunes" | `20261019180000_start_mesocycle_today.sql` |
@@ -871,7 +883,7 @@ mientras lo construimos.
 | Visibilidad del repo desconocida | D9 | Fundador |
 | No se sabe qué usuarios son de prueba | R9, métricas base | Fundador |
 
-**Sprint actual:** Sprint 3 — Relaciones tipadas. **Siguiente ítem: LFT-107 y LFT-108** (llenar las 169 relaciones faltantes), ahora que el generador propone candidatos sensatos. Después **LFT-120** (verificación externa por tandas).
+**Sprint actual:** Sprint 3 — Relaciones tipadas. **Siguiente ítem: LFT-107 y LFT-108** — generar las 452 relaciones propuestas a la cola de revisión. Después **LFT-120** (verificación externa por tandas).
 
 **Pendiente de criterio de Andoni:** quedan 6 familias de casi-duplicados (D7); `Scap Pull-up` / `Scapular Pull-up` es la más clara.
 **Estado de lanzamiento:** no listo. 6 de 13 ítems MUST HAVE pendientes. Completados: LFT-100, LFT-302, LFT-114, LFT-115, LFT-101, LFT-102, LFT-116, LFT-117, LFT-304 y la mitad de LFT-103.
