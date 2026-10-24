@@ -1,6 +1,6 @@
 # LIFTORY 2.0 — MASTER PRODUCT & EXECUTION BLUEPRINT
 
-**Versión:** 2.4
+**Versión:** 2.5
 **Última actualización:** 2026-10-23
 **Estado:** En ejecución · Sprint 2
 **Fuente de verdad:** este archivo. Todo trabajo futuro referencia los IDs `LFT-xxx` de aquí.
@@ -844,6 +844,7 @@ mientras lo construimos.
 | 2026-10-24 | 2.2 | LFT-118 completado. El generador de candidatos ya propone cosas sensatas. |
 | 2026-10-24 | 2.3 | Seis comprobaciones cruzadas en el generador, a propuesta de Andoni. Validado contra fuentes. |
 | 2026-10-24 | 2.4 | 132 relaciones escritas tras revisar las 138 candidatas una por una. 3 duplicados más fusionados. |
+| 2026-10-24 | 2.5 | Tandas 1-3 (empuje vertical, aislamiento de brazo/hombro, aislamiento de pierna): 120 relaciones más, verificadas contra fuentes. |
 
 ## 18 · COMPLETADO EN ESTA SESIÓN
 
@@ -865,6 +866,8 @@ mientras lo construimos.
 | **LFT-118** · `movement_group` + generador de candidatos | `20261024100000_lft118_movement_group.sql`, `scripts/proponer-relaciones.mjs` |
 | **LFT-118b** · Seis comprobaciones cruzadas + validación web | `scripts/proponer-relaciones.mjs` |
 | **LFT-107 (parcial)** · 132 relaciones verificadas una por una | `scripts/generar-relaciones.mjs` |
+| **LFT-120 tandas 1-3** · 120 relaciones más · 540 totales, 0 incoherencias | base de datos |
+| **LFT-103** · 2 duplicados más (Rear Delt Fly, Calf Raise on Leg Press) | base de datos |
 | **LFT-103** · 3 duplicados más fusionados (Box Jump, Preacher Curl, Pull-Apart) | base de datos |
 | `rls_report()` + `scripts/rls-check.mjs` para auditar políticas reales | migración + script |
 | Respaldo y restauración verificados | `scripts/snapshot.mjs`, `scripts/restore.mjs` |
