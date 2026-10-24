@@ -8,6 +8,28 @@ const GOLD = "#C4A24E";
 const GREEN_MUTE = "#7A8B5C";
 const SHEET_BG = "#15151A";
 
+/** Hacia dónde mueve cada opción. Desde LFT-105 el selector ya no muestra
+ *  sólo regresiones: también puede subir. Sin esta etiqueta el atleta no
+ *  distinguiría una cosa de la otra. */
+const direccionLabels: Record<string, { texto: string; color: string }> = {
+  regression:        { texto: "MÁS FÁCIL",  color: "#7A8B5C" },
+  progression:       { texto: "MÁS DIFÍCIL", color: "#C0392B" },
+  equipment_swap:    { texto: "OTRO EQUIPO", color: "#5B7B8A" },
+  equivalent:        { texto: "EQUIVALENTE", color: "#8A8A91" },
+  unilateral_variant:{ texto: "UNILATERAL",  color: "#5B7B8A" },
+};
+
+type FilaSustitucion = {
+  substitute_exercise_id: string;
+  priority: number;
+  relation_type: string | null;
+  exercises: {
+    id: string; name: string; name_es: string | null;
+    thumbnail_url: string | null; video_url: string | null;
+    difficulty: string | null; primary_muscles: string[] | null;
+  } | null;
+};
+
 const difficultyLabels: Record<string, string> = {
   beginner: "Principiante",
   intermediate: "Intermedio",
@@ -28,6 +50,7 @@ interface SubOption {
   thumbnail_url: string | null;
   video_url: string | null;
   difficulty: string;
+  relation_type?: string;
   primary_muscles: string[];
   priority: number;
 }
@@ -72,14 +95,25 @@ export default function SwapBottomSheet({
     setLoading(true);
 
     const fetchOptions = async () => {
-      const { data: subsData } = await supabase
-        .from("exercise_substitutions")
+      // El resultado se tipa a mano: la inferencia de Supabase se desborda
+      // ("Type instantiation is excessively deep") con un select que lleva
+      // join incrustado más tres filtros encadenados.
+      // `as never` corta la inferencia ANTES de encadenar: con el join
+      // incrustado más tres filtros, Supabase desborda el chequeo de tipos
+      // ("Type instantiation is excessively deep"). El resultado se tipa a
+      // mano con FilaSustitucion, así que no se pierde seguridad de tipos
+      // donde importa.
+      const tabla = supabase.from("exercise_substitutions") as never as {
+        select: (s: string) => any;
+      };
+      const { data: subsData } = (await tabla
         .select(
-          "substitute_exercise_id, priority, exercises!exercise_substitutions_substitute_exercise_id_fkey(id, name, name_es, thumbnail_url, video_url, difficulty, primary_muscles)"
+          "substitute_exercise_id, priority, relation_type, exercises!exercise_substitutions_substitute_exercise_id_fkey(id, name, name_es, thumbnail_url, video_url, difficulty, primary_muscles)"
         )
         .eq("exercise_id", lookupId)
+        .eq("requires_review", false)
         .order("priority")
-        .limit(3);
+        .limit(8)) as { data: FilaSustitucion[] | null };
 
       const subs: SubOption[] = (subsData || [])
         .map((d: any) => ({
@@ -91,6 +125,7 @@ export default function SwapBottomSheet({
           difficulty: d.exercises?.difficulty || "intermediate",
           primary_muscles: d.exercises?.primary_muscles || [],
           priority: d.priority,
+          relation_type: d.relation_type,
         }))
         .filter((o: SubOption) => o.id)
         .filter((o: SubOption) => o.id !== exerciseId);
@@ -116,7 +151,32 @@ export default function SwapBottomSheet({
         }
       }
 
-      setOptions(subs);
+      // Quien abre este panel casi siempre es porque el ejercicio no le sale,
+      // así que las salidas hacia abajo van primero. Las progresiones existen
+      // desde LFT-105 pero no deben desplazar a una regresión del top.
+      const peso: Record<string, number> = {
+        regression: 0, equipment_swap: 1, equivalent: 2,
+        unilateral_variant: 2, progression: 3,
+      };
+      const rango: Record<string, number> = {
+        all_levels: 1, beginner: 1, intermediate: 2, advanced: 3,
+      };
+      // Dentro de cada dirección, el escalón MÁS CERCANO primero. Sin esto, a
+      // alguien en Band-Assisted Pull-up se le ofrecía Muscle Up de entrada:
+      // tres escalones de golpe. Bajando se prefiere lo menos fácil posible;
+      // subiendo, lo menos difícil.
+      const cercania = (o: SubOption) => {
+        const r = rango[o.difficulty] ?? 2;
+        return o.relation_type === "progression" ? r : -r;
+      };
+      subs.sort((a, b) =>
+        (a.priority === 0 ? -1 : b.priority === 0 ? 1 : 0) ||
+        (peso[a.relation_type ?? "equivalent"] ?? 2) - (peso[b.relation_type ?? "equivalent"] ?? 2) ||
+        cercania(a) - cercania(b) ||
+        a.priority - b.priority
+      );
+
+      setOptions(subs.slice(0, 4));
       setLoading(false);
     };
 
@@ -417,6 +477,17 @@ export default function SwapBottomSheet({
                             >
                               {difficultyLabels[opt.difficulty] ?? opt.difficulty}
                             </span>
+                            {opt.priority !== 0 && opt.relation_type && direccionLabels[opt.relation_type] && (
+                              <span
+                                className="font-mono uppercase"
+                                style={{
+                                  fontSize: 8, letterSpacing: "1.5px",
+                                  color: direccionLabels[opt.relation_type].color,
+                                }}
+                              >
+                                {direccionLabels[opt.relation_type].texto}
+                              </span>
+                            )}
                             {opt.primary_muscles.slice(0, 3).map((m) => (
                               <span
                                 key={m}
