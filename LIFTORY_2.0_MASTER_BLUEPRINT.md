@@ -1,6 +1,6 @@
 # LIFTORY 2.0 — MASTER PRODUCT & EXECUTION BLUEPRINT
 
-**Versión:** 2.0
+**Versión:** 2.1
 **Última actualización:** 2026-10-23
 **Estado:** En ejecución · Sprint 2
 **Fuente de verdad:** este archivo. Todo trabajo futuro referencia los IDs `LFT-xxx` de aquí.
@@ -197,6 +197,8 @@ Estado inicial: `pendiente` salvo donde se indique.
 | LFT-104 | Datos | Revisar 8 familias dudosas | ¿Variantes o duplicados? | Revisión de coach, una por una | P1 | M | LFT-103 | Fundador | Cada familia marcada como variante legítima o fusionada | Pre-lanzamiento |
 | LFT-105 | Datos | Relaciones tipadas | 0 progresiones expresables | `relation_type` + `requires_review` + `rationale` sobre la tabla existente; generar las inversas | **P0** | M | LFT-004 | Ingeniería | ✅ **COMPLETADO 2026-10-23.** 168 → 289 filas: 121 regresiones, **121 progresiones** (antes 0), 44 cambios de equipo, 3 equivalentes. Cero contradicciones con los niveles | Pre-lanzamiento |
 | LFT-106 | Datos | Poblar `movement_plane` | ~~27% de relleno~~ **premisa falsa** | — | ~~P0~~ | S | — | — | ✅ **CERRADO 2026-10-23 sin trabajo real.** El campo sólo aplica a push/pull por diseño y ya estaba al **97%** (173 de 179). El "27%" era medir sobre los 474, incluyendo squat, hinge y core, donde NULL es la respuesta correcta | — |
+| LFT-119 | Datos | Auditoría de coherencia interna de las 467 fichas | Nadie había verificado que los campos no se contradigan entre sí | `scripts/auditar-fichas.mjs` | P1 | M | — | Ingeniería | ✅ **COMPLETADO 2026-10-23.** 467 auditadas. Sólo 3 errores reales: `none`+`wall` juntos, un skullcrusher mal nombrado y un thumbnail faltante. La coherencia interna está sana | Pre-lanzamiento |
+| LFT-120 | Datos | Verificación externa ficha por ficha | La coherencia interna no detecta si la descripción corresponde al movimiento real | Contrastar cada ficha contra fuentes de referencia, por tandas priorizadas por riesgo | P1 | XL | LFT-119 | Fundador + Ing. | Cada ficha contrastada y las divergencias resueltas por criterio de coach | Pre-lanzamiento |
 | LFT-118 | Datos | Familia de movimiento para filtrar candidatos | El patrón+músculo propone basura: "Leg Extension" como alternativa a la sentadilla con barra | Usar el núcleo del nombre (ya implementado en `scripts/curate-swaps.mjs`) en vez del plano | **P0** | M | — | Ingeniería | Un candidato propuesto para Barbell Back Squat es reconociblemente una sentadilla | Pre-lanzamiento |
 | LFT-107 | Datos | 98 regresiones a principiante | Un principiante no puede entrenar | Generar candidatos por familia; aprobar en lote | **P0** | XL | LFT-105, LFT-106 | Fundador + Ing. | Todo ejercicio intermedio en uso tiene ≥1 ruta a principiante aprobada | Pre-lanzamiento |
 | LFT-108 | Datos | 72 alternativas sin gimnasio | No se puede entrenar en casa | Mismo mecanismo que LFT-107, eje equipo | **P0** | XL | LFT-105, LFT-101 | Fundador + Ing. | Todo ejercicio con dependencia de gym tiene alternativa aprobada, o queda marcado como irreducible | Pre-lanzamiento |
@@ -603,6 +605,18 @@ Ladder ELITE ($44.99) que incluye coach 1:1. En México, Smart Fit cuesta $299�
 **Recomendación:** no bajar el precio; cerrar la brecha de valor con las fases 0–2.
 **Bloquea:** LFT-300, LFT-301.
 
+### D12 — Russian Baby Maker: ¿qué movimiento es? · estado: `pendiente` · nace de LFT-120
+El nombre viene de Catalyst Athletics, donde es un estiramiento de **aductores e ingle**:
+pies más abiertos que la sentadilla, torso inclinado, codos presionando la cara interna de
+los muslos, sentadilla **parcial**, y advierte explícitamente de no hundirse en sentadilla
+profunda. La ficha de LIFTORY describe otra cosa: sentadilla profunda → extender rodillas →
+estiramiento de isquios, con `primary_muscles = hamstrings, hip_flexors`.
+
+Las dos versiones existen en el mundo real. Pero la ficha actual se solapa con
+`Elephant Walk Stretch` (isquios, pantorrillas) y no toca aductores, que es el punto del
+original. Hay que decidir: o se corrige la descripción al original y se añade `adductors`,
+o se renombra para que el nombre no prometa lo que no hace.
+
 ### D10 — Qué se recorta al entrenar menos días o menos tiempo · estado: `pendiente` · nace de D3
 Si alguien entrena 3 días, ¿qué sesiones sobreviven y cuáles se fusionan? Si tiene 45 minutos,
 ¿qué bloque se sacrifica primero? Hoy existe `short_on_time_note` en los workouts, así que hay
@@ -816,6 +830,7 @@ mientras lo construimos.
 | 2026-10-23 | 1.8 | LFT-102 y LFT-304 completados. Sprint 2 cerrado salvo las familias dudosas (D7). |
 | 2026-10-23 | 1.9 | LFT-105 completado. El selector de ejercicios ya sabe subir, no sólo bajar. |
 | 2026-10-23 | 2.0 | LFT-106 cerrado: su premisa era falsa. Nace LFT-118, que es el arreglo de verdad. |
+| 2026-10-23 | 2.1 | LFT-119 completado. Nace LFT-120: verificación externa por tandas. |
 
 ## 18 · COMPLETADO EN ESTA SESIÓN
 
@@ -833,6 +848,7 @@ mientras lo construimos.
 | **LFT-304** · Llaves duplicadas eliminadas | `src/utils/muscleGroups.ts` |
 | **LFT-105** · Relaciones tipadas + 121 progresiones generadas | `20261023160000_lft105_typed_relations.sql` |
 | **LFT-105** · El selector etiqueta la dirección y ofrece el escalón más cercano | `SwapBottomSheet.tsx` |
+| **LFT-119** · Auditoría de coherencia de las 467 fichas | `scripts/auditar-fichas.mjs` |
 | `rls_report()` + `scripts/rls-check.mjs` para auditar políticas reales | migración + script |
 | Respaldo y restauración verificados | `scripts/snapshot.mjs`, `scripts/restore.mjs` |
 | `start_mesocycle` arranca hoy, no "el próximo lunes" | `20261019180000_start_mesocycle_today.sql` |
@@ -853,7 +869,7 @@ mientras lo construimos.
 | Visibilidad del repo desconocida | D9 | Fundador |
 | No se sabe qué usuarios son de prueba | R9, métricas base | Fundador |
 
-**Sprint actual:** Sprint 3 — Relaciones tipadas. **Siguiente ítem: LFT-118** (familia de movimiento), que debe ir antes de LFT-107 y LFT-108: sin él los candidatos salen con ruido.
+**Sprint actual:** Sprint 3 — Relaciones tipadas. **Siguiente ítem: LFT-120** (verificación externa por tandas) y **LFT-118** (familia de movimiento).
 
 **Pendiente de criterio de Andoni:** quedan 6 familias de casi-duplicados (D7); `Scap Pull-up` / `Scapular Pull-up` es la más clara.
 **Estado de lanzamiento:** no listo. 6 de 13 ítems MUST HAVE pendientes. Completados: LFT-100, LFT-302, LFT-114, LFT-115, LFT-101, LFT-102, LFT-116, LFT-117, LFT-304 y la mitad de LFT-103.
