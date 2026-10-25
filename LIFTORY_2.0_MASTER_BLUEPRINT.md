@@ -1,6 +1,6 @@
 # LIFTORY 2.0 — MASTER PRODUCT & EXECUTION BLUEPRINT
 
-**Versión:** 3.0
+**Versión:** 3.1
 **Última actualización:** 2026-10-23
 **Estado:** En ejecución · Sprint 2
 **Fuente de verdad:** este archivo. Todo trabajo futuro referencia los IDs `LFT-xxx` de aquí.
@@ -200,7 +200,7 @@ Estado inicial: `pendiente` salvo donde se indique.
 | LFT-119 | Datos | Auditoría de coherencia interna de las 467 fichas | Nadie había verificado que los campos no se contradigan entre sí | `scripts/auditar-fichas.mjs` | P1 | M | — | Ingeniería | ✅ **COMPLETADO 2026-10-23.** 467 auditadas. Sólo 3 errores reales: `none`+`wall` juntos, un skullcrusher mal nombrado y un thumbnail faltante. La coherencia interna está sana | Pre-lanzamiento |
 | LFT-120 | Datos | Verificación externa ficha por ficha | La coherencia interna no detecta si la descripción corresponde al movimiento real | Contrastar cada ficha contra fuentes de referencia, por tandas priorizadas por riesgo | P1 | XL | LFT-119 | Fundador + Ing. | Cada ficha contrastada y las divergencias resueltas por criterio de coach | Pre-lanzamiento |
 | LFT-118 | Datos | Grupo de movimiento para filtrar candidatos | El patrón+músculo propone basura: "Leg Extension" como alternativa a la sentadilla con barra | Campo `movement_group` con 21 valores, entre el patrón (8, muy grueso) y el nombre | **P0** | M | — | Ingeniería | ✅ **COMPLETADO 2026-10-24.** 467 clasificados, 0 sin grupo. El embudo de candidatos se estrecha 77-89% y lo que queda es reconociblemente el mismo movimiento | Pre-lanzamiento |
-| LFT-107 | Datos | Relaciones faltantes | Un principiante no puede entrenar | Generar sólo lo defendible sin criterio de coach; dejar hueco donde no | **P0** | XL | LFT-105, LFT-118 | Ingeniería | 🟡 **PARCIAL 2026-10-24.** 132 relaciones escritas, de 452 propuestas. 205 de 323 ejercicios tienen salida. Los 118 restantes requieren verificación caso por caso (LFT-120) | Pre-lanzamiento |
+| LFT-107 | Datos | Relaciones faltantes | Un principiante no puede entrenar | Generar sólo lo defendible, leyendo el cue de cada ficha | **P0** | XL | LFT-105, LFT-118 | Ingeniería | ✅ **COMPLETADO 2026-10-25.** 868 relaciones, 0 incoherencias de dirección, 306 de 315 ejercicios con salida. Los 9 restantes son hueco legítimo documentado | Pre-lanzamiento |
 | LFT-108 | Datos | 72 alternativas sin gimnasio | No se puede entrenar en casa | Mismo mecanismo que LFT-107, eje equipo | **P0** | XL | LFT-105, LFT-101 | Fundador + Ing. | Todo ejercicio con dependencia de gym tiene alternativa aprobada, o queda marcado como irreducible | Pre-lanzamiento |
 | LFT-109 | Datos | Campos nuevos del ejercicio | Falta `technical_demand`, `loading_type`, `suitable_for` | Migración aditiva, sin tocar IDs | P1 | M | LFT-004 | Ingeniería | Columnas creadas; poblado ≥90% en los 346 en uso | Pre-lanzamiento |
 | LFT-110 | Datos | Limpiar columnas muertas | `emotional_barrier_tag` 0%, `video_duration_seconds` 0% | Borrar la primera; poblar la segunda | P2 | S | — | Ingeniería | Sin columnas al 0% de relleno | Post-lanzamiento |
@@ -616,6 +616,23 @@ Conclusión: no es automatizable con la calidad que exige esto. Cada tanda
 clasifica unilateral/bilateral **leyendo el cue uno por uno**, que es como se
 hizo en la tanda 4. Más lento y correcto.
 
+### D15 — Los 9 huecos que quedan · estado: `informativo`
+Nueve ejercicios se quedan sin alternativa **a propósito**, y conviene que estén documentados
+para que nadie los lea como trabajo pendiente:
+
+| Ejercicio | Por qué no tiene sustituto |
+|---|---|
+| `Sled Push` · 131 sets | No hay nada equivalente en el catálogo |
+| `Tall Kneeling Plate Front Raise` · 139 | Es la única elevación frontal |
+| `Kettlebell Curl to Halo` · 105 | Es un combo curl+halo, no un curl |
+| `Sprint` · 297 | Correr a máxima intensidad no tiene equivalente |
+| `Toe Taps on Plate`, `Press Jack` | Acondicionamiento ligero sin pareja |
+| `Dumbbell Rotational Swing` | Rotación balística única en el catálogo |
+| `Plate In-Out to Split Jump`, `Back Roll-Out to Plyo Squat Jump` | Drills de activación: sus propias notas de coach los describen como calentamiento, no como trabajo de potencia |
+
+Un hueco se ve: el botón de cambio no aparece. Eso es honesto. Una relación equivocada es un
+fallo silencioso.
+
 ### D13 — La antirrotación cruza grupos · estado: `pendiente` · nace de LFT-118b
 Las fuentes listan el **acarreo a una mano** como alternativa válida al Pallof Press: un
 suitcase carry es antiflexión lateral, que es la misma cualidad. Pero `SA Farmer Hold` está
@@ -861,6 +878,7 @@ mientras lo construimos.
 | 2026-10-25 | 2.8 | Tanda 6 (grupos chicos): 59 relaciones. 3 duplicados más. 272 de 315 ejercicios con salida. |
 | 2026-10-25 | 2.9 | Tanda 7 (olímpicos): 30 relaciones. `High-Hang Power Clean` reetiquetado a intermedio con fundamento. |
 | 2026-10-25 | 3.0 | Tanda 8 (pliométricos): 49 relaciones. 286 de 315 ejercicios con salida; quedan 29. |
+| 2026-10-25 | 3.1 | Tandas 9-10: 80 relaciones. **LFT-107 cerrado**: 868 relaciones, 306 de 315 con salida, 9 huecos legítimos. |
 
 ## 18 · COMPLETADO EN ESTA SESIÓN
 
@@ -892,6 +910,7 @@ mientras lo construimos.
 | **LFT-103** · 11 duplicados fusionados en total | base de datos |
 | **LFT-120 tanda 7** · 30 relaciones olímpicas · 739 totales | base de datos |
 | **LFT-120 tanda 8** · 49 relaciones pliométricas · 788 totales | base de datos |
+| **LFT-120 tandas 9-10** · 80 relaciones · **868 totales, LFT-107 cerrado** | base de datos |
 | **LFT-103** · 2 duplicados más (Rear Delt Fly, Calf Raise on Leg Press) | base de datos |
 | **LFT-103** · 3 duplicados más fusionados (Box Jump, Preacher Curl, Pull-Apart) | base de datos |
 | `rls_report()` + `scripts/rls-check.mjs` para auditar políticas reales | migración + script |
