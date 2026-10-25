@@ -1,6 +1,6 @@
 # LIFTORY 2.0 — MASTER PRODUCT & EXECUTION BLUEPRINT
 
-**Versión:** 2.5
+**Versión:** 2.6
 **Última actualización:** 2026-10-23
 **Estado:** En ejecución · Sprint 2
 **Fuente de verdad:** este archivo. Todo trabajo futuro referencia los IDs `LFT-xxx` de aquí.
@@ -605,6 +605,17 @@ Ladder ELITE ($44.99) que incluye coach 1:1. En México, Smart Fit cuesta $299�
 **Recomendación:** no bajar el precio; cerrar la brecha de valor con las fases 0–2.
 **Bloquea:** LFT-300, LFT-301.
 
+### D14 — El detector de unilateral no es automatizable · estado: `informativo`
+Al revisar los remos resultó que `KB Gorilla Row`, `Landmine Meadows Row` y
+`Dumbbell Row` son unilaterales y el detector por nombre no los veía. Se probó
+detectarlos leyendo descripción y cue: 88 candidatos con falsos positivos obvios
+(`Dumbbell Bench Press`, `Foam Roll Glutes`). Afinado bajó a 20, todavía con
+`DB Power Clean` dentro, que es con dos mancuernas.
+
+Conclusión: no es automatizable con la calidad que exige esto. Cada tanda
+clasifica unilateral/bilateral **leyendo el cue uno por uno**, que es como se
+hizo en la tanda 4. Más lento y correcto.
+
 ### D13 — La antirrotación cruza grupos · estado: `pendiente` · nace de LFT-118b
 Las fuentes listan el **acarreo a una mano** como alternativa válida al Pallof Press: un
 suitcase carry es antiflexión lateral, que es la misma cualidad. Pero `SA Farmer Hold` está
@@ -845,6 +856,7 @@ mientras lo construimos.
 | 2026-10-24 | 2.3 | Seis comprobaciones cruzadas en el generador, a propuesta de Andoni. Validado contra fuentes. |
 | 2026-10-24 | 2.4 | 132 relaciones escritas tras revisar las 138 candidatas una por una. 3 duplicados más fusionados. |
 | 2026-10-24 | 2.5 | Tandas 1-3 (empuje vertical, aislamiento de brazo/hombro, aislamiento de pierna): 120 relaciones más, verificadas contra fuentes. |
+| 2026-10-25 | 2.6 | Tanda 4 (jalón horizontal): 56 relaciones. Grupo nuevo `pull_straight_arm`. 2 duplicados y 1 ficha contradictoria corregidos. |
 
 ## 18 · COMPLETADO EN ESTA SESIÓN
 
@@ -867,6 +879,8 @@ mientras lo construimos.
 | **LFT-118b** · Seis comprobaciones cruzadas + validación web | `scripts/proponer-relaciones.mjs` |
 | **LFT-107 (parcial)** · 132 relaciones verificadas una por una | `scripts/generar-relaciones.mjs` |
 | **LFT-120 tandas 1-3** · 120 relaciones más · 540 totales, 0 incoherencias | base de datos |
+| **LFT-120 tanda 4** · 56 relaciones de remo · 596 totales, 0 incoherencias | base de datos |
+| **Grupo `pull_straight_arm`** · pullovers y straight-arm pulldown separados de los remos | `20261025100000_grupo_brazo_recto.sql` |
 | **LFT-103** · 2 duplicados más (Rear Delt Fly, Calf Raise on Leg Press) | base de datos |
 | **LFT-103** · 3 duplicados más fusionados (Box Jump, Preacher Curl, Pull-Apart) | base de datos |
 | `rls_report()` + `scripts/rls-check.mjs` para auditar políticas reales | migración + script |
