@@ -1,6 +1,6 @@
 # LIFTORY 2.0 — MASTER PRODUCT & EXECUTION BLUEPRINT
 
-**Versión:** 2.6
+**Versión:** 2.7
 **Última actualización:** 2026-10-23
 **Estado:** En ejecución · Sprint 2
 **Fuente de verdad:** este archivo. Todo trabajo futuro referencia los IDs `LFT-xxx` de aquí.
@@ -857,6 +857,7 @@ mientras lo construimos.
 | 2026-10-24 | 2.4 | 132 relaciones escritas tras revisar las 138 candidatas una por una. 3 duplicados más fusionados. |
 | 2026-10-24 | 2.5 | Tandas 1-3 (empuje vertical, aislamiento de brazo/hombro, aislamiento de pierna): 120 relaciones más, verificadas contra fuentes. |
 | 2026-10-25 | 2.6 | Tanda 4 (jalón horizontal): 56 relaciones. Grupo nuevo `pull_straight_arm`. 2 duplicados y 1 ficha contradictoria corregidos. |
+| 2026-10-25 | 2.7 | Tanda 5 (core): 58 relaciones. Grupo nuevo `core_antilateral`. 2 duplicados más. El grupo de core estaba revuelto y se reordenó entero. |
 
 ## 18 · COMPLETADO EN ESTA SESIÓN
 
@@ -881,6 +882,9 @@ mientras lo construimos.
 | **LFT-120 tandas 1-3** · 120 relaciones más · 540 totales, 0 incoherencias | base de datos |
 | **LFT-120 tanda 4** · 56 relaciones de remo · 596 totales, 0 incoherencias | base de datos |
 | **Grupo `pull_straight_arm`** · pullovers y straight-arm pulldown separados de los remos | `20261025100000_grupo_brazo_recto.sql` |
+| **LFT-120 tanda 5** · 58 relaciones de core · 652 totales, 0 incoherencias | base de datos |
+| **Grupo `core_antilateral`** · planchas laterales y Copenhagen separados de la antiextensión | `20261025110000_grupo_copenhagen.sql` |
+| **`scripts/fusionar.mjs`** · herramienta de fusión reutilizable con verificación de errores | script |
 | **LFT-103** · 2 duplicados más (Rear Delt Fly, Calf Raise on Leg Press) | base de datos |
 | **LFT-103** · 3 duplicados más fusionados (Box Jump, Preacher Curl, Pull-Apart) | base de datos |
 | `rls_report()` + `scripts/rls-check.mjs` para auditar políticas reales | migración + script |
