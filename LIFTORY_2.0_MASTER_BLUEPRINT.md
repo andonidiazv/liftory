@@ -1,6 +1,6 @@
 # LIFTORY 2.0 — MASTER PRODUCT & EXECUTION BLUEPRINT
 
-**Versión:** 2.8
+**Versión:** 2.9
 **Última actualización:** 2026-10-23
 **Estado:** En ejecución · Sprint 2
 **Fuente de verdad:** este archivo. Todo trabajo futuro referencia los IDs `LFT-xxx` de aquí.
@@ -859,6 +859,7 @@ mientras lo construimos.
 | 2026-10-25 | 2.6 | Tanda 4 (jalón horizontal): 56 relaciones. Grupo nuevo `pull_straight_arm`. 2 duplicados y 1 ficha contradictoria corregidos. |
 | 2026-10-25 | 2.7 | Tanda 5 (core): 58 relaciones. Grupo nuevo `core_antilateral`. 2 duplicados más. El grupo de core estaba revuelto y se reordenó entero. |
 | 2026-10-25 | 2.8 | Tanda 6 (grupos chicos): 59 relaciones. 3 duplicados más. 272 de 315 ejercicios con salida. |
+| 2026-10-25 | 2.9 | Tanda 7 (olímpicos): 30 relaciones. `High-Hang Power Clean` reetiquetado a intermedio con fundamento. |
 
 ## 18 · COMPLETADO EN ESTA SESIÓN
 
@@ -888,6 +889,7 @@ mientras lo construimos.
 | **`scripts/fusionar.mjs`** · herramienta de fusión reutilizable con verificación de errores | script |
 | **LFT-120 tanda 6** · 59 relaciones en 8 grupos chicos · 709 totales | base de datos |
 | **LFT-103** · 11 duplicados fusionados en total | base de datos |
+| **LFT-120 tanda 7** · 30 relaciones olímpicas · 739 totales | base de datos |
 | **LFT-103** · 2 duplicados más (Rear Delt Fly, Calf Raise on Leg Press) | base de datos |
 | **LFT-103** · 3 duplicados más fusionados (Box Jump, Preacher Curl, Pull-Apart) | base de datos |
 | `rls_report()` + `scripts/rls-check.mjs` para auditar políticas reales | migración + script |
